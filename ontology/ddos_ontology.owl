@@ -1,0 +1,716 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns="http://security.example.org/ontology/ddos#"
+     xml:base="http://security.example.org/ontology/ddos"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+     
+    <owl:Ontology rdf:about="http://security.example.org/ontology/ddos">
+        <dc:title>DDoS Attack Detection Ontology</dc:title>
+        <dc:description>An ontology for modeling DDoS attacks and network behavior using knowledge graphs</dc:description>
+        <dc:version>1.0</dc:version>
+        <rdfs:comment>This ontology supports semantic-based anomaly detection for DDoS attacks</rdfs:comment>
+    </owl:Ontology>
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes (Entities)
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+    -->
+
+    <!-- Network Infrastructure Classes -->
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#NetworkEntity">
+        <rdfs:label>Network Entity</rdfs:label>
+        <rdfs:comment>Base class for all network entities</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Host">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#NetworkEntity"/>
+        <rdfs:label>Host</rdfs:label>
+        <rdfs:comment>A computing device on the network</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Server">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Host"/>
+        <rdfs:label>Server</rdfs:label>
+        <rdfs:comment>A host that provides services to other hosts</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Client">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Host"/>
+        <rdfs:label>Client</rdfs:label>
+        <rdfs:comment>A host that consumes services</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Router">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#NetworkEntity"/>
+        <rdfs:label>Router</rdfs:label>
+        <rdfs:comment>A device that forwards network packets</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Firewall">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#NetworkEntity"/>
+        <rdfs:label>Firewall</rdfs:label>
+        <rdfs:comment>A network security device that monitors traffic</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#LoadBalancer">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#NetworkEntity"/>
+        <rdfs:label>Load Balancer</rdfs:label>
+        <rdfs:comment>A device that distributes network traffic</rdfs:comment>
+    </owl:Class>
+
+    <!-- Network Addressing Classes -->
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#IPAddress">
+        <rdfs:label>IP Address</rdfs:label>
+        <rdfs:comment>An Internet Protocol address</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#IPv4Address">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:label>IPv4 Address</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#IPv6Address">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:label>IPv6 Address</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Port">
+        <rdfs:label>Port</rdfs:label>
+        <rdfs:comment>A network port number</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Network">
+        <rdfs:label>Network</rdfs:label>
+        <rdfs:comment>A network subnet or range</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#ASN">
+        <rdfs:label>Autonomous System Number</rdfs:label>
+        <rdfs:comment>An autonomous system number for BGP routing</rdfs:comment>
+    </owl:Class>
+
+    <!-- Service Classes -->
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Service">
+        <rdfs:label>Service</rdfs:label>
+        <rdfs:comment>A network service running on a host</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#HTTPService">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Service"/>
+        <rdfs:label>HTTP Service</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#DNSService">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Service"/>
+        <rdfs:label>DNS Service</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#VOIPService">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Service"/>
+        <rdfs:label>VoIP Service</rdfs:label>
+    </owl:Class>
+
+    <!-- Traffic Classes -->
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#TrafficFlow">
+        <rdfs:label>Traffic Flow</rdfs:label>
+        <rdfs:comment>A network traffic flow between two endpoints</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Packet">
+        <rdfs:label>Packet</rdfs:label>
+        <rdfs:comment>A network packet</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Connection">
+        <rdfs:label>Connection</rdfs:label>
+        <rdfs:comment>A network connection session</rdfs:comment>
+    </owl:Class>
+
+    <!-- Attack Classes -->
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Attack">
+        <rdfs:label>Attack</rdfs:label>
+        <rdfs:comment>A cyber attack</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#DDoSAttack">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:label>DDoS Attack</rdfs:label>
+        <rdfs:comment>Distributed Denial of Service attack</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#VolumetricAttack">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#DDoSAttack"/>
+        <rdfs:label>Volumetric Attack</rdfs:label>
+        <rdfs:comment>DDoS attack that overwhelms bandwidth</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#ProtocolAttack">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#DDoSAttack"/>
+        <rdfs:label>Protocol Attack</rdfs:label>
+        <rdfs:comment>DDoS attack exploiting protocol weaknesses</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#ApplicationAttack">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#DDoSAttack"/>
+        <rdfs:label>Application Layer Attack</rdfs:label>
+        <rdfs:comment>DDoS attack targeting application layer</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#AmplificationAttack">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#VolumetricAttack"/>
+        <rdfs:label>Amplification Attack</rdfs:label>
+        <rdfs:comment>DDoS attack using amplification techniques</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#ReflectionAttack">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#VolumetricAttack"/>
+        <rdfs:label>Reflection Attack</rdfs:label>
+        <rdfs:comment>DDoS attack using reflection techniques</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#SYNFlood">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ProtocolAttack"/>
+        <rdfs:label>SYN Flood Attack</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#UDP Flood">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#VolumetricAttack"/>
+        <rdfs:label>UDP Flood Attack</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#HTTPFlood">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ApplicationAttack"/>
+        <rdfs:label>HTTP Flood Attack</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#DNSAmplification">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#AmplificationAttack"/>
+        <rdfs:label>DNS Amplification Attack</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#NTPAmplification">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#AmplificationAttack"/>
+        <rdfs:label>NTP Amplification Attack</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Slowloris">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ApplicationAttack"/>
+        <rdfs:label>Slowloris Attack</rdfs:label>
+    </owl:Class>
+
+    <!-- Attack Infrastructure Classes -->
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Botnet">
+        <rdfs:label>Botnet</rdfs:label>
+        <rdfs:comment>A network of compromised devices used for attacks</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Bot">
+        <rdfs:label>Bot</rdfs:label>
+        <rdfs:comment>A compromised device in a botnet</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#C2Server">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Server"/>
+        <rdfs:label>Command and Control Server</rdfs:label>
+        <rdfs:comment>Server controlling botnet</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Reflector">
+        <rdfs:label>Reflector</rdfs:label>
+        <rdfs:comment>A server used in reflection attacks</rdfs:comment>
+    </owl:Class>
+
+    <!-- Detection Classes -->
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Anomaly">
+        <rdfs:label>Anomaly</rdfs:label>
+        <rdfs:comment>A detected deviation from normal behavior</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#TrafficAnomaly">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Anomaly"/>
+        <rdfs:label>Traffic Anomaly</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#BehaviorAnomaly">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Anomaly"/>
+        <rdfs:label>Behavior Anomaly</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#StructuralAnomaly">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Anomaly"/>
+        <rdfs:label>Structural Anomaly</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Alert">
+        <rdfs:label>Alert</rdfs:label>
+        <rdfs:comment>A security alert generated by the system</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#DetectionRule">
+        <rdfs:label>Detection Rule</rdfs:label>
+        <rdfs:comment>A semantic rule for anomaly detection</rdfs:comment>
+    </owl:Class>
+
+    <!-- Behavior Classes -->
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Behavior">
+        <rdfs:label>Behavior</rdfs:label>
+        <rdfs:comment>Observed behavior pattern</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#NormalBehavior">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Behavior"/>
+        <rdfs:label>Normal Behavior</rdfs:label>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#MaliciousBehavior">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#Behavior"/>
+        <rdfs:label>Malicious Behavior</rdfs:label>
+    </owl:Class>
+
+    <!-- Geographic and Organizational Classes -->
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Geolocation">
+        <rdfs:label>Geolocation</rdfs:label>
+        <rdfs:comment>Geographic location information</rdfs:comment>
+    </owl:Class>
+    
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#Organization">
+        <rdfs:label>Organization</rdfs:label>
+        <rdfs:comment>An organization owning network resources</rdfs:comment>
+    </owl:Class>
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties (Relations)
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+    -->
+
+    <!-- Network Topology Relations -->
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#connectedTo">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#NetworkEntity"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#NetworkEntity"/>
+        <rdfs:label>connected to</rdfs:label>
+        <rdfs:comment>Indicates a network connection between entities</rdfs:comment>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#hasIP">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Host"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:label>has IP address</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#hasPort">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Service"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Port"/>
+        <rdfs:label>has port</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#runsService">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Host"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Service"/>
+        <rdfs:label>runs service</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#belongsTo">
+        <rdfs:label>belongs to</rdfs:label>
+        <rdfs:comment>Indicates ownership or membership</rdfs:comment>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#partOfNetwork">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Network"/>
+        <rdfs:label>part of network</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#hasASN">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ASN"/>
+        <rdfs:label>has ASN</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#locatedIn">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Geolocation"/>
+        <rdfs:label>located in</rdfs:label>
+    </owl:ObjectProperty>
+
+    <!-- Traffic Relations -->
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#sourceIP">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#TrafficFlow"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:label>source IP</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#destinationIP">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#TrafficFlow"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:label>destination IP</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#sourcePort">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#TrafficFlow"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Port"/>
+        <rdfs:label>source port</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#destinationPort">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#TrafficFlow"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Port"/>
+        <rdfs:label>destination port</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#hasPacket">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#TrafficFlow"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Packet"/>
+        <rdfs:label>has packet</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#hasConnection">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#TrafficFlow"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Connection"/>
+        <rdfs:label>has connection</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#targetsService">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#TrafficFlow"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Service"/>
+        <rdfs:label>targets service</rdfs:label>
+    </owl:ObjectProperty>
+
+    <!-- Attack Relations -->
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#targets">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Host"/>
+        <rdfs:label>targets</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#originatesFrom">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:label>originates from</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#usesTechnique">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#DDoSAttack"/>
+        <rdfs:label>uses technique</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#launchedBy">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Botnet"/>
+        <rdfs:label>launched by</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#controlledBy">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Botnet"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#C2Server"/>
+        <rdfs:label>controlled by</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#containsBot">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Botnet"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Bot"/>
+        <rdfs:label>contains bot</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#usesReflector">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ReflectionAttack"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Reflector"/>
+        <rdfs:label>uses reflector</rdfs:label>
+    </owl:ObjectProperty>
+
+    <!-- Detection Relations -->
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#indicates">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Anomaly"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:label>indicates</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#deviatesFrom">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Behavior"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Behavior"/>
+        <rdfs:label>deviates from</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#detectedBy">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Anomaly"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
+        <rdfs:label>detected by</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#generates">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Anomaly"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Alert"/>
+        <rdfs:label>generates</rdfs:label>
+    </owl:ObjectProperty>
+    
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedTo">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Anomaly"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#TrafficFlow"/>
+        <rdfs:label>related to</rdfs:label>
+    </owl:ObjectProperty>
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data Properties (Attributes)
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+    -->
+
+    <!-- Traffic Properties -->
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#byteCount">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#TrafficFlow"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:label>byte count</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#packetCount">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#TrafficFlow"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:label>packet count</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#flowDuration">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#TrafficFlow"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:label>flow duration</rdfs:label>
+        <rdfs:comment>Duration in milliseconds</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#timestamp">
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:label>timestamp</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#protocol">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Packet"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label>protocol</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#packetSize">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Packet"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:label>packet size</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#tcpFlags">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Packet"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label>TCP flags</rdfs:label>
+    </owl:DatatypeProperty>
+
+    <!-- Anomaly Properties -->
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#anomalyScore">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Anomaly"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+        <rdfs:label>anomaly score</rdfs:label>
+        <rdfs:comment>Score between 0 and 1 indicating anomaly severity</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#confidence">
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+        <rdfs:label>confidence</rdfs:label>
+        <rdfs:comment>Confidence level between 0 and 1</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#severity">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Alert"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label>severity</rdfs:label>
+        <rdfs:comment>Alert severity: low, medium, high, critical</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <!-- Host Properties -->
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#isPublic">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Host"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+        <rdfs:label>is public</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#hostname">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Host"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label>hostname</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#ipAddress">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label>IP address</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#portNumber">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Port"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:label>port number</rdfs:label>
+    </owl:DatatypeProperty>
+
+    <!-- Reputation Properties -->
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#reputation">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+        <rdfs:label>reputation</rdfs:label>
+        <rdfs:comment>Reputation score between 0 (malicious) and 1 (trusted)</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#isKnownMalicious">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+        <rdfs:label>is known malicious</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#threatLevel">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label>threat level</rdfs:label>
+        <rdfs:comment>Threat level: none, low, medium, high, critical</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <!-- Geographic Properties -->
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#country">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Geolocation"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label>country</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#city">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Geolocation"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label>city</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#latitude">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Geolocation"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+        <rdfs:label>latitude</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#longitude">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Geolocation"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#float"/>
+        <rdfs:label>longitude</rdfs:label>
+    </owl:DatatypeProperty>
+
+    <!-- ASN Properties -->
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#asnNumber">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ASN"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:label>ASN number</rdfs:label>
+    </owl:DatatypeProperty>
+    
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#asnName">
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ASN"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:label>ASN name</rdfs:label>
+    </owl:DatatypeProperty>
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // SWRL Rules (Semantic Web Rule Language)
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+    -->
+
+    <!-- Rule: High volume traffic to single destination indicates volumetric DDoS -->
+    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#VolumetricDDoSRules">
+        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
+        <rdfs:comment>
+            Rule: If traffic volume to a destination exceeds threshold within time window,
+            create a TrafficAnomaly indicating potential volumetric DDoS attack.
+            
+            SWRL representation:
+            TrafficFlow(?flow) ^ destinationIP(?flow, ?dst) ^ byteCount(?flow, ?bytes) ^
+            greaterThan(?bytes, 1000000000) ^ timestamp(?flow, ?time) ->
+            TrafficAnomaly(?anomaly) ^ relatedTo(?anomaly, ?flow) ^ 
+            indicates(?anomaly, VolumetricAttack) ^ anomalyScore(?anomaly, 0.9)
+        </rdfs:comment>
+    </owl:NamedIndividual>
+
+    <!-- Rule: Distributed source pattern indicates DDoS -->
+    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#DistributedSourceRule">
+        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
+        <rdfs:comment>
+            Rule: If many distinct sources target same destination within short time,
+            create a StructuralAnomaly indicating potential DDoS attack.
+            
+            SWRL representation:
+            TrafficFlow(?flow1) ^ TrafficFlow(?flow2) ^ 
+            destinationIP(?flow1, ?dst) ^ destinationIP(?flow2, ?dst) ^
+            sourceIP(?flow1, ?src1) ^ sourceIP(?flow2, ?src2) ^
+            differentFrom(?src1, ?src2) ^ timestamp(?flow1, ?t1) ^ timestamp(?flow2, ?t2) ->
+            StructuralAnomaly(?anomaly) ^ indicates(?anomaly, DDoSAttack)
+        </rdfs:comment>
+    </owl:NamedIndividual>
+
+    <!-- Rule: Known malicious IP traffic -->
+    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#MaliciousIPRule">
+        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
+        <rdfs:comment>
+            Rule: If traffic originates from known malicious IP, create high severity anomaly.
+            
+            SWRL representation:
+            TrafficFlow(?flow) ^ sourceIP(?flow, ?src) ^ isKnownMalicious(?src, true) ->
+            TrafficAnomaly(?anomaly) ^ relatedTo(?anomaly, ?flow) ^
+            indicates(?anomaly, Attack) ^ severity(?anomaly, "high")
+        </rdfs:comment>
+    </owl:NamedIndividual>
+
+    <!-- Rule: SYN flood detection -->
+    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#SYNFloodRule">
+        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
+        <rdfs:comment>
+            Rule: High ratio of SYN packets without ACK completion indicates SYN flood.
+            
+            SWRL representation:
+            TrafficFlow(?flow) ^ hasPacket(?flow, ?pkt) ^ protocol(?pkt, "TCP") ^
+            tcpFlags(?pkt, "SYN") ^ packetCount(?flow, ?count) ^
+            greaterThan(?count, 10000) ->
+            TrafficAnomaly(?anomaly) ^ indicates(?anomaly, SYNFlood)
+        </rdfs:comment>
+    </owl:NamedIndividual>
+
+    <!-- Rule: DNS amplification detection -->
+    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#DNSAmplificationRule">
+        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
+        <rdfs:comment>
+            Rule: High volume DNS responses to non-DNS servers indicates amplification attack.
+            
+            SWRL representation:
+            TrafficFlow(?flow) ^ destinationPort(?flow, 53) ^
+            byteCount(?flow, ?bytes) ^ greaterThan(?bytes, 100000000) ^
+            not(targetsService(?flow, DNSService)) ->
+            TrafficAnomaly(?anomaly) ^ indicates(?anomaly, DNSAmplification)
+        </rdfs:comment>
+    </owl:NamedIndividual>
+
+</rdf:RDF>

@@ -1,0 +1,16 @@
+\begin{table}[htbp]
+\centering
+\caption{Performance comparison of DDoS detection methods}
+\label{tab:main_results}
+\begin{tabular}{lccccc}
+\toprule
+Method & Accuracy & Precision & Recall & F1 Score & Auc Roc \\
+\midrule
+Knowledge Graph & \textbf{0.9420} & \textbf{0.9380} & \textbf{0.9460} & \textbf{0.9420} & \textbf{0.9670} \\
+Random Forest & 0.8910 & 0.8850 & 0.8980 & 0.8910 & 0.9230 \\
+XGBoost & 0.9120 & 0.9080 & 0.9160 & 0.9120 & 0.9450 \\
+LSTM & 0.8780 & 0.8720 & 0.8850 & 0.8780 & 0.9010 \\
+GCN & 0.9230 & 0.9180 & 0.9280 & 0.9230 & 0.9560 \\
+\bottomrule
+\end{tabular}
+\end{table}

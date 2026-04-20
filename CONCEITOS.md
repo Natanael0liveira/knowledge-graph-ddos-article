@@ -8,6 +8,11 @@
 5. [O que é o Código Python?](#5-o-que-é-o-código-python)
 6. [Relevância Atual do Trabalho](#6-relevância-atual-do-trabalho)
 7. [Por que isso é Inovador e Relevante para Pesquisa?](#7-por-que-isso-é-inovador-e-relevante-para-pesquisa)
+8. [Ataques DNS de Camada 7](#8-ataques-dns-de-camada-7)
+
+---
+
+> **Documento de Referência**: Este arquivo complementa o [`README.md`](README.md) e a [`ESTRUTURA_DO_ARTIGO.md`](ESTRUTURA_DO_ARTIGO.md). Para uma visão geral do projeto, consulte o README.
 
 ---
 
@@ -781,4 +786,85 @@ Há poucos trabalhos acadêmicos que:
 
 ---
 
-*Documento criado para explicar os fundamentos do trabalho de pesquisa*
+## 8. Ataques DNS de Camada 7
+
+### Visão Geral
+
+O sistema agora inclui detecção completa de ataques DNS de Camada 7, que exploram a infraestrutura DNS para negação de serviço.
+
+### Tipos de Ataques DNS
+
+| Tipo de Ataque | Descrição | Indicadores |
+|----------------|-----------|-------------|
+| **QName Randomization** | Subdomínios aleatórios para bypass de cache | Alta entropia, subdomínios únicos |
+| **NXDOMAIN Flood** | Inundação de consultas a domínios inexistentes | Alto índice NXDOMAIN, sobrecarga de cache |
+| **DNS Water Torture** | Ataque lento e persistente ("slow-drip") | Taxa constante baixa, muitos subdomínios |
+| **DNS Amplification** | Amplificação de resposta DNS | Fator de amplificação alto, consultas ANY |
+| **DNS Tunneling** | Exfiltração de dados via DNS | Subdomínios longos, consultas TXT |
+| **Phantom Domain** | Domínios com servidores autoritativos lentos | Alto tempo de resposta, timeouts |
+
+### Classes DNS na Ontologia
+
+```turtle
+# Classes DNS
+:DNSQuery rdf:type owl:Class .
+:DNSDomain rdf:type owl:Class .
+:DNSServer rdf:type owl:Class .
+:DNSQueryPattern rdf:type owl:Class .
+
+# Ataques DNS
+:QNameRandomization rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+:NXDOMAINFlood rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+:DNSWaterTorture rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+:DNSAmplification rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+:DNSTunneling rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+:PhantomDomainAttack rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+
+# Mitigações DNS
+:DNSFirewall rdf:type owl:Class .
+:ResponseRateLimiting rdf:type owl:Class .
+```
+
+### Regras de Detecção DNS
+
+```python
+# Regra 1: Alta entropia de subdomínio
+def detect_qname_randomization(query):
+    """
+    SE entropia > 3.5 E subdomínio > 10 chars
+    ENTÃO QNameRandomization suspeito
+    """
+
+# Regra 2: Alto índice NXDOMAIN
+def detect_nxdomain_flood(queries):
+    """
+    SE nxdomain_ratio > 0.7 E múltiplos domínios inexistentes
+    ENTÃO NXDOMAINFlood detectado
+    """
+
+# Regra 3: Taxa constante baixa (Water Torture)
+def detect_dns_water_torture(queries):
+    """
+    SE QPS moderado E muitos subdomínios únicos E steadiness > 0.5
+    ENTÃO DNSWaterTorture detectado
+    """
+```
+
+### Métricas DNS
+
+```python
+# Métricas calculadas por domínio
+domain_metrics = {
+    'query_count': int,           # Total de consultas
+    'queries_per_second': float,  # Taxa de consultas
+    'unique_subdomains': int,     # Subdomínios únicos
+    'nxdomain_ratio': float,      # Proporção NXDOMAIN
+    'avg_response_time': float,   # Tempo médio de resposta
+    'amplification_factor': float # Fator de amplificação
+}
+```
+
+---
+
+*Documento criado para explicar os fundamentos do trabalho de pesquisa*  
+*Última atualização: Abril 2026*

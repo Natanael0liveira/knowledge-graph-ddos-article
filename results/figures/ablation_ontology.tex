@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\caption{Ontology Ablation Study Results}
+\label{tab:ablation_ontology}
+\begin{tabular}{lcccc}
+\toprule
+Component Removed & F1 Score & Accuracy & Drop (\%) & Importance \\
+\midrule
+http_entities & 0.8840 & 0.8920 & 5.13 & Critical \\
+dns_entities & 0.9040 & 0.9120 & 3.03 & Important \\
+session_entities & 0.8590 & 0.8670 & 8.28 & Critical \\
+attack_entities & 0.8940 & 0.9020 & 4.07 & Important \\
+mitigation_entities & 0.9240 & 0.9320 & 1.07 & Moderate \\
+behavior_entities & 0.8780 & 0.8860 & 6.03 & Critical \\
+\bottomrule
+\end{tabular}
+\end{table}

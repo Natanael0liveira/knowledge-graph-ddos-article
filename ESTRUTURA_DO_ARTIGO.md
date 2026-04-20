@@ -2,6 +2,8 @@
 
 ## Estrutura do Artigo e Guia de Pesquisa
 
+> **Documento de Referência**: Este arquivo define a estrutura do artigo acadêmico. Para conceitos fundamentais, consulte [`CONCEITOS.md`](CONCEITOS.md). Para visão geral, consulte [`README.md`](README.md).
+
 ---
 
 ## 1. Resumo (150-200 palavras)
@@ -84,6 +86,27 @@ Definição 1 (Grafo de Conhecimento): Um grafo de conhecimento KG = (E, R, P) o
 | Amplificação | Usa refletores | Spoofing de origem |
 | Multi-vetor | Combina técnicas | Correlação necessária |
 
+#### Ataques HTTP de Camada 7
+
+| Tipo | Descrição | Indicadores |
+|------|-----------|-------------|
+| HTTP Flood | Múltiplas requisições HTTP | Alto volume de requests por sessão |
+| Login Flood | Tentativas de autenticação | Muitas falhas de login por identidade |
+| Slow Request | Requisições lentas (Slowloris, RUDY) | Conexões lentas, headers incompletos |
+| API Abuse | Abuso de endpoints de API | Alto volume em endpoints caros |
+| Scraping | Coleta automatizada de dados | Padrão bot-like, baixa diversidade |
+
+#### Ataques DNS de Camada 7
+
+| Tipo | Descrição | Indicadores |
+|------|-----------|-------------|
+| QName Randomization | Subdomínios aleatórios | Alta entropia, subdomínios únicos |
+| NXDOMAIN Flood | Consultas a domínios inexistentes | Alto índice NXDOMAIN |
+| DNS Water Torture | Ataque lento persistente | Taxa constante baixa, muitos subdomínios |
+| DNS Amplification | Amplificação de resposta | Fator de amplificação alto |
+| DNS Tunneling | Exfiltração via DNS | Subdomínios longos, consultas TXT |
+| Phantom Domain | Servidores autoritativos lentos | Alto tempo de resposta, timeouts |
+
 ### 3.4 Trabalhos Relacionados
 
 **Segurança de Redes Baseada em Grafos:**
@@ -153,14 +176,54 @@ Definição 1 (Grafo de Conhecimento): Um grafo de conhecimento KG = (E, R, P) o
 :TrafficFlow rdf:type owl:Class .
 :Packet rdf:type owl:Class .
 
+# HTTP Layer 7 Classes
+:HTTPRequest rdf:type owl:Class .
+:Endpoint rdf:type owl:Class .
+:ApplicationSession rdf:type owl:Class .
+:SessionToken rdf:type owl:Class .
+:HTTPHeader rdf:type owl:Class .
+
+# DNS Layer 7 Classes
+:DNSQuery rdf:type owl:Class .
+:DNSDomain rdf:type owl:Class .
+:DNSServer rdf:type owl:Class .
+:DNSSubdomain rdf:type owl:Class .
+:DNSQueryPattern rdf:type owl:Class .
+
+# Attack Classes
 :Attack rdf:type owl:Class .
 :DDoSAttack rdf:type owl:Class ; rdfs:subClassOf :Attack .
 :VolumetricAttack rdf:type owl:Class ; rdfs:subClassOf :DDoSAttack .
 :ProtocolAttack rdf:type owl:Class ; rdfs:subClassOf :DDoSAttack .
 :ApplicationAttack rdf:type owl:Class ; rdfs:subClassOf :DDoSAttack .
 
-:Anomaly rdf:type owl:Class .
+# HTTP Attack Types
+:HTTPFlood rdf:type owl:Class ; rdfs:subClassOf :ApplicationAttack .
+:LoginFlood rdf:type owl:Class ; rdfs:subClassOf :ApplicationAttack .
+:SlowRequestAttack rdf:type owl:Class ; rdfs:subClassOf :ApplicationAttack .
+:APIAttack rdf:type owl:Class ; rdfs:subClassOf :ApplicationAttack .
+
+# DNS Attack Types
+:DNSAttack rdf:type owl:Class ; rdfs:subClassOf :DDoSAttack .
+:QNameRandomization rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+:NXDOMAINFlood rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+:DNSWaterTorture rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+:DNSAmplification rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+:DNSTunneling rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+:PhantomDomainAttack rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
+
+# Behavior Classes
 :Behavior rdf:type owl:Class .
+:UserBehavior rdf:type owl:Class ; rdfs:subClassOf :Behavior .
+:BotBehavior rdf:type owl:Class ; rdfs:subClassOf :Behavior .
+:Anomaly rdf:type owl:Class .
+
+# Mitigation Classes
+:Mitigation rdf:type owl:Class .
+:WAFRule rdf:type owl:Class ; rdfs:subClassOf :Mitigation .
+:RateLimitPolicy rdf:type owl:Class ; rdfs:subClassOf :Mitigation .
+:DNSFirewall rdf:type owl:Class ; rdfs:subClassOf :Mitigation .
+:ResponseRateLimiting rdf:type owl:Class ; rdfs:subClassOf :Mitigation .
 ```
 
 #### Propriedades de Objeto (Relações)
@@ -535,9 +598,9 @@ projeto/
 
 ## Próximos Passos para Desenvolvimento do Artigo
 
-1. [ ] Conclusão da revisão de literatura
-2. [ ] Formalização da ontologia em OWL
-3. [ ] Implementação do protótipo
+1. [x] Conclusão da revisão de literatura
+2. [x] Formalização da ontologia em OWL
+3. [x] Implementação do protótipo
 4. [ ] Aquisição e pré-processamento de dataset
 5. [ ] Avaliação experimental
 6. [ ] Análise de resultados e visualização
@@ -546,5 +609,47 @@ projeto/
 
 ---
 
-*Documento criado para fins de planejamento de pesquisa*
+## Requisitos para Qualis A2/A3
+
+Para atingir nível Qualis A2/A3, o artigo deve incluir:
+
+### Contribuições Claras (Numeradas)
+
+```
+As principais contribuições deste trabalho são:
+1. Uma ontologia OWL formal para modelagem de ataques DDoS 
+   de Camada 7, alinhada com STIX 2.1 e MITRE ATT&CK.
+2. Um framework de detecção baseado em grafos de conhecimento 
+   com raciocínio semântico explicável.
+3. Uma metodologia de avaliação experimental abrangente 
+   usando dataset público e múltiplos baselines.
+4. Uma análise comparativa demonstrando superioridade sobre 
+   métodos tradicionais em precisão e explicabilidade.
+```
+
+### Validação Experimental Obrigatória
+
+| Componente | Requisito |
+|------------|-----------|
+| Dataset | Público (CIC-DDoS2019, CAIDA) |
+| Baselines | 5+ métodos (RF, XGBoost, LSTM, GCN, Autoencoder) |
+| Validação | Cruzada 10-fold |
+| Métricas | Accuracy, Precision, Recall, F1, AUC-ROC, FPR |
+| Análise | Testes estatísticos (t-test, ANOVA) |
+| Ablação | Impacto de cada componente |
+
+### Veículos-Alvo
+
+| Veículo | Qualis | Tipo | Aceitação |
+|---------|--------|------|-----------|
+| Computers & Security | A2 | Periódico | ~30% |
+| J. Network and Computer Applications | A2 | Periódico | ~25% |
+| IEEE ICC | A2 | Conferência | ~35% |
+| Digital Investigation | A3 | Periódico | ~35% |
+
+> **Ver detalhes completos em**: [`MELHORIAS_QUALIS_A2A3.md`](MELHORIAS_QUALIS_A2A3.md)
+
+---
+
+*Documento criado para fins de planejamento de pesquisa*  
 *Última atualização: Abril 2026*

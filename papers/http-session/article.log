@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.12)  12 MAY 2026 12:42
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.12)  12 MAY 2026 13:18
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -902,10 +902,10 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 
 
 {/usr/local/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-[2] [3] [4] [5] [6]
+[2] [3] [4] [5] [6] [7]
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <12> not available
 (Font)              Font shape `T1/cmtt/m/n' tried instead on input line 180.
- [7]
+
 Overfull \hbox (15.05942pt too wide) in paragraph at lines 182--183
 []\T1/cmr/m/n/12 liga uma ses-são a um per-fil com-por-ta-men-tal (\T1/cmtt/m/n
 /12 UserBehavior
@@ -962,11 +962,11 @@ Package rerunfilecheck Info: File `article.out' has not changed.
 Here is how much of TeX's memory you used:
  25647 strings out of 469006
  496861 string characters out of 5454813
- 910208 words of memory out of 5000000
+ 909208 words of memory out of 5000000
  53818 multiletter control sequences out of 15000+600000
  643779 words of font info for 82 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 84i,9n,104p,2193b,828s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,9n,104p,2177b,828s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/natanaeloliveira/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour
 /jknappen/ec/tcrm1200.600pk> </Users/natanaeloliveira/Library/texlive/2026basic
 /texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1200.600pk> </Users/natanaeloliveira
@@ -991,9 +991,9 @@ r12.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm
 cm/cmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfo
 nts/cm/cmsy7.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/am
 sfonts/cm/cmsy8.pfb>
-Output written on article.pdf (13 pages, 225755 bytes).
+Output written on article.pdf (13 pages, 223392 bytes).
 PDF statistics:
- 798 PDF objects out of 1000 (max. 8388607)
+ 790 PDF objects out of 1000 (max. 8388607)
  352 compressed objects within 4 object streams
  83 named destinations out of 1000 (max. 500000)
  277 words of extra memory for PDF output out of 10000 (max. 10000000)

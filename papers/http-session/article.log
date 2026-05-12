@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.12)  12 MAY 2026 13:18
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.12)  12 MAY 2026 13:57
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -902,7 +902,19 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 
 
 {/usr/local/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-[2] [3] [4] [5] [6] [7]
+[2] [3] [4]
+Overfull \hbox (2.50151pt too wide) in paragraph at lines 102--103
+[]\T1/cmr/m/n/12 Uma on-to-lo-gia OWL para de-tec-ção de cam-pa-nhas co-or-de-n
+a-das de DDoS
+ []
+
+
+Overfull \hbox (0.76987pt too wide) in paragraph at lines 102--103
+\T1/cmr/m/n/12 das para iden-ti-dade do cli-ente (\T1/cmtt/m/n/12 hasIdentity\T
+1/cmr/m/n/12 ), end-po-int alvo (\T1/cmtt/m/n/12 targets\T1/cmr/m/n/12 ),
+ []
+
+[5] [6] [7]
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <12> not available
 (Font)              Font shape `T1/cmtt/m/n' tried instead on input line 180.
 
@@ -912,9 +924,10 @@ Overfull \hbox (15.05942pt too wide) in paragraph at lines 182--183
  []
 
 
-Overfull \hbox (84.78674pt too wide) in paragraph at lines 187--188
-[]\T1/cmr/m/n/12 Três es-pe-ci-a-li-za-ções de ata-que são de-fi-ni-das como su
-b-clas-ses de \T1/cmtt/m/n/12 ApplicationLayerAttack\T1/cmr/m/n/12 :
+Overfull \hbox (8.7332pt too wide) in paragraph at lines 187--188
+\T1/cmr/m/n/12 de \T1/cmtt/m/n/12 ApplicationLayerAttack\T1/cmr/m/n/12 : \T1/cm
+tt/m/n/12 CoordinatedHTTPFlood\T1/cmr/m/n/12 , \T1/cmtt/m/n/12 CredentialStuffi
+ng
  []
 
 
@@ -932,45 +945,63 @@ t/m/n/12 hasIdentity\T1/cmr/m/n/12 , \T1/cmtt/m/n/12 targets\T1/cmr/m/n/12 , \T
 
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
 put line 202.
-[8]
-Overfull \hbox (13.30466pt too wide) in paragraph at lines 227--228
-[]\T1/cmr/bx/n/12 Login Flood\T1/cmr/m/n/12 : existe uma iden-ti-dade $\OML/cmm
-/m/it/12 i$ \T1/cmr/m/n/12 li-gada a múl-ti-plas ses-sões $\OML/cmm/m/it/12 s[]
-; [] ; s[]$
+[8] [9]
+Overfull \hbox (4.69395pt too wide) in paragraph at lines 229--230
+\T1/cmr/m/n/12 sões com \T1/cmtt/m/n/12 hasIdentity \T1/cmr/m/n/12 apon-tando p
+ara di-fe-ren-tes \T1/cmr/m/it/12 to-kens \T1/cmr/m/n/12 mas \T1/cmtt/m/n/12 re
+latedTo
  []
 
-[9]
-Overfull \hbox (2.38045pt too wide) in paragraph at lines 257--258
-[]\T1/cmr/bx/n/12 Matriz de com-por-ta-mento\T1/cmr/m/n/12 : apro-xi-ma-ção de 
-Bha-rathi e Su-ka-nesh [[]],
+
+Overfull \hbox (19.65706pt too wide) in paragraph at lines 229--230
+\T1/cmr/m/n/12 via \T1/cmr/m/it/12 fin-ger-print \T1/cmr/m/n/12 TLS ou pre-fixo
+ de IP, to-das atin-gindo o mesmo \T1/cmtt/m/n/12 APIEndpoint
  []
 
-[10] [11] (./article.bbl
+
+Overfull \hbox (9.02965pt too wide) in paragraph at lines 250--251
+[]$\OML/cmm/m/it/12 K$ \T1/cmr/m/n/12 ori-gens dis-tin-tas ($\OT1/cmr/m/n/12 10
+ \OMS/cmsy/m/n/12 ^^T \OML/cmm/m/it/12 K \OMS/cmsy/m/n/12 ^^T
+ []
+
+
+Overfull \hbox (1.2954pt too wide) in paragraph at lines 251--252
+[]$\OML/cmm/m/it/12 K \OMS/cmsy/m/n/12 ^^U \OT1/cmr/m/n/12 1000$ \T1/cmr/m/n/12
+ ori-gens dis-tin-tas em cam-
+ []
+
+[10]
+Overfull \hbox (6.29619pt too wide) in paragraph at lines 270--271
+[]\T1/cmr/bx/n/12 Matriz de com-por-ta-mento \T1/cmr/m/n/12 (apro-xi-ma-ção de 
+Bha-rathi e Su-ka-nesh [[]]):
+ []
+
+[11] [12] [13] (./article.bbl
 Underfull \hbox (badness 1168) in paragraph at lines 9--14
 \T1/cmr/m/n/12 of-service at-tack, In-ter-na-ti-o-nal Jour-nal of Com-mu-ni-ca-
 tion Sys-tems
  []
 
-[12]) [13] (./article.aux)
+[14]) [15] (./article.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
 Package rerunfilecheck Info: File `article.out' has not changed.
-(rerunfilecheck)             Checksum: 92566DE20C529F36C4721D3DC253C0CA;6333.
+(rerunfilecheck)             Checksum: 5B994BE8595A61DE623A0A8C1A7A6165;6833.
  ) 
 Here is how much of TeX's memory you used:
- 25647 strings out of 469006
- 496861 string characters out of 5454813
- 909208 words of memory out of 5000000
- 53818 multiletter control sequences out of 15000+600000
+ 25660 strings out of 469006
+ 496992 string characters out of 5454813
+ 909290 words of memory out of 5000000
+ 53821 multiletter control sequences out of 15000+600000
  643779 words of font info for 82 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 84i,9n,104p,2177b,828s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,9n,104p,2297b,828s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/natanaeloliveira/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour
 /jknappen/ec/tcrm1200.600pk> </Users/natanaeloliveira/Library/texlive/2026basic
-/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1200.600pk> </Users/natanaeloliveira
-/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbi1200.600pk
+/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbi1200.600pk> </Users/natanaeloliveira
+/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1200.600pk
 > </Users/natanaeloliveira/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/
 jknappen/ec/ectt1000.600pk> </Users/natanaeloliveira/Library/texlive/2026basic/
 texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1000.600pk> </Users/natanaeloliveira/
@@ -991,10 +1022,10 @@ r12.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm
 cm/cmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfo
 nts/cm/cmsy7.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/am
 sfonts/cm/cmsy8.pfb>
-Output written on article.pdf (13 pages, 223392 bytes).
+Output written on article.pdf (15 pages, 236497 bytes).
 PDF statistics:
- 790 PDF objects out of 1000 (max. 8388607)
- 352 compressed objects within 4 object streams
- 83 named destinations out of 1000 (max. 500000)
- 277 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 829 PDF objects out of 1000 (max. 8388607)
+ 374 compressed objects within 4 object streams
+ 93 named destinations out of 1000 (max. 500000)
+ 293 words of extra memory for PDF output out of 10000 (max. 10000000)
 

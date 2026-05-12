@@ -47,7 +47,7 @@
 
 \begin{abstract}
 %% 200-300 palavras
-Ataques DDoS de Camada 7 sobre HTTP (HTTP Flood, Login Flood e abuso de API) imitam o comportamento de usuários legítimos a baixas taxas de tráfego, derrotando defesas baseadas em assinaturas e em limiares estatísticos. Uma meta-análise recente de setenta e cinco estudos de detecção mostra que quarenta e sete por cento dos métodos usam \emph{features} agregadas de sessão (taxa de requisições, duração, contagem de operações), mas nenhum trata a sessão como entidade semântica raciocinável: sessões permanecem aprisionadas em vetores numéricos planos~\cite{odusami2020survey}. A consequência prática é dupla: detectores não conseguem articular \emph{por que} uma sessão é suspeita, e perdem a estrutura \emph{cross-session} que define campanhas distribuídas (\emph{credential stuffing} coordenado, \emph{scraping} orquestrado, abuso de API por múltiplas identidades), nas quais cada sessão individual parece normal mas o conjunto revela a campanha. Grafos de conhecimento em cibersegurança, por sua vez, têm sido construídos estaticamente a partir de texto de inteligência de ameaças, não como mecanismo de detecção em tempo de execução~\cite{jia2018practical,liu2022recent,bonagiri2024practical}. Este artigo propõe um arcabouço baseado em grafos de conhecimento que modela a sessão HTTP como objeto semântico de primeira classe, ligando-a por relações tipadas à identidade do cliente, ao \emph{endpoint} alvo, a sinais comportamentais e a mitigações aplicáveis. Apresentamos uma ontologia OWL com três especializações de ataque HTTP (HTTP Flood, Login Flood e abuso de API), alinhada a STIX 2.1 e MITRE ATT\&CK. Eventos de tráfego são elevados em tempo de execução a um grafo de conhecimento cujas regras semânticas produzem veredictos acompanhados de cadeias de evidência que atravessam múltiplas sessões. A avaliação empírica isola, por ablação, o ganho do raciocínio semântico em nível de sessão em relação a detectores que consomem as mesmas \emph{features} de sessão na forma agregada. A implementação de referência é disponibilizada como código aberto.
+\textbf{Campanhas coordenadas} de DDoS de Camada 7 sobre HTTP (HTTP Flood distribuído, \emph{credential stuffing}, abuso de API por múltiplas identidades) imitam o comportamento de usuários legítimos a baixas taxas de tráfego e passam por defesas baseadas em assinaturas, limiares estatísticos e quotas por IP, sessão ou \emph{token}. O sinal de ataque não está em nenhuma sessão isolada; está na correlação estrutural entre sessões que compartilham alvo, \emph{fingerprint} TLS, prefixo de IP ou identidade reaproveitada. Uma meta-análise recente de setenta e cinco estudos mostra que quarenta e sete por cento dos detectores usam \emph{features} agregadas de sessão (taxa de requisições, duração, contagem de operações), mas nenhum trata a sessão como entidade semântica raciocinável: ela é reduzida a um vetor numérico antes de chegar ao classificador~\cite{odusami2020survey}. O detector não consegue articular \emph{por que} uma sessão é suspeita; e perde a estrutura \emph{cross-session} que define a campanha. Grafos de conhecimento em cibersegurança, por sua vez, têm sido construídos estaticamente a partir de texto de inteligência de ameaças, não como mecanismo de detecção em tempo de execução~\cite{jia2018practical,liu2022recent,bonagiri2024practical}. Este artigo propõe um arcabouço de grafos de conhecimento que modela a sessão HTTP como objeto semântico de primeira classe, ligando-a por relações tipadas à identidade do cliente, ao endpoint alvo, a sinais comportamentais e a mitigações aplicáveis. Apresentamos uma ontologia OWL com três especializações de ataque coordenado (HTTP Flood distribuído, \emph{credential stuffing}, abuso de API por múltiplas identidades), alinhada a STIX 2.1 e MITRE ATT\&CK. Requisições são elevadas em tempo de execução a um grafo cujas regras semânticas produzem veredictos com cadeias de evidência atravessando múltiplas sessões. A avaliação empírica é parametrizada pelo \emph{grau de distribuição} da campanha e isola, por ablação, o ganho do raciocínio em nível de sessão em relação a detectores que consomem as mesmas \emph{features} de sessão na forma agregada. A implementação é disponibilizada como código aberto.
 
 \end{abstract}
 
@@ -69,18 +69,18 @@ Grafo de Conhecimento \sep Detecção de DDoS \sep Camada 7 HTTP \sep Sessão co
 
 Ataques de Negação de Serviço Distribuída (DDoS) na camada de aplicação mudaram qualitativamente na última década. O levantamento mais recente reporta que o volume de ataques de Camada 7 dobra a cada trimestre e documenta um incidente que sustentou 292.000 requisições por segundo durante treze dias~\cite{tripathi2021application}. Pesquisas com operadores corroboram a tendência: em 2016, noventa e três por cento dos operadores de rede relataram observar DDoS na camada de aplicação, contra oitenta e seis por cento em 2013~\cite{odusami2020survey}.
 
-Sobre HTTP, esses ataques atacam diretamente a lógica da aplicação: \emph{endpoints} de autenticação (Login Flood), \emph{endpoints} de API de busca ou pesquisa (abuso de API), e \emph{endpoints} de processamento custoso (HTTP Flood contra rotas com I/O ou computação pesada). Cada requisição individual é, por construção, indistinguível de uma requisição legítima de um usuário real: mesma estrutura, mesmos cabeçalhos, frequentemente até mesma frequência. O sinal de ataque mora não na requisição isolada, mas no padrão de uso da sessão: quantas falhas de \emph{login} em quantas identidades, qual a entropia das rotas visitadas, quão consistente é o \emph{fingerprint} do cliente, quão repetitivo é o ritmo de chamadas à API~\cite{kemp2023approach,bharathi2012pca,fernandes2015autonomous}.
+Sobre HTTP, esses ataques atingem a lógica da aplicação: endpoints de autenticação (Login Flood), endpoints de API (abuso de API) e endpoints de processamento custoso (HTTP Flood contra rotas com I/O ou computação pesada). As variantes mais danosas e mais difíceis de detectar são as \textbf{coordenadas}: operações em que múltiplas sessões, frequentemente vindas de centenas ou milhares de origens distintas, atacam o mesmo endpoint sob direção comum. São casos como \emph{credential stuffing} contra \texttt{/api/auth/login}, abuso de API distribuído por uma frota de \emph{tokens}, ou HTTP Flood de baixa intensidade por botnet. Vista isoladamente, cada requisição é indistinguível de uma legítima: mesma estrutura, mesmos cabeçalhos, muitas vezes até mesma frequência. O sinal de ataque mora no padrão de uso da sessão e, mais ainda, no padrão estrutural entre sessões: quantas falhas de login em quantas identidades, qual a entropia das rotas visitadas, quão consistente é o \emph{fingerprint} do cliente, quão repetitivo é o ritmo de chamadas à API~\cite{kemp2023approach,bharathi2012pca,fernandes2015autonomous}.
 
-A literatura de detecção reconhece isso pelo menos em forma. Em uma meta-análise de setenta e cinco estudos de detecção de DDoS de Camada 7~\cite{odusami2020survey}, quarenta e sete por cento dos métodos usam \emph{features} extraídas de sessões (taxa de requisições por usuário, duração média, contagem de operações por identidade). Mas em todos esses métodos a sessão é \emph{aplainada} num vetor numérico antes de chegar ao classificador. Detectores baseados em aprendizado de máquina recebem ponteiros para estatísticas de sessão, não a sessão em si, e portanto não conseguem raciocinar sobre relações entre sessões, sobre identidades que aparecem em múltiplas sessões, ou sobre padrões que só emergem quando duas sessões aparentemente normais são analisadas em conjunto. A consequência operacional é direta: detectores ML modernos para HTTP de Camada 7 reportam AUC (área sob a curva ROC) competitivo, mas seus autores admitem explicitamente que a metodologia não foi validada em tempo real e que o resultado é binário, sem explicação ontológica das decisões~\cite{kemp2023approach}.
+A literatura de detecção reconhece isso, ao menos em parte. A meta-análise de Odusami et al.~\cite{odusami2020survey} sobre setenta e cinco estudos mostra que quarenta e sete por cento dos métodos usam features extraídas de sessões (taxa de requisições por usuário, duração média, contagem de operações por identidade). Mas em todos esses métodos a sessão é reduzida a um vetor numérico antes de chegar ao classificador. O detector vê estatísticas, não vê a sessão. Não consegue, portanto, raciocinar sobre relações entre sessões, sobre identidades reaproveitadas, ou sobre padrões que só emergem quando duas sessões individualmente normais são analisadas em conjunto. Na prática: detectores ML para HTTP de Camada 7 reportam AUC (área sob a curva ROC) competitivo, mas seus autores admitem que a metodologia não foi validada em tempo real e que o resultado é binário, sem explicação ontológica~\cite{kemp2023approach}.
 
 \subsection{Definição do Problema}
 
-Este trabalho aborda a detecção de DDoS de Camada 7 sobre HTTP como um problema de \emph{representação semântica de sessão}, em vez de engenharia de \emph{features} sobre estatísticas de sessão. O desafio central é que a sessão HTTP, unidade natural de comportamento de cliente contra a aplicação, é simultaneamente o objeto que detectores existentes mais sumarizam e o objeto que menos modelam semanticamente. Três deficiências do estado da arte motivam nossa abordagem:
+Tratamos a detecção de DDoS de Camada 7 sobre HTTP como um problema de \emph{representação semântica de sessão}, e não de engenharia de features sobre estatísticas de sessão. A sessão HTTP é a unidade natural de comportamento de um cliente contra a aplicação. Também é o objeto que detectores existentes mais sumarizam e menos modelam semanticamente. Três deficiências do estado da arte motivam nossa abordagem:
 
 \begin{enumerate}
-    \item \textbf{Sessão como \emph{feature aggregate}, não como entidade.} A meta-análise de Odusami et al.~\cite{odusami2020survey} mostra que quarenta e sete por cento dos métodos de detecção de DDoS de Camada 7 usam estatísticas agregadas de sessão (taxa de requisições, duração, contagem de operações por identidade), mas nenhum dos setenta e cinco estudos catalogados trata a sessão como entidade semântica raciocinável com identidade, alvo, comportamento e relações tipadas. A consequência é que \emph{features} de sessão tornam-se números num vetor, perdendo a estrutura que torna a sessão útil em primeiro lugar: o fato de que ela conecta múltiplas requisições, uma identidade, um \emph{endpoint} alvo, e um histórico observável.
-    \item \textbf{Ausência de explicação ontológica.} Detectores baseados em aprendizado de máquina para ataques de Camada 7 HTTP reportam métricas competitivas mas emitem rótulos binários sem fundamentação semântica. Os autores de um dos trabalhos mais recentes~\cite{kemp2023approach} notam explicitamente que sua metodologia não foi validada em tempo real e não produz explicação das decisões. Para um analista de segurança decidindo entre bloquear um cliente, aplicar um desafio (\emph{challenge}), ou degradar uma sessão, ``isto parece um ataque'' não basta: é preciso saber qual \emph{endpoint} está sob estresse, qual identidade está envolvida e qual sinal sustenta a hipótese.
-    \item \textbf{Ausência de raciocínio \emph{cross-session}.} Raciocínio \emph{cross-session} é a capacidade de relacionar múltiplas sessões através de identificadores compartilhados do cliente (identidade, \emph{fingerprint}, prefixo de IP), em vez de tratar cada sessão como caso independente. Campanhas distribuídas de Camada 7 demandam exatamente esse tipo de raciocínio: \emph{credential stuffing} (tentativas massivas de autenticação com pares usuário/senha vazados em outros serviços, distribuídas por múltiplas sessões para evadir limitadores baseados em taxa) contra \emph{endpoints} de autenticação, \emph{scraping} orquestrado (coleta automatizada de conteúdo coordenada entre múltiplos clientes que se mascaram como usuários distintos, contornando limitadores por IP individual) por múltiplas identidades, e abuso de API por uma frota de \emph{tokens}. Todas exibem assinatura fraca em qualquer sessão isolada, mas estrutura clara quando sessões são analisadas em conjunto pelo cliente compartilhado, pela identidade reaproveitada ou pelo \emph{fingerprint} TLS comum (assinatura computada a partir do \emph{handshake} TLS do cliente, capaz de identificar o software cliente mesmo quando o IP de origem muda; implementações conhecidas incluem JA3 e JA4). Detectores que aplainam sessão em \emph{features} não podem raciocinar sobre esses laços entre sessões; precisam tratar cada sessão como caso independente, e portanto perdem a campanha. Levantamentos recentes de grafos de conhecimento em cibersegurança~\cite{liu2022recent} observam que ``ainda é pouco explícito como implementar o grafo de conhecimento para enfrentar dificuldades industriais reais em situações de ciberataque e defesa'', uma forma educada de dizer que KGs construídos a partir de texto de inteligência de ameaças não capturam estrutura de tráfego em tempo de execução e, portanto, não habilitam o raciocínio \emph{cross-session}.
+    \item \textbf{Sessão como \emph{feature aggregate}, não como entidade.} A meta-análise de Odusami et al.~\cite{odusami2020survey} mostra que quarenta e sete por cento dos métodos de detecção de DDoS de Camada 7 usam estatísticas agregadas de sessão (taxa de requisições, duração, contagem de operações por identidade), mas nenhum dos setenta e cinco estudos catalogados trata a sessão como entidade semântica raciocinável, com identidade, alvo, comportamento e relações tipadas. Na prática, features de sessão viram números num vetor. O vetor não preserva o que torna a sessão útil em primeiro lugar: ela conecta múltiplas requisições, uma identidade, um endpoint alvo, e um histórico observável.
+    \item \textbf{Ausência de explicação ontológica.} Detectores baseados em aprendizado de máquina para ataques de Camada 7 HTTP reportam métricas competitivas, mas emitem rótulos binários sem fundamentação semântica. Os autores de um dos trabalhos mais recentes~\cite{kemp2023approach} notam explicitamente que sua metodologia não foi validada em tempo real e não produz explicação das decisões. Em operação real, um analista de segurança decide dezenas de vezes por hora entre bloquear um cliente, aplicar um desafio (\emph{challenge}), ou degradar uma sessão. ``Isto parece um ataque'' não é decisão; é hesitação. A decisão exige saber qual endpoint está sob estresse, qual identidade está envolvida e qual sinal sustenta a hipótese.
+    \item \textbf{Ausência de raciocínio \emph{cross-session}.} Raciocínio \emph{cross-session} é a capacidade de relacionar múltiplas sessões através de identificadores compartilhados do cliente (identidade, \emph{fingerprint}, prefixo de IP), em vez de tratar cada sessão como caso independente. Campanhas coordenadas de Camada 7 dependem desse raciocínio: \emph{credential stuffing} (tentativas massivas de autenticação com pares usuário/senha vazados em outros serviços, distribuídas por múltiplas sessões para evadir limitadores baseados em taxa) contra endpoints de autenticação; \emph{scraping} orquestrado (coleta automatizada de conteúdo coordenada entre múltiplos clientes que se mascaram como usuários distintos, contornando limitadores por IP individual) por múltiplas identidades; e abuso de API por uma frota de tokens. Cada sessão isolada tem assinatura fraca. O conjunto tem estrutura clara, quando sessões são analisadas em conjunto pelo cliente compartilhado, pela identidade reaproveitada ou pelo \emph{fingerprint} TLS comum (assinatura computada a partir do \emph{handshake} TLS, capaz de identificar o software cliente mesmo quando o IP de origem muda; JA3 e JA4 são implementações conhecidas). Detectores que reduzem a sessão a features não conseguem raciocinar sobre esses laços entre sessões; tratam cada sessão como caso independente e perdem a campanha. Um levantamento recente de grafos de conhecimento em cibersegurança~\cite{liu2022recent} reconhece a lacuna: ``ainda é pouco explícito como implementar o grafo de conhecimento para enfrentar dificuldades industriais reais em situações de ciberataque e defesa''. KGs construídos a partir de texto de inteligência de ameaças não capturam estrutura de tráfego em tempo de execução e, portanto, não habilitam raciocínio \emph{cross-session}.
 \end{enumerate}
 
 \subsection{Questões de Pesquisa}
@@ -88,7 +88,7 @@ Este trabalho aborda a detecção de DDoS de Camada 7 sobre HTTP como um problem
 Este trabalho aborda as seguintes questões de pesquisa:
 
 \begin{description}
-    \item[\textbf{QP1:}] Como uma ontologia OWL pode modelar a sessão HTTP, junto a \emph{endpoint}, identidade e comportamento, com fidelidade suficiente para sustentar raciocínio sobre ataques de Camada 7 (HTTP Flood, Login Flood e abuso de API) em vez de meramente agregar \emph{features} ao nível de sessão?
+    \item[\textbf{QP1:}] Como uma ontologia OWL pode modelar a sessão HTTP, junto a endpoint, identidade e comportamento, com fidelidade suficiente para sustentar raciocínio sobre campanhas coordenadas de Camada 7 (HTTP Flood distribuído, \emph{credential stuffing}, abuso de API por múltiplas identidades) em vez de meramente agregar \emph{features} ao nível de sessão?
     \item[\textbf{QP2:}] Quais regras semânticas sobre tal grafo de conhecimento detectam ataques cuja assinatura individual em cada sessão fica abaixo dos limiares de detectores baseados em \emph{features} agregadas, mas cuja estrutura \emph{cross-session} é discernível pela identidade ou pelo \emph{fingerprint} compartilhado?
     \item[\textbf{QP3:}] Como as decisões de detecção resultantes podem ser apresentadas como cadeias de evidências explícitas, ligando múltiplas sessões, identidades e \emph{endpoints}, em formato auditável por analistas de segurança?
     \item[\textbf{QP4:}] Qual é o ganho empírico do raciocínio semântico em nível de sessão sobre detecção baseada em \emph{features} agregadas de sessão, controlando para o mesmo conjunto subjacente de atributos de tráfego?
@@ -99,7 +99,7 @@ Este trabalho aborda as seguintes questões de pesquisa:
 As contribuições deste artigo são:
 
 \begin{enumerate}
-    \item Uma ontologia OWL para detecção de DDoS de Camada 7 sobre HTTP que modela a sessão HTTP como classe semântica de primeira classe (\texttt{ApplicationSession}), com relações tipadas para identidade do cliente (\texttt{hasIdentity}), \emph{endpoint} alvo (\texttt{targets}), comportamento exibido (\texttt{exhibitsBehavior}) e mitigação aplicável (\texttt{mitigatedBy}), e três especializações concretas de ataque (HTTP Flood, Login Flood e abuso de API) alinhadas a STIX 2.1 e MITRE ATT\&CK.
+    \item Uma ontologia OWL para detecção de campanhas coordenadas de DDoS de Camada 7 sobre HTTP que modela a sessão HTTP como classe semântica de primeira classe (\texttt{ApplicationSession}), com relações tipadas para identidade do cliente (\texttt{hasIdentity}), endpoint alvo (\texttt{targets}), comportamento exibido (\texttt{exhibitsBehavior}), correlação \emph{cross-session} (\texttt{relatedTo}) e mitigação aplicável (\texttt{mitigatedBy}), e três especializações concretas de ataque coordenado (HTTP Flood distribuído, \emph{credential stuffing}, abuso de API por múltiplas identidades) alinhadas a STIX 2.1 e MITRE ATT\&CK.
 
     \item Um \emph{pipeline} de construção de grafo de conhecimento em tempo de execução que eleva requisições HTTP a instâncias ontológicas, populando sessões como nós persistentes do grafo e mantendo ligações \emph{cross-session} via identidade, \emph{fingerprint} TLS e prefixo de cliente, em contraste com grafos de cibersegurança anteriores, construídos estaticamente a partir de texto de inteligência de ameaças~\cite{jia2018practical,bonagiri2024practical}.
 
@@ -184,7 +184,7 @@ A Figura~\ref{fig:architecture} apresenta a arquitetura geral do arcabouço prop
     \item[\texttt{mitigatedBy}] liga uma sessão ou ataque a uma política de mitigação aplicável (\texttt{RateLimit}, \texttt{Challenge}, \texttt{Block}).
 \end{description}
 
-Três especializações de ataque são definidas como subclasses de \texttt{ApplicationLayerAttack}: \texttt{HTTPFlood}, \texttt{LoginFlood} e \texttt{APIAbuse}. Cada especialização é caracterizada por um padrão semântico sobre as relações da sessão, não por um vetor de \emph{features}.
+Três especializações de \emph{ataque coordenado} são definidas como subclasses de \texttt{ApplicationLayerAttack}: \texttt{CoordinatedHTTPFlood}, \texttt{CredentialStuffing} (subclasse específica de \texttt{LoginFlood}) e \texttt{CoordinatedAPIAbuse}. O denominador comum é a propriedade \texttt{exhibitsCrossSessionStructure}: múltiplas sessões compartilhando identidade, \emph{fingerprint} TLS ou prefixo de IP enquanto convergem sobre o mesmo \texttt{Endpoint}. Cada especialização é caracterizada por um padrão semântico sobre as relações da sessão, não por um vetor de \emph{features}.
 
 \subsection{Construção do Grafo em Tempo de Execução}
 
@@ -221,12 +221,12 @@ O Algoritmo~\ref{alg:kgbuild} apresenta o pseudocódigo do \emph{pipeline}.
 
 \subsection{Regras de Detecção Semântica}
 
-\textit{[Esqueleto.]} Para cada um dos três ataques modelados, definimos uma regra semântica sobre o grafo. As regras são expressas em SPARQL/SWRL no \emph{deliverable} final do arcabouço; abaixo, as condições em forma narrativa:
+\textit{[Esqueleto.]} Para cada uma das três especializações de ataque coordenado, definimos uma regra semântica sobre o grafo. Todas as regras dependem da relação \texttt{relatedTo} entre sessões; nenhuma é satisfeita por uma sessão isolada. As regras são expressas em SPARQL/SWRL no \emph{deliverable} final do arcabouço; abaixo, as condições em forma narrativa:
 
 \begin{itemize}
-    \item \textbf{Login Flood}: existe uma identidade $i$ ligada a múltiplas sessões $s_1, \ldots, s_n$ dentro da janela $W$, cada uma com \texttt{targets} um \texttt{AuthEndpoint} e taxa de falha de autenticação acima de um limiar $\tau_{\text{fail}}$.
-    \item \textbf{HTTP Flood}: existe uma sessão (ou conjunto de sessões ligadas por \texttt{relatedTo}) cuja taxa de requisições contra um \texttt{Endpoint} excede $\tau_{\text{rate}}$, com baixa entropia de rotas (\texttt{BotBehavior}).
-    \item \textbf{Abuso de API}: existem múltiplas sessões com \texttt{hasIdentity} apontando para diferentes \emph{tokens} mas \texttt{relatedTo} via \emph{fingerprint} TLS ou prefixo de IP, todas atingindo \texttt{APIEndpoint} a taxa elevada.
+    \item \textbf{\emph{Credential Stuffing}} (Login Flood coordenado): existem múltiplas sessões $s_1, \ldots, s_n$ ligadas por \texttt{relatedTo} (mesma identidade reaproveitada, mesmo \emph{fingerprint} TLS ou mesmo prefixo de IP) dentro da janela $W$, todas com \texttt{targets} apontando para um \texttt{AuthEndpoint}, com razão agregada de falha de autenticação acima de um limiar $\tau_{\text{fail}}$.
+    \item \textbf{HTTP Flood distribuído}: existe um conjunto de sessões ligadas por \texttt{relatedTo} cuja taxa agregada de requisições contra um mesmo \texttt{Endpoint} excede $\tau_{\text{rate}}$, com baixa entropia de rotas (\texttt{BotBehavior}) por sessão individual.
+    \item \textbf{Abuso de API por múltiplas identidades}: existem múltiplas sessões com \texttt{hasIdentity} apontando para diferentes \emph{tokens} mas \texttt{relatedTo} via \emph{fingerprint} TLS ou prefixo de IP, todas atingindo o mesmo \texttt{APIEndpoint} a taxa que somada excede $\tau_{\text{api}}$ (mesmo que nenhuma sessão isolada exceda sua quota).
 \end{itemize}
 
 \subsection{Cadeia de Evidência e Explicabilidade}
@@ -240,33 +240,60 @@ O Algoritmo~\ref{alg:kgbuild} apresenta o pseudocódigo do \emph{pipeline}.
 \section{Metodologia Experimental}
 \label{sec:experiments}
 
+\subsection{Cenários de Avaliação por Grau de Distribuição}
+\label{sec:scenarios}
+
+\textit{[Esqueleto.]} A hipótese central deste trabalho é que o raciocínio \emph{cross-session} fornece vantagem mensurável especificamente sobre campanhas coordenadas, e que essa vantagem cresce com o \textbf{grau de distribuição} da campanha (número de sessões e de identidades simultâneas sob direção comum). Para isolar esse efeito, a avaliação é parametrizada por três cenários, em ordem crescente de distribuição:
+
+\begin{description}
+    \item[\textbf{Cenário A: Concentrado.}] Uma única origem (um \texttt{ClientIdentity}, um IP, um \emph{fingerprint} TLS) gerando $N$ requisições contra um endpoint. Representa o ataque clássico \emph{single-source} de alto volume. \textbf{Hipótese:} detectores monoprotocolares por IP/sessão alcançam desempenho competitivo neste regime; o ganho do raciocínio \emph{cross-session} é marginal.
+    \item[\textbf{Cenário B: Moderadamente Distribuído.}] $K$ origens distintas ($10 \le K \le 100$) sob coordenação comum atacando o mesmo endpoint, cada uma operando dentro de seus limites individuais de \emph{rate-limit}. Representa botnets pequenas ou operações com proxies limitados. \textbf{Hipótese:} \emph{baselines} de aprendizado de máquina sobre \emph{features} agregadas começam a perder \emph{recall}; raciocínio \emph{cross-session} mantém detecção via relação \texttt{relatedTo} por \emph{fingerprint} TLS ou prefixo de IP.
+    \item[\textbf{Cenário C: Altamente Distribuído.}] $K \ge 1000$ origens distintas em campanha coordenada (\emph{credential stuffing} massivo, abuso de API por frota de \emph{tokens}, HTTP Flood de baixa intensidade por botnet ampla). Cada sessão individual fica abaixo de qualquer limiar razoável. \textbf{Hipótese:} \emph{baselines} caem para \emph{recall} próximo do aleatório; raciocínio \emph{cross-session} preserva detecção. \textbf{Este é o cenário onde a contribuição se sustenta.}
+\end{description}
+
+A \emph{money figure} do paper é a curva de \emph{recall} em função do grau de distribuição, com os \emph{baselines} caindo de A para C enquanto o arcabouço proposto se mantém. A diferença empírica entre a curva de cada \emph{baseline} e a do arcabouço completo no Cenário C é o resultado central a ser reportado.
+
 \subsection{Conjunto de Dados}
 
-\textit{[Esqueleto.]} Esta subseção descreverá o conjunto de dados utilizado para avaliação. Três opções estão em consideração: (i) tráfego sintético gerado pelo \emph{pipeline} Python que acompanha este trabalho, com cenários controlados de \emph{credential stuffing}, \emph{scraping} coordenado e abuso de API; (ii) subconjunto HTTP do dataset CIC-DDoS2019 adaptado para cenário de Camada 7; (iii) dados reais anonimizados, sujeitos a aprovação ética. A escolha será justificada empiricamente em relação à cobertura dos três ataques modelados e à possibilidade de instrumentar campanhas \emph{cross-session}.
+\textit{[Esqueleto.]} Para instrumentar os três cenários com controle preciso sobre o grau de distribuição, a avaliação primária utiliza \textbf{tráfego sintético} gerado pelo \emph{pipeline} Python que acompanha este trabalho. A geração parametriza, para cada cenário: número de sessões legítimas concorrentes, número de origens da campanha, distribuição de identidades por origem, janela temporal e tipo de ataque (\emph{credential stuffing}, HTTP Flood distribuído, abuso de API). Como avaliação secundária, subconjuntos de \emph{datasets} públicos com campanhas instrumentadas (CICIDS2017 para Slowloris e Slow HTTP, CIC-DDoS2019 para componentes HTTP) serão usados para checar consistência. Dados reais anonimizados de operação ficam como direção futura sujeita a aprovação ética.
 
 \subsection{Configuração Experimental}
 
-\textit{[Esqueleto.]} Descreverá o ambiente experimental (\emph{hardware}, \emph{software}, parâmetros), a divisão treino/validação/teste, e os procedimentos de calibração de limiares.
+\textit{[Esqueleto.]} Descreverá ambiente experimental (\emph{hardware}, \emph{software}, parâmetros), a divisão treino/validação/teste, os procedimentos de calibração de limiares por cenário, e a janela $W$ de manutenção do grafo. Cada cenário será executado $n \ge 30$ vezes com seeds diferentes para permitir estimação de intervalos de confiança.
 
-\subsection{\emph{Baselines}: Detectores Baseados em \emph{Features} Agregadas}
+\subsection{\emph{Baselines}}
 
 \textit{[Esqueleto.]} A comparação experimental será feita contra três \emph{baselines}, todos consumindo o mesmo conjunto subjacente de atributos de tráfego:
 
 \begin{itemize}
-    \item \textbf{Perfilamento estatístico}: aproximação de Fernandes et al.~\cite{fernandes2015autonomous}, PCA sobre estatísticas agregadas de sessão.
-    \item \textbf{Matriz de comportamento}: aproximação de Bharathi e Sukanesh~\cite{bharathi2012pca}, $k$-means sobre matriz de \emph{features} por sessão.
-    \item \textbf{Aprendizado de máquina}: aproximação de Kemp et al.~\cite{kemp2023approach}, classificadores supervisionados (Random Forest, SVM) sobre o mesmo vetor de \emph{features} de sessão.
+    \item \textbf{Perfilamento estatístico} (aproximação de Fernandes et al.~\cite{fernandes2015autonomous}): PCA sobre estatísticas agregadas de sessão.
+    \item \textbf{Matriz de comportamento} (aproximação de Bharathi e Sukanesh~\cite{bharathi2012pca}): $k$-means sobre matriz de \emph{features} por sessão.
+    \item \textbf{Aprendizado de máquina supervisionado} (aproximação de Kemp et al.~\cite{kemp2023approach}): Random Forest e SVM sobre o mesmo vetor de \emph{features} de sessão.
 \end{itemize}
 
-A escolha desses \emph{baselines} é deliberada: todos consomem o mesmo material que nosso arcabouço, na forma agregada. A ablação isola a contribuição da \emph{representação semântica de sessão}.
+A escolha desses \emph{baselines} é deliberada: todos consomem o mesmo material subjacente que nosso arcabouço, mas na forma de \emph{features} agregadas por sessão. A ablação isola a contribuição da \textbf{representação semântica de sessão} e do raciocínio \emph{cross-session}, não da disponibilidade dos atributos.
 
 \subsection{Métricas de Avaliação}
 
-\textit{[Esqueleto.]} Métricas padrão de classificação (acurácia, precisão, \emph{recall}, F1, AUC, FPR) serão complementadas por (i) métricas específicas para campanhas \emph{cross-session} (\emph{recall} sobre sessões que pertencem a uma campanha coordenada conhecida) e (ii) métricas qualitativas de cadeia de evidência.
+\textit{[Esqueleto.]} Três famílias de métricas são reportadas:
+
+\begin{enumerate}
+    \item \textbf{Métricas padrão de classificação} por cenário: precisão, \emph{recall}, F1, AUC, FPR.
+    \item \textbf{\emph{Recall} por campanha} (não por sessão): para cada campanha coordenada instrumentada no \emph{dataset}, qual fração foi detectada como pertencente à campanha (e não apenas sessões individuais isoladas). Esta métrica captura diretamente o ganho do raciocínio \emph{cross-session}.
+    \item \textbf{Qualidade da explicação}: análise qualitativa das cadeias de evidência geradas, em termos de completude (cita todas as sessões correlacionadas) e acionabilidade (sugere mitigação coerente com o vetor identificado).
+\end{enumerate}
 
 \subsection{Análise de Ablação}
 
-\textit{[Esqueleto.]} A análise central isola o ganho do raciocínio em nível de sessão. Comparamos: (a) detector sem ontologia, alimentado pelas mesmas \emph{features} agregadas; (b) detector com ontologia mas sem relações \emph{cross-session}; (c) detector completo, com sessões ligadas por identidade. A diferença entre (a) e (c) é a contribuição da abordagem; a diferença entre (b) e (c) é especificamente o ganho do raciocínio \emph{cross-session}.
+\textit{[Esqueleto.]} A análise central isola a contribuição de cada componente do arcabouço, em três configurações:
+
+\begin{itemize}
+    \item[\textbf{(a)}] \emph{Baseline} ML sem ontologia, alimentado pelas mesmas \emph{features} agregadas de sessão.
+    \item[\textbf{(b)}] Arcabouço com ontologia mas \emph{sem} a relação \texttt{relatedTo} (sessões tratadas como nós isolados do grafo).
+    \item[\textbf{(c)}] Arcabouço completo, com sessões ligadas por \texttt{relatedTo} via identidade, \emph{fingerprint} TLS e prefixo de IP.
+\end{itemize}
+
+A diferença entre (a) e (c) é a contribuição total da abordagem; a diferença entre (b) e (c) é especificamente o ganho do raciocínio \emph{cross-session}. Esperamos que essa última diferença seja pequena no Cenário A e dominante no Cenário C.
 
 %% ====================================================================
 %% 5. RESULTADOS E DISCUSSAO  (esqueleto a desenvolver)
@@ -275,17 +302,21 @@ A escolha desses \emph{baselines} é deliberada: todos consomem o mesmo material
 \section{Resultados e Discussão}
 \label{sec:results}
 
-\subsection{Desempenho Geral}
+\subsection{Desempenho Geral por Cenário}
 
-\textit{[Esqueleto.]} Tabela comparativa de F1, FPR e AUC contra os três \emph{baselines}, nos três tipos de ataque, com intervalos de confiança.
+\textit{[Esqueleto.]} Tabela comparativa de F1, FPR e AUC contra os três \emph{baselines}, reportada separadamente para cada cenário de distribuição (A, B, C) e para cada um dos três ataques coordenados modelados, com intervalos de confiança.
 
-\subsection{Análise por Tipo de Ataque}
+\subsection{Curva de \emph{Recall} por Grau de Distribuição}
 
-\textit{[Esqueleto.]} Discussão por ataque: HTTP Flood, Login Flood e Abuso de API. Para cada um, identificar onde a representação semântica de sessão produz vantagem mensurável.
+\textit{[Esqueleto.]} Esta é a \textbf{figura central} do paper: \emph{recall} de cada método (três \emph{baselines} e o arcabouço completo) plotado em função do grau de distribuição da campanha. A previsão é uma curva descendente íngreme para os \emph{baselines} entre o Cenário B e o Cenário C, enquanto o arcabouço com raciocínio \emph{cross-session} mantém \emph{recall} estável.
+
+\subsection{Análise por Tipo de Ataque Coordenado}
+
+\textit{[Esqueleto.]} Discussão por ataque: \emph{credential stuffing}, HTTP Flood distribuído, e abuso de API por múltiplas identidades. Para cada um, identificar (i) o nível mínimo de distribuição a partir do qual os \emph{baselines} começam a falhar e (ii) qual sinal estrutural específico (\emph{fingerprint} TLS, prefixo de IP, identidade reaproveitada) sustenta a detecção pelo arcabouço.
 
 \subsection{Análise da Vantagem \emph{Cross-Session}}
 
-\textit{[Esqueleto.]} Subseção central do paper: medir, em cenários de campanha distribuída, a fração de sessões corretamente atribuídas a uma campanha coordenada pelo arcabouço proposto vs. \emph{baselines} baseados em \emph{features}. A hipótese a validar é que o raciocínio \emph{cross-session} fornece uma vantagem mensurável quando o atacante distribui o ataque por múltiplas sessões individualmente sub-limiares.
+\textit{[Esqueleto.]} Subseção central do paper: medir, no Cenário C, a fração de campanhas coordenadas detectadas como tal (não apenas sessões individuais isoladas) pelo arcabouço proposto em comparação aos \emph{baselines}. A hipótese a validar é que o raciocínio \emph{cross-session} fornece vantagem mensurável precisamente quando o atacante distribui a operação por muitas sessões individualmente sub-limiares.
 
 \subsection{Avaliação da Qualidade da Explicação}
 
@@ -293,11 +324,17 @@ A escolha desses \emph{baselines} é deliberada: todos consomem o mesmo material
 
 \subsection{Significância Estatística}
 
-\textit{[Esqueleto.]} Testes pareados (\emph{paired $t$-test}, Wilcoxon) sobre validação cruzada, com correção de Bonferroni para múltiplas comparações.
+\textit{[Esqueleto.]} Testes pareados (\emph{paired $t$-test}, Wilcoxon) sobre as $n$ execuções por cenário, com correção de Bonferroni para múltiplas comparações entre métodos.
 
 \subsection{Limitações}
 
-\textit{[Esqueleto.]} Discussão de limitações: dependência de identificação de sessão e identidade, custo de manutenção do grafo em ambiente de produção, sensibilidade ao parâmetro $W$ (janela operacional), e generalização para protocolos além de HTTP.
+\textit{[Esqueleto.]} Três limitações principais devem ser declaradas explicitamente:
+
+\begin{enumerate}
+    \item \textbf{Vantagem regime-específica}: para ataques \emph{single-source} de alto volume (Cenário A), métodos baseados em limiares estatísticos por IP ou por sessão alcançam desempenho comparável; o ganho marginal do raciocínio \emph{cross-session} é pequeno nesse regime. O ganho cresce com o grau de distribuição da campanha. Este artigo não substitui defesas volumétricas; complementa-as.
+    \item \textbf{Dependência de identificação de sessão e identidade}: a abordagem assume capacidade de extrair sessões, identidades e \emph{fingerprints} TLS dos eventos de tráfego. Em ambientes onde essa instrumentação é parcial ou ruidosa, o desempenho degrada.
+    \item \textbf{Custo de manutenção do grafo} em produção, sensibilidade ao parâmetro $W$ (janela operacional), e generalização para protocolos além de HTTP (TLS \emph{handshake}, DNS) ficam como direções de extensão.
+\end{enumerate}
 
 %% ====================================================================
 %% 6. CONCLUSAO  (esqueleto a desenvolver)

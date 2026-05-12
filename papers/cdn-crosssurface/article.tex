@@ -1,0 +1,332 @@
+% Article Template for Computers & Security (Elsevier) - Qualis A2
+% ====================================================================
+% Target Journal: Computers & Security (Elsevier)
+% Impact Factor: 3.5 | Acceptance Rate: ~30%
+% Format: 8-10 pages
+%
+% Author: [Your Name]
+% Paper: "Knowledge Graph-Based Detection and Explanation of Layer 7 DDoS Attacks in Web Applications"
+
+\documentclass[preprint,12pt]{elsarticle}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
+\usepackage{lineno}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,fit,backgrounds}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+% Line numbering for review
+\modulolinenumbers[5]
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Detecção de Ataques DDoS \emph{Cross-Surface} em Redes de Distribuição de Conteúdo: Correlação Semântica DNS--HTTP via Grafos de Conhecimento}
+
+\author[inst1]{Natanael Oliveira\corref{cor1}}
+\ead{natanael.oliveira@inf.ufrgs.br}
+
+\author[inst1]{Arthur Kobielski}
+\ead{arthur.kobielski@inf.ufrgs.br}
+
+\author[inst1]{Marcos Luna}
+\ead{marcos.luna@inf.ufrgs.br}
+
+\cortext[cor1]{Autor correspondente}
+
+\affiliation[inst1]{organization={Universidade Federal do Rio Grande do Sul},
+                    city={Porto Alegre},
+                    country={Brasil}}
+
+\begin{abstract}
+%% 200-300 palavras
+Redes de Distribuição de Conteúdo (\emph{Content Delivery Networks}, CDNs) impõem aos clientes uma cadeia operacional fixa em duas superfícies: uma resolução DNS contra servidores autoritativos, frequentemente via Anycast, seguida de uma requisição HTTP contra o ponto de presença de borda determinado pela resolução. Ataques DDoS de Camada 7 contra essa arquitetura podem explorar qualquer das duas superfícies isoladamente --- randomização de QName contra DNS autoritativo, \emph{cache-busting} via parâmetros de \emph{query} contra a borda HTTP --- ou, mais perigosamente, ambas em coordenação, quando a assinatura individual de cada fase fica abaixo dos limiares de detectores monoprotocolares enquanto a campanha agregada degrada o serviço. Um levantamento recente reporta que ataques de Camada 7 dobram em volume a cada trimestre~\cite{tripathi2021application}, e uma meta-análise de setenta e cinco estudos de detecção não cataloga nenhuma abordagem que correlacione semanticamente eventos de superfícies operacionais distintas~\cite{odusami2020survey}. Grafos de conhecimento em cibersegurança, por sua vez, têm sido construídos estaticamente a partir de texto de inteligência de ameaças, não como mecanismo de detecção em tempo de execução~\cite{jia2018practical,liu2022recent,bonagiri2024practical}. Este artigo propõe um arcabouço baseado em grafos de conhecimento que correlaciona eventos DNS e HTTP do mesmo cliente em janelas operacionais relevantes. Apresentamos uma ontologia OWL que modela \emph{Cross-Surface Attack} como classe semântica unificada, ligando entidades de consulta DNS e requisição HTTP através da identidade do cliente (ASN, prefixo de IP, \emph{fingerprint} TLS). Regras de detecção sobre o grafo emitem veredictos acompanhados de cadeias de evidência ligando explicitamente o evento DNS ao evento HTTP correspondente do mesmo cliente. A avaliação empírica isola, por ablação, o ganho da correlação \emph{cross-surface} em relação à detecção monoprotocolar e a \emph{baselines} de aprendizado de máquina sobre \emph{features} concatenadas sem semântica explícita. A implementação de referência é disponibilizada como código aberto.
+
+\end{abstract}
+
+\begin{keyword}
+%% 4-6 palavras-chave
+Grafo de Conhecimento \sep Detecção de DDoS \sep CDN \sep Camada 7 \sep Correlação \emph{Cross-Surface} \sep DNS--HTTP \sep Segurança Semântica
+\end{keyword}
+
+\end{frontmatter}
+
+%% ====================================================================
+%% 1. INTRODUCTION
+%% ====================================================================
+
+\section{Introdução}
+\label{sec:introduction}
+
+\subsection{Contexto e Motivação}
+
+Redes de Distribuição de Conteúdo (CDNs) tornaram-se a camada padrão de entrega de aplicações web modernas, mediando uma fração substancial do tráfego de Internet entre usuários finais e origens. A arquitetura impõe ao cliente uma cadeia operacional fixa em duas superfícies: primeiro, uma resolução DNS contra servidores autoritativos da CDN, frequentemente via Anycast; em seguida, uma requisição HTTP contra o ponto de presença (PoP) de borda determinado pela resolução. Cada uma dessas superfícies é, por construção, um ponto de saturação possível --- e ataques DDoS de Camada 7 contra CDNs exploram exatamente essa estrutura.
+
+Ataques de Camada 7 cresceram em ritmo decisivo na última década. O levantamento mais recente reporta que o volume desses ataques dobra a cada trimestre e documenta um incidente que sustentou 292.000 requisições por segundo durante treze dias~\cite{tripathi2021application}. Pesquisas com operadores corroboram a tendência: em 2016, noventa e três por cento dos operadores de rede relataram observar DDoS na camada de aplicação, contra oitenta e seis por cento em 2013~\cite{odusami2020survey}. Diferentemente dos ataques volumétricos clássicos, esses ataques operam a baixas taxas de tráfego enquanto imitam o comportamento legítimo de usuários, derrotando defesas baseadas em assinatura ou em limiares estatísticos~\cite{kemp2023approach,fernandes2015autonomous,bharathi2012pca}.
+
+Em ambientes CDN, a situação é exacerbada por dois fatos arquiteturais. Primeiro, cada superfície pode ser atacada de forma específica: a superfície DNS é alvo de randomização de QName, \emph{NXDOMAIN flood} e \emph{water torture}, que estressam servidores autoritativos e a camada de cache negativo; a superfície HTTP é alvo de \emph{cache-busting} via parâmetros aleatórios de \emph{query}, abuso de \emph{endpoints} não cacheáveis, e ataques lentos, que forçam buscas dispendiosas ao \emph{origin}. Segundo, e este é o ponto que motiva nosso trabalho, ataques coordenados que tocam as duas superfícies simultaneamente podem permanecer abaixo dos limiares de cada detector monoprotocolar enquanto a campanha agregada degrada o serviço. Um detector de DNS observa picos sub-limiares de NXDOMAIN; um detector HTTP observa \emph{cache-misses} sub-limiares contra \emph{endpoints} válidos; cada um, isoladamente, vê ruído. A correlação \emph{cross-surface} --- o fato de que o mesmo ASN, prefixo de IP ou \emph{fingerprint} TLS aparece nos dois canais em janela temporal compatível --- é a assinatura que define o ataque, e é precisamente o que os métodos atuais não modelam.
+
+\subsection{Definição do Problema}
+
+Este trabalho aborda a detecção de DDoS de Camada 7 em CDNs como um problema de \emph{correlação semântica cross-surface}, em vez de detecção monoprotocolar com \emph{features} mais ricas. O desafio central não é diferenciar uma consulta DNS ou uma requisição HTTP maliciosa de sua contrapartida benigna --- frequentemente são individualmente indistinguíveis --- mas raciocinar sobre a estrutura conjunta do tráfego das duas superfícies contra a aplicação: qual cliente está exercitando ambas as superfícies coordenadamente, qual zona CDN é o alvo, e qual é a evidência ligando os eventos das duas fases. Três deficiências do estado da arte motivam nossa abordagem:
+
+\begin{enumerate}
+    \item \textbf{Ausência de correlação \emph{cross-surface}.} A recente meta-análise~\cite{odusami2020survey} de setenta e cinco estudos de detecção de DDoS de Camada 7 classifica os métodos por algoritmo de aprendizado de máquina, medida de entropia, gerenciamento de fila e categorias afins, mas não lista nenhum estudo que correlacione semanticamente eventos de superfícies operacionais distintas. Estudos de detecção HTTP e estudos de detecção DNS coexistem como silos de pesquisa separados~\cite{tripathi2021application}, sem ferramenta comum para o cenário em que o atacante explora a cadeia operacional inteira.
+    \item \textbf{Ausência de fundamentação semântica.} Detectores recentes baseados em aprendizado de máquina reportam métricas competitivas em superfícies isoladas mas emitem rótulos binários sem fundamentação ontológica; os autores de um dos trabalhos mais recentes~\cite{kemp2023approach} notam explicitamente que sua metodologia não foi validada em tempo real e não produz explicação das decisões. Em um ambiente CDN, onde o analista de segurança precisa decidir entre bloquear um cliente, aplicar um desafio (\emph{challenge}), ou apenas degradar a experiência, a explicação não é cosmética: é operacionalmente crítica.
+    \item \textbf{Grafos de conhecimento como corpus, não como \emph{runtime}.} A literatura em grafos de conhecimento para cibersegurança --- da abordagem prática de Jia et al.~\cite{jia2018practical} ao trabalho recente de Bonagiri et al.~\cite{bonagiri2024practical} --- constrói grafos estaticamente a partir de texto de inteligência de ameaças (CVEs, relatórios, \emph{blogs}). Um levantamento de 2022~\cite{liu2022recent} observa que ``ainda é pouco explícito como implementar o grafo de conhecimento para enfrentar dificuldades industriais reais em situações de ciberataque e defesa''. Nenhum dos trabalhos disponíveis opera o grafo como mecanismo de detecção em tempo de execução sobre eventos de tráfego.
+\end{enumerate}
+
+\subsection{Questões de Pesquisa}
+
+Este trabalho aborda as seguintes questões de pesquisa:
+
+\begin{description}
+    \item[\textbf{QP1:}] Como uma ontologia OWL pode modelar a cadeia operacional CDN (consulta DNS, requisição HTTP, identidade do cliente, zona alvo) com fidelidade suficiente para sustentar raciocínio sobre ataques \emph{cross-surface} coordenados?
+    \item[\textbf{QP2:}] Quais regras semânticas sobre tal grafo de conhecimento detectam ataques coordenados cuja assinatura individual em cada superfície fica abaixo dos limiares de detectores monoprotocolares?
+    \item[\textbf{QP3:}] Como as decisões de detecção resultantes podem ser apresentadas como cadeias de evidências ligando explicitamente eventos DNS a eventos HTTP correspondentes do mesmo cliente, em formato auditável por analistas de segurança?
+    \item[\textbf{QP4:}] Qual é o ganho empírico da correlação \emph{cross-surface} sobre detecção monoprotocolar isolada, controlando para o conjunto de \emph{features} disponíveis em cada superfície?
+\end{description}
+
+\subsection{Contribuições}
+
+As contribuições deste artigo são:
+
+\begin{enumerate}
+    \item Uma ontologia OWL para ataques DDoS de Camada 7 em ambientes CDN que modela \emph{Cross-Surface Attack} como classe semântica unificada, ligando entidades de duas superfícies operacionais --- a superfície DNS (consulta, subdomínio, código de resposta, servidor autoritativo) e a superfície HTTP (requisição, \emph{endpoint}, \emph{hit/miss} de cache, PoP de borda) --- através de relações que preservam a identidade do cliente (ASN, prefixo de IP, \emph{fingerprint} TLS) entre fases.
+
+    \item Um \emph{pipeline} de construção de grafo de conhecimento em tempo de execução que correlaciona eventos DNS e HTTP do mesmo cliente em janelas operacionais relevantes, em contraste com grafos de cibersegurança anteriores construídos estaticamente a partir de texto de inteligência de ameaças~\cite{jia2018practical,bonagiri2024practical}.
+
+    \item Regras semânticas explicáveis para dois ataques canônicos da superfície CDN --- \emph{QName Randomization} contra DNS autoritativo e \emph{Cache-Busting} via parâmetros de \emph{query} contra a borda HTTP --- cuja saída é um veredicto de ataque acompanhado de uma cadeia de evidência ligando o evento DNS ao evento HTTP correspondente do mesmo cliente.
+
+    \item Avaliação empírica com ablação que isola o ganho da correlação \emph{cross-surface} em relação a detectores monoprotocolares de cada superfície e a um \emph{baseline} de aprendizado de máquina sobre \emph{features} concatenadas de ambas as superfícies sem semântica explícita~\cite{kemp2023approach,fernandes2015autonomous,bharathi2012pca}.
+
+    \item Uma implementação de referência em código aberto do \emph{pipeline} completo, endereçando a lacuna de implementação operacional quantificada por Odusami et al.~\cite{odusami2020survey}.
+\end{enumerate}
+
+\subsection{Organização do Artigo}
+
+O restante deste artigo está organizado como segue. A Seção~\ref{sec:related} revisa trabalhos relacionados em grafos de conhecimento para cibersegurança, em detecção de DDoS de Camada 7 sobre as superfícies DNS e HTTP, e em métodos de correlação multi-fonte, posicionando nossa contribuição em relação às abordagens existentes mais próximas. A Seção~\ref{sec:approach} apresenta o arcabouço proposto, incluindo o \emph{design} da ontologia \emph{cross-surface}, o \emph{pipeline} de construção do grafo de conhecimento em tempo de execução, e as regras de detecção semântica para \emph{QName Randomization} e \emph{Cache-Busting}. A Seção~\ref{sec:experiments} descreve a metodologia experimental, o conjunto de dados, os \emph{baselines} monoprotocolares e \emph{cross-feature}, e as métricas. A Seção~\ref{sec:results} relata e discute os resultados, com ênfase na ablação que isola o ganho da correlação semântica \emph{cross-surface}. A Seção~\ref{sec:conclusion} conclui e delineia direções para extensão a outros pares de superfícies operacionais.
+
+%% ====================================================================
+%% 2. TRABALHOS RELACIONADOS  (esqueleto a desenvolver)
+%% ====================================================================
+
+\section{Trabalhos Relacionados}
+\label{sec:related}
+
+\subsection{Grafos de Conhecimento em Cibersegurança}
+
+\textit{[Esqueleto.]} Esta subseção revisa a literatura de construção de grafos de conhecimento aplicados à cibersegurança, com ênfase no fato de que o trabalho existente predominantemente constrói o grafo \emph{estaticamente} a partir de texto de inteligência de ameaças (CVEs, relatórios, \emph{blogs}), e não como mecanismo de detecção em tempo de execução. Referências centrais a desenvolver: Jia et al.~\cite{jia2018practical}, Bonagiri et al.~\cite{bonagiri2024practical} e o levantamento de Liu et al.~\cite{liu2022recent}.
+
+\subsection{Ataques de Camada 7 na Superfície DNS}
+
+\textit{[Esqueleto.]} Esta subseção revisa a literatura específica para a superfície DNS: ataques de amplificação~\cite{anagnostopoulos2013dns}, randomização de QName e \emph{water torture} (trabalhos sobre robustez do DNS~\cite{pappas2009dns}), considerações arquiteturais sobre Anycast em infraestrutura DNS~\cite{moura2016anycast}, e DNSSEC como vetor potencial de DDoS~\cite{vanrijswijk2014dnssec}. O ponto crítico da revisão é que detecção DNS é tratada na literatura como problema autocontido, sem ligação com a fase HTTP subsequente que ocorre logo em seguida em ambientes CDN.
+
+\subsection{Ataques de Camada 7 na Superfície HTTP}
+
+\textit{[Esqueleto.]} Esta subseção revisa abordagens para detecção de DDoS na camada de aplicação HTTP, organizadas em três famílias: (i) perfilamento estatístico de tráfego/sessão~\cite{fernandes2015autonomous,bharathi2012pca}; (ii) aprendizado de máquina sobre \emph{features} de fluxo ou sessão~\cite{kemp2023approach}; (iii) levantamentos de domínio, com Tripathi e Hubballi~\cite{tripathi2021application} como referência canônica recente. A análise crítica enfatizará que todas essas famílias tratam HTTP como problema autocontido, sem ligação com a fase DNS antecedente.
+
+\subsection{Correlação \emph{Cross-Source} em Detecção de Segurança}
+
+\textit{[Esqueleto.]} Esta subseção discute trabalhos que combinam múltiplas fontes em detecção (SIEM, fusão de sensores, correlação de alertas), e argumenta que: (i) abordagens existentes operam sobre alertas pós-fato em vez de eventos em tempo de execução, e (ii) não aplicam raciocínio semântico ontológico para articular formalmente a relação entre fontes. A meta-análise de Odusami et al.~\cite{odusami2020survey} sobre setenta e cinco estudos de detecção de DDoS de Camada 7 não cataloga nenhum método de correlação \emph{cross-surface} semântica operando em tempo de execução.
+
+\subsection{Posicionamento deste Trabalho}
+
+\textit{[Esqueleto.]} Esta subseção sintetiza as três lacunas identificadas na Introdução --- ausência de correlação \emph{cross-surface}, ausência de fundamentação semântica, e grafos de conhecimento como \emph{corpus} estático em vez de \emph{runtime} --- e posiciona nossa contribuição como o primeiro arcabouço, no escopo da literatura revista, que modela explicitamente \emph{Cross-Surface Attack} como classe ontológica e habilita raciocínio entre eventos DNS e HTTP através da identidade compartilhada do cliente.
+
+%% ====================================================================
+%% 3. ABORDAGEM PROPOSTA  (esqueleto a desenvolver)
+%% ====================================================================
+
+\section{Abordagem Proposta}
+\label{sec:approach}
+
+\subsection{Visão Geral do Sistema}
+
+A Figura~\ref{fig:architecture} apresenta a arquitetura geral do arcabouço proposto. O sistema é composto por cinco estágios: (i) ingestão paralela de eventos DNS (consultas a servidores autoritativos da CDN) e HTTP (requisições aos PoPs de borda); (ii) elevação dos eventos a instâncias ontológicas em um grafo de conhecimento centralizado; (iii) ligação \emph{cross-surface} dos eventos via identidade compartilhada do cliente (ASN, prefixo de IP, \emph{fingerprint} TLS); (iv) execução de regras semânticas de detecção sobre o grafo; e (v) geração da cadeia de evidências para o veredicto.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=1.4cm,
+    block/.style={rectangle, draw, fill=blue!20, text width=2.6cm, text centered, rounded corners, minimum height=1cm},
+    arrow/.style={thick,->,>=stealth}
+]
+    \node[block] (dns) {Tráfego DNS};
+    \node[block, below=of dns] (http) {Tráfego HTTP};
+    \node[block, right=of dns] (extdns) {Extrator DNS};
+    \node[block, right=of http] (exthttp) {Extrator HTTP};
+    \node[block, right=2.4cm of extdns, yshift=-0.7cm] (kg) {Grafo \emph{Cross-Surface}};
+    \node[block, below=of kg] (detector) {Motor de Regras};
+    \node[block, left=2.4cm of detector] (explainer) {Cadeia de Evidência};
+
+    \draw[arrow] (dns) -- (extdns);
+    \draw[arrow] (http) -- (exthttp);
+    \draw[arrow] (extdns) -- (kg);
+    \draw[arrow] (exthttp) -- (kg);
+    \draw[arrow] (kg) -- (detector);
+    \draw[arrow] (detector) -- (explainer);
+\end{tikzpicture}
+\caption{Arquitetura do arcabouço de detecção \emph{cross-surface}.}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Ontologia \emph{Cross-Surface}}
+
+\textit{[Esqueleto.]} A ontologia OWL define \texttt{CrossSurfaceAttack} como classe semântica unificada, com duas superfícies operacionais modeladas como subgrafos do KG e ligadas pela identidade do cliente:
+
+\begin{description}
+    \item[Superfície DNS:] \texttt{DNSQuery} (qname, qtype, response\_code), \texttt{DNSDomain} (zona de cliente da CDN), \texttt{AuthoritativeServer}.
+    \item[Superfície HTTP:] \texttt{HTTPRequest} (método, caminho, \emph{query string}), \texttt{Endpoint} (com subclasses cacheável vs. não-cacheável), \texttt{EdgePoP}, \texttt{CacheStatus} (\emph{hit}/\emph{miss}).
+    \item[Identidade do Cliente:] \texttt{ClientIdentity} é a classe pivô que liga as superfícies, com propriedades \texttt{hasASN}, \texttt{hasIPPrefix}, \texttt{hasTLSFingerprint}.
+\end{description}
+
+Duas especializações concretas de \texttt{CrossSurfaceAttack} são definidas: \texttt{QNameRandomization} (superfície DNS) e \texttt{CacheBusting} (superfície HTTP). Ambas se ligam a uma instância de \texttt{CrossSurfaceCampaign} quando observadas com identidade comum em janela temporal compatível.
+
+\subsection{Construção do Grafo em Tempo de Execução}
+
+\textit{[Esqueleto.]} O \emph{pipeline} opera em fases paralelas para DNS e HTTP, com um passo de junção via identidade do cliente. O Algoritmo~\ref{alg:kgbuild} apresenta o pseudocódigo de alto nível.
+
+\begin{algorithm}[H]
+\caption{Construção do Grafo \emph{Cross-Surface} em Tempo de Execução}
+\label{alg:kgbuild}
+\begin{algorithmic}[1]
+\REQUIRE Fluxo de consultas DNS $\mathcal{D}$, fluxo de requisições HTTP $\mathcal{H}$, janela $W$
+\ENSURE Grafo de Conhecimento $KG$ persistente em $W$
+\STATE $KG \leftarrow \emptyset$
+\FOR{cada evento $d \in \mathcal{D}$}
+    \STATE $c \leftarrow \text{ResolverIdentidade}(d)$
+    \STATE $KG.\text{adicionarEventoDNS}(d, c)$
+\ENDFOR
+\FOR{cada evento $h \in \mathcal{H}$}
+    \STATE $c \leftarrow \text{ResolverIdentidade}(h)$
+    \STATE $KG.\text{adicionarEventoHTTP}(h, c)$
+    \STATE $KG.\text{ligarSuperficies}(c, W)$
+\ENDFOR
+\STATE $KG.\text{purgarFora}(W)$
+\STATE \textbf{retornar} $KG$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Regras de Detecção Semântica}
+
+\textit{[Esqueleto.]} Três regras semânticas são definidas:
+
+\begin{itemize}
+    \item \textbf{Regra DNS monoprotocolar (\emph{QName Randomization}):} disparada quando uma identidade $c$ é responsável por mais de $\tau_{nx}$ consultas com NXDOMAIN dentro da janela $W$ e a entropia do subdomínio excede $\tau_{ent}$.
+    \item \textbf{Regra HTTP monoprotocolar (\emph{Cache-Busting}):} disparada quando uma identidade $c$ gera mais de $\tau_{cm}$ requisições com \emph{query string} randomizada (alta entropia, baixa taxa de \emph{cache hit}).
+    \item \textbf{Regra \emph{Cross-Surface}:} disparada quando ambas as regras anteriores são parcialmente satisfeitas (abaixo de cada limiar individual) mas a mesma identidade aparece em ambas as superfícies dentro de janela compatível. É esta regra que captura a campanha coordenada que evade detectores monoprotocolares.
+\end{itemize}
+
+\subsection{Cadeia de Evidência e Explicabilidade}
+
+\textit{[Esqueleto.]} Quando uma regra dispara, o motor emite um veredicto acompanhado de uma cadeia de evidência que enumera explicitamente: a regra que disparou, as instâncias ontológicas envolvidas nas duas superfícies, a identidade comum que as liga, a janela temporal observada e a política de mitigação sugerida. A cadeia é exportável em formato JSON-LD e STIX 2.1, compatível com integração em plataformas \emph{Security Information and Event Management} (SIEM).
+
+%% ====================================================================
+%% 4. METODOLOGIA EXPERIMENTAL  (esqueleto a desenvolver)
+%% ====================================================================
+
+\section{Metodologia Experimental}
+\label{sec:experiments}
+
+\subsection{Conjunto de Dados}
+
+\textit{[Esqueleto.]} Esta subseção descreverá o conjunto de dados utilizado. Três opções estão em consideração: (i) tráfego sintético gerado pelo \emph{pipeline} Python que acompanha este trabalho, com cenários controlados de campanha \emph{cross-surface}; (ii) subconjuntos públicos adaptados (CIC-DDoS2019 para HTTP, \emph{traces} DNS-OARC para DNS); (iii) dados reais anonimizados de operação CDN, sujeitos a aprovação ética. A escolha será justificada empiricamente pela necessidade de instrumentar campanhas coordenadas com identidade comum entre superfícies.
+
+\subsection{Configuração Experimental}
+
+\textit{[Esqueleto.]} Descreverá o ambiente experimental (\emph{hardware}, \emph{software}, parâmetros), a divisão treino/validação/teste, e procedimentos de calibração de limiares por superfície e da janela $W$.
+
+\subsection{\emph{Baselines}}
+
+\textit{[Esqueleto.]} A comparação experimental será feita contra três \emph{baselines}, em ordem crescente de capacidade:
+
+\begin{itemize}
+    \item \textbf{Monoprotocolar DNS}: detector baseado em entropia de subdomínio e razão NXDOMAIN, na linha de Pappas et al.~\cite{pappas2009dns} e Anagnostopoulos et al.~\cite{anagnostopoulos2013dns}.
+    \item \textbf{Monoprotocolar HTTP}: detector baseado em razão de \emph{cache-miss}, na linha de Kemp et al.~\cite{kemp2023approach}, com perfilamento de sessão à la Bharathi e Sukanesh~\cite{bharathi2012pca}.
+    \item \textbf{\emph{Cross-feature} ML sem semântica}: Random Forest treinado sobre \emph{features} concatenadas de ambas as superfícies, sem modelo ontológico de identidade ou correlação explícita~\cite{fernandes2015autonomous}.
+\end{itemize}
+
+A ablação chave isola se a vantagem do arcabouço proposto vem da \emph{semântica de correlação} ou meramente da disponibilidade de \emph{features} das duas superfícies em conjunto.
+
+\subsection{Métricas de Avaliação}
+
+\textit{[Esqueleto.]} Métricas padrão de classificação (acurácia, precisão, \emph{recall}, F1, AUC, FPR) serão complementadas por (i) \emph{recall} sobre identidades-de-campanha conhecidas (campanhas instrumentadas no \emph{dataset}) e (ii) métricas qualitativas de cadeia de evidência.
+
+\subsection{Análise de Ablação}
+
+\textit{[Esqueleto.]} A análise central isola o ganho da correlação. Comparamos: (a) cada detector monoprotocolar isoladamente; (b) ML \emph{cross-feature} sem semântica; (c) arcabouço completo com ontologia e regra \emph{cross-surface}. A diferença entre (a) e (c) é o ganho total; a diferença entre (b) e (c) é especificamente a contribuição da \emph{semântica de correlação}.
+
+%% ====================================================================
+%% 5. RESULTADOS E DISCUSSAO  (esqueleto a desenvolver)
+%% ====================================================================
+
+\section{Resultados e Discussão}
+\label{sec:results}
+
+\subsection{Desempenho Geral}
+
+\textit{[Esqueleto.]} Tabela comparativa de F1, FPR e AUC contra os três \emph{baselines}, com intervalos de confiança.
+
+\subsection{Análise por Superfície}
+
+\textit{[Esqueleto.]} Avaliação em modo monoprotocolar puro (apenas DNS, apenas HTTP) para estabelecer o \emph{piso} de cada superfície isoladamente.
+
+\subsection{Análise do Ganho \emph{Cross-Surface}}
+
+\textit{[Esqueleto.]} Subseção central do paper: medir, em cenários de campanha coordenada instrumentados no \emph{dataset}, a fração de campanhas detectadas pela correlação \emph{cross-surface} em comparação aos detectores monoprotocolares e ao \emph{baseline} \emph{cross-feature} ML. A hipótese a validar é que a correlação semântica fornece vantagem mensurável quando o atacante distribui o ataque por ambas as superfícies a níveis individualmente sub-limiares.
+
+\subsection{Avaliação da Qualidade da Explicação}
+
+\textit{[Esqueleto.]} Análise qualitativa (amostragem de cadeias de evidência geradas) com foco na capacidade de ligar eventos DNS e HTTP do mesmo cliente, e --- se viável --- estudo com analistas de segurança avaliando completude e acionabilidade.
+
+\subsection{Significância Estatística}
+
+\textit{[Esqueleto.]} Testes pareados (\emph{paired $t$-test}, Wilcoxon) sobre validação cruzada, com correção de Bonferroni para múltiplas comparações.
+
+\subsection{Limitações}
+
+\textit{[Esqueleto.]} Discussão de limitações: dependência da qualidade da junção de identidade entre superfícies (ASN, prefixo, \emph{fingerprint} TLS são heurísticas, não identidade canônica), custo de manutenção do grafo em produção, sensibilidade ao parâmetro $W$ (janela operacional), e generalização para outros pares de superfícies operacionais.
+
+%% ====================================================================
+%% 6. CONCLUSAO  (esqueleto a desenvolver)
+%% ====================================================================
+
+\section{Conclusão}
+\label{sec:conclusion}
+
+\textit{[Esqueleto.]} Síntese das contribuições: ontologia \emph{cross-surface} para DDoS em CDNs, \emph{pipeline} de grafo de conhecimento em tempo de execução correlacionando eventos DNS e HTTP, regras semânticas para \emph{QName Randomization} e \emph{Cache-Busting}, e ablação que isola a contribuição da semântica de correlação. Direções futuras incluem (i) extensão do modelo \emph{cross-surface} a outros pares de superfícies operacionais (TLS \emph{handshake}, fluxos BGP, comportamento em \emph{origin shield}), (ii) avaliação em ambientes de produção com dados reais anonimizados, e (iii) integração com plataformas SOAR para resposta automatizada.
+
+%% ====================================================================
+%% REFERENCIAS
+%% ====================================================================
+
+\bibliographystyle{elsarticle-num}
+\bibliography{references}
+
+%% ====================================================================
+%% APENDICE
+%% ====================================================================
+
+\appendix
+
+\section{Detalhes da Ontologia}
+\label{app:ontology}
+
+\textit{[Esqueleto.]} A ontologia OWL completa será disponibilizada em formato Turtle e RDF/XML no repositório do projeto.
+
+\section{Reprodutibilidade}
+\label{app:reproducibility}
+
+\textit{[Esqueleto.]} Código-fonte, \emph{datasets} sintéticos e \emph{scripts} experimentais serão disponibilizados em repositório público após a aceitação do artigo, sob licença permissiva.
+
+\end{document}

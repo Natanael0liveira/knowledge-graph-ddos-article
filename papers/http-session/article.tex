@@ -1,0 +1,334 @@
+%% article_http_session_kg.tex
+%% Artigo: Sessao como entidade semantica de primeira classe em deteccao
+%% de DDoS de Camada 7 sobre HTTP via Grafos de Conhecimento.
+%%
+%% Alvo: Computers & Security (Elsevier) -- Qualis A2
+%% Formato: 8-10 paginas (preprint, 12pt)
+
+\documentclass[preprint,12pt]{elsarticle}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
+\usepackage{lineno}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,fit,backgrounds}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+% Numeracao de linhas para revisao
+\modulolinenumbers[5]
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Sessão como Entidade Semântica: Detecção Explicável de Ataques DDoS de Camada 7 sobre HTTP via Grafos de Conhecimento}
+
+\author[inst1]{Natanael Oliveira\corref{cor1}}
+\ead{natanael.oliveira@inf.ufrgs.br}
+
+\author[inst1]{Arthur Kobielski}
+\ead{arthur.kobielski@inf.ufrgs.br}
+
+\author[inst1]{Marcos Luna}
+\ead{marcos.luna@inf.ufrgs.br}
+
+\cortext[cor1]{Autor correspondente}
+
+\affiliation[inst1]{organization={Universidade Federal do Rio Grande do Sul},
+                    city={Porto Alegre},
+                    country={Brasil}}
+
+\begin{abstract}
+%% 200-300 palavras
+Ataques DDoS de Camada 7 sobre HTTP --- HTTP Flood, Login Flood e abuso de API --- imitam o comportamento de usuários legítimos a baixas taxas de tráfego, derrotando defesas baseadas em assinaturas e em limiares estatísticos. Uma meta-análise recente de setenta e cinco estudos de detecção mostra que quarenta e sete por cento dos métodos usam \emph{features} agregadas de sessão (taxa de requisições, duração, contagem de operações), mas nenhum trata a sessão como entidade semântica raciocinável: sessões permanecem aprisionadas em vetores numéricos planos~\cite{odusami2020survey}. A consequência prática é dupla: detectores não conseguem articular \emph{por que} uma sessão é suspeita, e perdem a estrutura \emph{cross-session} que define campanhas distribuídas --- \emph{credential stuffing} coordenado, \emph{scraping} orquestrado, abuso de API por múltiplas identidades --- nas quais cada sessão individual parece normal mas o conjunto revela a campanha. Grafos de conhecimento em cibersegurança, por sua vez, têm sido construídos estaticamente a partir de texto de inteligência de ameaças, não como mecanismo de detecção em tempo de execução~\cite{jia2018practical,liu2022recent,bonagiri2024practical}. Este artigo propõe um arcabouço baseado em grafos de conhecimento que modela a sessão HTTP como objeto semântico de primeira classe, ligando-a por relações tipadas à identidade do cliente, ao \emph{endpoint} alvo, a sinais comportamentais e a mitigações aplicáveis. Apresentamos uma ontologia OWL com três especializações de ataque HTTP --- HTTP Flood, Login Flood e abuso de API --- alinhada a STIX 2.1 e MITRE ATT\&CK. Eventos de tráfego são elevados em tempo de execução a um grafo de conhecimento cujas regras semânticas produzem veredictos acompanhados de cadeias de evidência que atravessam múltiplas sessões. A avaliação empírica isola, por ablação, o ganho do raciocínio semântico em nível de sessão em relação a detectores que consomem as mesmas \emph{features} de sessão na forma agregada. A implementação de referência é disponibilizada como código aberto.
+
+\end{abstract}
+
+\begin{keyword}
+%% 4-6 palavras-chave
+Grafo de Conhecimento \sep Detecção de DDoS \sep Camada 7 HTTP \sep Sessão como Entidade Semântica \sep Raciocínio \emph{Cross-Session} \sep IA Explicável
+\end{keyword}
+
+\end{frontmatter}
+
+%% ====================================================================
+%% 1. INTRODUCAO
+%% ====================================================================
+
+\section{Introdução}
+\label{sec:introduction}
+
+\subsection{Contexto e Motivação}
+
+Ataques de Negação de Serviço Distribuída (DDoS) na camada de aplicação mudaram qualitativamente na última década. O levantamento mais recente reporta que o volume de ataques de Camada 7 dobra a cada trimestre e documenta um incidente que sustentou 292.000 requisições por segundo durante treze dias~\cite{tripathi2021application}. Pesquisas com operadores corroboram a tendência: em 2016, noventa e três por cento dos operadores de rede relataram observar DDoS na camada de aplicação, contra oitenta e seis por cento em 2013~\cite{odusami2020survey}.
+
+Sobre HTTP, esses ataques atacam diretamente a lógica da aplicação: \emph{endpoints} de autenticação (Login Flood), \emph{endpoints} de API de busca ou pesquisa (abuso de API), e \emph{endpoints} de processamento custoso (HTTP Flood contra rotas com I/O ou computação pesada). Cada requisição individual é, por construção, indistinguível de uma requisição legítima de um usuário real --- mesma estrutura, mesmos cabeçalhos, frequentemente até mesma frequência. O sinal de ataque mora não na requisição isolada, mas no padrão de uso da sessão: quantas falhas de \emph{login} em quantas identidades, qual a entropia das rotas visitadas, quão consistente é o \emph{fingerprint} do cliente, quão repetitivo é o ritmo de chamadas à API~\cite{kemp2023approach,bharathi2012pca,fernandes2015autonomous}.
+
+A literatura de detecção reconhece isso pelo menos em forma. Em uma meta-análise de setenta e cinco estudos de detecção de DDoS de Camada 7~\cite{odusami2020survey}, quarenta e sete por cento dos métodos usam \emph{features} extraídas de sessões --- taxa de requisições por usuário, duração média, contagem de operações por identidade. Mas em todos esses métodos a sessão é \emph{aplainada} num vetor numérico antes de chegar ao classificador. Detectores baseados em aprendizado de máquina recebem ponteiros para estatísticas de sessão, não a sessão em si --- e portanto não conseguem raciocinar sobre relações entre sessões, sobre identidades que aparecem em múltiplas sessões, ou sobre padrões que só emergem quando duas sessões aparentemente normais são analisadas em conjunto. A consequência operacional é direta: detectores ML modernos para HTTP de Camada 7 reportam AUC competitivo, mas seus autores admitem explicitamente que a metodologia não foi validada em tempo real e que o resultado é binário, sem explicação ontológica das decisões~\cite{kemp2023approach}.
+
+\subsection{Definição do Problema}
+
+Este trabalho aborda a detecção de DDoS de Camada 7 sobre HTTP como um problema de \emph{representação semântica de sessão}, em vez de engenharia de \emph{features} sobre estatísticas de sessão. O desafio central é que a sessão HTTP --- a unidade natural de comportamento de cliente contra a aplicação --- é simultaneamente o objeto que detectores existentes mais sumarizam e o objeto que menos modelam semanticamente. Três deficiências do estado da arte motivam nossa abordagem:
+
+\begin{enumerate}
+    \item \textbf{Sessão como \emph{feature aggregate}, não como entidade.} A meta-análise de Odusami et al.~\cite{odusami2020survey} mostra que quarenta e sete por cento dos métodos de detecção de DDoS de Camada 7 usam estatísticas agregadas de sessão (taxa de requisições, duração, contagem de operações por identidade), mas nenhum dos setenta e cinco estudos catalogados trata a sessão como entidade semântica raciocinável com identidade, alvo, comportamento e relações tipadas. A consequência é que \emph{features} de sessão tornam-se números num vetor, perdendo a estrutura que torna a sessão útil em primeiro lugar --- o fato de que ela conecta múltiplas requisições, uma identidade, um \emph{endpoint} alvo, e um histórico observável.
+    \item \textbf{Ausência de explicação ontológica.} Detectores baseados em aprendizado de máquina para ataques de Camada 7 HTTP reportam métricas competitivas mas emitem rótulos binários sem fundamentação semântica. Os autores de um dos trabalhos mais recentes~\cite{kemp2023approach} notam explicitamente que sua metodologia não foi validada em tempo real e não produz explicação das decisões. Para um analista de segurança decidindo entre bloquear um cliente, aplicar um desafio (\emph{challenge}), ou degradar uma sessão, ``isto parece um ataque'' não basta: é preciso saber qual \emph{endpoint} está sob estresse, qual identidade está envolvida e qual sinal sustenta a hipótese.
+    \item \textbf{Ausência de raciocínio \emph{cross-session}.} Campanhas distribuídas de Camada 7 --- \emph{credential stuffing} orquestrado contra um \emph{endpoint} de autenticação, \emph{scraping} coordenado por múltiplas identidades, abuso de API por uma frota de \emph{tokens} --- exibem assinatura fraca em qualquer sessão isolada, mas estrutura clara quando sessões são analisadas em conjunto pelo cliente compartilhado, pela identidade reaproveitada ou pelo \emph{fingerprint} TLS comum. Detectores que aplainam sessão em \emph{features} não podem raciocinar sobre esses laços entre sessões; precisam tratar cada sessão como caso independente, e portanto perdem a campanha. Levantamentos recentes de grafos de conhecimento em cibersegurança~\cite{liu2022recent} observam que ``ainda é pouco explícito como implementar o grafo de conhecimento para enfrentar dificuldades industriais reais em situações de ciberataque e defesa'' --- uma forma educada de dizer que KGs construídos a partir de texto de inteligência de ameaças não capturam estrutura de tráfego em tempo de execução e, portanto, não habilitam raciocínio \emph{cross-session}.
+\end{enumerate}
+
+\subsection{Questões de Pesquisa}
+
+Este trabalho aborda as seguintes questões de pesquisa:
+
+\begin{description}
+    \item[\textbf{QP1:}] Como uma ontologia OWL pode modelar a sessão HTTP, junto a \emph{endpoint}, identidade e comportamento, com fidelidade suficiente para sustentar raciocínio sobre ataques de Camada 7 --- HTTP Flood, Login Flood e abuso de API --- em vez de meramente agregar \emph{features} ao nível de sessão?
+    \item[\textbf{QP2:}] Quais regras semânticas sobre tal grafo de conhecimento detectam ataques cuja assinatura individual em cada sessão fica abaixo dos limiares de detectores baseados em \emph{features} agregadas, mas cuja estrutura \emph{cross-session} é discernível pela identidade ou pelo \emph{fingerprint} compartilhado?
+    \item[\textbf{QP3:}] Como as decisões de detecção resultantes podem ser apresentadas como cadeias de evidências explícitas, ligando múltiplas sessões, identidades e \emph{endpoints}, em formato auditável por analistas de segurança?
+    \item[\textbf{QP4:}] Qual é o ganho empírico do raciocínio semântico em nível de sessão sobre detecção baseada em \emph{features} agregadas de sessão, controlando para o mesmo conjunto subjacente de atributos de tráfego?
+\end{description}
+
+\subsection{Contribuições}
+
+As contribuições deste artigo são:
+
+\begin{enumerate}
+    \item Uma ontologia OWL para detecção de DDoS de Camada 7 sobre HTTP que modela a sessão HTTP como classe semântica de primeira classe (\texttt{ApplicationSession}), com relações tipadas para identidade do cliente (\texttt{hasIdentity}), \emph{endpoint} alvo (\texttt{targets}), comportamento exibido (\texttt{exhibitsBehavior}) e mitigação aplicável (\texttt{mitigatedBy}), e três especializações concretas de ataque --- HTTP Flood, Login Flood e abuso de API --- alinhadas a STIX 2.1 e MITRE ATT\&CK.
+
+    \item Um \emph{pipeline} de construção de grafo de conhecimento em tempo de execução que eleva requisições HTTP a instâncias ontológicas, populando sessões como nós persistentes do grafo e mantendo ligações \emph{cross-session} via identidade, \emph{fingerprint} TLS e prefixo de cliente --- em contraste com grafos de cibersegurança anteriores, construídos estaticamente a partir de texto de inteligência de ameaças~\cite{jia2018practical,bonagiri2024practical}.
+
+    \item Regras semânticas explicáveis para os três ataques que raciocinam sobre o grafo de sessões e produzem veredictos acompanhados de cadeias de evidência atravessando múltiplas sessões, contrastando com detectores anteriores baseados em \emph{features} agregadas que produzem rótulos binários por sessão~\cite{kemp2023approach,fernandes2015autonomous,bharathi2012pca}.
+
+    \item Avaliação empírica com ablação que isola, sobre o mesmo conjunto subjacente de atributos de tráfego, o ganho do raciocínio semântico em nível de sessão em relação a um \emph{baseline} de aprendizado de máquina que consome as mesmas \emph{features} de sessão aplainadas em vetor.
+
+    \item Uma implementação de referência em código aberto do \emph{pipeline} completo, endereçando a lacuna de implementação operacional quantificada por Odusami et al.~\cite{odusami2020survey}.
+\end{enumerate}
+
+\subsection{Organização do Artigo}
+
+O restante deste artigo está organizado como segue. A Seção~\ref{sec:related} revisa trabalhos relacionados em grafos de conhecimento para cibersegurança, em detecção de DDoS de Camada 7 sobre HTTP, e em modelagem de sessão para detecção de anomalias, posicionando nossa contribuição em relação às abordagens existentes mais próximas. A Seção~\ref{sec:approach} apresenta o arcabouço proposto, incluindo o \emph{design} da ontologia centrada em sessão, o \emph{pipeline} de construção do grafo de conhecimento em tempo de execução, e as regras de detecção semântica para os três ataques modelados. A Seção~\ref{sec:experiments} descreve a metodologia experimental, o conjunto de dados, os \emph{baselines} baseados em \emph{features} agregadas, e as métricas. A Seção~\ref{sec:results} relata e discute os resultados, com ênfase na ablação que isola o ganho do raciocínio em nível de sessão e na análise da vantagem \emph{cross-session}. A Seção~\ref{sec:conclusion} conclui e delineia direções para extensão.
+
+%% ====================================================================
+%% 2. TRABALHOS RELACIONADOS  (esqueleto a desenvolver)
+%% ====================================================================
+
+\section{Trabalhos Relacionados}
+\label{sec:related}
+
+\subsection{Grafos de Conhecimento em Cibersegurança}
+
+\textit{[Esqueleto.]} Esta subseção discute a literatura de construção de grafos de conhecimento aplicados à cibersegurança, com ênfase no fato de que o trabalho existente predominantemente constrói o grafo \emph{estaticamente} a partir de texto de inteligência de ameaças (CVEs, relatórios, \emph{blogs}), e não como mecanismo de detecção em tempo de execução. Referências centrais a desenvolver: Jia et al.~\cite{jia2018practical}, Bonagiri et al.~\cite{bonagiri2024practical} e o levantamento de Liu et al.~\cite{liu2022recent}.
+
+\subsection{Detecção de Ataques DDoS de Camada 7 sobre HTTP}
+
+\textit{[Esqueleto.]} Esta subseção revisa abordagens para detecção de DDoS na camada de aplicação HTTP, organizadas em três famílias: (i) perfilamento estatístico de tráfego/sessão, exemplificado por Fernandes et al.~\cite{fernandes2015autonomous} e Bharathi e Sukanesh~\cite{bharathi2012pca}; (ii) aprendizado de máquina sobre \emph{features} de fluxo ou sessão, com Kemp et al.~\cite{kemp2023approach} como representante recente; (iii) levantamentos de domínio, com Tripathi e Hubballi~\cite{tripathi2021application} como referência canônica recente. A análise crítica enfatizará que todas essas famílias tratam a sessão como agregado de \emph{features}, não como entidade.
+
+\subsection{Modelagem de Sessão em Detecção de Anomalias}
+
+\textit{[Esqueleto.]} Esta subseção discute como a sessão é representada em métodos de detecção existentes, com base na meta-análise de Odusami et al.~\cite{odusami2020survey}, que mostra que quarenta e sete por cento dos estudos usam \emph{features} agregadas de sessão. Argumentaremos que o estado da arte trata sessão como \emph{vetor de estatísticas} e não como \emph{objeto raciocinável}, o que limita a capacidade de raciocínio \emph{cross-session} necessário para detectar campanhas distribuídas.
+
+\subsection{Posicionamento deste Trabalho}
+
+\textit{[Esqueleto.]} Esta subseção sintetiza as três lacunas identificadas (sessão como agregado, ausência de explicação, ausência de raciocínio \emph{cross-session}) e posiciona nossa contribuição como o primeiro arcabouço, no escopo da literatura revista, que modela explicitamente a sessão HTTP como entidade semântica de primeira classe e habilita raciocínio sobre laços entre sessões via identidade compartilhada.
+
+%% ====================================================================
+%% 3. ABORDAGEM PROPOSTA  (esqueleto a desenvolver)
+%% ====================================================================
+
+\section{Abordagem Proposta}
+\label{sec:approach}
+
+\subsection{Visão Geral do Sistema}
+
+A Figura~\ref{fig:architecture} apresenta a arquitetura geral do arcabouço proposto. O sistema é composto por quatro estágios: (i) ingestão de eventos HTTP do tráfego de aplicação, (ii) elevação dos eventos a instâncias ontológicas no grafo de conhecimento, com sessões como nós persistentes, (iii) execução de regras semânticas sobre o grafo para detecção de ataques nos três tipos modelados, e (iv) geração da cadeia de evidências que acompanha o veredicto.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    block/.style={rectangle, draw, fill=blue!20, text width=2.5cm, text centered, rounded corners, minimum height=1cm},
+    arrow/.style={thick,->,>=stealth}
+]
+    \node[block] (input) {Tráfego HTTP};
+    \node[block, right=of input] (extractor) {Extrator de Entidades};
+    \node[block, right=of extractor] (kg) {Grafo de Conhecimento (sessões)};
+    \node[block, below=of kg] (detector) {Motor de Regras Semânticas};
+    \node[block, left=of detector] (explainer) {Gerador de Evidência};
+    \node[block, left=of explainer] (output) {Veredicto + Cadeia};
+
+    \draw[arrow] (input) -- (extractor);
+    \draw[arrow] (extractor) -- (kg);
+    \draw[arrow] (kg) -- (detector);
+    \draw[arrow] (detector) -- (explainer);
+    \draw[arrow] (explainer) -- (output);
+\end{tikzpicture}
+\caption{Arquitetura do arcabouço de detecção centrado em sessão.}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Ontologia Centrada em Sessão}
+
+\textit{[Esqueleto.]} Esta subseção define a ontologia OWL. A classe central é \texttt{ApplicationSession}, modelada como entidade de primeira classe com as seguintes relações tipadas:
+
+\begin{description}
+    \item[\texttt{hasIdentity}] liga uma sessão à identidade observada do cliente (cookie de sessão, \emph{token} JWT, \emph{username} em formulário de \emph{login}, \emph{fingerprint} TLS).
+    \item[\texttt{targets}] liga uma sessão ao \emph{endpoint} de aplicação alvo (\texttt{Endpoint}, com subclasses \texttt{AuthEndpoint}, \texttt{APIEndpoint}, \texttt{StaticAsset}).
+    \item[\texttt{exhibitsBehavior}] liga uma sessão a um perfil comportamental (\texttt{UserBehavior} ou \texttt{BotBehavior}).
+    \item[\texttt{relatedTo}] liga sessões entre si quando compartilham identidade, \emph{fingerprint} ou prefixo de cliente --- a relação que habilita raciocínio \emph{cross-session}.
+    \item[\texttt{mitigatedBy}] liga uma sessão ou ataque a uma política de mitigação aplicável (\texttt{RateLimit}, \texttt{Challenge}, \texttt{Block}).
+\end{description}
+
+Três especializações de ataque são definidas como subclasses de \texttt{ApplicationLayerAttack}: \texttt{HTTPFlood}, \texttt{LoginFlood} e \texttt{APIAbuse}. Cada especialização é caracterizada por um padrão semântico sobre as relações da sessão, não por um vetor de \emph{features}.
+
+\subsection{Construção do Grafo em Tempo de Execução}
+
+\textit{[Esqueleto.]} O \emph{pipeline} de construção opera em três fases:
+
+\begin{enumerate}
+    \item \textbf{Extração de entidades.} Para cada requisição HTTP observada, são criadas (ou atualizadas) instâncias de \texttt{HTTPRequest}, \texttt{ApplicationSession}, \texttt{Identity} e \texttt{Endpoint}.
+    \item \textbf{População de relações.} As relações \texttt{hasIdentity}, \texttt{targets}, \texttt{exhibitsBehavior} e \texttt{relatedTo} são instanciadas no grafo conforme as evidências do tráfego.
+    \item \textbf{Manutenção de janela.} Sessões e relações ficam ativas no grafo dentro de uma janela operacional configurável (por padrão, $W = 5$ minutos), após a qual são descarregadas para manter o grafo enxuto em ambiente de produção.
+\end{enumerate}
+
+O Algoritmo~\ref{alg:kgbuild} apresenta o pseudocódigo do \emph{pipeline}.
+
+\begin{algorithm}[H]
+\caption{Construção do Grafo de Conhecimento em Tempo de Execução}
+\label{alg:kgbuild}
+\begin{algorithmic}[1]
+\REQUIRE Fluxo de requisições $\mathcal{R}$, ontologia $\mathcal{O}$, janela $W$
+\ENSURE Grafo de Conhecimento $KG$ persistente em $W$
+\STATE $KG \leftarrow \emptyset$
+\FOR{cada requisição $r \in \mathcal{R}$}
+    \STATE $s \leftarrow \text{ResolverSessao}(r)$
+    \STATE $i \leftarrow \text{ResolverIdentidade}(r)$
+    \STATE $e \leftarrow \text{ResolverEndpoint}(r.\text{path})$
+    \STATE $KG.\text{adicionar}(s, i, e)$
+    \STATE $KG.\text{instanciarRelacao}(s, \texttt{hasIdentity}, i)$
+    \STATE $KG.\text{instanciarRelacao}(s, \texttt{targets}, e)$
+    \STATE $KG.\text{ligarSessoesPorIdentidade}(s)$
+    \STATE $KG.\text{purgarFora}(W)$
+\ENDFOR
+\STATE \textbf{retornar} $KG$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Regras de Detecção Semântica}
+
+\textit{[Esqueleto.]} Para cada um dos três ataques modelados, definimos uma regra semântica sobre o grafo. As regras são expressas em SPARQL/SWRL no \emph{deliverable} final do arcabouço; abaixo, as condições em forma narrativa:
+
+\begin{itemize}
+    \item \textbf{Login Flood}: existe uma identidade $i$ ligada a múltiplas sessões $s_1, \ldots, s_n$ dentro da janela $W$, cada uma com \texttt{targets} um \texttt{AuthEndpoint} e taxa de falha de autenticação acima de um limiar $\tau_{\text{fail}}$.
+    \item \textbf{HTTP Flood}: existe uma sessão (ou conjunto de sessões ligadas por \texttt{relatedTo}) cuja taxa de requisições contra um \texttt{Endpoint} excede $\tau_{\text{rate}}$, com baixa entropia de rotas (\texttt{BotBehavior}).
+    \item \textbf{Abuso de API}: existem múltiplas sessões com \texttt{hasIdentity} apontando para diferentes \emph{tokens} mas \texttt{relatedTo} via \emph{fingerprint} TLS ou prefixo de IP, todas atingindo \texttt{APIEndpoint} a taxa elevada.
+\end{itemize}
+
+\subsection{Cadeia de Evidência e Explicabilidade}
+
+\textit{[Esqueleto.]} Quando uma regra dispara, o motor emite um veredicto acompanhado de uma cadeia de evidência que enumera explicitamente: a regra que disparou, as instâncias ontológicas envolvidas (sessões, identidades, \emph{endpoint}), os valores observados das condições, e a política de mitigação sugerida. A cadeia é exportável em formato JSON-LD e STIX 2.1, compatível com integração em \emph{Security Information and Event Management} (SIEM).
+
+%% ====================================================================
+%% 4. METODOLOGIA EXPERIMENTAL  (esqueleto a desenvolver)
+%% ====================================================================
+
+\section{Metodologia Experimental}
+\label{sec:experiments}
+
+\subsection{Conjunto de Dados}
+
+\textit{[Esqueleto.]} Esta subseção descreverá o conjunto de dados utilizado para avaliação. Três opções estão em consideração: (i) tráfego sintético gerado pelo \emph{pipeline} Python que acompanha este trabalho, com cenários controlados de \emph{credential stuffing}, \emph{scraping} coordenado e abuso de API; (ii) subconjunto HTTP do dataset CIC-DDoS2019 adaptado para cenário de Camada 7; (iii) dados reais anonimizados, sujeitos a aprovação ética. A escolha será justificada empiricamente em relação à cobertura dos três ataques modelados e à possibilidade de instrumentar campanhas \emph{cross-session}.
+
+\subsection{Configuração Experimental}
+
+\textit{[Esqueleto.]} Descreverá o ambiente experimental (\emph{hardware}, \emph{software}, parâmetros), a divisão treino/validação/teste, e os procedimentos de calibração de limiares.
+
+\subsection{\emph{Baselines}: Detectores Baseados em \emph{Features} Agregadas}
+
+\textit{[Esqueleto.]} A comparação experimental será feita contra três \emph{baselines}, todos consumindo o mesmo conjunto subjacente de atributos de tráfego:
+
+\begin{itemize}
+    \item \textbf{Perfilamento estatístico}: aproximação de Fernandes et al.~\cite{fernandes2015autonomous}, PCA sobre estatísticas agregadas de sessão.
+    \item \textbf{Matriz de comportamento}: aproximação de Bharathi e Sukanesh~\cite{bharathi2012pca}, $k$-means sobre matriz de \emph{features} por sessão.
+    \item \textbf{Aprendizado de máquina}: aproximação de Kemp et al.~\cite{kemp2023approach}, classificadores supervisionados (Random Forest, SVM) sobre o mesmo vetor de \emph{features} de sessão.
+\end{itemize}
+
+A escolha desses \emph{baselines} é deliberada: todos consomem o mesmo material que nosso arcabouço, na forma agregada. A ablação isola a contribuição da \emph{representação semântica de sessão}.
+
+\subsection{Métricas de Avaliação}
+
+\textit{[Esqueleto.]} Métricas padrão de classificação (acurácia, precisão, \emph{recall}, F1, AUC, FPR) serão complementadas por (i) métricas específicas para campanhas \emph{cross-session} (\emph{recall} sobre sessões que pertencem a uma campanha coordenada conhecida) e (ii) métricas qualitativas de cadeia de evidência.
+
+\subsection{Análise de Ablação}
+
+\textit{[Esqueleto.]} A análise central isola o ganho do raciocínio em nível de sessão. Comparamos: (a) detector sem ontologia, alimentado pelas mesmas \emph{features} agregadas; (b) detector com ontologia mas sem relações \emph{cross-session}; (c) detector completo, com sessões ligadas por identidade. A diferença entre (a) e (c) é a contribuição da abordagem; a diferença entre (b) e (c) é especificamente o ganho do raciocínio \emph{cross-session}.
+
+%% ====================================================================
+%% 5. RESULTADOS E DISCUSSAO  (esqueleto a desenvolver)
+%% ====================================================================
+
+\section{Resultados e Discussão}
+\label{sec:results}
+
+\subsection{Desempenho Geral}
+
+\textit{[Esqueleto.]} Tabela comparativa de F1, FPR e AUC contra os três \emph{baselines}, nos três tipos de ataque, com intervalos de confiança.
+
+\subsection{Análise por Tipo de Ataque}
+
+\textit{[Esqueleto.]} Discussão por ataque: HTTP Flood, Login Flood e Abuso de API. Para cada um, identificar onde a representação semântica de sessão produz vantagem mensurável.
+
+\subsection{Análise da Vantagem \emph{Cross-Session}}
+
+\textit{[Esqueleto.]} Subseção central do paper: medir, em cenários de campanha distribuída, a fração de sessões corretamente atribuídas a uma campanha coordenada pelo arcabouço proposto vs. \emph{baselines} baseados em \emph{features}. A hipótese a validar é que o raciocínio \emph{cross-session} fornece uma vantagem mensurável quando o atacante distribui o ataque por múltiplas sessões individualmente sub-limiares.
+
+\subsection{Avaliação da Qualidade da Explicação}
+
+\textit{[Esqueleto.]} Análise qualitativa (amostragem de cadeias de evidência geradas) e, se viável, estudo com analistas de segurança avaliando completude e acionabilidade das explicações.
+
+\subsection{Significância Estatística}
+
+\textit{[Esqueleto.]} Testes pareados (\emph{paired $t$-test}, Wilcoxon) sobre validação cruzada, com correção de Bonferroni para múltiplas comparações.
+
+\subsection{Limitações}
+
+\textit{[Esqueleto.]} Discussão de limitações: dependência de identificação de sessão e identidade, custo de manutenção do grafo em ambiente de produção, sensibilidade ao parâmetro $W$ (janela operacional), e generalização para protocolos além de HTTP.
+
+%% ====================================================================
+%% 6. CONCLUSAO  (esqueleto a desenvolver)
+%% ====================================================================
+
+\section{Conclusão}
+\label{sec:conclusion}
+
+\textit{[Esqueleto.]} Síntese das contribuições: ontologia centrada em sessão, \emph{pipeline} de KG em tempo de execução, regras semânticas explicáveis, ablação que isola a contribuição da camada semântica. Direções futuras incluem (i) extensão da ontologia para outros protocolos de aplicação (DNS, TLS handshake), (ii) integração com plataformas SOAR para resposta automatizada, (iii) avaliação em ambientes de produção com dados reais anonimizados, e (iv) estudos com analistas de segurança para validação operacional das cadeias de evidência.
+
+%% ====================================================================
+%% REFERENCIAS
+%% ====================================================================
+
+\bibliographystyle{elsarticle-num}
+\bibliography{references}
+
+%% ====================================================================
+%% APENDICE
+%% ====================================================================
+
+\appendix
+
+\section{Detalhes da Ontologia}
+\label{app:ontology}
+
+\textit{[Esqueleto.]} A ontologia OWL completa será disponibilizada em formato Turtle e RDF/XML no repositório do projeto.
+
+\section{Reprodutibilidade}
+\label{app:reproducibility}
+
+\textit{[Esqueleto.]} Código-fonte, \emph{datasets} sintéticos e \emph{scripts} experimentais serão disponibilizados em repositório público após a aceitação do artigo, sob licença permissiva.
+
+\end{document}

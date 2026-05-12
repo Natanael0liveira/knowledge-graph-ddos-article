@@ -1,0 +1,88 @@
+\begin{thebibliography}{10}
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\expandafter\ifx\csname href\endcsname\relax
+  \def\href#1#2{#2} \def\path#1{#1}\fi
+
+\bibitem{tripathi2021application}
+N.~Tripathi, N.~Hubballi, Application layer denial-of-service attacks and
+  defense mechanisms: A survey, ACM Computing Surveys 54~(4) (2021) 1--33.
+\newblock \href {https://doi.org/10.1145/3448291} {\path{doi:10.1145/3448291}}.
+
+\bibitem{odusami2020survey}
+M.~Odusami, S.~Misra, O.~Abayomi-Alli, A.~Abayomi-Alli, L.~Fern{\'a}ndez-Sanz,
+  A survey and meta-analysis of application-layer distributed denial-of-service
+  attack, International Journal of Communication Systems 33~(18) (2020) e4603.
+\newblock \href {https://doi.org/10.1002/dac.4603}
+  {\path{doi:10.1002/dac.4603}}.
+
+\bibitem{jia2018practical}
+Y.~Jia, Y.~Qi, H.~Shang, R.~Jiang, A.~Li, A practical approach to constructing
+  a knowledge graph for cybersecurity, Engineering 4~(1) (2018) 53--60.
+\newblock \href {https://doi.org/10.1016/j.eng.2018.01.004}
+  {\path{doi:10.1016/j.eng.2018.01.004}}.
+
+\bibitem{liu2022recent}
+K.~Liu, F.~Wang, Z.~Ding, S.~Liang, Z.~Yu, Y.~Zhou, Recent progress of using
+  knowledge graph for cybersecurity, Electronics 11~(15) (2022) 2287.
+\newblock \href {https://doi.org/10.3390/electronics11152287}
+  {\path{doi:10.3390/electronics11152287}}.
+
+\bibitem{bonagiri2024practical}
+V.~Bonagiri, P.~Priyadharshini, P.~PanneerSelvi, S.~Sahitya, R.~Swamy,
+  P.~Varalakshmi, Practical applications of cybersecurity: A research paper on
+  knowledge graphs for real-world security solutions, in: 2024 4th Asian
+  Conference on Innovation in Technology (ASIANCON), IEEE, 2024.
+\newblock \href {https://doi.org/10.1109/ASIANCON62057.2024.10838144}
+  {\path{doi:10.1109/ASIANCON62057.2024.10838144}}.
+
+\bibitem{kemp2023approach}
+C.~Kemp, C.~Calvert, T.~M. Khoshgoftaar, J.~L. Leevy, An approach to
+  application-layer {DoS} detection, Journal of Big Data 10~(1) (2023) 22.
+\newblock \href {https://doi.org/10.1186/s40537-023-00699-3}
+  {\path{doi:10.1186/s40537-023-00699-3}}.
+
+\bibitem{fernandes2015autonomous}
+G.~Fernandes~Jr., J.~J. P.~C. Rodrigues, M.~L. Proen{\c{c}}a~Jr., Autonomous
+  profile-based anomaly detection system using principal component analysis and
+  flow analysis, Applied Soft Computing 34 (2015) 513--525.
+\newblock \href {https://doi.org/10.1016/j.asoc.2015.05.019}
+  {\path{doi:10.1016/j.asoc.2015.05.019}}.
+
+\bibitem{bharathi2012pca}
+R.~Bharathi, R.~Sukanesh, A {PCA} based framework for detection of application
+  layer {DDoS} attacks, WSEAS Transactions on Information Science and
+  Applications 9~(12) (2012) 389--398.
+
+\bibitem{anagnostopoulos2013dns}
+M.~Anagnostopoulos, G.~Kambourakis, P.~Kopanos, C.~Lambrinoudakis,
+  S.~Gritzalis, {DNS} amplification attack detection in a cloud environment,
+  in: 2013 IEEE International Conference on Cloud Engineering (IC2E), IEEE,
+  2013.
+\newblock \href {https://doi.org/10.1109/CLOUD.2013.44}
+  {\path{doi:10.1109/CLOUD.2013.44}}.
+
+\bibitem{pappas2009dns}
+V.~Pappas, Z.~Xu, S.~Lu, D.~Massey, A.~Terzis, L.~Zhang, Impact of
+  configuration errors on {DNS} robustness, in: ACM SIGCOMM Computer
+  Communication Review, ACM, 2009.
+\newblock \href {https://doi.org/10.1145/1592568.1592604}
+  {\path{doi:10.1145/1592568.1592604}}.
+
+\bibitem{moura2016anycast}
+G.~C.~M. Moura, J.~Heidemann, R.~d.~O. Schmidt, A.~Pras, Anycast and {DNS}: A
+  study of load balancing and resilience, in: Proceedings of the 2016 Internet
+  Measurement Conference (IMC), ACM, 2016.
+\newblock \href {https://doi.org/10.1145/2987443.2987446}
+  {\path{doi:10.1145/2987443.2987446}}.
+
+\bibitem{vanrijswijk2014dnssec}
+R.~van Rijswijk-Deij, A.~Sperotto, A.~Pras, {DNSSEC} and its potential for
+  {DDoS} attacks: A comprehensive measurement study, in: Proceedings of the
+  2014 Conference on Internet Measurement Conference (IMC), ACM, 2014, pp.
+  449--460.
+\newblock \href {https://doi.org/10.1145/2663716.2663731}
+  {\path{doi:10.1145/2663716.2663731}}.
+
+\end{thebibliography}

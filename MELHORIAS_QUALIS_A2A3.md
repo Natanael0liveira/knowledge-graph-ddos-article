@@ -1,417 +1,337 @@
-# Roadmap para Nível Qualis A2/A3
+# Roadmap até *Computers & Security* (Qualis A2)
 
-## Análise de Gap e Recomendações
-
-Este documento analisa os requisitos para elevar o projeto e artigo ao nível Qualis A2 ou A3, com base nos critérios da CAPES e melhores práticas acadêmicas.
+> **Documento de planejamento** específico para a submissão do paper [papers/http-session](papers/http-session/) — *Grafos de Conhecimento Centrados em Sessão HTTP para Detecção Explicável de DDoS*. Para a visão de projeto, ver [`README.md`](README.md). Para a estrutura do paper, ver [`ESTRUTURA_DO_ARTIGO.md`](ESTRUTURA_DO_ARTIGO.md).
 
 ---
 
-## 1. O que é o Qualis?
+## 1. Veículo-alvo e justificativa
 
-O **Qualis** é o sistema de classificação de periódicos e conferências utilizado pela CAPES para avaliar a pós-graduação no Brasil. A classificação vai de A1 (mais alto) a C (mais baixo).
+**Primário:** *Computers & Security* (Elsevier), Qualis A2.
 
-| Estrato | Características | Fator de Impacto Médio |
-|---------|-----------------|------------------------|
-| **A1** | Top mundial, altíssimo impacto | > 5.0 |
-| **A2** | Alto impacto internacional | 2.0 - 5.0 |
-| **A3** | Impacto internacional relevante | 1.0 - 2.0 |
-| **A4** | Impacto regional/nacional | 0.5 - 1.0 |
-| **B1-B4** | Menor impacto | < 0.5 |
+| Característica | Valor |
+|---|---|
+| Fator de Impacto | ≈ 3.5 |
+| Taxa de aceitação | ≈ 30% |
+| Tempo de revisão | 3–6 meses |
+| Formato | Artigo completo, 8–10 páginas (preprint 12pt) |
+| Cobertura | Segurança aplicada com abertura para ontologias e *explainability* |
 
-### Conferências Qualis A2/A3 em Segurança/Redes
+**Alternativas:**
 
-| Conferência | Qualis | Aceitação | Área |
-|-------------|--------|-----------|------|
-| IEEE S&P | A1 | ~10% | Segurança |
-| ACM CCS | A1 | ~15% | Segurança |
-| USENIX Security | A1 | ~12% | Segurança |
-| NDSS | A1 | ~18% | Segurança |
-| **ACM SIGCOMM** | **A1** | ~15% | Redes |
-| **IEEE TNSM** | **A2** | ~25% | Gerência de Redes |
-| **IEEE/ACM ToN** | **A1** | ~20% | Redes |
-| **Computers & Security** | **A2** | ~30% | Segurança |
-| **Journal of Cybersecurity** | **A2** | ~25% | Cibersegurança |
+- *Journal of Network and Computer Applications* (Elsevier, A2, IF ≈ 5.1) — alvo se o trabalho expandir significativamente em volume e validação real.
+- *Journal of Cybersecurity* (Oxford, A2) — alvo se a ênfase migrar para o lado de explicabilidade/operações de segurança.
 
-### Periódicos Qualis A2/A3 em Segurança
-
-| Periódico | Qualis | Fator de Impacto |
-|-----------|--------|-------------------|
-| IEEE TIFS | A1 | 7.2 |
-| IEEE TDSC | A1 | 6.5 |
-| ACM TOPS | A1 | 5.8 |
-| **Computers & Security** | **A2** | 3.5 |
-| **J. Network and Computer Applications** | **A2** | 5.1 |
-| **Digital Investigation** | **A3** | 2.1 |
-| **Information Security Journal** | **A3** | 1.8 |
+**Por que C&S como primeiro alvo:** equilíbrio entre Qualis A2 e taxa de aceitação razoável, cobertura aceita ontologias de segurança, formato 8–10 páginas combina com o escopo enxuto do paper.
 
 ---
 
-## 2. Análise de Gap: Estado Atual vs. Necessário
+## 2. Análise de gap — estado atual vs. necessário
 
-### 2.1 Contribuição Científica
+A análise está organizada por eixo de avaliação típico de revisores A2.
 
-| Aspecto | Estado Atual | Necessário para A2/A3 | Gap |
-|---------|--------------|----------------------|-----|
-| **Originalidade** | Boa - ontologia específica para Layer 7 | Alta - contribuição clara e distinta | ⚠️ Refinar |
-| **Profundidade** | Média - implementação de prova de conceito | Alta - validação extensiva | ❌ Melhorar |
-| **Comparação** | Básica - tabela comparativa | Robusta - baseline experimental | ❌ Implementar |
-| **Reprodutibilidade** | Código disponível | Dataset + código + protocolo | ⚠️ Completar |
+### 2.1 Contribuição científica
+
+| Eixo | Estado atual | Necessário para A2 | Gap |
+|---|---|---|---|
+| **Originalidade** | Tese forte: sessão como entidade ontológica de primeira classe + raciocínio *cross-session* + KG em tempo de execução | Contribuição clara, defensável, com lacuna evidenciada por *survey* | ✅ Já evidenciada (Odusami, Liu, Kemp) |
+| **Profundidade** | Esqueleto guiado em §2–§6 do `.tex` | Implementação, ontologia formalizada, regras SPARQL/SWRL | ❌ Implementar |
+| **Comparação** | Baselines listados (Fernandes, Bharathi, Kemp) | Implementação real dos três baselines + ablação de duas vias | ❌ Implementar |
+| **Reprodutibilidade** | Código de referência precursor em `src/graph_builder/` | Pipeline final, ontologia OWL pública, gerador sintético, *scripts* de experimento | 🔄 Refatorar e publicar |
 
 ### 2.2 Metodologia
 
-| Aspecto | Estado Atual | Necessário para A2/A3 | Gap |
-|---------|--------------|----------------------|-----|
-| **Dataset** | Simulação própria | Dataset público (CIC-DDoS2019) | ❌ Usar dataset real |
-| **Baseline** | Tabela teórica | Implementação e comparação real | ❌ Implementar |
-| **Métricas** | Definidas | Análise estatística completa | ❌ Implementar |
-| **Validação** | Simulação | Validação cruzada, múltiplos cenários | ❌ Implementar |
+| Eixo | Estado atual | Necessário para A2 | Gap |
+|---|---|---|---|
+| **Dataset primário** | Não produzido | Tráfego sintético parametrizado por **K** (grau de distribuição) para Cenários A/B/C | ❌ Produzir |
+| **Dataset secundário** | Não usado | Subconjuntos CICIDS2017 (Slowloris/Slow HTTP) e CIC-DDoS2019 (componentes HTTP) para consistência | ❌ Preparar |
+| **Baselines** | Listados em §4.4 | Três baselines implementados sobre o **mesmo conjunto de atributos** | ❌ Implementar |
+| **Cenários** | A/B/C definidos em §4.1 | $n \ge 30$ execuções por cenário, *seeds* distintos | ❌ Executar |
+| **Métricas** | Três famílias definidas em §4.5 | F1/AUC/FPR por cenário **+ *recall* por campanha** + qualitativo de explicação | ❌ Computar |
+| **Análise estatística** | Não realizada | *Paired t-test*, Wilcoxon, Bonferroni | ❌ Aplicar |
+| **Ablação** | Configurações (a)/(b)/(c) definidas em §4.6 | Executar e reportar (a)→(c) e (b)→(c) | ❌ Executar |
 
-### 2.3 Escrita e Estrutura
+### 2.3 Escrita e estrutura
 
-| Aspecto | Estado Atual | Necessário para A2/A3 | Gap |
-|---------|--------------|----------------------|-----|
-| **Revisão Bibliográfica** | 23 referências | 50+ referências atualizadas | ❌ Expandir |
-| **Formalização** | Básica | Formalismo matemático completo | ❌ Melhorar |
-| **Visualizações** | Diagramas básicos | Figuras de alta qualidade | ⚠️ Melhorar |
-| **Escrita** | Português | Inglês (internacionalização) | ❌ Traduzir |
+| Eixo | Estado atual | Necessário para A2 | Gap |
+|---|---|---|---|
+| **Idioma** | Português (preprint) | Inglês para submissão internacional | ❌ Traduzir |
+| **Revisão bibliográfica** | Núcleo em [`shared/references.bib`](shared/references.bib); expandida em [`REFERENCIAS_EXPANDIDAS.md`](REFERENCIAS_EXPANDIDAS.md) | 40–60 referências bem usadas (não apenas listadas) | 🔄 Trazer ao `.tex` |
+| **Formalização** | Algoritmo 1 em pseudocódigo | Definição formal de KG, ontologia em Turtle, regras em SPARQL/SWRL | ❌ Formalizar |
+| **Figuras** | Diagrama de arquitetura (tikz) | + *money figure* (curva *recall* × K) + diagrama de ontologia + cadeia de evidência | ❌ Produzir |
+| **Tabelas** | Estrutura prevista em §5 | Resultados quantitativos por cenário × ataque × baseline | ❌ Preencher |
 
 ---
 
-## 3. Plano de Ação Detalhado
+## 3. Plano de ação por fase
 
-### Fase 1: Fundamentação Teórica (4-6 semanas)
+### Fase 1 — Fundamentação (4–6 semanas)
 
-#### 3.1.1 Revisão Bibliográfica Sistemática
+**Objetivo:** transformar os esqueletos de §2 e §3 em prosa pronta para revisão, e fechar a ontologia formal.
 
-**Objetivo:** Expandir de 23 para 50+ referências relevantes e atualizadas.
+#### 3.1.1 Escrita de §2 Trabalhos Relacionados
 
-**Ações:**
-1. Busca sistemática em bases (IEEE Xplore, ACM DL, Scopus)
-2. Foco em artigos 2020-2025 sobre:
-   - Knowledge Graphs em cibersegurança
-   - DDoS detection com ML/DL
-   - Ontologias de segurança
-   - Graph Neural Networks para detecção
-3. Identificar gaps na literatura para posicionar contribuição
+- Desenvolver as três subseções a partir das referências centrais já citadas:
+  - §2.1 KGs em cibersegurança: Jia (2018), Bonagiri (2024), Liu (2022).
+  - §2.2 Detecção HTTP Camada 7: Fernandes (2015), Bharathi (2012), Kemp (2023), Tripathi & Hubballi (2021).
+  - §2.3 Modelagem de sessão: Odusami (2020).
+- Sustentar o argumento de posicionamento (§2.4) nas três lacunas.
 
 **Entregáveis:**
-- [ ] Tabela de 50+ referências categorizadas
-- [ ] Mapa conceitual do estado-da-arte
-- [ ] Identificação clara do gap de pesquisa
+- [ ] §2 completa em PT no `.tex`
+- [ ] 40–60 referências expandidas alinhadas ao escopo
+- [ ] Mapa de leituras consolidado em [`docs/leituras-pt/`](docs/leituras-pt/)
 
-#### 3.1.2 Formalização Matemática
+#### 3.1.2 Formalização da ontologia (§3.2)
 
-**Objetivo:** Formalizar completamente o modelo proposto.
+- Especificar `ApplicationSession` e as 5 relações em **Turtle**.
+- Definir as três subclasses (`CoordinatedHTTPFlood`, `CredentialStuffing`, `CoordinatedAPIAbuse`) com `exhibitsCrossSessionStructure`.
+- Validar consistência com *reasoner* (HermiT, Pellet).
+- Mapeamento explícito para STIX 2.1 e MITRE ATT&CK T1498.001.
 
-**Elementos necessários:**
+**Entregáveis:**
+- [ ] `ontology/ddos_session_ontology.ttl` (recorte para sessão)
+- [ ] `ontology/ddos_session_ontology.owl` (RDF/XML)
+- [ ] Documentação de mapeamento STIX/ATT&CK
+
+#### 3.1.3 Formalização das regras (§3.4)
+
+- Reescrever as três regras em **SPARQL** (consulta) e/ou **SWRL** (regra DL).
+- Parametrizar limiares ($\tau_{\text{fail}}$, $\tau_{\text{rate}}$, $\tau_{\text{api}}$) com método de calibração.
+- Especificar a janela operacional $W$ e o efeito de purga.
+
+**Entregáveis:**
+- [ ] Conjunto de regras SPARQL/SWRL versionado
+- [ ] Documento de calibração de limiares
+
+#### 3.1.4 Formalização matemática mínima
+
+Definições formais necessárias no `.tex`:
 
 ```latex
-% Definição formal do Grafo de Conhecimento
-\begin{definition}
-Um Grafo de Conhecimento para DDoS é uma tupla $KG = (E, R, P, \phi)$ onde:
+\begin{definition}[Grafo de Conhecimento de Sessão]
+Um Grafo de Conhecimento de Sessão é uma tupla
+$KG_W = (V, E, \tau, W)$ onde:
 \begin{itemize}
-    \item $E = \{e_1, e_2, ..., e_n\}$ é o conjunto de entidades
-    \item $R = \{r_1, r_2, ..., r_m\}$ é o conjunto de relações
-    \item $P = \{p_1, p_2, ..., p_k\}$ é o conjunto de propriedades
-    \item $\phi: E \times R \times E \rightarrow [0,1]$ é a função de peso
+  \item $V = V_{\text{sess}} \cup V_{\text{id}} \cup V_{\text{ep}} \cup V_{\text{beh}}$
+        é o conjunto de vértices tipados;
+  \item $E \subseteq V \times R \times V$ é o conjunto de arestas tipadas
+        por $R = \{\texttt{hasIdentity}, \texttt{targets},
+                   \texttt{exhibitsBehavior}, \texttt{relatedTo},
+                   \texttt{mitigatedBy}\}$;
+  \item $\tau$ é a função de carimbo temporal sobre vértices e arestas;
+  \item $W$ é a janela operacional (padrão $W = 300\,s$).
 \end{itemize}
 \end{definition}
 
-% Teorema de detecção
-\begin{theorem}
-Dado um grafo $KG$ e um conjunto de regras $\mathcal{R}$, 
-a detecção de anomalias $A$ é computável em $O(|E| \cdot |R|)$.
-\end{theorem}
+\begin{definition}[Estrutura Cross-Session]
+Um conjunto $S \subseteq V_{\text{sess}}$ exibe estrutura cross-session se
+$\exists\, s_i, s_j \in S, i \ne j$ tais que
+$(s_i, \texttt{relatedTo}, s_j) \in E$.
+\end{definition}
 ```
 
 **Entregáveis:**
-- [ ] Definições formais de todas as estruturas
-- [ ] Teoremas e provas de corretude/completude
-- [ ] Análise de complexidade algorítmica
+- [ ] Apêndice ou seção de formalização no `.tex`
+- [ ] Análise de complexidade da construção do grafo e da execução das regras
 
-### Fase 2: Implementação e Validação (6-8 semanas)
+---
 
-#### 3.2.1 Dataset e Pré-processamento
+### Fase 2 — Implementação e validação (6–8 semanas)
 
-**Dataset recomendado: CIC-DDoS2019**
+**Objetivo:** produzir os artefatos experimentais e os resultados das tabelas de §5.
 
-| Característica | Valor |
-|----------------|-------|
-| Tamanho | ~15 GB |
-| Tipos de ataque | 12 (inclui HTTP Flood, DNS amplification) |
-| Amostras | ~50 milhões |
-| Features | 80+ |
+#### 3.2.1 Gerador sintético parametrizado por **K** (grau de distribuição)
 
-**Ações:**
-1. Download e extração do dataset
-2. Pré-processamento:
-   - Normalização de features
-   - Balanceamento de classes
-   - Divisão treino/teste/validação (70/15/15)
-3. Feature engineering específica para Layer 7
+| Parâmetro | Cenário A | Cenário B | Cenário C |
+|---|---|---|---|
+| Número de origens distintas (**K**) | 1 | 10 ≤ K ≤ 100 | K ≥ 1000 |
+| Identidades por origem | configurável | configurável | configurável |
+| Tipo de ataque | um dos três | um dos três | um dos três |
+| Tráfego legítimo concorrente | configurável | configurável | configurável |
+| Janela temporal | configurável | configurável | configurável |
+
+- Implementar o gerador como módulo Python reutilizável.
+- Exportar tráfego em formato compatível com o *pipeline* (eventos HTTP estruturados com `tls_fingerprint`, `src_ip`, `session_id`, `identity_token`, `endpoint`).
+- Para cada cenário × ataque, gerar $n \ge 30$ realizações com *seeds* distintas.
 
 **Entregáveis:**
-- [ ] Pipeline de pré-processamento documentado
-- [ ] Estatísticas do dataset processado
-- [ ] Scripts reprodutíveis
+- [ ] `src/generator/synthetic_traffic.py`
+- [ ] Conjuntos de tráfego: 3 cenários × 3 ataques × 30 *seeds* = 270 *runs*
 
-#### 3.2.2 Baselines de Comparação
+#### 3.2.2 *Datasets* secundários para consistência
 
-**Implementar e comparar com:**
-
-| Método | Tipo | Referência | Razão |
-|--------|------|------------|-------|
-| Random Forest | ML tradicional | Breiman (2001) | Baseline clássico |
-| XGBoost | Gradient Boosting | Chen (2016) | Estado-da-arte em ML |
-| LSTM | Deep Learning | Hochreiter (1997) | Sequências temporais |
-| GCN | Graph Neural Network | Kipf (2017) | Grafos |
-| Autoencoder | Anomaly Detection | An (2015) | Não supervisionado |
-
-**Métricas de avaliação:**
-
-| Métrica | Fórmula | Meta |
-|---------|---------|------|
-| Accuracy | (TP+TN)/(TP+TN+FP+FN) | > 95% |
-| Precision | TP/(TP+FP) | > 93% |
-| Recall | TP/(TP+FN) | > 92% |
-| F1-Score | 2×(P×R)/(P+R) | > 92% |
-| AUC-ROC | Área sob curva ROC | > 0.95 |
-| FPR | FP/(FP+TN) | < 2% |
-| Tempo Detecção | t_detect - t_start | < 100ms |
+- **CICIDS2017** — subconjuntos Slowloris e Slow HTTP.
+- **CIC-DDoS2019** — componentes HTTP.
+- Pré-processar para o mesmo formato do tráfego sintético.
+- Usar como *sanity check* dos resultados sintéticos, não como avaliação primária.
 
 **Entregáveis:**
-- [ ] Implementação de 5+ baselines
-- [ ] Tabela comparativa completa
-- [ ] Análise estatística (testes t, ANOVA)
+- [ ] `src/dataset_prep/cicids2017.py`
+- [ ] `src/dataset_prep/cicddos2019.py`
+- [ ] Documentação de mapeamento de campos
 
-#### 3.2.3 Validação Experimental
+#### 3.2.3 Implementação dos três baselines
 
-**Protocolo de validação:**
+Todos consumindo o **mesmo conjunto subjacente de atributos** (taxa de requisições por sessão, duração, contagem de operações, entropia de rotas, razão de falha, etc.):
 
-1. **Validação Cruzada 10-fold**
-   - Particionar dataset em 10 folds
-   - Treinar em 9, testar em 1
-   - Repetir 10 vezes
-   - Reportar média ± desvio padrão
+| Baseline | Aproximação | Implementação |
+|---|---|---|
+| Perfilamento estatístico | Fernandes et al. (2015) | PCA + limiarização sobre estatísticas de sessão |
+| Matriz de comportamento | Bharathi & Sukanesh (2012) | *k-means* sobre matriz de *features* por sessão |
+| ML supervisionado | Kemp et al. (2023) | Random Forest + SVM sobre o vetor de *features* |
 
-2. **Testes de Significância**
-   - Teste t pareado vs. baselines
-   - Correção Bonferroni para múltiplas comparações
-   - Nível de significância α = 0.05
-
-3. **Análise de Ablação**
-   - Remover cada componente do sistema
-   - Medir impacto na performance
-   - Identificar componentes críticos
-
-4. **Análise de Escalabilidade**
-   - Testar com diferentes volumes de dados
-   - Medir tempo de processamento
-   - Identificar gargalos
+**Princípio metodológico:** todos os baselines recebem **o mesmo material** que o arcabouço. A ablação isola a **representação semântica**, não a disponibilidade de atributos.
 
 **Entregáveis:**
-- [ ] Resultados de validação cruzada
-- [ ] Testes estatísticos documentados
-- [ ] Análise de ablação
-- [ ] Gráficos de escalabilidade
+- [ ] `src/baselines/fernandes_pca.py`
+- [ ] `src/baselines/bharathi_kmeans.py`
+- [ ] `src/baselines/kemp_supervised.py`
+- [ ] *Notebook* de calibração compartilhada de hiperparâmetros
 
-### Fase 3: Escrita e Submissão (4-6 semanas)
+#### 3.2.4 Refatoração do *pipeline* em tempo de execução
 
-#### 3.3.1 Estrutura do Artigo (8-10 páginas)
+- Recortar `src/graph_builder/knowledge_graph_ddos.py` para o foco em sessão (remover/separar o que era DNS).
+- Implementar `Algoritmo 1` (Construção do KG em Tempo de Execução) com a janela $W$ e a relação `relatedTo` populada por identidade/fingerprint/prefixo.
+- Implementar as três regras semânticas e a emissão de cadeia de evidência em JSON-LD + STIX 2.1.
 
-```
-1. Abstract (200-250 palavras)
-2. Introduction (1.5 páginas)
-   - Contexto e motivação
-   - Problema e gap
-   - Contribuições (lista clara)
-3. Related Work (1.5 páginas)
-   - Taxonomia de abordagens
-   - Comparação estruturada
-   - Posicionamento do trabalho
-4. Proposed Approach (2.5 páginas)
-   - Formalização matemática
-   - Arquitetura do sistema
-   - Ontologia OWL
-   - Algoritmos de detecção
-5. Experimental Evaluation (2 páginas)
-   - Setup experimental
-   - Dataset e baselines
-   - Resultados e análise
-   - Discussão de limitações
-6. Conclusion (0.5 páginas)
-   - Resumo das contribuições
-   - Trabalhos futuros
-7. References (1 página)
-```
+**Entregáveis:**
+- [ ] `src/kg/session_kg.py` — construção em tempo de execução
+- [ ] `src/kg/rules/` — uma regra por arquivo (HTTPFlood, CredentialStuffing, APIAbuse)
+- [ ] `src/kg/evidence.py` — gerador de cadeia de evidência
 
-#### 3.3.2 Elementos Essenciais para A2/A3
+#### 3.2.5 Execução experimental
 
-**1. Contribuições Claras e Numeradas:**
+**Protocolo:**
 
-```
-As principais contribuições deste trabalho são:
-1. Uma ontologia OWL formal para modelagem de ataques DDoS 
-   de Camada 7, alinhada com STIX 2.1 e MITRE ATT&CK.
-2. Um framework de detecção baseado em grafos de conhecimento 
-   com raciocínio semântico explicável.
-3. Uma metodologia de avaliação experimental abrangente 
-   usando dataset público e múltiplos baselines.
-4. Uma análise comparativa demonstrando superioridade sobre 
-   métodos tradicionais em precisão e explicabilidade.
-```
+1. Para cada (cenário, ataque, *seed*), executar: 3 baselines + 3 configurações de ablação (a/b/c).
+2. Calibrar limiares por cenário (manter consistente entre métodos).
+3. Coletar métricas: precisão, *recall*, F1, AUC, FPR + ***recall* por campanha**.
+4. Coletar amostras de cadeia de evidência para análise qualitativa.
 
-**2. Figuras de Alta Qualidade:**
+**Análise estatística:**
 
-| Figura | Descrição | Tipo |
-|--------|-----------|------|
-| Fig. 1 | Arquitetura do sistema | Diagrama |
-| Fig. 2 | Ontologia OWL | Grafo |
-| Fig. 3 | Pipeline de detecção | Fluxograma |
-| Fig. 4 | Resultados comparativos | Gráfico de barras |
-| Fig. 5 | ROC curves | Gráfico de linhas |
-| Fig. 6 | Análise de ablação | Gráfico |
-| Fig. 7 | Escalabilidade | Gráfico |
+- Média ± desvio sobre as $n$ *seeds*.
+- *Paired t-test* (paramétrico) e Wilcoxon (não-paramétrico) método-a-método.
+- Correção de Bonferroni para múltiplas comparações.
+- $\alpha = 0{,}05$.
 
-**3. Tabelas Estruturadas:**
+**Entregáveis:**
+- [ ] `results/raw/` — métricas por *run* (CSV)
+- [ ] `results/aggregated/` — métricas agregadas (média, IC, p-value)
+- [ ] `results/figures/` — figuras prontas para o `.tex`
+- [ ] `results/evidence_samples/` — cadeias de evidência amostradas
 
-| Tabela | Descrição |
-|--------|-----------|
-| Tab. 1 | Comparação com trabalhos relacionados |
-| Tab. 2 | Classes e relações da ontologia |
-| Tab. 3 | Regras de detecção semânticas |
-| Tab. 4 | Estatísticas do dataset |
-| Tab. 5 | Resultados experimentais |
-| Tab. 6 | Análise de ablação |
+#### 3.2.6 *Money figure*
 
-#### 3.3.3 Checklist de Qualidade
+Curva de ***recall* × grau de distribuição (K)** para:
+
+- 3 baselines (descendentes íngremes entre B e C)
+- Configuração (b) — ontologia sem `relatedTo` (descendente, mas atenuado)
+- Configuração (c) — arcabouço completo (estável)
+
+**Entregável:**
+- [ ] `results/figures/recall_vs_distribution.pdf` — figura central do paper
+
+---
+
+### Fase 3 — Escrita, revisão, submissão (4–6 semanas)
+
+#### 3.3.1 Finalização da escrita
+
+- **§4** — preencher com configuração real (versões de *software*, *seeds*, calibração de limiares).
+- **§5** — preencher tabelas e figuras com resultados reais.
+- **§6** — síntese curta + extensões.
+- **Apêndices** — ontologia completa em Turtle/RDFXML; *scripts* de reprodução.
+
+#### 3.3.2 Tradução PT → EN
+
+- Tradução cuidadosa de §1 (já completa) e demais seções conforme forem concluídas.
+- Revisão de inglês acadêmico, idealmente com revisor nativo ou serviço profissional.
+
+#### 3.3.3 Checklist de qualidade para submissão A2
 
 **Conteúdo:**
-- [ ] Título claro e específico
-- [ ] Abstract auto-contido (problema, método, resultados)
-- [ ] Introdução com contribuições numeradas
-- [ ] Related work com taxonomia e comparação
-- [ ] Metodologia reprodutível
-- [ ] Resultados com análise estatística
-- [ ] Discussão de limitações
-- [ ] Conclusão com trabalhos futuros
+- [ ] Título específico (Grafos de Conhecimento Centrados em Sessão HTTP…)
+- [ ] *Abstract* auto-contido (problema, lacuna, método, ablação, resultado, código)
+- [ ] Contribuições numeradas (5 itens, já no `.tex`)
+- [ ] §2 com taxonomia, comparação estruturada, posicionamento
+- [ ] §3 com ontologia formal (Turtle), pipeline (Algoritmo 1), regras (SPARQL/SWRL)
+- [ ] §4 metodologia reprodutível (cenários, gerador, baselines, métricas, ablação)
+- [ ] §5 com tabelas + *money figure* + análise estatística + análise por ataque + análise qualitativa
+- [ ] §6 conclusão + 4 direções de extensão
+- [ ] **Limitações declaradas** (vantagem regime-específica, dependência de instrumentação, custo do grafo)
 
 **Forma:**
-- [ ] Inglês acadêmico correto
-- [ ] Formatação do veículo alvo
-- [ ] Referências no estilo correto
-- [ ] Figuras legíveis em P&B
-- [ ] Código disponível (GitHub)
-- [ ] Dataset documentado
-
-**Reprodutibilidade:**
-- [ ] Código fonte disponível
-- [ ] Dataset público utilizado
-- [ ] Hiperparâmetros documentados
-- [ ] Ambiente experimental descrito
-- [ ] Scripts de reprodução incluídos
+- [ ] Inglês acadêmico revisado
+- [ ] Formatação `elsarticle` correta
+- [ ] Referências no estilo `elsarticle-num`
+- [ ] Figuras legíveis (alvo de B&W aceitável)
+- [ ] Repositório público com código, ontologia, gerador, *scripts* (após aceitação)
+- [ ] Carta de submissão + declaração de Conflito de Interesse
 
 ---
 
-## 4. Cronograma Proposto
+## 4. Cronograma consolidado
 
-| Fase | Duração | Atividades | Entregáveis |
-|------|---------|------------|-------------|
-| **1. Fundamentação** | 4-6 sem | Revisão bibliográfica, formalização | 50+ refs, formalismo |
-| **2. Implementação** | 6-8 sem | Dataset, baselines, experimentos | Resultados completos |
-| **3. Escrita** | 4-6 sem | Redação, revisão, submissão | Artigo submetido |
-| **Total** | **14-20 sem** | | **Artigo Qualis A2/A3** |
-
----
-
-## 5. Veículos-Alvo Recomendados
-
-### Opção 1: Computers & Security (Elsevier) - Qualis A2
-
-| Característica | Valor |
-|----------------|-------|
-| Fator de Impacto | 3.5 |
-| Taxa de Aceitação | ~30% |
-| Tempo de Revisão | 3-6 meses |
-| Tipo | Periódico |
-| Formato | Artigo completo (8-10 pág) |
-
-**Por que este veículo?**
-- Foco em segurança aplicada
-- Aceita trabalhos com ontologias
-- Comunidade acadêmica ativa
-- Indexação ampla
-
-### Opção 2: Journal of Network and Computer Applications - Qualis A2
-
-| Característica | Valor |
-|----------------|-------|
-| Fator de Impacto | 5.1 |
-| Taxa de Aceitação | ~25% |
-| Tempo de Revisão | 4-8 meses |
-| Tipo | Periódico |
-| Formato | Artigo completo (10-12 pág) |
-
-**Por que este veículo?**
-- Foco em aplicações de redes
-- Relevância para DDoS
-- Alto fator de impacto
-
-### Opção 3: IEEE International Conference on Communications (ICC) - Qualis A2
-
-| Característica | Valor |
-|----------------|-------|
-| Taxa de Aceitação | ~35% |
-| Tempo de Revisão | 3 meses |
-| Tipo | Conferência |
-| Formato | 6-8 páginas |
-
-**Por que este veículo?**
-- Comunidade de redes
-- Proceedings indexados
-- Networking acadêmico
+| Fase | Duração | Marcos |
+|---|---|---|
+| **1 — Fundamentação** | 4–6 sem | §2 escrita; ontologia Turtle; regras SPARQL/SWRL; formalização matemática |
+| **2 — Implementação e Validação** | 6–8 sem | Gerador sintético; 3 baselines; pipeline refatorado; *runs* completos; análise estatística; *money figure* |
+| **3 — Escrita, Revisão, Submissão** | 4–6 sem | §4 e §5 preenchidos com resultados; §6 concluída; tradução PT→EN; revisão; submissão |
+| **Total** | **14–20 semanas** | Submissão a *Computers & Security* |
 
 ---
 
-## 6. Resumo das Ações Prioritárias
+## 5. Ações prioritárias
 
-### Crítico (deve fazer)
+### Crítico (gating para A2)
 
-1. **Usar dataset público real** (CIC-DDoS2019)
-2. **Implementar baselines** (RF, XGBoost, LSTM, GCN)
-3. **Análise estatística completa** (validação cruzada, testes t)
-4. **Traduzir para inglês** (veículos internacionais)
-5. **Expandir revisão bibliográfica** (50+ referências)
+1. **Gerador sintético parametrizado por K** — sem isso, não há Cenários A/B/C, não há *money figure*.
+2. **Implementação dos três baselines** sobre o mesmo conjunto de atributos.
+3. **Pipeline refatorado** com `relatedTo` populada por identidade/fingerprint/prefixo.
+4. **Ablação executada** — configurações (a)/(b)/(c).
+5. **Análise estatística** — IC, *paired t-test*, Wilcoxon, Bonferroni, $n \ge 30$ *seeds*.
+6. **Tradução PT → EN** revisada.
 
-### Importante (deve considerar)
+### Importante (eleva a qualidade da defesa)
 
-6. **Formalização matemática completa**
-7. **Análise de ablação**
-8. **Análise de escalabilidade**
-9. **Código disponível no GitHub**
-10. **Figuras de alta qualidade**
+7. **Ontologia formal em Turtle** validada com *reasoner*.
+8. **Regras em SPARQL/SWRL** versionadas.
+9. **Cadeia de evidência exportável** em JSON-LD e STIX 2.1, com exemplos no `.tex`.
+10. **Validação em *datasets* secundários** (CICIDS2017, CIC-DDoS2019) como *sanity check*.
+11. **Análise por ataque** (§5.3) identificando o nível mínimo de K em que cada baseline começa a falhar.
 
-### Recomendado (valoriza o trabalho)
+### Recomendado (valoriza o trabalho, mas não bloqueia)
 
-11. **Comparação com GNNs**
-12. **Dataset adicional** (validação cruzada de datasets)
-13. **Case study** (cenário real ou semi-real)
-14. **Integração com SIEM** (demonstração prática)
-
----
-
-## 7. Conclusão
-
-Para atingir nível Qualis A2/A3, o projeto precisa evoluir de uma **prova de conceito** para uma **validação científica rigorosa**. Os principais gaps são:
-
-1. **Validação experimental** com dataset público
-2. **Comparação robusta** com estado-da-arte
-3. **Formalização matemática** completa
-4. **Escrita em inglês** para veículos internacionais
-
-O cronograma de 14-20 semanas é factível para um pesquisador dedicado, e o trabalho já tem uma base sólida (ontologia, implementação, estrutura). O foco deve ser em **completar a validação experimental** e **formalizar a contribuição científica**.
+12. **Estudo qualitativo com analistas** sobre completude/acionabilidade das cadeias de evidência (§5.5).
+13. **Análise de custo de manutenção do grafo** em função de $W$ e da taxa de requisições.
+14. **Demonstração de integração SIEM** (PoC importando o JSON-LD/STIX).
 
 ---
 
-*Documento criado para orientar a elevação do projeto ao nível Qualis A2/A3*  
-*Última atualização: Abril 2026*
+## 6. Riscos e mitigação
+
+| Risco | Mitigação |
+|---|---|
+| Gerador sintético gera tráfego "fácil demais" e infla o ganho do arcabouço | Calibrar contra distribuições de tráfego real de literatura; validar com *datasets* secundários |
+| Baselines mal implementados subestimam o estado da arte | Documentar implementação como aproximação fiel das referências; publicar código junto |
+| *Recall* do arcabouço também cai em Cenário C | Caso real do paper: ainda mantém vantagem relativa significativa; reportar honestamente |
+| Revisores pedem dados reais | Resposta planejada: §4.2 declara que dados reais anonimizados são direção futura sujeita a aprovação ética; *datasets* secundários servem como ponte |
+| Vantagem do raciocínio *cross-session* é marginal em todos os cenários | Refazer a análise considerando se o sinal estrutural foi populado corretamente (identidade/fingerprint/prefixo); se persistir, ajustar a tese antes de submeter |
+
+---
+
+## 7. Síntese
+
+Para chegar a *Computers & Security* (Qualis A2), o projeto deve evoluir de **esqueleto guiado** para **validação científica completa**. Os blocos são:
+
+1. **Fechamento conceitual** — §2 escrita, ontologia em Turtle, regras em SPARQL/SWRL.
+2. **Validação experimental** — gerador parametrizado, 3 baselines, ablação (a/b/c), análise estatística com Bonferroni, *money figure* (recall × K).
+3. **Apresentação A2** — inglês acadêmico, formato `elsarticle`, repositório público, carta de submissão e declaração de COI.
+
+A contribuição (sessão como entidade + raciocínio *cross-session* + KG em tempo de execução) já está bem evidenciada pela literatura citada. O trabalho remanescente é predominantemente **execução**, não redirecionamento.
+
+---
+
+*Documento de planejamento da submissão do paper [papers/http-session](papers/http-session/) a *Computers & Security*.*
+*Última atualização: Maio 2026.*

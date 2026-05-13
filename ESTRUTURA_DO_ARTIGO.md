@@ -1,655 +1,298 @@
-# Detecção de Anomalias Baseada em Grafos de Conhecimento para Ataques DDoS: Uma Abordagem Semântica para Segurança de Redes
+# Estrutura do Paper — `papers/http-session/article.tex`
 
-## Estrutura do Artigo e Guia de Pesquisa
+> **Título:** *Grafos de Conhecimento Centrados em Sessão HTTP para Detecção Explicável de DDoS*
+> **Idioma:** Português
+> **Veículo-alvo:** *Computers & Security* (Elsevier, Qualis A2)
+> **Formato:** preprint, 12pt — alvo de 8–10 páginas
+> **Fonte LaTeX:** [`papers/http-session/article.tex`](papers/http-session/article.tex)
 
-> **Documento de Referência**: Este arquivo define a estrutura do artigo acadêmico. Para conceitos fundamentais, consulte [`CONCEITOS.md`](CONCEITOS.md). Para visão geral, consulte [`README.md`](README.md).
-
----
-
-## 1. Resumo (150-200 palavras)
-
-**Pontos-chave a abordar:**
-- Crescente ameaça de ataques DDoS em redes modernas
-- Limitações dos métodos tradicionais de detecção (baseados em assinaturas, limiares)
-- Proposta de abordagem semântica usando grafos de conhecimento
-- Principais contribuições e resultados
-- Implicações para segurança de redes
+Este documento é o **mapa seção-a-seção** do paper. Para cada seção indica: (i) o estado atual no `.tex`, (ii) o que ainda precisa ser produzido, (iii) as referências que sustentam o argumento. Para a visão de projeto, ver [`README.md`](README.md). Para fundamentação conceitual, ver [`CONCEITOS.md`](CONCEITOS.md).
 
 ---
 
-## 2. Introdução
+## Resumo (`abstract`)
 
-### 2.1 Contexto e Motivação
-- Estatísticas e tendências de ataques DDoS (2023-2024)
-- Impacto econômico dos ataques DDoS
-- Evolução da sofisticação dos ataques
-- Limitações das abordagens atuais de detecção:
-  - Baseadas em assinaturas: Não detectam ataques zero-day
-  - Baseadas em limiares: Altas taxas de falsos positivos
-  - Baseadas em ML: Falta de interpretabilidade e contexto
+**Estado:** ✅ escrito (200–300 palavras, em português).
 
-### 2.2 Declaração do Problema
-- Como detectar ataques DDoS com compreensão semântica?
-- Como correlacionar ataques multi-vetor?
-- Como reduzir falsos positivos mantendo precisão de detecção?
+**Tese carregada pelo resumo:**
 
-### 2.3 Questões de Pesquisa
-1. Como os grafos de conhecimento podem modelar o comportamento da rede para detecção de DDoS?
-2. Qual estrutura de ontologia melhor representa os padrões de ataque DDoS?
-3. Como o raciocínio semântico melhora a precisão da detecção?
+1. Campanhas coordenadas de Camada 7 imitam tráfego legítimo em baixas taxas e atravessam defesas por assinatura, limiar e quota.
+2. O sinal mora na **correlação estrutural entre sessões** (identidade, *fingerprint* TLS, prefixo IP), não em qualquer sessão isolada.
+3. Meta-análise de 75 estudos (Odusami et al., 2020) mostra que 47% dos detectores usam *features* agregadas de sessão; **nenhum trata a sessão como entidade raciocinável**.
+4. KGs em cibersegurança são construídos estaticamente a partir de texto de *threat intel*, não como mecanismo de detecção em tempo de execução.
+5. Propomos: ontologia OWL com sessão como entidade de primeira classe, três especializações de ataque coordenado, *pipeline* em tempo de execução, regras semânticas com cadeia de evidência *cross-session*, avaliação parametrizada por grau de distribuição com ablação.
 
-### 2.4 Contribuições
-- Nova ontologia para modelagem de ataques DDoS
-- Metodologia de construção de grafos de conhecimento
-- Algoritmo de detecção de anomalias semânticas
-- Validação experimental com datasets reais
+**Palavras-chave:** Grafo de Conhecimento; Detecção de DDoS; Camada 7 HTTP; Sessão como Entidade Semântica; Raciocínio *Cross-Session*; IA Explicável.
 
 ---
 
-## 3. Fundamentação Teórica
+## §1 Introdução
 
-### 3.1 Grafos de Conhecimento: Conceitos e Definições
+**Estado:** ✅ escrita completa.
 
-```
-Definição 1 (Grafo de Conhecimento): Um grafo de conhecimento KG = (E, R, P) onde:
-- E = conjunto de entidades (nós)
-- R = conjunto de relações (arestas)  
-- P = conjunto de propriedades (atributos)
-```
+### §1.1 Contexto e Motivação
 
-**Tipos de Grafos de Conhecimento:**
-- Baseados em RDF (Resource Description Framework)
-- Grafos de propriedades (Neo4j, JanusGraph)
-- Hipergrafos (relações complexas)
+- Volume de Camada 7 dobra a cada trimestre; incidente de 292k req/s por 13 dias [Tripathi & Hubballi, 2021].
+- 93% dos operadores reportam DDoS de Camada 7 em 2016, contra 86% em 2013 [Odusami et al., 2020].
+- HTTP visa três classes de endpoint: autenticação (Login Flood), API (abuso de API), processamento custoso (HTTP Flood).
+- Variantes mais danosas são **coordenadas**: *credential stuffing*, abuso de API por frota de *tokens*, HTTP Flood de baixa intensidade por *botnet*.
+- Cada requisição isolada é indistinguível de legítima; o sinal mora no padrão de uso da sessão e na estrutura *entre* sessões [Kemp et al., 2023; Bharathi & Sukanesh, 2012; Fernandes et al., 2015].
 
-### 3.2 Grafos de Conhecimento em Cibersegurança
+### §1.2 Definição do Problema — três deficiências do estado da arte
 
-**Aplicações:**
-- Integração de inteligência de ameaças
-- Modelagem de padrões de ataque
-- Correlação de vulnerabilidades
-- Automação de resposta a incidentes
+1. **Sessão como *feature aggregate*, não como entidade.** 47% dos métodos usam estatísticas agregadas de sessão; nenhum dos 75 estudos trata a sessão como entidade raciocinável.
+2. **Ausência de explicação ontológica.** Detectores ML reportam métricas competitivas mas emitem rótulos binários sem fundamentação semântica. Em operação, "parece um ataque" é hesitação, não decisão.
+3. **Ausência de raciocínio *cross-session*.** Campanhas coordenadas têm assinatura fraca por sessão, estrutura clara em conjunto. KGs textuais não capturam estrutura de tráfego em tempo de execução [Liu et al., 2022].
 
-**Padrões e Frameworks:**
-- STIX 2.1 (Structured Threat Information Expression)
-- MITRE ATT&CK Framework
-- Bases de dados CVE/CWE
-- OCSF (Open Cybersecurity Schema Framework)
+### §1.3 Questões de Pesquisa
 
-### 3.3 Taxonomia de Ataques DDoS
+- **QP1** — Como modelar a sessão HTTP em OWL com fidelidade para sustentar raciocínio sobre campanhas coordenadas?
+- **QP2** — Quais regras semânticas detectam ataques sub-limiares em sessões individuais mas discerníveis pela estrutura *cross-session*?
+- **QP3** — Como apresentar a decisão como cadeia de evidências auditável?
+- **QP4** — Qual é o ganho empírico do raciocínio em nível de sessão sobre detecção baseada em *features* agregadas, controlando para o mesmo conjunto subjacente de atributos?
 
-| Tipo | Descrição | Desafio de Detecção |
-|------|-----------|---------------------|
-| Volumétrico | Satura a banda | Alto volume de tráfego |
-| Protocolo | Explora fraquezas de protocolos | Análise de estado de protocolo |
-| Aplicação | Ataca camada de aplicação | Análise de padrões de requisição |
-| Amplificação | Usa refletores | Spoofing de origem |
-| Multi-vetor | Combina técnicas | Correlação necessária |
+### §1.4 Contribuições
 
-#### Ataques HTTP de Camada 7
+1. Ontologia OWL com sessão como entidade de primeira classe + três especializações de ataque coordenado, alinhada a STIX 2.1 e MITRE ATT&CK.
+2. *Pipeline* de construção de KG em tempo de execução (vs. KGs estáticos de texto de *threat intel*).
+3. Regras semânticas explicáveis que produzem cadeias de evidência *cross-session*.
+4. Avaliação empírica com ablação isolando o ganho do raciocínio em nível de sessão.
+5. Implementação de referência em código aberto.
 
-| Tipo | Descrição | Indicadores |
-|------|-----------|-------------|
-| HTTP Flood | Múltiplas requisições HTTP | Alto volume de requests por sessão |
-| Login Flood | Tentativas de autenticação | Muitas falhas de login por identidade |
-| Slow Request | Requisições lentas (Slowloris, RUDY) | Conexões lentas, headers incompletos |
-| API Abuse | Abuso de endpoints de API | Alto volume em endpoints caros |
-| Scraping | Coleta automatizada de dados | Padrão bot-like, baixa diversidade |
+### §1.5 Organização do Artigo
 
-#### Ataques DNS de Camada 7
-
-| Tipo | Descrição | Indicadores |
-|------|-----------|-------------|
-| QName Randomization | Subdomínios aleatórios | Alta entropia, subdomínios únicos |
-| NXDOMAIN Flood | Consultas a domínios inexistentes | Alto índice NXDOMAIN |
-| DNS Water Torture | Ataque lento persistente | Taxa constante baixa, muitos subdomínios |
-| DNS Amplification | Amplificação de resposta | Fator de amplificação alto |
-| DNS Tunneling | Exfiltração via DNS | Subdomínios longos, consultas TXT |
-| Phantom Domain | Servidores autoritativos lentos | Alto tempo de resposta, timeouts |
-
-### 3.4 Trabalhos Relacionados
-
-**Segurança de Redes Baseada em Grafos:**
-- [ ] Revisar sistemas de detecção de intrusão baseados em grafos
-- [ ] Revisar abordagens semânticas de segurança
-- [ ] Analisar métodos existentes de detecção DDoS
-
-**Aplicações de Grafos de Conhecimento em Segurança:**
-- Plataformas de inteligência de ameaças
-- SIEM (Security Information and Event Management)
-- Análise de tráfego de rede
+- §2 trabalhos relacionados; §3 abordagem; §4 metodologia; §5 resultados; §6 conclusão.
 
 ---
 
-## 4. Arquitetura Proposta
+## §2 Trabalhos Relacionados
 
-### 4.1 Visão Geral do Sistema
+**Estado:** 🔄 esqueleto guiado com referências centrais já citadas — falta desenvolver a prosa.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│            DETECÇÃO DDoS COM GRAFO DE CONHECIMENTO               │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
-│  │   Sensores   │    │  Construtor   │    │   Detector   │       │
-│  │   de Rede    │───▶│   de Grafo    │───▶│  de Anomalia │       │
-│  └──────────────┘    └──────────────┘    └──────────────┘       │
-│         │                   │                   │               │
-│         ▼                   ▼                   ▼               │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
-│  │   Coletor   │    │    Grafo de  │    │   Gerenciador │       │
-│  │   de Fluxo  │    │  Conhecimento│    │    de Alertas │       │
-│  └──────────────┘    └──────────────┘    └──────────────┘       │
-│                            │                                    │
-│                            ▼                                    │
-│                     ┌──────────────┐                           │
-│                     │  Gerenciador │                           │
-│                     │   de Ontologia│                           │
-│                     └──────────────┘                           │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+### §2.1 Grafos de Conhecimento em Cibersegurança
 
-### 4.2 Design da Ontologia
+**Argumento central:** KGs em cibersegurança são predominantemente construídos *estaticamente* a partir de texto de *threat intel* (CVEs, relatórios, *blogs*), e **não como mecanismo de detecção em tempo de execução**.
 
-#### Classes Principais (Entidades)
+**Referências centrais a desenvolver:**
+- Jia et al. (2018) — *practical approach to constructing a KG for cybersecurity* — exemplo canônico de construção textual
+- Bonagiri et al. (2024) — KG aplicado a soluções práticas, ainda em registro de pós-fato
+- Liu et al. (2022) — *survey* recente reconhecendo a lacuna: *"ainda é pouco explícito como implementar o KG para enfrentar dificuldades industriais reais"*
 
-```turtle
-@prefix : <http://security.example.org/ontology/ddos#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+### §2.2 Detecção de Ataques DDoS de Camada 7 sobre HTTP
 
-# Classes Principais
-:NetworkEntity rdf:type owl:Class .
-:Host rdf:type owl:Class ; rdfs:subClassOf :NetworkEntity .
-:Server rdf:type owl:Class ; rdfs:subClassOf :Host .
-:Client rdf:type owl:Class ; rdfs:subClassOf :Host .
-:Router rdf:type owl:Class ; rdfs:subClassOf :NetworkEntity .
-:Firewall rdf:type owl:Class ; rdfs:subClassOf :NetworkEntity .
+**Três famílias:**
 
-:IPAddress rdf:type owl:Class .
-:Port rdf:type owl:Class .
-:Service rdf:type owl:Class .
+1. **Perfilamento estatístico de tráfego/sessão** — Fernandes et al. (2015) com PCA sobre fluxo; Bharathi & Sukanesh (2012) com PCA sobre matriz comportamental.
+2. **Aprendizado de máquina sobre *features* de fluxo ou sessão** — Kemp et al. (2023) como representante recente. **Limitação reconhecida pelos próprios autores:** metodologia não validada em tempo real, sem explicação ontológica.
+3. **Levantamentos de domínio** — Tripathi & Hubballi (2021) como referência canônica recente.
 
-:TrafficFlow rdf:type owl:Class .
-:Packet rdf:type owl:Class .
+**Análise crítica unificadora:** todas as famílias tratam a sessão como agregado de *features*, não como entidade.
 
-# HTTP Layer 7 Classes
-:HTTPRequest rdf:type owl:Class .
-:Endpoint rdf:type owl:Class .
-:ApplicationSession rdf:type owl:Class .
-:SessionToken rdf:type owl:Class .
-:HTTPHeader rdf:type owl:Class .
+### §2.3 Modelagem de Sessão em Detecção de Anomalias
 
-# DNS Layer 7 Classes
-:DNSQuery rdf:type owl:Class .
-:DNSDomain rdf:type owl:Class .
-:DNSServer rdf:type owl:Class .
-:DNSSubdomain rdf:type owl:Class .
-:DNSQueryPattern rdf:type owl:Class .
+**Argumento central:** Odusami et al. (2020) mostram que 47% dos estudos usam *features* agregadas de sessão. O estado da arte trata sessão como **vetor de estatísticas**, não como **objeto raciocinável** — o que limita raciocínio *cross-session* para campanhas distribuídas.
 
-# Attack Classes
-:Attack rdf:type owl:Class .
-:DDoSAttack rdf:type owl:Class ; rdfs:subClassOf :Attack .
-:VolumetricAttack rdf:type owl:Class ; rdfs:subClassOf :DDoSAttack .
-:ProtocolAttack rdf:type owl:Class ; rdfs:subClassOf :DDoSAttack .
-:ApplicationAttack rdf:type owl:Class ; rdfs:subClassOf :DDoSAttack .
+### §2.4 Posicionamento deste Trabalho
 
-# HTTP Attack Types
-:HTTPFlood rdf:type owl:Class ; rdfs:subClassOf :ApplicationAttack .
-:LoginFlood rdf:type owl:Class ; rdfs:subClassOf :ApplicationAttack .
-:SlowRequestAttack rdf:type owl:Class ; rdfs:subClassOf :ApplicationAttack .
-:APIAttack rdf:type owl:Class ; rdfs:subClassOf :ApplicationAttack .
-
-# DNS Attack Types
-:DNSAttack rdf:type owl:Class ; rdfs:subClassOf :DDoSAttack .
-:QNameRandomization rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
-:NXDOMAINFlood rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
-:DNSWaterTorture rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
-:DNSAmplification rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
-:DNSTunneling rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
-:PhantomDomainAttack rdf:type owl:Class ; rdfs:subClassOf :DNSAttack .
-
-# Behavior Classes
-:Behavior rdf:type owl:Class .
-:UserBehavior rdf:type owl:Class ; rdfs:subClassOf :Behavior .
-:BotBehavior rdf:type owl:Class ; rdfs:subClassOf :Behavior .
-:Anomaly rdf:type owl:Class .
-
-# Mitigation Classes
-:Mitigation rdf:type owl:Class .
-:WAFRule rdf:type owl:Class ; rdfs:subClassOf :Mitigation .
-:RateLimitPolicy rdf:type owl:Class ; rdfs:subClassOf :Mitigation .
-:DNSFirewall rdf:type owl:Class ; rdfs:subClassOf :Mitigation .
-:ResponseRateLimiting rdf:type owl:Class ; rdfs:subClassOf :Mitigation .
-```
-
-#### Propriedades de Objeto (Relações)
-
-```turtle
-# Relações de Topologia de Rede
-:connectedTo rdf:type owl:ObjectProperty ;
-    rdfs:domain :NetworkEntity ;
-    rdfs:range :NetworkEntity .
-
-:hasIP rdf:type owl:ObjectProperty ;
-    rdfs:domain :Host ;
-    rdfs:range :IPAddress .
-
-:hasPort rdf:type owl:ObjectProperty ;
-    rdfs:domain :Service ;
-    rdfs:range :Port .
-
-:runsService rdf:type owl:ObjectProperty ;
-    rdfs:domain :Host ;
-    rdfs:range :Service .
-
-# Relações de Tráfego
-:sourceIP rdf:type owl:ObjectProperty ;
-    rdfs:domain :TrafficFlow ;
-    rdfs:range :IPAddress .
-
-:destinationIP rdf:type owl:ObjectProperty ;
-    rdfs:domain :TrafficFlow ;
-    rdfs:range :IPAddress .
-
-:hasPacket rdf:type owl:ObjectProperty ;
-    rdfs:domain :TrafficFlow ;
-    rdfs:range :Packet .
-
-# Relações de Ataque
-:targets rdf:type owl:ObjectProperty ;
-    rdfs:domain :Attack ;
-    rdfs:range :Host .
-
-:originatesFrom rdf:type owl:ObjectProperty ;
-    rdfs:domain :Attack ;
-    rdfs:range :IPAddress .
-
-:hasTechnique rdf:type owl:ObjectProperty ;
-    rdfs:domain :Attack ;
-    rdfs:range :AttackTechnique .
-
-# Relações de Anomalia
-:indicates rdf:type owl:ObjectProperty ;
-    rdfs:domain :Anomaly ;
-    rdfs:range :Attack .
-
-:deviatesFrom rdf:type owl:ObjectProperty ;
-    rdfs:domain :Behavior ;
-    rdfs:range :Behavior .
-```
-
-#### Propriedades de Dados (Atributos)
-
-```turtle
-# Propriedades de Tráfego
-:byteCount rdf:type owl:DatatypeProperty ;
-    rdfs:domain :TrafficFlow ;
-    rdfs:range xsd:integer .
-
-:packetCount rdf:type owl:DatatypeProperty ;
-    rdfs:domain :TrafficFlow ;
-    rdfs:range xsd:integer .
-
-:timestamp rdf:type owl:DatatypeProperty ;
-    rdfs:range xsd:dateTime .
-
-:protocol rdf:type owl:DatatypeProperty ;
-    rdfs:domain :Packet ;
-    rdfs:range xsd:string .
-
-# Propriedades de Anomalia
-:anomalyScore rdf:type owl:DatatypeProperty ;
-    rdfs:domain :Anomaly ;
-    rdfs:range xsd:float .
-
-:confidence rdf:type owl:DatatypeProperty ;
-    rdfs:range xsd:float .
-
-# Propriedades de Host
-:isPublic rdf:type owl:DatatypeProperty ;
-    rdfs:domain :Host ;
-    rdfs:range xsd:boolean .
-
-:reputation rdf:type owl:DatatypeProperty ;
-    rdfs:domain :IPAddress ;
-    rdfs:range xsd:float .
-```
-
-### 4.3 Pipeline de Construção do Grafo
-
-#### Fase 1: Coleta de Dados
-```
-Fontes de Entrada:
-├── Dados NetFlow/IPFIX
-├── Logs DNS
-├── Logs de Firewall
-├── Capturas de pacotes (amostradas)
-└── Eventos SIEM
-```
-
-#### Fase 2: Extração de Entidades
-```python
-# Pseudo-código para extração de entidades
-def extrair_entidades(dados_fluxo):
-    entidades = []
-    for fluxo in dados_fluxo:
-        entidades.append({
-            'tipo': 'IPAddress',
-            'id': fluxo.ip_origem,
-            'propriedades': {
-                'asn': buscar_asn(fluxo.ip_origem),
-                'geo': buscar_geo(fluxo.ip_origem),
-                'reputacao': obter_reputacao(fluxo.ip_origem)
-            }
-        })
-    return entidades
-```
-
-#### Fase 3: Extração de Relações
-```python
-def extrair_relacoes(dados_fluxo):
-    relacoes = []
-    for fluxo in dados_fluxo:
-        relacoes.append({
-            'tipo': 'TrafficFlow',
-            'origem': fluxo.ip_origem,
-            'destino': fluxo.ip_destino,
-            'propriedades': {
-                'bytes': fluxo.bytes,
-                'pacotes': fluxo.pacotes,
-                'protocolo': fluxo.protocolo,
-                'timestamp': fluxo.timestamp
-            }
-        })
-    return relacoes
-```
-
-#### Fase 4: Enriquecimento do Grafo
-- Integração de inteligência de ameaças
-- Modelagem de comportamento histórico
-- Adição de informações contextuais
-
-### 4.4 Algoritmo de Detecção de Anomalias
-
-#### Regras de Raciocínio Semântico
-
-```turtle
-# Regra 1: Alto volume de tráfego para único destino
-:RegraVolumeAlto rdf:type :DetectionRule ;
-    :condition """
-        SELECT ?alvo (SUM(?bytes) AS ?totalBytes)
-        WHERE {
-            ?fluxo :destinationIP ?alvo .
-            ?fluxo :byteCount ?bytes .
-            ?fluxo :timestamp ?tempo .
-            FILTER(?tempo > NOW() - INTERVAL '5' MINUTE)
-        }
-        GROUP BY ?alvo
-        HAVING SUM(?bytes) > :limiarVolumetrico
-    """ ;
-    :produces :VolumetricAttackAnomaly .
-
-# Regra 2: Padrão de fontes distribuídas
-:RegraFontesDistribuidas rdf:type :DetectionRule ;
-    :condition """
-        SELECT ?alvo (COUNT(DISTINCT ?src) AS ?contagemFontes)
-        WHERE {
-            ?fluxo :sourceIP ?src .
-            ?fluxo :destinationIP ?alvo .
-            ?fluxo :timestamp ?tempo .
-            FILTER(?tempo > NOW() - INTERVAL '1' MINUTE)
-        }
-        GROUP BY ?alvo
-        HAVING COUNT(DISTINCT ?src) > :limiarDistribuido
-    """ ;
-    :produces :DDoSSuspectedAnomaly .
-
-# Regra 3: Interação com IP malicioso conhecido
-:RegraIPMalicioso rdf:type :DetectionRule ;
-    :condition """
-        SELECT ?fluxo ?ipMalicioso
-        WHERE {
-            ?fluxo :sourceIP ?ipMalicioso .
-            ?ipMalicioso :hasReputation ?rep .
-            FILTER(?rep < 0.3)
-        }
-    """ ;
-    :produces :MaliciousTrafficAnomaly .
-```
-
-#### Escore de Anomalia Baseado em Grafo
-
-```
-EscoreAnomalia(no) = α × EscoreVolume(no) 
-                   + β × EscoreEstrutura(no) 
-                   + γ × EscoreComportamento(no)
-                   + δ × EscoreReputacao(no)
-
-Onde:
-- EscoreVolume: Desvio do volume histórico de tráfego
-- EscoreEstrutura: Mudanças na centralidade do grafo
-- EscoreComportamento: Desvio dos padrões de comportamento aprendidos
-- EscoreReputacao: Baseado em inteligência de ameaças
-- α, β, γ, δ: Pesos ajustáveis
-```
+Síntese das três lacunas (sessão como agregado, ausência de explicação, ausência de raciocínio *cross-session*) e posicionamento como **primeiro arcabouço** que modela explicitamente a sessão HTTP como entidade semântica de primeira classe.
 
 ---
 
-## 5. Metodologia
+## §3 Abordagem Proposta
 
-### 5.1 Descrição do Dataset
+**Estado:** 🔄 esqueleto detalhado em prosa + algoritmo + figura tikz — falta especificar a ontologia em Turtle e formalizar as regras em SPARQL/SWRL.
 
-**Datasets Recomendados:**
-1. **CAIDA DDoS Attack Dataset** - Traces DDoS do mundo real
-2. **CIC-DDoS2019** - Canadian Institute for Cybersecurity
-3. **UNSW-DDoS** - University of New South Wales
-4. **Captura personalizada** - Ambiente controlado
+### §3.1 Visão Geral do Sistema (Figura 1, `tikz`)
 
-### 5.2 Métricas de Avaliação
+Quatro estágios: (i) ingestão de eventos HTTP, (ii) elevação a instâncias ontológicas, (iii) execução de regras semânticas, (iv) geração de cadeia de evidências.
 
-| Métrica | Fórmula | Descrição |
-|--------|---------|-----------|
-| Acurácia | (VP+VN)/(VP+VN+FP+FN) | Corretude geral |
-| Precisão | VP/(VP+FP) | Taxa de verdadeiros positivos |
-| Recall | VP/(VP+FN) | Taxa de detecção |
-| F1-Score | 2×(P×R)/(P+R) | Média harmônica |
-| FPR | FP/(FP+VN) | Taxa de falsos positivos |
-| Tempo de Detecção | t_detect - t_inicio | Tempo para detectar |
+### §3.2 Ontologia Centrada em Sessão
 
-### 5.3 Configuração Experimental
+**Classe central:** `ApplicationSession` com relações tipadas:
 
-```
-Ambiente:
-├── Banco de Dados de Grafos: Neo4j 5.x ou Apache Jena
-├── Processamento: Apache Spark / Flink
-├── Componente ML: PyTorch Geometric
-├── Ontologia: OWL 2 / Protégé
-└── Hardware: Cluster GPU para treinamento GNN
-```
+| Relação | Domínio → Imagem |
+|---|---|
+| `hasIdentity` | `ApplicationSession` → `Identity` (`Cookie`, `Token`, `Username`, `TLSFingerprint`) |
+| `targets` | `ApplicationSession` → `Endpoint` (`AuthEndpoint`, `APIEndpoint`, `StaticAsset`) |
+| `exhibitsBehavior` | `ApplicationSession` → `Behavior` (`UserBehavior`, `BotBehavior`) |
+| `relatedTo` | `ApplicationSession` → `ApplicationSession` — habilitador do raciocínio *cross-session* |
+| `mitigatedBy` | `ApplicationSession` ∪ `ApplicationLayerAttack` → `Mitigation` (`RateLimit`, `Challenge`, `Block`) |
 
-### 5.4 Comparações com Baseline
+**Três especializações** de `ApplicationLayerAttack`, com propriedade comum `exhibitsCrossSessionStructure`:
 
-- Detecção tradicional baseada em limiares
-- Machine Learning (Random Forest, SVM)
-- Deep Learning (LSTM, CNN)
-- Graph Neural Networks (GCN, GAT)
+- `CoordinatedHTTPFlood`
+- `CredentialStuffing` (subclasse de `LoginFlood`)
+- `CoordinatedAPIAbuse`
 
----
-
-## 6. Resultados Esperados
-
-### 6.1 Métricas de Desempenho (Meta)
-
-| Método | Acurácia | Precisão | Recall | F1 | FPR |
-|--------|----------|-----------|--------|-----|-----|
-| Limiar | 85% | 70% | 90% | 79% | 15% |
-| ML (RF) | 92% | 88% | 85% | 86% | 5% |
-| DL (LSTM) | 94% | 91% | 89% | 90% | 3% |
-| **GC (Proposto)** | **96%** | **94%** | **93%** | **93%** | **1.5%** |
-
-### 6.2 Vantagens da Abordagem com Grafo de Conhecimento
-
-1. **Interpretabilidade**: Raciocínio semântico claro
-2. **Consciência de contexto**: Incorpora topologia de rede
-3. **Adaptabilidade**: Fácil atualização de ontologia
-4. **Correlação**: Detecção de ataques multi-vetor
-5. **Integração**: Pronto para inteligência de ameaças
-
----
-
-## 7. Discussão
-
-### 7.1 Pontos Fortes
-- Compreensão semântica do comportamento da rede
-- Decisões de detecção explicáveis
-- Integração com ferramentas de segurança existentes
-- Escalável para grandes redes
-
-### 7.2 Limitações
-- Requer inteligência de ameaças de qualidade
-- Sobrecarga inicial de construção do grafo
-- Manutenção da ontologia necessária
-- Desafios de processamento em tempo real
-
-### 7.3 Trabalhos Futuros
-- Aprendizado automático de ontologia
-- Grafos de conhecimento federados
-- Integração com plataformas SOAR
-- Detecção de anomalias baseada em GNN
-
----
-
-## 8. Conclusão
-
-Resumo das contribuições e impacto no campo de segurança de redes.
-
----
-
-## 9. Referências (A Pesquisar)
-
-### Artigos Fundamentais
-1. Ehrlinger, L., & Wöß, W. (2016). Towards a Definition of Knowledge Graphs.
-2. Hogan, A., et al. (2021). Knowledge Graphs. ACM Computing Surveys.
-3. Jia, Y., et al. (2018). TripleTrust: A Knowledge Graph Based Approach for Trust Evaluation.
-
-### Detecção DDoS
-4. Moustafa, N., & Slay, J. (2019). UNSW-NB15: A comprehensive data set for network intrusion detection.
-5. Sharafaldin, I., et al. (2019). CIC-DDoS2019: A Comprehensive Dataset for DDoS Attack Detection.
-6. Bhuyan, M. H., et al. (2014). Survey on DDoS attacks and defense mechanisms.
-
-### Segurança Baseada em Grafos
-7. Noel, S., et al. (2015). Cyber Graph Analytics for Security.
-8. Husari, G., et al. (2017). Using Graph Theory to Analyze Security Threats.
-9. Liu, J., et al. (2020). Knowledge Graph Construction for Cyber Security.
-
-### Segurança Semântica
-10. Obrst, L., et al. (2012). Semantic Technologies for Cyber Security.
-11. Undercoffer, J., et al. (2003). A Target-Centric Ontology for Intrusion Detection.
-12. Syed, Z., et al. (2016). UCO: Unified Cybersecurity Ontology.
-
-### Padrões
-13. STIX 2.1 Specification - OASIS
-14. MITRE ATT&CK Framework
-15. NIST Cybersecurity Framework
-
----
-
-## 10. Recursos de Implementação
-
-### Ferramentas e Frameworks
-- **Neo4j**: Banco de dados de grafos para grafos de propriedades
-- **Apache Jena**: Framework RDF/OWL
-- **Protégé**: Editor de ontologias
-- **PyTorch Geometric**: Implementação GNN
-- **NetworkX**: Algoritmos de grafos
-- **SPARQL**: Linguagem de consulta para grafos RDF
-- **Cypher**: Linguagem de consulta Neo4j
-
-### Estrutura de Código (Sugestão)
-```
-projeto/
-├── ontology/
-│   ├── ddos_ontology.owl
-│   └── ontology_documentation.md
-├── src/
-│   ├── graph_builder/
-│   │   ├── entity_extractor.py
-│   │   ├── relation_extractor.py
-│   │   └── graph_enricher.py
-│   ├── detection/
-│   │   ├── semantic_rules.py
-│   │   ├── anomaly_scorer.py
-│   │   └── alert_manager.py
-│   └── utils/
-│       ├── data_loader.py
-│       └── metrics.py
-├── experiments/
-│   ├── baseline_comparison.py
-│   └── ablation_study.py
-└── notebooks/
-    └── analysis.ipynb
-```
-
----
-
-## Próximos Passos para Desenvolvimento do Artigo
-
-1. [x] Conclusão da revisão de literatura
-2. [x] Formalização da ontologia em OWL
-3. [x] Implementação do protótipo
-4. [ ] Aquisição e pré-processamento de dataset
-5. [ ] Avaliação experimental
-6. [ ] Análise de resultados e visualização
-7. [ ] Redação e formatação do artigo
-8. [ ] Revisão por pares e ajustes
-
----
-
-## Requisitos para Qualis A2/A3
-
-Para atingir nível Qualis A2/A3, o artigo deve incluir:
-
-### Contribuições Claras (Numeradas)
+### §3.3 Construção do Grafo em Tempo de Execução (`Algoritmo 1`)
 
 ```
-As principais contribuições deste trabalho são:
-1. Uma ontologia OWL formal para modelagem de ataques DDoS 
-   de Camada 7, alinhada com STIX 2.1 e MITRE ATT&CK.
-2. Um framework de detecção baseado em grafos de conhecimento 
-   com raciocínio semântico explicável.
-3. Uma metodologia de avaliação experimental abrangente 
-   usando dataset público e múltiplos baselines.
-4. Uma análise comparativa demonstrando superioridade sobre 
-   métodos tradicionais em precisão e explicabilidade.
+Entrada: fluxo de requisições R, ontologia O, janela W
+Para cada requisição r ∈ R:
+    s ← ResolverSessao(r)
+    i ← ResolverIdentidade(r)
+    e ← ResolverEndpoint(r.path)
+    KG.adicionar(s, i, e)
+    KG.instanciarRelacao(s, hasIdentity, i)
+    KG.instanciarRelacao(s, targets, e)
+    KG.ligarSessoesPorIdentidade(s)   // popula relatedTo
+    KG.purgarFora(W)                  // janela operacional, padrão W=5min
 ```
 
-### Validação Experimental Obrigatória
+### §3.4 Regras de Detecção Semântica
 
-| Componente | Requisito |
-|------------|-----------|
-| Dataset | Público (CIC-DDoS2019, CAIDA) |
-| Baselines | 5+ métodos (RF, XGBoost, LSTM, GCN, Autoencoder) |
-| Validação | Cruzada 10-fold |
-| Métricas | Accuracy, Precision, Recall, F1, AUC-ROC, FPR |
-| Análise | Testes estatísticos (t-test, ANOVA) |
-| Ablação | Impacto de cada componente |
+Todas dependem de `relatedTo`. Em prosa (versão SPARQL/SWRL a ser produzida):
 
-### Veículos-Alvo
+- **Credential Stuffing:** múltiplas sessões com `relatedTo` (identidade reaproveitada, *fingerprint* TLS ou prefixo de IP) dentro da janela $W$, todas com `targets` apontando para um `AuthEndpoint`, com razão agregada de falha de autenticação acima de $\tau_{\text{fail}}$.
+- **HTTP Flood distribuído:** conjunto de sessões com `relatedTo`, taxa agregada contra um mesmo `Endpoint` excede $\tau_{\text{rate}}$, baixa entropia de rotas por sessão (`BotBehavior`).
+- **Abuso de API por múltiplas identidades:** múltiplas sessões com `hasIdentity` distintos (diferentes *tokens*) mas `relatedTo` via *fingerprint* TLS ou prefixo IP, todas atingindo a mesma `APIEndpoint`, taxa somada excede $\tau_{\text{api}}$ (mesmo que nenhuma sessão isolada exceda sua quota).
 
-| Veículo | Qualis | Tipo | Aceitação |
-|---------|--------|------|-----------|
-| Computers & Security | A2 | Periódico | ~30% |
-| J. Network and Computer Applications | A2 | Periódico | ~25% |
-| IEEE ICC | A2 | Conferência | ~35% |
-| Digital Investigation | A3 | Periódico | ~35% |
+### §3.5 Cadeia de Evidência e Explicabilidade
 
-> **Ver detalhes completos em**: [`MELHORIAS_QUALIS_A2A3.md`](MELHORIAS_QUALIS_A2A3.md)
+Veredicto + cadeia explicita: regra disparada, instâncias ontológicas envolvidas, valores observados, política de mitigação. Exportável em **JSON-LD** e **STIX 2.1**, compatível com SIEM.
 
 ---
 
-*Documento criado para fins de planejamento de pesquisa*  
-*Última atualização: Abril 2026*
+## §4 Metodologia Experimental
+
+**Estado:** 🔄 esqueleto detalhado — falta produzir o tráfego sintético e configurar os experimentos.
+
+### §4.1 Cenários de Avaliação por Grau de Distribuição (§ **central** da metodologia)
+
+| Cenário | Origens distintas (K) | Caracterização | Hipótese |
+|---|---|---|---|
+| **A — Concentrado** | 1 | Ataque clássico *single-source* de alto volume | Baselines competitivos; ganho marginal do *cross-session* |
+| **B — Moderadamente distribuído** | 10 ≤ K ≤ 100 | *Botnets* pequenas, operações com *proxies* limitados | Baselines começam a perder *recall*; arcabouço mantém via `relatedTo` |
+| **C — Altamente distribuído** | K ≥ 1000 | *Credential stuffing* massivo, frota de *tokens*, *botnet* ampla | Baselines caem perto do aleatório; **arcabouço preserva detecção** |
+
+**Money figure:** curva de *recall* vs. grau de distribuição — *baselines* descendentes, arcabouço estável.
+
+### §4.2 Conjunto de Dados
+
+- **Primário:** tráfego sintético parametrizado pelo *pipeline* Python que acompanha o paper. Parâmetros: número de sessões legítimas concorrentes, K, distribuição de identidades por origem, janela temporal, tipo de ataque.
+- **Secundário (consistência):** subconjuntos de CICIDS2017 (Slowloris, Slow HTTP) e CIC-DDoS2019 (componentes HTTP).
+- **Futuro:** tráfego real anonimizado sujeito a aprovação ética.
+
+### §4.3 Configuração Experimental
+
+- *Hardware*, *software*, parâmetros, divisão treino/validação/teste, calibração de limiares por cenário.
+- Janela $W$ de manutenção do grafo (padrão: 5 min).
+- $n \ge 30$ execuções por cenário com *seeds* diferentes para intervalos de confiança.
+
+### §4.4 Baselines
+
+Todos consomem o **mesmo conjunto subjacente de atributos**:
+
+- **Perfilamento estatístico** (aproximação de Fernandes et al., 2015) — PCA sobre estatísticas agregadas de sessão.
+- **Matriz de comportamento** (aproximação de Bharathi & Sukanesh, 2012) — *k*-means sobre matriz de *features* por sessão.
+- **ML supervisionado** (aproximação de Kemp et al., 2023) — Random Forest e SVM sobre o mesmo vetor de *features* de sessão.
+
+**Por que esses baselines:** todos consomem o mesmo material subjacente — a ablação isola a **representação semântica de sessão**, não a disponibilidade de atributos.
+
+### §4.5 Métricas de Avaliação
+
+1. **Padrão de classificação por cenário:** precisão, *recall*, F1, AUC, FPR.
+2. **Recall por *campanha*** (não por sessão): fração da campanha detectada como tal — captura o ganho *cross-session* diretamente.
+3. **Qualidade da explicação:** análise qualitativa de completude e acionabilidade das cadeias de evidência.
+
+### §4.6 Análise de Ablação
+
+| Configuração | Componente |
+|---|---|
+| **(a)** | ML baseline com mesmas *features* agregadas — sem ontologia |
+| **(b)** | Ontologia **sem** `relatedTo` — sessões como nós isolados do grafo |
+| **(c)** | Arcabouço completo — sessões ligadas por `relatedTo` via identidade, *fingerprint* TLS, prefixo IP |
+
+- **(a) → (c):** contribuição total
+- **(b) → (c):** ganho específico do raciocínio *cross-session*
+- Esperamos diferença (b)→(c) pequena em A e dominante em C.
+
+---
+
+## §5 Resultados e Discussão
+
+**Estado:** ⏳ pendente — depende da execução experimental.
+
+### §5.1 Desempenho Geral por Cenário
+
+Tabela: F1, FPR, AUC vs. três baselines, por cenário (A, B, C) × três ataques × intervalos de confiança.
+
+### §5.2 Curva de *Recall* por Grau de Distribuição (**figura central**)
+
+Curva descendente íngreme para baselines entre B e C; arcabouço com `relatedTo` mantém *recall* estável.
+
+### §5.3 Análise por Tipo de Ataque Coordenado
+
+Para cada um dos três ataques: nível mínimo de K em que os baselines começam a falhar + sinal estrutural específico (*fingerprint* TLS, prefixo IP, identidade reaproveitada) que sustenta a detecção pelo arcabouço.
+
+### §5.4 Análise da Vantagem *Cross-Session* (§ **central**)
+
+No Cenário C: fração de campanhas detectadas como coordenadas (não apenas sessões isoladas) — validação da hipótese central.
+
+### §5.5 Avaliação da Qualidade da Explicação
+
+Análise qualitativa de cadeias de evidência geradas; se viável, estudo com analistas avaliando completude e acionabilidade.
+
+### §5.6 Significância Estatística
+
+Testes pareados (*paired t-test*, Wilcoxon) sobre as $n$ execuções por cenário, com correção de Bonferroni para múltiplas comparações.
+
+### §5.7 Limitações
+
+Três limitações **declaradas explicitamente**:
+
+1. **Vantagem regime-específica:** em Cenário A, métodos por limiar IP/sessão são competitivos. O paper **complementa** defesas volumétricas, não as substitui.
+2. **Dependência de identificação de sessão/identidade:** ambientes com instrumentação parcial degradam o desempenho.
+3. **Custo de manutenção do grafo, sensibilidade a $W$, generalização para outros protocolos** ficam como direções.
+
+---
+
+## §6 Conclusão
+
+**Estado:** 🔄 esqueleto curto — produzir versão final ao fim da redação.
+
+**Conteúdo previsto:**
+
+- Síntese das contribuições: ontologia centrada em sessão, *pipeline* em tempo de execução, regras semânticas explicáveis, ablação que isola a camada semântica.
+- Direções futuras:
+  1. Extensão da ontologia para outros protocolos (DNS, TLS *handshake* — bridge ao paper engavetado em [`papers/cdn-crosssurface/`](papers/cdn-crosssurface/)).
+  2. Integração com plataformas SOAR para resposta automatizada.
+  3. Avaliação em ambientes de produção com dados reais anonimizados.
+  4. Estudos com analistas de segurança para validação operacional das cadeias de evidência.
+
+---
+
+## Apêndices
+
+### Apêndice A — Detalhes da Ontologia
+
+A versão completa em **Turtle** e **RDF/XML** será disponibilizada no repositório.
+
+### Apêndice B — Reprodutibilidade
+
+Código-fonte, *datasets* sintéticos, *scripts* experimentais — repositório público após aceitação, licença permissiva.
+
+---
+
+## Checklist de produção até submissão
+
+| Item | Estado |
+|---|---|
+| Resumo escrito | ✅ |
+| §1 Introdução completa | ✅ |
+| §2 Trabalhos Relacionados — escrita | 🔄 |
+| §3 Ontologia formalizada em Turtle/RDF | ⏳ |
+| §3 Regras formalizadas em SPARQL/SWRL | ⏳ |
+| §3 Algoritmo de construção (pseudocódigo) | ✅ |
+| §4 Gerador sintético parametrizado por K | ⏳ |
+| §4 Implementação dos 3 baselines (Fernandes, Bharathi, Kemp) | ⏳ |
+| §4 *Datasets* secundários (CICIDS2017, CIC-DDoS2019) preparados | ⏳ |
+| §5 Execução experimental ($n \ge 30$ por cenário) | ⏳ |
+| §5 Análise estatística (intervalos, testes pareados, Bonferroni) | ⏳ |
+| §5 *Money figure* (curva de *recall* × K) | ⏳ |
+| §6 Conclusão final | ⏳ |
+| Tradução PT → EN para submissão internacional | ⏳ |
+| Revisão por par interna | ⏳ |
+| Carta de submissão + declaração de COI | ⏳ |
+
+Para o **plano de ação** detalhado por fase e cronograma, ver [`MELHORIAS_QUALIS_A2A3.md`](MELHORIAS_QUALIS_A2A3.md).

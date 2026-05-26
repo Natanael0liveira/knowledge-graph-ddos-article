@@ -1,23 +1,25 @@
-# Plano de Testagem — Slowloris como Caso Experimental
+# Plano de Testagem — Família Slow HTTP DDoS como Caso Experimental
 
 > **Pergunta operacional:** como validar empiricamente que o raciocínio *cross-session* sobre o grafo detecta campanhas que defesas por sessão isolada não veem?
-> **Resposta:** Slowloris distribuído como caso experimental concreto, em três fontes complementares de dados.
+> **Resposta:** instâncias da **família Slow HTTP DDoS distribuído** como casos experimentais concretos, em três fontes complementares de dados.
 
 Para a visão de projeto, ver [`README.md`](README.md). Para a fundamentação, ver [`CONCEITOS.md`](CONCEITOS.md). Para decisões em aberto, ver [`docs/pontos-de-reflexao/`](docs/pontos-de-reflexao/).
 
 ---
 
-## Por que Slowloris
+## Por que a família Slow HTTP DDoS
 
-Cinco razões para ancorar a avaliação experimental em Slowloris (e variantes: slowhttptest, HULK, GoldenEye):
+A categoria escolhida não é uma ferramenta única (Slowloris), mas uma **família** de ataques de Camada 7 que exploram conexões parciais ou sustentadas. Inclui Slowloris (RSnake, 2009), Slow POST / R.U.D.Y., Slow Read, HULK, GoldenEye, e suas variantes modernas em HTTP/2 — **Rapid Reset** (CVE-2023-44487, agosto de 2023) e CONTINUATION Flood (2024). Tripathi & Hubballi (2021) e Cambiaso et al. (2013) consolidam a taxonomia formal.
 
-1. **É a classe de ataque L7 HTTP/HTTPS mais bem documentada em *datasets* públicos.** Aparece em CIC-DDoS2019, CICIDS2017, CIC-IoT2023 e BCCC-cPacket-Cloud-DDoS-2024 — sobreposição em todos os quatro.
-2. **Funciona sobre HTTPS nativamente.** O ataque envia *headers* HTTP parciais lentamente sobre uma conexão TLS estabelecida — JA4 é capturável a cada *handshake*.
-3. **Mapeia diretamente para a classe ontológica `CoordinatedHTTPFlood`.** K=1 é o Slowloris clássico (Cenário A); K alto é a versão distribuída (Cenários B e C).
-4. **É distribuível com ferramentas open-source.** slowhttptest e slowloris.py rodam em qualquer Linux; com *namespaces* de rede, encenamos K origens distintas num único host.
-5. **Tem reconhecimento operacional.** Quando o paper for revisado, "Slowloris" não exige defesa do escopo — todo revisor de segurança sabe o que é e por que importa.
+Cinco razões para ancorar a avaliação nessa família:
 
-**O que isso significa para o paper:** a contribuição **ontológica** (sessão como entidade) continua aplicável aos três ataques coordenados modelados (`CoordinatedHTTPFlood`, `CredentialStuffing`, `CoordinatedAPIAbuse`). A **avaliação experimental** se concentra no primeiro porque é o que tem dados públicos disponíveis. Os outros dois ficam validados em laboratório com escopo reduzido, e como direções de extensão em §6.
+1. **É a classe de ataque L7 HTTP/HTTPS com maior cobertura em *datasets* públicos acadêmicos.** Slowloris, slowhttptest, HULK e GoldenEye aparecem em CIC-DDoS2019, CICIDS2017, CIC-IoT2023 e BCCC-cPacket-Cloud-DDoS-2024 — sobreposição em todos os quatro.
+2. **Funciona sobre HTTPS nativamente.** Os ataques sustentam tráfego sobre conexões TLS estabelecidas — JA4 é capturável a cada *handshake*.
+3. **Tem casos reais contemporâneos em escala recorde.** HTTP/2 Rapid Reset sustentou picos de 398 milhões RPS (Google), 201 milhões RPS (Cloudflare) e 155 milhões RPS (AWS) em setembro de 2023, com *botnet* de cerca de 20.000 máquinas. No segundo trimestre de 2025, Cloudflare reportou 6.500+ ataques *hyper-volumetric* (média de 71/dia) e crescimento de 129% YoY especificamente em HTTP DDoS. **A escala da *botnet* (K ≈ 20.000) cai diretamente no Cenário C da nossa parametrização (K ≥ 1000).**
+4. **Mapeia diretamente para a classe ontológica `CoordinatedHTTPFlood`.** K=1 é o ataque clássico single-source (Cenário A); K alto é a versão distribuída (Cenários B e C). Variantes connection-holding (Slowloris, slow body, slow read) e rate-based (HULK, GoldenEye, Rapid Reset) ficam como subclasses ontológicas dentro da mesma família.
+5. **É distribuível com ferramentas open-source.** slowhttptest, slowloris.py e implementações de referência das variantes rodam em qualquer Linux; com *namespaces* de rede, encenamos K origens distintas num único host.
+
+**O que isso significa para o paper:** a contribuição **ontológica** (sessão como entidade) continua aplicável aos três ataques coordenados modelados (`CoordinatedHTTPFlood`, `CredentialStuffing`, `CoordinatedAPIAbuse`). A **avaliação experimental** se concentra no primeiro porque é o que tem dados públicos e relevância contemporânea verificada (Rapid Reset 2023, hyper-volumetric Q2 2025). Os outros dois ficam validados em laboratório com escopo reduzido, e como direções de extensão em §6.
 
 ---
 

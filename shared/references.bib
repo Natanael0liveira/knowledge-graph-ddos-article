@@ -109,6 +109,68 @@
   year    = {2012}
 }
 
+%% =====================================================================
+%% Slow HTTP DDoS family --- modern incidents and taxonomy.
+%% Used in Section 1.1 (Context and Motivation).
+%% =====================================================================
+
+@misc{cve202344487,
+  author       = {{MITRE Corporation}},
+  title        = {{CVE-2023-44487}: {HTTP/2} Rapid Reset Attack},
+  year         = {2023},
+  howpublished = {National Vulnerability Database},
+  note         = {Disclosed October 10, 2023; coordinated disclosure across multiple {HTTP/2} implementations},
+  url          = {https://nvd.nist.gov/vuln/detail/CVE-2023-44487}
+}
+
+@misc{cloudflare2023rapidreset,
+  author       = {{Cloudflare}},
+  title        = {{HTTP/2} Zero-Day vulnerability results in record-breaking {DDoS} attacks},
+  year         = {2023},
+  month        = oct,
+  howpublished = {Cloudflare Blog},
+  url          = {https://blog.cloudflare.com/zero-day-rapid-reset-http2-record-breaking-ddos-attack/}
+}
+
+@misc{google2023rapidreset,
+  author       = {{Google Cloud}},
+  title        = {How it works: The novel {HTTP/2} `{R}apid {R}eset' {DDoS} attack},
+  year         = {2023},
+  month        = oct,
+  howpublished = {Google Cloud Blog},
+  note         = {Google reports record-breaking peak of 398 million requests per second mitigated},
+  url          = {https://cloud.google.com/blog/products/identity-security/how-it-works-the-novel-http2-rapid-reset-ddos-attack}
+}
+
+@misc{cloudflare2025q1ddos,
+  author       = {{Cloudflare}},
+  title        = {Targeted by 20.5 million {DDoS} attacks, up 358\% year-over-year: {Cloudflare}'s 2025 {Q1} {DDoS} Threat Report},
+  year         = {2025},
+  howpublished = {Cloudflare Blog},
+  url          = {https://blog.cloudflare.com/ddos-threat-report-for-2025-q1/}
+}
+
+@misc{cloudflare2025q2ddos,
+  author       = {{Cloudflare}},
+  title        = {Hyper-volumetric {DDoS} attacks skyrocket: {Cloudflare}'s 2025 {Q2} {DDoS} Threat Report},
+  year         = {2025},
+  howpublished = {Cloudflare Blog},
+  note         = {Reports 6,500+ hyper-volumetric attacks in {Q2} 2025 (avg.\ 71/day); {HTTP DDoS} grew 129\% year-over-year},
+  url          = {https://blog.cloudflare.com/ddos-threat-report-for-2025-q2/}
+}
+
+@inproceedings{cambiaso2013slowdos,
+  author    = {Cambiaso, Enrico and Papaleo, Gianluca and Chiola, Giovanni and Aiello, Maurizio},
+  title     = {Slow {DoS} Attacks: Definition and Categorisation},
+  booktitle = {International Journal of Trust Management in Computing and Communications},
+  volume    = {1},
+  number    = {3--4},
+  pages     = {300--319},
+  year      = {2013},
+  publisher = {Inderscience},
+  doi       = {10.1504/IJTMCC.2013.056440}
+}
+
 %% DNS-side references for the CDN cross-surface paper.
 %% Bibliographic data sourced from REFERENCIAS_EXPANDIDAS.md (project doc).
 %% NOTE: PDFs of these works are not yet in docs/pdfs/; entries should be

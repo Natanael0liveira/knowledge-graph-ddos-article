@@ -1,12 +1,10 @@
-# Referências Expandidas — Paper [http-session](papers/http-session/)
+# Referências — Catálogo Expandido
 
-> **Alvo:** *Computers & Security* (Elsevier, Qualis A2).
-> **Paper:** *Grafos de Conhecimento Centrados em Sessão HTTP para Detecção Explicável de DDoS*.
-> **Última atualização:** Maio 2026.
+> **Paper:** *Grafos de Conhecimento Centrados em Sessão HTTP para Detecção Explicável de DDoS* — [`../papers/http-session/`](../papers/http-session/).
 
-Este documento organiza as referências **por função argumentativa** no paper, não por área genérica. Cada categoria explicita qual seção do `.tex` ela sustenta e qual argumento ela carrega. Para a estrutura do paper, ver [`ESTRUTURA_DO_ARTIGO.md`](ESTRUTURA_DO_ARTIGO.md). Para o `.bib` consolidado em uso, ver [`shared/references.bib`](shared/references.bib).
+Este documento organiza as referências **por função argumentativa** no paper, não por área genérica. Cada categoria explicita qual seção do `.tex` ela sustenta e qual argumento ela carrega. Para a estrutura do paper, ver [`estrutura-do-artigo.md`](estrutura-do-artigo.md). Para o `.bib` consolidado em uso, ver [`../shared/references.bib`](../shared/references.bib).
 
-> **Princípio de uso:** uma referência só vale neste documento se está **vinculada a um argumento específico do paper**. Listar referências apenas para inflar contagem é antipadrão de submissão A2.
+> **Princípio de uso:** uma referência só vale neste documento se está **vinculada a um argumento específico do paper**. Listar referências apenas para inflar contagem é antipadrão de submissão.
 
 ---
 

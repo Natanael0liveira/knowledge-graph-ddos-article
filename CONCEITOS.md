@@ -1,6 +1,6 @@
 # Conceitos Fundamentais — Sessão HTTP como Entidade Semântica
 
-> **Documento de fundamentação** do paper [papers/http-session](papers/http-session/) — *Grafos de Conhecimento Centrados em Sessão HTTP para Detecção Explicável de DDoS*. Para a visão de projeto, ver [`README.md`](README.md). Para o mapa seção-a-seção do paper, ver [`ESTRUTURA_DO_ARTIGO.md`](ESTRUTURA_DO_ARTIGO.md).
+> **Documento de fundamentação** do paper [papers/http-session](papers/http-session/) — *Grafos de Conhecimento Centrados em Sessão HTTP para Detecção Explicável de DDoS*. Para a visão de projeto, ver [`README.md`](README.md). Para o plano experimental ancorado em Slowloris, ver [`TESTAGEM.md`](TESTAGEM.md). Para o mapa seção-a-seção do paper, ver [`docs/estrutura-do-artigo.md`](docs/estrutura-do-artigo.md).
 
 ---
 
@@ -230,6 +230,8 @@ Todas subclasses de `ApplicationLayerAttack`, todas com a propriedade comum **`e
 
 **Sinal estrutural que sustenta:** *fingerprint* TLS comum ou prefixo IP comum, mesmo com cookies/IPs diferentes.
 
+**Caso experimental concreto:** **Slowloris distribuído** (e variantes: slowhttptest, HULK, GoldenEye) é o instanciador empírico desta classe no plano de testagem. Slowloris single-source representa Cenário A (K=1); Slowloris distribuído por K hosts compartilhando JA4 representa Cenários B (K ≤ 200) e C (K ≥ 1000). Detalhes em [`TESTAGEM.md`](TESTAGEM.md).
+
 ### 6.2 `CredentialStuffing` (subclasse de `LoginFlood`)
 
 **Padrão semântico:**
@@ -361,7 +363,9 @@ A vantagem do arcabouço cresce com o **grau de distribuição** da campanha. **
 ## Leitura sugerida (vinculada ao paper)
 
 - **Para a tese:** [`papers/http-session/article.tex`](papers/http-session/article.tex) §1.
+- **Para o plano experimental (Slowloris, datasets, lab):** [`TESTAGEM.md`](TESTAGEM.md).
 - **Para os baselines:** Fernandes et al. (2015), Bharathi & Sukanesh (2012), Kemp et al. (2023) — resumos em [`docs/leituras-pt/`](docs/leituras-pt/).
 - **Para a lacuna em KGs:** Jia et al. (2018), Bonagiri et al. (2024), Liu et al. (2022).
 - **Para o domínio:** Tripathi & Hubballi (2021), Odusami et al. (2020).
-- **Para mais referências:** [`REFERENCIAS_EXPANDIDAS.md`](REFERENCIAS_EXPANDIDAS.md).
+- **Para mais referências:** [`docs/referencias.md`](docs/referencias.md).
+- **Para decisões em aberto e *prior art*:** [`docs/pontos-de-reflexao/`](docs/pontos-de-reflexao/).

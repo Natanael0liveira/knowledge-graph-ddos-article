@@ -2,11 +2,11 @@
 
 > **Título:** *Grafos de Conhecimento Centrados em Sessão HTTP para Detecção Explicável de DDoS*
 > **Idioma:** Português
-> **Veículo-alvo:** *Computers & Security* (Elsevier, Qualis A2)
+> **Veículo-alvo:** *Computers & Security* (Elsevier)
 > **Formato:** preprint, 12pt — alvo de 8–10 páginas
-> **Fonte LaTeX:** [`papers/http-session/article.tex`](papers/http-session/article.tex)
+> **Fonte LaTeX:** [`../papers/http-session/article.tex`](../papers/http-session/article.tex)
 
-Este documento é o **mapa seção-a-seção** do paper. Para cada seção indica: (i) o estado atual no `.tex`, (ii) o que ainda precisa ser produzido, (iii) as referências que sustentam o argumento. Para a visão de projeto, ver [`README.md`](README.md). Para fundamentação conceitual, ver [`CONCEITOS.md`](CONCEITOS.md).
+Este documento é o **mapa seção-a-seção** do paper. Para cada seção indica: (i) o estado atual no `.tex`, (ii) o que ainda precisa ser produzido, (iii) as referências que sustentam o argumento. Para a visão de projeto, ver [`../README.md`](../README.md). Para fundamentação conceitual, ver [`../CONCEITOS.md`](../CONCEITOS.md). Para o plano experimental, ver [`../TESTAGEM.md`](../TESTAGEM.md).
 
 ---
 
@@ -295,4 +295,4 @@ Código-fonte, *datasets* sintéticos, *scripts* experimentais — repositório 
 | Revisão por par interna | ⏳ |
 | Carta de submissão + declaração de COI | ⏳ |
 
-Para o **plano de ação** detalhado por fase e cronograma, ver [`MELHORIAS_QUALIS_A2A3.md`](MELHORIAS_QUALIS_A2A3.md).
+Para o **plano experimental** ancorado em Slowloris, ver [`../TESTAGEM.md`](../TESTAGEM.md).

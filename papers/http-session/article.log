@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.12)  26 MAY 2026 20:08
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.12)  29 MAY 2026 11:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -908,16 +908,10 @@ Overfull \hbox (2.50151pt too wide) in paragraph at lines 102--103
 a-das de DDoS
  []
 
-
-Overfull \hbox (0.76987pt too wide) in paragraph at lines 102--103
-\T1/cmr/m/n/12 das para iden-ti-dade do cli-ente (\T1/cmtt/m/n/12 hasIdentity\T
-1/cmr/m/n/12 ), end-po-int alvo (\T1/cmtt/m/n/12 targets\T1/cmr/m/n/12 ),
- []
-
-[5] [6] [7]
+[5] [6]
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <12> not available
 (Font)              Font shape `T1/cmtt/m/n' tried instead on input line 180.
-
+ [7]
 Overfull \hbox (15.05942pt too wide) in paragraph at lines 182--183
 []\T1/cmr/m/n/12 liga uma ses-são a um per-fil com-por-ta-men-tal (\T1/cmtt/m/n
 /12 UserBehavior
@@ -930,7 +924,7 @@ tt/m/n/12 CoordinatedHTTPFlood\T1/cmr/m/n/12 , \T1/cmtt/m/n/12 CredentialStuffi
 ng
  []
 
-[8]
+
 Overfull \hbox (17.96971pt too wide) in paragraph at lines 194--195
 \T1/cmr/m/n/12 cri-a-das (ou atu-a-li-za-das) ins-tân-cias de \T1/cmtt/m/n/12 H
 TTPRequest\T1/cmr/m/n/12 , \T1/cmtt/m/n/12 ApplicationSession\T1/cmr/m/n/12 ,
@@ -943,9 +937,10 @@ t/m/n/12 hasIdentity\T1/cmr/m/n/12 , \T1/cmtt/m/n/12 targets\T1/cmr/m/n/12 , \T
 1/cmtt/m/n/12 exhibitsBehavior
  []
 
+[8]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
 put line 202.
-[9]
+ [9]
 Overfull \hbox (4.69395pt too wide) in paragraph at lines 229--230
 \T1/cmr/m/n/12 sões com \T1/cmtt/m/n/12 hasIdentity \T1/cmr/m/n/12 apon-tando p
 ara di-fe-ren-tes \T1/cmr/m/it/12 to-kens \T1/cmr/m/n/12 mas \T1/cmtt/m/n/12 re
@@ -958,13 +953,13 @@ Overfull \hbox (19.65706pt too wide) in paragraph at lines 229--230
  de IP, to-das atin-gindo o mesmo \T1/cmtt/m/n/12 APIEndpoint
  []
 
-[10]
+
 Overfull \hbox (9.02965pt too wide) in paragraph at lines 250--251
 []$\OML/cmm/m/it/12 K$ \T1/cmr/m/n/12 ori-gens dis-tin-tas ($\OT1/cmr/m/n/12 10
  \OMS/cmsy/m/n/12 ^^T \OML/cmm/m/it/12 K \OMS/cmsy/m/n/12 ^^T
  []
 
-
+[10]
 Overfull \hbox (1.2954pt too wide) in paragraph at lines 251--252
 []$\OML/cmm/m/it/12 K \OMS/cmsy/m/n/12 ^^U \OT1/cmr/m/n/12 1000$ \T1/cmr/m/n/12
  ori-gens dis-tin-tas em cam-
@@ -976,7 +971,7 @@ Overfull \hbox (6.29619pt too wide) in paragraph at lines 270--271
 Bha-rathi e Su-ka-nesh [[]]):
  []
 
-[12] [13] [14] (./article.bbl
+[12] [13] (./article.bbl [14]
 Overfull \hbox (177.94707pt too wide) in paragraph at lines 14--19
 \T1/cmr/m/n/12 URL []$\T1/cmtt/m/n/12 https : / / blog . cloudflare . com / zer
 o-[]day-[]rapid-[]reset-[]http2-[]record-[]breaking-[]ddos-[]attack/$[] 
@@ -1000,13 +995,13 @@ Overfull \hbox (28.28325pt too wide) in paragraph at lines 37--43
 s-[]threat-[]report-[]for-[]2025-[]q2/$[] 
  []
 
-[15]
+
 Overfull \hbox (28.28325pt too wide) in paragraph at lines 45--50
 \T1/cmr/m/n/12 URL []$\T1/cmtt/m/n/12 https : / / blog . cloudflare . com / ddo
 s-[]threat-[]report-[]for-[]2025-[]q1/$[] 
  []
 
-) [16] [17] (./article.aux)
+[15]) [16] (./article.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -1015,17 +1010,17 @@ Package rerunfilecheck Info: File `article.out' has not changed.
 (rerunfilecheck)             Checksum: 5B994BE8595A61DE623A0A8C1A7A6165;6833.
  ) 
 Here is how much of TeX's memory you used:
- 25682 strings out of 469006
- 497535 string characters out of 5454813
- 909369 words of memory out of 5000000
+ 25681 strings out of 469006
+ 497528 string characters out of 5454813
+ 910369 words of memory out of 5000000
  53836 multiletter control sequences out of 15000+600000
  643779 words of font info for 82 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 84i,9n,104p,2307b,828s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,9n,104p,2108b,828s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/natanaeloliveira/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour
 /jknappen/ec/tcrm1200.600pk> </Users/natanaeloliveira/Library/texlive/2026basic
-/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbi1200.600pk> </Users/natanaeloliveira
-/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1200.600pk
+/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1200.600pk> </Users/natanaeloliveira
+/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbi1200.600pk
 > </Users/natanaeloliveira/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/
 jknappen/ec/ectt1000.600pk> </Users/natanaeloliveira/Library/texlive/2026basic/
 texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1000.600pk> </Users/natanaeloliveira/
@@ -1046,10 +1041,10 @@ r12.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm
 cm/cmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfo
 nts/cm/cmsy7.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/am
 sfonts/cm/cmsy8.pfb>
-Output written on article.pdf (17 pages, 242564 bytes).
+Output written on article.pdf (16 pages, 241681 bytes).
 PDF statistics:
- 866 PDF objects out of 1000 (max. 8388607)
- 400 compressed objects within 4 object streams
- 100 named destinations out of 1000 (max. 500000)
+ 862 PDF objects out of 1000 (max. 8388607)
+ 397 compressed objects within 4 object streams
+ 99 named destinations out of 1000 (max. 500000)
  293 words of extra memory for PDF output out of 10000 (max. 10000000)
 

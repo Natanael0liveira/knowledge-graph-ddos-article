@@ -96,7 +96,7 @@ knowledge-graph-ddos-article/
 │   │   ├── README.md
 │   │   ├── article.tex
 │   │   ├── article.pdf
-│   │   └── references.bib          → symlink para shared/references.bib
+│   │   └── references.bib          # cópia de shared/references.bib (sincronizar via scripts/sync-bib.sh)
 │   │
 │   └── cdn-crosssurface/           # Engavetado — extensão futura DNS↔HTTP em CDNs
 │

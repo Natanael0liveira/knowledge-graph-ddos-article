@@ -24,14 +24,14 @@ pdflatex -interaction=nonstopmode article.tex
 pdflatex -interaction=nonstopmode article.tex
 ```
 
-O arquivo `references.bib` neste diretório é um *symlink* para `../../shared/references.bib` (bibliografia compartilhada entre os dois papers).
+O arquivo `references.bib` neste diretório é uma **cópia** de `../../shared/references.bib` (bibliografia compartilhada entre os dois papers). A cópia existe porque o Overleaf não importa repositórios com *symlinks*. Para sincronizar após editar o `shared/references.bib`, rode `./scripts/sync-bib.sh` na raiz do repositório.
 
 ## Arquivos
 
 | Arquivo | Conteúdo |
 |---|---|
 | `article.tex` | Fonte LaTeX completa (Abstract, Introdução em pleno texto; demais seções como esqueletos a desenvolver) |
-| `references.bib` | *Symlink* para a bibliografia compartilhada |
+| `references.bib` | Cópia da bibliografia compartilhada (sync via `scripts/sync-bib.sh`) |
 | `article.pdf` | Saída de compilação (gerada) |
 
 ## Estado das seções

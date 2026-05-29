@@ -24,7 +24,7 @@ pdflatex -interaction=nonstopmode article.tex
 pdflatex -interaction=nonstopmode article.tex
 ```
 
-O arquivo `references.bib` neste diretório é um *symlink* para `../../shared/references.bib`.
+O arquivo `references.bib` neste diretório é uma **cópia** de `../../shared/references.bib` (Overleaf não importa repositórios com *symlinks*; sincronização via `./scripts/sync-bib.sh` na raiz).
 
 ## Estado das seções
 

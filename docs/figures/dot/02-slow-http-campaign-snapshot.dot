@@ -11,7 +11,7 @@ digraph SlowHTTPCampaignSnapshot {
     ranksep=1.1;
     newrank=true;
     labelloc="t";
-    label=<<B>Snapshot do grafo em t = 180 s</B><BR/><FONT POINT-SIZE="10" COLOR="#4A4A4A">540 sessões totais (500 legítimas + 40 coordenadas Slow HTTP DoS distribuído); 3 amostras de cada lado</FONT>>;
+    label=<<B>Snapshot do grafo em t = 180 s</B><BR/><FONT POINT-SIZE="10" COLOR="#4A4A4A">540 sessões totais (500 legítimas + 40 coordenadas Slow HTTP DoS distribuído); 3 amostras de cada lado<BR/>Endereços IP conforme RFC 5737; ASNs conforme RFC 5398 (64496–64511 e 64500–64511 reservados para documentação)</FONT>>;
 
     node [fontname="Helvetica", fontsize=10, fontcolor="#1A1A1A"];
     edge [fontname="Helvetica", fontsize=9, color="#6B6B6B", fontcolor="#4A4A4A"];
@@ -33,32 +33,32 @@ digraph SlowHTTPCampaignSnapshot {
 
         // Linha 1 — sessões legítimas (alinhadas)
         s_user_1 [
-            label=<<B>s_user_001</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">Chrome 124<BR/>AS 7922  ·  UserBehavior</FONT>>,
+            label=<<B>s_user_001</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">Chrome 124<BR/>AS 64496  ·  UserBehavior</FONT>>,
             shape=ellipse, style=filled, fillcolor="white", color="#6B6B6B",
             width=1.6, height=0.8
         ];
         s_user_2 [
-            label=<<B>s_user_017</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">Safari 17<BR/>AS 22773  ·  UserBehavior</FONT>>,
+            label=<<B>s_user_017</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">Safari 17<BR/>AS 64497  ·  UserBehavior</FONT>>,
             shape=ellipse, style=filled, fillcolor="white", color="#6B6B6B",
             width=1.6, height=0.8
         ];
         s_user_3 [
-            label=<<B>s_user_042</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">Firefox 122<BR/>AS 16509  ·  UserBehavior</FONT>>,
+            label=<<B>s_user_042</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">Firefox 122<BR/>AS 64498  ·  UserBehavior</FONT>>,
             shape=ellipse, style=filled, fillcolor="white", color="#6B6B6B",
             width=1.6, height=0.8
         ];
 
         // Linha 2 — identidades (alinhadas)
         id_user_1 [
-            label=<<B>Identity</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ja4 = t13d_a1b2...<BR ALIGN="LEFT"/>ip = 187.62.x.x</FONT>>,
+            label=<<B>Identity</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ja4 = t13d_a1b2...<BR ALIGN="LEFT"/>ip ∈ 192.0.2.0/24</FONT>>,
             shape=box, style=filled, fillcolor="white", color="#888888", fontsize=9
         ];
         id_user_2 [
-            label=<<B>Identity</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ja4 = q13d_c3d4...<BR ALIGN="LEFT"/>ip = 200.155.x.x</FONT>>,
+            label=<<B>Identity</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ja4 = q13d_c3d4...<BR ALIGN="LEFT"/>ip ∈ 198.51.100.0/24</FONT>>,
             shape=box, style=filled, fillcolor="white", color="#888888", fontsize=9
         ];
         id_user_3 [
-            label=<<B>Identity</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ja4 = t13d_e5f6...<BR ALIGN="LEFT"/>ip = 177.43.x.x</FONT>>,
+            label=<<B>Identity</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ja4 = t13d_e5f6...<BR ALIGN="LEFT"/>ip ∈ 203.0.113.0/24</FONT>>,
             shape=box, style=filled, fillcolor="white", color="#888888", fontsize=9
         ];
 
@@ -88,17 +88,17 @@ digraph SlowHTTPCampaignSnapshot {
 
         // Linha 1 — sessões atacantes (alinhadas)
         s_a1 [
-            label=<<B>s_a1</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ip 45.142.x.x  ·  AS 12345<BR/>BotBehavior  ·  5 conn</FONT>>,
+            label=<<B>s_a1</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ip ∈ 192.0.2.0/24  ·  AS 64500<BR/>BotBehavior  ·  5 conn</FONT>>,
             shape=ellipse, style=filled, fillcolor="white", color="#7A3A3A",
             width=1.6, height=0.8
         ];
         s_a2 [
-            label=<<B>s_a2</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ip 203.0.x.x  ·  AS 64999<BR/>BotBehavior  ·  4 conn</FONT>>,
+            label=<<B>s_a2</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ip ∈ 198.51.100.0/24  ·  AS 64501<BR/>BotBehavior  ·  4 conn</FONT>>,
             shape=ellipse, style=filled, fillcolor="white", color="#7A3A3A",
             width=1.6, height=0.8
         ];
         s_a3 [
-            label=<<B>s_a3</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ip 91.236.x.x  ·  AS 8075<BR/>BotBehavior  ·  5 conn</FONT>>,
+            label=<<B>s_a3</B><BR/><FONT POINT-SIZE="8" COLOR="#4A4A4A">ip ∈ 203.0.113.0/24  ·  AS 64502<BR/>BotBehavior  ·  5 conn</FONT>>,
             shape=ellipse, style=filled, fillcolor="white", color="#7A3A3A",
             width=1.6, height=0.8
         ];

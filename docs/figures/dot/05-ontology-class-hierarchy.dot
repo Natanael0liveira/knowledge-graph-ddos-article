@@ -1,0 +1,98 @@
+// Hierarquia de classes da ontologia OWL,
+// focando na família Slow HTTP DDoS distribuído.
+// Mostra a especialização e as classes auxiliares conectadas pelas relações tipadas.
+
+digraph OntologyClassHierarchy {
+    rankdir=LR;
+    bgcolor="white";
+    fontname="Helvetica";
+    nodesep=0.3;
+    ranksep=1.1;
+    labelloc="t";
+    label=<<B>Hierarquia da ontologia OWL</B><BR/>Slow HTTP DDoS distribuído como família de ataque coordenado de referência>;
+
+    node [fontname="Helvetica", fontsize=10, shape=box, style="filled,rounded"];
+    edge [fontname="Helvetica", fontsize=9, color="#444444"];
+
+    // Classe central
+    AppSession [
+        label=<<B>ApplicationSession</B>>,
+        fillcolor="#90EE90", color="#2E8B57", penwidth=2
+    ];
+
+    // Hierarquia de ataque (top-down)
+    AppLayerAttack [label=<<B>ApplicationLayerAttack</B>>, fillcolor="#FFE4B5", color="#B8860B"];
+    SlowHTTPFamily [
+        label=<<B>SlowHTTPDDoSFamily</B>>,
+        fillcolor="#FFD700", color="#B8860B", penwidth=2
+    ];
+
+    CoordHTTPFlood [
+        label=<<B>CoordinatedHTTPFlood</B><BR/><FONT POINT-SIZE="8">variantes rate-based<BR/>(HULK, GoldenEye,<BR/>HTTP/2 Rapid Reset)</FONT>>,
+        fillcolor="#FFEFD5", color="#B8860B"
+    ];
+
+    ConnExhaustion [
+        label=<<B>ConnectionExhaustionAttack</B><BR/><FONT POINT-SIZE="8">variantes connection-holding<BR/>(Slowloris, slow body, slow read)</FONT>>,
+        fillcolor="#FFEFD5", color="#B8860B"
+    ];
+
+    // Subclasses hierárquicas
+    AppLayerAttack -> SlowHTTPFamily [label="subClassOf", style=dotted, arrowhead=empty];
+    SlowHTTPFamily -> CoordHTTPFlood [label="subClassOf", style=dotted, arrowhead=empty];
+    SlowHTTPFamily -> ConnExhaustion [label="subClassOf", style=dotted, arrowhead=empty];
+
+    // Identity e suas subclasses
+    Identity [label=<<B>Identity</B>>, fillcolor="#E6F2FF", color="#4682B4"];
+    Cookie [label="Cookie", fillcolor="#F0F8FF", color="#708090", fontsize=9];
+    Token [label="Token (JWT)", fillcolor="#F0F8FF", color="#708090", fontsize=9];
+    TLSFp [label=<<B>TLSFingerprint</B><BR/><FONT POINT-SIZE="8">JA3, JA4</FONT>>, fillcolor="#F0F8FF", color="#708090"];
+
+    Identity -> Cookie [label="subClassOf", style=dotted, arrowhead=empty];
+    Identity -> Token [label="subClassOf", style=dotted, arrowhead=empty];
+    Identity -> TLSFp [label="subClassOf", style=dotted, arrowhead=empty];
+
+    // Endpoint e subclasses
+    Endpoint [label=<<B>Endpoint</B>>, fillcolor="#87CEEB", color="#4682B4"];
+    APIEp [label="APIEndpoint", fillcolor="#F0F8FF", color="#708090", fontsize=9];
+    StaticEp [label="StaticAsset", fillcolor="#F0F8FF", color="#708090", fontsize=9];
+
+    Endpoint -> APIEp [label="subClassOf", style=dotted, arrowhead=empty];
+    Endpoint -> StaticEp [label="subClassOf", style=dotted, arrowhead=empty];
+
+    // Behavior
+    Behavior [label=<<B>Behavior</B>>, fillcolor="#E6F2FF", color="#4682B4"];
+    UserBeh [label="UserBehavior", fillcolor="#F0F8FF", color="#708090", fontsize=9];
+    BotBeh [label="BotBehavior", fillcolor="#F0F8FF", color="#708090", fontsize=9];
+
+    Behavior -> UserBeh [label="subClassOf", style=dotted, arrowhead=empty];
+    Behavior -> BotBeh [label="subClassOf", style=dotted, arrowhead=empty];
+
+    // Mitigation
+    Mitigation [label=<<B>Mitigation</B>>, fillcolor="#FFB6C1", color="#8B0000"];
+    RateLim [label="RateLimit", fillcolor="#F5F5F5", color="#708090", fontsize=9];
+    Challenge [label="Challenge", fillcolor="#F5F5F5", color="#708090", fontsize=9];
+    Block [label="Block", fillcolor="#F5F5F5", color="#708090", fontsize=9];
+
+    Mitigation -> RateLim [label="subClassOf", style=dotted, arrowhead=empty];
+    Mitigation -> Challenge [label="subClassOf", style=dotted, arrowhead=empty];
+    Mitigation -> Block [label="subClassOf", style=dotted, arrowhead=empty];
+
+    // Relações tipadas da ApplicationSession
+    AppSession -> Identity [label="hasIdentity", color="#2E8B57", penwidth=1.5];
+    AppSession -> Endpoint [label="targets", color="#2E8B57", penwidth=1.5];
+    AppSession -> Behavior [label="exhibitsBehavior", color="#2E8B57", penwidth=1.5];
+    AppSession -> AppSession [label="relatedTo", color="#B8860B", style=dashed, penwidth=1.5];
+    AppSession -> Mitigation [label="mitigatedBy", color="#2E8B57", penwidth=1.5];
+
+    // Ataque alvejando endpoint
+    AppLayerAttack -> Endpoint [label="targets", color="#2E8B57", penwidth=1.5];
+
+    // Propriedade compartilhada
+    propnote [
+        shape=note,
+        label=<<FONT POINT-SIZE="9">SlowHTTPDDoSFamily<BR/>tem propriedade comum:<BR/><B>exhibitsCrossSessionStructure</B></FONT>>,
+        fillcolor="#FFFACD", color="#B8860B"
+    ];
+    SlowHTTPFamily -> propnote [style=dotted, arrowhead=none];
+}

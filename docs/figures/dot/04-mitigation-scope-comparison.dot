@@ -1,0 +1,97 @@
+// Comparação tridimensional do escopo de mitigação e da explicabilidade:
+// detectores ML sobre features agregadas, KLAGE (KG + neural + XAI pós-hoc),
+// indústria proprietária, e nossa proposta. Tabela em 4 colunas.
+
+digraph MitigationScopeComparison {
+    rankdir=LR;
+    bgcolor="white";
+    fontname="Helvetica";
+    margin=0;
+
+    node [shape=plaintext, fontname="Helvetica"];
+
+    cmp [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8" BGCOLOR="white">
+            <!-- Cabeçalho -->
+            <TR>
+                <TD BGCOLOR="#F5F5F5" ALIGN="LEFT"><B>Dimensão</B></TD>
+                <TD BGCOLOR="#FFF8DC" ALIGN="CENTER"><B>ML sobre features<BR/>agregadas</B><BR/><FONT POINT-SIZE="9">Fernandes 2015,<BR/>Bharathi 2012,<BR/>Kemp 2023</FONT></TD>
+                <TD BGCOLOR="#F0F0FF" ALIGN="CENTER"><B>KG + neural<BR/>+ XAI pós-hoc</B><BR/><FONT POINT-SIZE="9">KLAGE<BR/>(Belcastro et al.,<BR/>FGCS 2026)</FONT></TD>
+                <TD BGCOLOR="#FFF0F5" ALIGN="CENTER"><B>Indústria<BR/>proprietária</B><BR/><FONT POINT-SIZE="9">Cloudflare, Akamai,<BR/>DataDome</FONT></TD>
+                <TD BGCOLOR="#F0FFF0" ALIGN="CENTER"><B>Nossa proposta</B><BR/><FONT POINT-SIZE="9">OWL + SWRL/SPARQL,<BR/>escopo derivado</FONT></TD>
+            </TR>
+
+            <!-- Unidade de raciocínio -->
+            <TR>
+                <TD ALIGN="LEFT" BGCOLOR="#F5F5F5"><B>Unidade de raciocínio</B></TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFFBEE">Sessão como vetor<BR/>de features agregadas</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7F7FF">Nó de rede<BR/>(porta, IP, fluxo)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFF7FA">Cliente (fingerprint,<BR/>device, IP, sessão)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7FFF7"><B>Sessão HTTP como<BR/>entidade ontológica<BR/>de primeira classe</B></TD>
+            </TR>
+
+            <!-- Representação semântica -->
+            <TR>
+                <TD ALIGN="LEFT" BGCOLOR="#F5F5F5"><B>Representação semântica</B></TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFFBEE">Vetor numérico,<BR/>sem semântica</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7F7FF">Embeddings aprendidos<BR/>(Graph-BERT)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFF7FA">Sinais combinados<BR/>em score 0–100</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7FFF7"><B>OWL 2 DL + SWRL/SPARQL<BR/>(simbólico nativo)</B></TD>
+            </TR>
+
+            <!-- Cross-session reasoning -->
+            <TR>
+                <TD ALIGN="LEFT" BGCOLOR="#F5F5F5"><B>Raciocínio cross-session</B></TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFFBEE">❌ Por sessão isolada</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7F7FF">Implícito nos<BR/>embeddings, sem<BR/>relação nomeada</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFF7FA">✅ Em produção<BR/>(proprietário)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7FFF7"><B>✅ Relação tipada<BR/>relatedTo, auditável</B></TD>
+            </TR>
+
+            <!-- Explicabilidade -->
+            <TR>
+                <TD ALIGN="LEFT" BGCOLOR="#F5F5F5"><B>Explicabilidade</B></TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFFBEE">❌ Rótulo binário<BR/>sem justificativa</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7F7FF">LIME pós-hoc<BR/>+ relatório LLM</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFF7FA">Bot Score opaco<BR/>(caixa preta)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7FFF7"><B>Cadeia de evidência<BR/>simbólica<BR/>(JSON-LD + STIX 2.1)</B></TD>
+            </TR>
+
+            <!-- Mitigação acoplada -->
+            <TR>
+                <TD ALIGN="LEFT" BGCOLOR="#F5F5F5"><B>Mitigação acoplada</B></TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFFBEE">❌ Externa,<BR/>tipicamente global</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7F7FF">❌ Não tratada<BR/>(pipeline termina<BR/>no relatório)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFF7FA">✅ Escopo cirúrgico<BR/>(derivado por algoritmo<BR/>proprietário opaco)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7FFF7"><B>✅ Escopo derivado<BR/>do discriminador<BR/>do cluster (auditável)</B></TD>
+            </TR>
+
+            <!-- Reprodutibilidade -->
+            <TR>
+                <TD ALIGN="LEFT" BGCOLOR="#F5F5F5"><B>Reprodutibilidade<BR/>acadêmica</B></TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFFBEE">✅ Código frequentemente<BR/>aberto</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7F7FF">✅ Código aberto<BR/>(github SCAlabUnical)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFF7FA">❌ Caixa preta<BR/>(sem ontologia,<BR/>sem replicação)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7FFF7"><B>✅ Ontologia, regras<BR/>e código abertos</B></TD>
+            </TR>
+
+            <!-- Métrica de dano colateral -->
+            <TR>
+                <TD ALIGN="LEFT" BGCOLOR="#F5F5F5"><B>Métrica de dano<BR/>colateral em legítimos</B></TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFFBEE">❌ Não reportada<BR/>(apenas Acc/F1)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7F7FF">❌ Não reportada<BR/>(apenas Acc/F1<BR/>e qualitativas LLM)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFF7FA">Auto-reportada<BR/>(DataDome &lt; 0,01%,<BR/>sem metodologia<BR/>pública)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7FFF7"><B>✅ Métrica acadêmica<BR/>proposta (% de<BR/>tráfego legítimo<BR/>afetado)</B></TD>
+            </TR>
+
+            <!-- Validação no caso DDoS Slowloris -->
+            <TR>
+                <TD ALIGN="LEFT" BGCOLOR="#F5F5F5"><B>Validação experimental<BR/>em DDoS Slowloris</B></TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFFBEE">Parcial<BR/>(single-source,<BR/>CIC-DDoS2019)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7F7FF">F1 = 84,1%<BR/>(RT-IoT2022,<BR/>CIC-IoT2023)</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#FFF7FA">Em produção,<BR/>sem benchmark<BR/>público</TD>
+                <TD ALIGN="LEFT" BGCOLOR="#F7FFF7"><B>Cenários A/B/C<BR/>parametrizados por<BR/>grau de distribuição K</B></TD>
+            </TR>
+        </TABLE>
+    >];
+}

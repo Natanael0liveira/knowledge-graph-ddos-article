@@ -1,0 +1,93 @@
+// Anatomia da ApplicationSession como entidade ontológica
+// Mostra a sessão como nó central com cinco relações tipadas.
+// Universal para qualquer ataque coordenado modelado.
+
+digraph ApplicationSessionAnatomy {
+    rankdir=TB;
+    bgcolor="white";
+    fontname="Helvetica";
+    nodesep=0.6;
+    ranksep=0.8;
+
+    // Estilo global
+    node [fontname="Helvetica", fontsize=11];
+    edge [fontname="Helvetica", fontsize=10, color="#444444"];
+
+    // Sessão central
+    session [
+        label=<<B>ApplicationSession</B><BR/>s_a3f2>,
+        shape=ellipse,
+        style="filled,bold",
+        fillcolor="#90EE90",
+        color="#2E8B57",
+        penwidth=2,
+        width=2.2,
+        height=1.0
+    ];
+
+    // Nós relacionados
+    identity [
+        label=<<B>Identity</B><BR/><FONT POINT-SIZE="9">cookie = sid_a3f2<BR/>ja4 = t13d_1516...<BR/>ip_prefix = 203.0.113/24</FONT>>,
+        shape=box,
+        style="filled,rounded",
+        fillcolor="#E6F2FF",
+        color="#4682B4"
+    ];
+
+    endpoint [
+        label=<<B>Endpoint</B><BR/><FONT POINT-SIZE="9">path = /api/checkout/payment<BR/>type = APIEndpoint</FONT>>,
+        shape=box,
+        style="filled,rounded",
+        fillcolor="#E6F2FF",
+        color="#4682B4"
+    ];
+
+    behavior [
+        label=<<B>Behavior</B><BR/><FONT POINT-SIZE="9">BotBehavior<BR/>byte_rate = 0.067 B/s<BR/>conn_duration = 165 s</FONT>>,
+        shape=box,
+        style="filled,rounded",
+        fillcolor="#E6F2FF",
+        color="#4682B4"
+    ];
+
+    mitigation [
+        label=<<B>Mitigation</B><BR/><FONT POINT-SIZE="9">Challenge<BR/>scope = (ja4, endpoint)</FONT>>,
+        shape=box,
+        style="filled,rounded",
+        fillcolor="#E6F2FF",
+        color="#4682B4"
+    ];
+
+    // Outra sessão (apenas referência, para mostrar relatedTo)
+    other_session [
+        label=<<B>ApplicationSession</B><BR/>s_b71c<BR/><FONT POINT-SIZE="9">(outra sessão no cluster)</FONT>>,
+        shape=ellipse,
+        style="filled",
+        fillcolor="#FFE4B5",
+        color="#B8860B"
+    ];
+
+    // Relações
+    session -> identity [label="hasIdentity", penwidth=1.5];
+    session -> endpoint [label="targets", penwidth=1.5];
+    session -> behavior [label="exhibitsBehavior", penwidth=1.5];
+    session -> mitigation [label="mitigatedBy", penwidth=1.5];
+    session -> other_session [
+        label="relatedTo",
+        style=dashed,
+        dir=both,
+        penwidth=1.5,
+        color="#B8860B"
+    ];
+
+    // Legenda
+    subgraph cluster_legend {
+        label="Tipos de relação";
+        style=dashed;
+        color="#888888";
+        fontsize=10;
+        legend_solid [shape=plaintext, label=<<FONT POINT-SIZE="9">solid: relação primária (sessão para tipos)</FONT>>];
+        legend_dashed [shape=plaintext, label=<<FONT POINT-SIZE="9">dashed: relatedTo (sessão para sessão, cross-session)</FONT>>];
+        legend_solid -> legend_dashed [style=invis];
+    }
+}

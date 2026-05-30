@@ -1,0 +1,115 @@
+// Snapshot do grafo durante campanha de Slow HTTP DDoS distribuído
+// Mostra: 3 sessões legítimas amostradas + 3 sessões coordenadas amostradas
+// das 40 da campanha, convergindo no mesmo endpoint sob a mesma SharedIdentity.
+
+digraph SlowHTTPCampaignSnapshot {
+    rankdir=TB;
+    bgcolor="white";
+    fontname="Helvetica";
+    nodesep=0.5;
+    ranksep=1.1;
+    splines=true;
+    labelloc="t";
+    label=<<B>Snapshot do grafo em t = 180 s</B><BR/>540 sessões totais (500 legítimas + 40 coordenadas Slow HTTP); 3 amostras de cada lado>;
+
+    node [fontname="Helvetica", fontsize=10];
+    edge [fontname="Helvetica", fontsize=9, color="#444444"];
+
+    // Cluster legítimo
+    subgraph cluster_legit {
+        label="500 sessões legítimas (3 amostras)";
+        style="rounded,filled";
+        fillcolor="#F0F8FF";
+        color="#4682B4";
+        fontsize=11;
+
+        s_user_1 [
+            label=<<B>s_user_001</B><BR/><FONT POINT-SIZE="8">3 req em 5 min<BR/>UserBehavior</FONT>>,
+            shape=ellipse, style=filled, fillcolor="#E6F2FF", color="#4682B4"
+        ];
+        s_user_2 [
+            label=<<B>s_user_017</B><BR/><FONT POINT-SIZE="8">8 req em 5 min<BR/>UserBehavior</FONT>>,
+            shape=ellipse, style=filled, fillcolor="#E6F2FF", color="#4682B4"
+        ];
+        s_user_3 [
+            label=<<B>s_user_042</B><BR/><FONT POINT-SIZE="8">5 req em 5 min<BR/>UserBehavior</FONT>>,
+            shape=ellipse, style=filled, fillcolor="#E6F2FF", color="#4682B4"
+        ];
+
+        id_user_1 [
+            label=<<B>Identity</B><BR/><FONT POINT-SIZE="8">ja4 = t13d_a1b2...<BR/>(Chrome 124)</FONT>>,
+            shape=box, style="filled,rounded", fillcolor="#F5FAFF", color="#708090"
+        ];
+        id_user_2 [
+            label=<<B>Identity</B><BR/><FONT POINT-SIZE="8">ja4 = q13d_c3d4...<BR/>(Safari 17)</FONT>>,
+            shape=box, style="filled,rounded", fillcolor="#F5FAFF", color="#708090"
+        ];
+        id_user_3 [
+            label=<<B>Identity</B><BR/><FONT POINT-SIZE="8">ja4 = t13d_e5f6...<BR/>(Firefox 122)</FONT>>,
+            shape=box, style="filled,rounded", fillcolor="#F5FAFF", color="#708090"
+        ];
+
+        s_user_1 -> id_user_1 [label="hasIdentity", fontsize=8];
+        s_user_2 -> id_user_2 [label="hasIdentity", fontsize=8];
+        s_user_3 -> id_user_3 [label="hasIdentity", fontsize=8];
+    }
+
+    // Cluster atacante
+    subgraph cluster_attack {
+        label="40 sessões coordenadas (3 amostras) - Slow HTTP DDoS distribuído";
+        style="rounded,filled";
+        fillcolor="#FFFAF0";
+        color="#B8860B";
+        fontsize=11;
+
+        s_a1 [
+            label=<<B>s_a1</B><BR/><FONT POINT-SIZE="8">5 conn por 50 min<BR/>BotBehavior</FONT>>,
+            shape=ellipse, style=filled, fillcolor="#FFE4B5", color="#B8860B"
+        ];
+        s_a2 [
+            label=<<B>s_a2</B><BR/><FONT POINT-SIZE="8">4 conn por 50 min<BR/>BotBehavior</FONT>>,
+            shape=ellipse, style=filled, fillcolor="#FFE4B5", color="#B8860B"
+        ];
+        s_a3 [
+            label=<<B>s_a3</B><BR/><FONT POINT-SIZE="8">5 conn por 50 min<BR/>BotBehavior</FONT>>,
+            shape=ellipse, style=filled, fillcolor="#FFE4B5", color="#B8860B"
+        ];
+
+        // relatedTo entre as três (todas as combinações)
+        s_a1 -> s_a2 [label="relatedTo", style=dashed, dir=both, color="#B8860B", penwidth=1.5, fontsize=8];
+        s_a2 -> s_a3 [label="relatedTo", style=dashed, dir=both, color="#B8860B", penwidth=1.5, fontsize=8];
+        s_a1 -> s_a3 [label="relatedTo", style=dashed, dir=both, color="#B8860B", penwidth=1.5, fontsize=8, constraint=false];
+    }
+
+    // Identidade compartilhada
+    shared_id [
+        label=<<B>SharedIdentity</B><BR/><FONT POINT-SIZE="8">ja4 = t13d_1516_a09f8b...<BR/>asn = AS64512<BR/>ip_prefix = 203.0.113.0/24<BR/>(40 sessões compartilham)</FONT>>,
+        shape=box,
+        style="filled,rounded,bold",
+        fillcolor="#FFD700",
+        color="#B8860B",
+        penwidth=2
+    ];
+
+    s_a1 -> shared_id [label="hasIdentity", fontsize=8];
+    s_a2 -> shared_id [label="hasIdentity", fontsize=8];
+    s_a3 -> shared_id [label="hasIdentity", fontsize=8];
+
+    // Endpoint comum (alvo)
+    endpoint [
+        label=<<B>Endpoint</B><BR/><FONT POINT-SIZE="8">/api/checkout/payment<BR/>APIEndpoint<BR/>(processamento custoso)</FONT>>,
+        shape=box,
+        style="filled,rounded,bold",
+        fillcolor="#87CEEB",
+        color="#4682B4",
+        penwidth=2
+    ];
+
+    // Convergência: ambos os lados apontam targets ao mesmo endpoint
+    s_user_1 -> endpoint [label="targets", fontsize=8];
+    s_user_2 -> endpoint [label="targets", fontsize=8];
+    s_user_3 -> endpoint [label="targets", fontsize=8];
+    s_a1 -> endpoint [label="targets", fontsize=8];
+    s_a2 -> endpoint [label="targets", fontsize=8];
+    s_a3 -> endpoint [label="targets", fontsize=8];
+}

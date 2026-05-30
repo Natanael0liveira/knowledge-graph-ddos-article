@@ -4,45 +4,46 @@ The top-level auxiliary file: article.aux
 The style file: elsarticle-num.bst
 Database file #1: references.bib
 Warning--empty pages in bonagiri2024practical
-You've used 13 entries,
+Warning--can't use both volume and number fields in cambiaso2013slowdos
+You've used 15 entries,
             2952 wiz_defined-function locations,
-            761 strings with 8217 characters,
-and the built_in function-call counts, 3794 in all, are:
-= -- 368
-> -- 127
-< -- 0
-+ -- 51
-- -- 38
-* -- 293
-:= -- 540
-add.period$ -- 20
-call.type$ -- 13
-change.case$ -- 16
+            779 strings with 8878 characters,
+and the built_in function-call counts, 4676 in all, are:
+= -- 456
+> -- 156
+< -- 2
++ -- 62
+- -- 47
+* -- 364
+:= -- 649
+add.period$ -- 24
+call.type$ -- 15
+change.case$ -- 19
 chr.to.int$ -- 0
-cite$ -- 14
-duplicate$ -- 111
-empty$ -- 430
-format.name$ -- 46
-if$ -- 978
+cite$ -- 17
+duplicate$ -- 141
+empty$ -- 523
+format.name$ -- 57
+if$ -- 1206
 int.to.chr$ -- 0
-int.to.str$ -- 13
-missing$ -- 8
-newline$ -- 59
-num.names$ -- 13
-pop$ -- 86
+int.to.str$ -- 15
+missing$ -- 10
+newline$ -- 67
+num.names$ -- 15
+pop$ -- 98
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 241
+skip$ -- 302
 stack$ -- 0
-substring$ -- 124
-swap$ -- 31
-text.length$ -- 0
+substring$ -- 176
+swap$ -- 47
+text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
-warning$ -- 1
-while$ -- 24
-width$ -- 15
-write$ -- 133
-(There was 1 warning)
+warning$ -- 2
+while$ -- 30
+width$ -- 17
+write$ -- 156
+(There were 2 warnings)

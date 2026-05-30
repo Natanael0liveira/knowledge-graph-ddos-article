@@ -35,29 +35,37 @@ Marcar como ✅ quando lido; produzir resumo em [`docs/leituras-pt/`](../leitura
 
 ---
 
-### 2. Enhancing network security using knowledge graphs and large language models for explainable threat detection (Wang et al., 2025)
+### ✅ 2. KLAGE: Enhancing network security using knowledge graphs and large language models for explainable threat detection (Belcastro, Carlucci, Cosentino, Liò, Marozzo, 2026)
 
 - **Link:** https://www.sciencedirect.com/science/article/pii/S0167739X25004546
-- **Venue:** *Future Generation Computer Systems* (Elsevier, Qualis A1, IF ~7)
+- **DOI:** 10.1016/j.future.2025.108160
+- **Venue:** *Future Generation Computer Systems*, vol. 176, p. 108160 (online out/2025, edição out/2026), Qualis A1, IF ~7
+- **Código aberto:** https://github.com/SCAlabUnical/KLAGE
+- **PDF local:** [`../pdfs/main.pdf`](../pdfs/main.pdf)
+- **BibTeX:** `belcastro2025klage` em [`../../shared/references.bib`](../../shared/references.bib)
+- **Status: ✅ lido em 2026-05-30**
 
-**Por que ler:** publicação recente, em journal forte, combinando KG + LLM para *explainable threat detection*. **Esta é a leitura de risco mais alta** — pode ser prior art próximo demais.
+**Resultado da leitura (verificações):**
 
-**O que verificar (CRÍTICO):**
-- Modela sessão HTTP como entidade ontológica? Ou trabalha em nível de log genérico de rede?
-- Cobre L7 DDoS coordenado especificamente, ou é IDS genérico?
-- Como representa identidade compartilhada / *fingerprint*? Como relação tipada ou como atributo?
-- A "explicabilidade" deles é cadeia de evidência sobre o grafo ou *summary* gerado por LLM?
-- Avaliam dano colateral em legítimos?
+| Pergunta | Resposta |
+|---|---|
+| Modela sessão HTTP como entidade ontológica? | **Não.** Trabalha em nível de **nó de rede** (porta, IP). As entidades são `N_attack`, `N_source`, `N_dest`. Relações são `E_caused` e `E_connected`. Não há `ApplicationSession`. |
+| Cobre L7 DDoS coordenado especificamente? | **Parcialmente.** Inclui DDoS Slowloris entre seis ataques (também ARP Poisoning, SYN Flood, OS Detection, TCP Port Scan, Brute Force). Domínio é IoT, não web app tradicional. |
+| Como representa identidade compartilhada / *fingerprint* TLS? | **Não modela JA4 nem identidade reaproveitada.** Coordenação entre nós é capturada **implicitamente nos embeddings** do Graph-BERT, não como relação simbólica nomeada. |
+| Explicabilidade é cadeia simbólica ou *summary* LLM? | **LIME pós-hoc + LLM (GPT-4o) gerando relatório em texto natural.** Não é cadeia de evidência simbólica em JSON-LD/STIX. |
+| Avalia dano colateral em legítimos? | **Não.** Reporta apenas Acc/Prec/Rec/F1 (84,1\% F1 em Slowloris) e Attack Identification / Classification Consistency / Network Comprehension / Explainability como métricas qualitativas do relatório LLM. |
+| Trata mitigação? | **Não.** O *pipeline* termina no relatório. Sem `mitigatedBy` nem escopo derivado. |
 
-**Possível resultado A — modelam sessão como entidade:** prior art muito próximo, precisamos reposicionar nosso paper como complementar (diferenciar pela ablação *cross-session* e pelo escopo automático de mitigação).
+**Resultado consolidado:** "vizinho confortável, citamos em §2.1 como abordagem KG+ML+LLM e diferenciamos pelo nível semântico" (resultado B previsto na nota original).
 
-**Possível resultado B — trabalham em nível de log/IP genérico:** vizinho confortável, citamos em §2.1 como abordagem KG+LLM e diferenciamos pelo nível semântico.
+**Pontos de diferenciação para o paper** (detalhados em [`01-mitigacao-cirurgica-prior-art.md`](01-mitigacao-cirurgica-prior-art.md)):
 
-**Importante:** primeiro acesso retornou 403 (paywall). Tentar via:
-- VPN institucional UFRGS
-- Sci-Hub se permitido na sua política
-- Solicitar PDF aos autores via ResearchGate
-- Periódico via biblioteca CAPES
+1. **Unidade de raciocínio:** sessão HTTP (nossa) vs. nó de rede (KLAGE).
+2. **Representação:** OWL+SWRL/SPARQL simbólico (nosso) vs. Graph-BERT + LIME (KLAGE).
+3. **Mitigação acoplada:** presente com escopo derivado (nosso) vs. ausente (KLAGE).
+4. **Métrica:** dano colateral em legítimos (nosso) vs. apenas Acc/Prec/Rec/F1 (KLAGE).
+
+**Implicação operacional:** considerar usar **RT-IoT2022** ou **CIC-IoT2023** como *dataset* secundário em §4.2, para comparação direta com KLAGE em DDoS Slowloris. Reportar F1 lado a lado e dano colateral em legítimos (que eles não reportam).
 
 ---
 
@@ -198,7 +206,7 @@ Verificar [`docs/pdfs/`](../pdfs/) — alguns destes PDFs talvez já estejam bai
 ## Checklist de leitura (para preencher conforme leituras forem completadas)
 
 - [ ] **🔴 1.** KnowGraph (CCS '24) — arxiv 2410.08390
-- [ ] **🔴 2.** Wang et al. KGs+LLM (FGCS 2025) — S0167739X25004546
+- [x] **🔴 2.** KLAGE — Belcastro et al. (FGCS 2026) — `belcastro2025klage` ✅ lido 2026-05-30
 - [ ] **🟡 3.** Automated Explainable DoS (arxiv 2511.04114)
 - [ ] **🟡 4.** Cloudflare JA4 + Bot Management (blog + docs)
 - [ ] **🟡 5.** AWS WAF Anti-DDoS AMR (docs + blog)

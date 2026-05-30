@@ -1,0 +1,77 @@
+// Regra CoordinatedHTTPFlood dispara sobre o cluster, emite veredito,
+// gera cadeia de evidência e liga à política de mitigação derivada.
+
+digraph RuleFiresEvidenceChain {
+    rankdir=TB;
+    bgcolor="white";
+    fontname="Helvetica";
+    nodesep=0.6;
+    ranksep=0.9;
+    labelloc="t";
+    label=<<B>Regra CoordinatedHTTPFlood dispara e emite veredito + cadeia de evidência</B>>;
+
+    node [fontname="Helvetica", fontsize=10];
+    edge [fontname="Helvetica", fontsize=10, color="#444444"];
+
+    // Pré-condições
+    cluster_node [
+        label=<<B>Cluster relatedTo</B><BR/><FONT POINT-SIZE="9">40 sessões ligadas por:<BR/>JA4 + ASN + ip_prefix</FONT>>,
+        shape=box,
+        style="filled,rounded",
+        fillcolor="#FFE4B5",
+        color="#B8860B",
+        penwidth=1.5
+    ];
+
+    endpoint [
+        label=<<B>Endpoint</B><BR/><FONT POINT-SIZE="9">/api/checkout/payment</FONT>>,
+        shape=box,
+        style="filled,rounded",
+        fillcolor="#87CEEB",
+        color="#4682B4"
+    ];
+
+    // A regra propriamente dita (mostrada como nó hexagonal)
+    rule [
+        label=<<B>Regra: CoordinatedHTTPFlood</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="9">|S| &gt;= k_min (40 &gt;= 10)<BR ALIGN="LEFT"/>todas com targets ao mesmo Endpoint<BR ALIGN="LEFT"/>conexoes_agg = 200 &gt; tau_rate (50)<BR ALIGN="LEFT"/>todas exibem BotBehavior<BR ALIGN="LEFT"/>byte_rate = 0.067 B/s<BR ALIGN="LEFT"/>conn_duration mediano = 165 s</FONT>>,
+        shape=hexagon,
+        style="filled,bold",
+        fillcolor="#E6E6FA",
+        color="#483D8B",
+        penwidth=1.5
+    ];
+
+    // Veredito
+    verdict [
+        label=<<B>CoordinatedHTTPFlood</B><BR/><FONT POINT-SIZE="9">subclasse de SlowHTTPDDoSFamily<BR/>confidence: high<BR/>40 sessões, 200 conexões presas</FONT>>,
+        shape=ellipse,
+        style="filled,bold",
+        fillcolor="#90EE90",
+        color="#2E8B57",
+        penwidth=2
+    ];
+
+    // Cadeia de evidência
+    evidence [
+        label=<<B>Cadeia de evidência</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="9">session IDs (40)<BR ALIGN="LEFT"/>discriminador do cluster<BR ALIGN="LEFT"/>endpoint alvo<BR ALIGN="LEFT"/>métricas agregadas<BR ALIGN="LEFT"/>janela W = 300 s<BR ALIGN="LEFT"/>export: JSON-LD + STIX 2.1</FONT>>,
+        shape=box,
+        style="filled,rounded",
+        fillcolor="#F0FFF0",
+        color="#2E8B57"
+    ];
+
+    // Mitigação
+    mitigation [
+        label=<<B>Mitigation (Challenge)</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="9">scope derivado:<BR ALIGN="LEFT"/>(ja4 = t13d_1516..., endpoint = /api/checkout/*)<BR ALIGN="LEFT"/>duração: 30 min após sinal cair</FONT>>,
+        shape=box,
+        style="filled,rounded",
+        fillcolor="#FFB6C1",
+        color="#8B0000"
+    ];
+
+    cluster_node -> rule [label="entrada"];
+    endpoint -> rule [label="entrada"];
+    rule -> verdict [label="dispara", penwidth=2, color="#2E8B57"];
+    verdict -> evidence [label="gera"];
+    verdict -> mitigation [label="mitigatedBy"];
+}

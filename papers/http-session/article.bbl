@@ -73,6 +73,15 @@ M.~Odusami, S.~Misra, O.~Abayomi-Alli, A.~Abayomi-Alli, L.~Fern{\'a}ndez-Sanz,
 \newblock \href {https://doi.org/10.1002/dac.4603}
   {\path{doi:10.1002/dac.4603}}.
 
+\bibitem{belcastro2025klage}
+L.~Belcastro, C.~Carlucci, C.~Cosentino, P.~Li{\`o}, F.~Marozzo, Enhancing
+  network security using knowledge graphs and large language models for
+  explainable threat detection, Future Generation Computer Systems 176 (2026)
+  108160, published online October 2025; received 29 April 2025; accepted 20
+  September 2025.
+\newblock \href {https://doi.org/10.1016/j.future.2025.108160}
+  {\path{doi:10.1016/j.future.2025.108160}}.
+
 \bibitem{liu2022recent}
 K.~Liu, F.~Wang, Z.~Ding, S.~Liang, Z.~Yu, Y.~Zhou, Recent progress of using
   knowledge graph for cybersecurity, Electronics 11~(15) (2022) 2287.
@@ -92,5 +101,12 @@ V.~Bonagiri, P.~Priyadharshini, P.~PanneerSelvi, S.~Sahitya, R.~Swamy,
   Conference on Innovation in Technology (ASIANCON), IEEE, 2024.
 \newblock \href {https://doi.org/10.1109/ASIANCON62057.2024.10838144}
   {\path{doi:10.1109/ASIANCON62057.2024.10838144}}.
+
+\bibitem{cambiaso2013slowdos}
+E.~Cambiaso, G.~Papaleo, G.~Chiola, M.~Aiello, Slow {DoS} attacks: Definition
+  and categorisation, in: International Journal of Trust Management in
+  Computing and Communications, Vol.~1, Inderscience, 2013, pp. 300--319.
+\newblock \href {https://doi.org/10.1504/IJTMCC.2013.056440}
+  {\path{doi:10.1504/IJTMCC.2013.056440}}.
 
 \end{thebibliography}

@@ -22,10 +22,10 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-def run_cicflowmeter(pcap: Path, jar: Path, out_dir: Path) -> Path:
+def run_cicflowmeter(pcap: Path, jar: Path, out_dir: Path, java_bin: str = "java") -> Path:
     """Run CICFlowMeter on pcap, output goes to out_dir/<basename>.pcap_Flow.csv."""
     cmd = [
-        "java", "-jar", str(jar),
+        java_bin, "-jar", str(jar),
         str(pcap), str(out_dir),
     ]
     log.info("Running CICFlowMeter on %s ...", pcap.name)
@@ -55,12 +55,17 @@ def run_cicflowmeter(pcap: Path, jar: Path, out_dir: Path) -> Path:
 
 
 def main():
+    import os
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--pcap", required=True, type=Path, help="Input PCAP")
     ap.add_argument("--out", required=True, type=Path, help="Output CSV (flows)")
     ap.add_argument(
         "--cicflowmeter", type=Path, default=Path("../tools/CICFlowMeter.jar"),
         help="Path to CICFlowMeter JAR",
+    )
+    ap.add_argument(
+        "--java", default=os.environ.get("JAVA", "java"),
+        help="Path to java binary (defaults to env JAVA or 'java' in PATH)",
     )
     args = ap.parse_args()
 
@@ -75,7 +80,7 @@ def main():
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
-        produced = run_cicflowmeter(args.pcap, args.cicflowmeter, tmp)
+        produced = run_cicflowmeter(args.pcap, args.cicflowmeter, tmp, java_bin=args.java)
         produced.rename(args.out)
 
     log.info("Wrote %s", args.out)

@@ -29,7 +29,7 @@ DATA_ROOT="$(cd "$(dirname "$DATA_ROOT")" 2>/dev/null && pwd)/$(basename "$DATA_
     DATA_ROOT="$1"
 }
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
 echo "=== Setup de diretórios para experimentos ==="
 echo "Repositório:    $REPO_ROOT"

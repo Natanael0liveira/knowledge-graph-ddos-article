@@ -30,6 +30,10 @@ VENV := ../.venv
 PYTHON := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
 
+# Java — prefere openjdk@17 do brew sobre o stub do macOS em /usr/bin/java
+JAVA_BREW := $(shell brew --prefix openjdk@17 2>/dev/null)/bin/java
+JAVA := $(shell [ -x "$(JAVA_BREW)" ] && echo "$(JAVA_BREW)" || command -v java 2>/dev/null)
+
 # Fuseki
 FUSEKI_URL := http://localhost:3030
 
@@ -65,15 +69,15 @@ help:  ## Mostra esta ajuda
 check:  ## Verifica dependências (Python, Docker, tshark, Java)
 	@echo "==> Verificando dependências..."
 	@command -v python3 >/dev/null || { echo "❌ python3 não encontrado"; exit 1; }
-	@command -v docker  >/dev/null || { echo "❌ docker não encontrado"; exit 1; }
 	@command -v tshark  >/dev/null || { echo "❌ tshark não encontrado (brew install wireshark)"; exit 1; }
-	@command -v java    >/dev/null || { echo "❌ java não encontrado (brew install openjdk@17)"; exit 1; }
-	@docker info >/dev/null 2>&1 || { echo "❌ Docker daemon não está rodando"; exit 1; }
+	@[ -x "$(JAVA)" ] || command -v java >/dev/null || { echo "❌ java não encontrado (brew install openjdk@17)"; exit 1; }
+	@command -v docker  >/dev/null && docker info >/dev/null 2>&1 || { echo "⚠️  docker não encontrado ou daemon parado. Apache Jena Fuseki não rodará. Instale Docker Desktop para o passo make load-kg."; }
 	@[ -f $(ENV_FILE) ] || { echo "❌ $(ENV_FILE) não encontrado (rode setup-data-storage.sh)"; exit 1; }
 	@[ -d $(DATA_ROOT) ] || { echo "❌ DATA_ROOT $(DATA_ROOT) não acessível"; exit 1; }
-	@echo "✅ Todas as dependências OK"
+	@echo "✅ Dependências críticas OK"
 	@echo "    DATA_ROOT=$(DATA_ROOT)"
 	@echo "    tshark version: $$(tshark --version | head -1)"
+	@echo "    java path: $(JAVA)"
 	@echo "    Free space: $$(df -g $(DATA_ROOT) | awk 'NR==2 {print $$4}') GB"
 
 # ----- Setup do ambiente Python -----
@@ -160,6 +164,7 @@ extract-flows: check install-cicflowmeter  ## Extrai flows com CICFlowMeter
 	    --pcap "$$pcap" \
 	    --out "$(FLOWS_DIR)/$$name.csv" \
 	    --cicflowmeter ../tools/CICFlowMeter.jar \
+	    --java "$(JAVA)" \
 	    2>&1 | tee "$(LOG_DIR)/extract_flows_$$name.log"; \
 	done
 	@echo "✅ Flows extraídos em $(FLOWS_DIR)/"

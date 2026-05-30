@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.12)  30 MAY 2026 15:13
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.5.12)  30 MAY 2026 15:55
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -870,8 +870,14 @@ Package hyperref Info: Link coloring OFF on input line 27.
 \@outlinefile=\write5
 \openout5 = `article.out'.
 
-LaTeX Font Info:    Trying to load font information for U+msa on input line 59.
 
+Overfull \hbox (70.02376pt too wide) in paragraph at lines 48--51
+\T1/cmtt/m/n/12 relatedByReusedIdentity\T1/cmr/m/n/12 , \T1/cmtt/m/n/12 related
+ByTemporalPattern\T1/cmr/m/n/12 , \T1/cmtt/m/n/12 relatedByPayloadSignature\T1/
+cmr/m/n/12 ,
+ []
+
+LaTeX Font Info:    Trying to load font information for U+msa on input line 59.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
@@ -902,82 +908,142 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 
 
 {/usr/local/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-[2] [3]
-Overfull \hbox (0.89972pt too wide) in paragraph at lines 85--86
-[]\T1/cmr/bx/n/12 Ausência de ra-ci-o-cí-nio \T1/cmr/bx/it/12 cross-session \T1
-/cmr/bx/n/12 sim-bó-lico. \T1/cmr/m/n/12 Ra-ci-o-cí-nio \T1/cmr/m/it/12 cross-
+[2] [3] [4] [5]
+LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <12> not available
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 104.
+
+Overfull \hbox (10.64796pt too wide) in paragraph at lines 104--105
+\T1/cmr/m/n/12 mento exi-bido (\T1/cmtt/m/n/12 exhibitsBehavior\T1/cmr/m/n/12 )
+ e mi-ti-ga-ção apli-cá-vel (\T1/cmtt/m/n/12 mitigatedBy\T1/cmr/m/n/12 ).
  []
 
-[4] [5] [6] [7]
+
+Overfull \hbox (61.3301pt too wide) in paragraph at lines 104--105
+\T1/cmr/m/it/12 mí-lia \T1/cmr/m/n/12 de seis sub-propriedades ti-pa-das e pon-
+de-ra-das --- \T1/cmtt/m/n/12 relatedByTLSFingerprint\T1/cmr/m/n/12 ,
+ []
+
+
+Overfull \hbox (4.96472pt too wide) in paragraph at lines 104--105
+\T1/cmtt/m/n/12 relatedByReusedIdentity \T1/cmr/m/n/12 e \T1/cmtt/m/n/12 relate
+dByTemporalPattern \T1/cmr/m/n/12 de peso alto;
+ []
+
+[6] [7] [8]
 Overfull \hbox (6.85724pt too wide) in paragraph at lines 129--130
 []\T1/cmr/m/n/12 Trabalhos con-tem-po-râ-neos pas-sa-ram a ex-plo-rar gra-fos p
 o-pu-la-dos em tempo
  []
 
-[8] [9]
-LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 198.
+[9] [10]
+Overfull \hbox (50.24533pt too wide) in paragraph at lines 199--200
+\T1/cmtt/m/n/12 Identity \T1/cmr/m/n/12 é es-pe-ci-a-li-zada em \T1/cmtt/m/n/12
+ Cookie\T1/cmr/m/n/12 , \T1/cmtt/m/n/12 Token \T1/cmr/m/n/12 (JWT), \T1/cmtt/m/
+n/12 Username \T1/cmr/m/n/12 e \T1/cmtt/m/n/12 TLSFingerprint
+ []
 
-Overfull \hbox (15.05942pt too wide) in paragraph at lines 200--201
+[11]
+Overfull \hbox (15.05942pt too wide) in paragraph at lines 201--202
 []\T1/cmr/m/n/12 liga uma ses-são a um per-fil com-por-ta-men-tal (\T1/cmtt/m/n
 /12 UserBehavior
  []
 
-[10]
-Overfull \hbox (8.7332pt too wide) in paragraph at lines 205--206
-\T1/cmr/m/n/12 de \T1/cmtt/m/n/12 ApplicationLayerAttack\T1/cmr/m/n/12 : \T1/cm
-tt/m/n/12 CoordinatedHTTPFlood\T1/cmr/m/n/12 , \T1/cmtt/m/n/12 CredentialStuffi
-ng
+[12]
+Overfull \hbox (3.49406pt too wide) in paragraph at lines 219--220
+\T1/cmtt/m/n/12 ConnectionExhaustionAttack \T1/cmr/m/n/12 (va-ri-an-tes \T1/cmr
+/m/it/12 connection-holding\T1/cmr/m/n/12 : Slo-wlo-ris, slow
  []
 
 
-Overfull \hbox (17.96971pt too wide) in paragraph at lines 212--213
+Overfull \hbox (97.82346pt too wide) in paragraph at lines 221--222
+\T1/cmtt/m/n/12 CoordinatedAPIAbuse\T1/cmr/m/n/12 . Am-bas com-par-ti-lham a pr
+o-pri-e-dade \T1/cmtt/m/n/12 exhibitsCrossSessionStructure
+ []
+
+
+Overfull \hbox (17.96971pt too wide) in paragraph at lines 229--230
 \T1/cmr/m/n/12 cri-a-das (ou atu-a-li-za-das) ins-tân-cias de \T1/cmtt/m/n/12 H
 TTPRequest\T1/cmr/m/n/12 , \T1/cmtt/m/n/12 ApplicationSession\T1/cmr/m/n/12 ,
  []
 
-
-Overfull \hbox (55.37956pt too wide) in paragraph at lines 213--214
-[]\T1/cmr/bx/n/12 População de re-la-ções. \T1/cmr/m/n/12 As re-la-ções \T1/cmt
-t/m/n/12 hasIdentity\T1/cmr/m/n/12 , \T1/cmtt/m/n/12 targets\T1/cmr/m/n/12 , \T
-1/cmtt/m/n/12 exhibitsBehavior
+[13]
+Overfull \hbox (6.51785pt too wide) in paragraph at lines 230--231
+[]\T1/cmr/bx/n/12 População das re-la-ções ti-pa-das. \T1/cmr/m/n/12 As re-la-ç
+ões pri-má-rias \T1/cmtt/m/n/12 hasIdentity\T1/cmr/m/n/12 ,
  []
 
-[11]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 220.
- [12]
-Overfull \hbox (4.69395pt too wide) in paragraph at lines 247--248
-\T1/cmr/m/n/12 sões com \T1/cmtt/m/n/12 hasIdentity \T1/cmr/m/n/12 apon-tando p
-ara di-fe-ren-tes \T1/cmr/m/it/12 to-kens \T1/cmr/m/n/12 mas \T1/cmtt/m/n/12 re
-latedTo
+put line 237.
+
+Overfull \hbox (24.98907pt too wide) in paragraph at lines 260--261
+[]\T1/cmr/m/n/12 A re-gra cen-tral deste tra-ba-lho de-tecta a es-pe-ci-a-li-za
+-ção \T1/cmtt/m/n/12 CoordinatedHTTPFlood
+ []
+
+[14]
+Overfull \hbox (298.98093pt too wide) in paragraph at lines 269--270
+[]\T1/cmr/m/n/12 onde $\OMS/cmsy/m/n/12 R \OT1/cmr/m/n/12 = \OMS/cmsy/m/n/12 f[
+]\OML/cmm/m/it/12 ; []; []; []; []; []\OMS/cmsy/m/n/12 g$
  []
 
 
-Overfull \hbox (19.65706pt too wide) in paragraph at lines 247--248
-\T1/cmr/m/n/12 via \T1/cmr/m/it/12 fin-ger-print \T1/cmr/m/n/12 TLS ou pre-fixo
- de IP, to-das atin-gindo o mesmo \T1/cmtt/m/n/12 APIEndpoint
+Overfull \hbox (49.61633pt too wide) in paragraph at lines 283--284
+ []\T1/cmr/m/it/12 Outras clas-ses da on-to-lo-gia..[] \T1/cmr/m/n/12 As clas-s
+es \T1/cmtt/m/n/12 CredentialStuffing \T1/cmr/m/n/12 e \T1/cmtt/m/n/12 Coordina
+tedAPIAbuse
  []
 
 
-Overfull \hbox (9.02965pt too wide) in paragraph at lines 268--269
+Overfull \hbox (24.5674pt too wide) in paragraph at lines 283--284
+\T1/cmr/m/n/12 para \T1/cmtt/m/n/12 AuthEndpoint \T1/cmr/m/n/12 e ra-zão de fa-
+lha de au-ten-ti-ca-ção para a pri-meira; \T1/cmtt/m/n/12 hasIdentity
+ []
+
+
+Overfull \hbox (7.09467pt too wide) in paragraph at lines 283--284
+\T1/cmr/m/n/12 apon-tando para \T1/cmr/m/it/12 to-kens \T1/cmr/m/n/12 dis-tin-t
+os com con-ver-gên-cia \T1/cmtt/m/n/12 relatedByTLSFingerprint
+ []
+
+[15]
+Overfull \hbox (9.02965pt too wide) in paragraph at lines 303--304
 []$\OML/cmm/m/it/12 K$ \T1/cmr/m/n/12 ori-gens dis-tin-tas ($\OT1/cmr/m/n/12 10
  \OMS/cmsy/m/n/12 ^^T \OML/cmm/m/it/12 K \OMS/cmsy/m/n/12 ^^T
  []
 
-[13]
-Overfull \hbox (1.2954pt too wide) in paragraph at lines 269--270
+
+Overfull \hbox (1.2954pt too wide) in paragraph at lines 304--305
 []$\OML/cmm/m/it/12 K \OMS/cmsy/m/n/12 ^^U \OT1/cmr/m/n/12 1000$ \T1/cmr/m/n/12
  ori-gens dis-tin-tas em cam-
  []
 
-[14]
-Overfull \hbox (6.29619pt too wide) in paragraph at lines 288--289
+[16]
+Overfull \hbox (5.51727pt too wide) in paragraph at lines 311--312
+[]\T1/cmr/m/n/12 A ava-li-a-ção pri-má-ria uti-liza \T1/cmr/bx/n/12 trá-fego si
+n-té-tico \T1/cmr/m/n/12 ge-rado pelo \T1/cmr/m/it/12 pi-pe-line \T1/cmr/m/n/12
+ Python
+ []
+
+
+Overfull \hbox (6.29619pt too wide) in paragraph at lines 323--324
 []\T1/cmr/bx/n/12 Matriz de com-por-ta-mento \T1/cmr/m/n/12 (apro-xi-ma-ção de 
 Bha-rathi e Su-ka-nesh [[]]):
  []
 
-[15] [16] (./article.bbl [17]
+[17] [18]
+Overfull \hbox (103.3672pt too wide) in paragraph at lines 371--372
+\T1/cmr/m/n/12 ná-rio A (con-cen-trado) e cai para pró-ximo de zero no Ce-ná-ri
+o C; (iv) \T1/cmtt/m/n/12 relatedByPayloadSignature
+ []
+
+[19] [20] [21]
+Overfull \hbox (45.16592pt too wide) in paragraph at lines 408--409
+\T1/cmr/m/n/12 das clas-ses \T1/cmtt/m/n/12 CredentialStuffing \T1/cmr/m/n/12 (
+sub-classe de \T1/cmtt/m/n/12 LoginFlood\T1/cmr/m/n/12 ) e \T1/cmtt/m/n/12 Coor
+dinatedAPIAbuse\T1/cmr/m/n/12 ,
+ []
+
+(./article.bbl
 Overfull \hbox (177.94707pt too wide) in paragraph at lines 14--19
 \T1/cmr/m/n/12 URL []$\T1/cmtt/m/n/12 https : / / blog . cloudflare . com / zer
 o-[]day-[]rapid-[]reset-[]http2-[]record-[]breaking-[]ddos-[]attack/$[] 
@@ -1001,13 +1067,13 @@ Overfull \hbox (28.28325pt too wide) in paragraph at lines 37--43
 s-[]threat-[]report-[]for-[]2025-[]q2/$[] 
  []
 
-
+[22]
 Overfull \hbox (28.28325pt too wide) in paragraph at lines 45--50
 \T1/cmr/m/n/12 URL []$\T1/cmtt/m/n/12 https : / / blog . cloudflare . com / ddo
 s-[]threat-[]report-[]for-[]2025-[]q1/$[] 
  []
 
-[18]) [19] [20] (./article.aux)
+[23]) [24] (./article.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -1017,44 +1083,46 @@ L3 programming layer <2026-01-19>
 LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
 Package rerunfilecheck Info: File `article.out' has not changed.
-(rerunfilecheck)             Checksum: 5B994BE8595A61DE623A0A8C1A7A6165;6833.
+(rerunfilecheck)             Checksum: 87E0EE6A8EEE3B6545E10A40B1E6E4D8;7225.
  ) 
 Here is how much of TeX's memory you used:
- 25696 strings out of 469006
- 497833 string characters out of 5454813
- 909691 words of memory out of 5000000
- 53846 multiletter control sequences out of 15000+600000
- 643779 words of font info for 82 fonts, out of 8000000 for 9000
+ 25721 strings out of 469006
+ 498154 string characters out of 5454813
+ 910065 words of memory out of 5000000
+ 53855 multiletter control sequences out of 15000+600000
+ 644094 words of font info for 83 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 84i,9n,104p,2226b,828s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,9n,104p,2790b,828s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/natanaeloliveira/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour
 /jknappen/ec/tcrm1200.600pk> </Users/natanaeloliveira/Library/texlive/2026basic
-/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1200.600pk> </Users/natanaeloliveira
+/texmf-var/fonts/pk/ljfour/jknappen/ec/ecit1200.600pk> </Users/natanaeloliveira
 /Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbi1200.600pk
 > </Users/natanaeloliveira/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/
 jknappen/ec/ectt1000.600pk> </Users/natanaeloliveira/Library/texlive/2026basic/
 texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1000.600pk> </Users/natanaeloliveira/
-Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecti1200.600pk>
+Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1200.600pk>
  </Users/natanaeloliveira/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/j
-knappen/ec/ecbx1200.600pk> </Users/natanaeloliveira/Library/texlive/2026basic/t
-exmf-var/fonts/pk/ljfour/jknappen/ec/ecti1000.600pk> </Users/natanaeloliveira/L
-ibrary/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecti0700.600pk> 
+knappen/ec/ecti1200.600pk> </Users/natanaeloliveira/Library/texlive/2026basic/t
+exmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1200.600pk> </Users/natanaeloliveira/L
+ibrary/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecti1000.600pk> 
 </Users/natanaeloliveira/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jk
-nappen/ec/ecrm0800.600pk> </Users/natanaeloliveira/Library/texlive/2026basic/te
-xmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1200.600pk> </Users/natanaeloliveira/Li
-brary/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1728.600pk></
-usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pf
-b></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8
-.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-r12.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmr8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmsy7.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmsy8.pfb>
-Output written on article.pdf (20 pages, 256237 bytes).
+nappen/ec/ecti0700.600pk> </Users/natanaeloliveira/Library/texlive/2026basic/te
+xmf-var/fonts/pk/ljfour/jknappen/ec/ecrm0800.600pk> </Users/natanaeloliveira/Li
+brary/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1200.600pk> <
+/Users/natanaeloliveira/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jkn
+appen/ec/ecrm1728.600pk></usr/local/texlive/2026basic/texmf-dist/fonts/type1/pu
+blic/amsfonts/cm/cmex10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/
+type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2026basic/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2026basic/texmf-dist/
+fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2026basic/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2026basic/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2026basic/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
+Output written on article.pdf (24 pages, 286912 bytes).
 PDF statistics:
- 911 PDF objects out of 1000 (max. 8388607)
- 428 compressed objects within 5 object streams
- 104 named destinations out of 1000 (max. 500000)
- 293 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 978 PDF objects out of 1000 (max. 8388607)
+ 475 compressed objects within 5 object streams
+ 119 named destinations out of 1000 (max. 500000)
+ 301 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,93 +1,162 @@
-// Anatomia da ApplicationSession como entidade ontológica
-// Mostra a sessão como nó central com cinco relações tipadas.
-// Universal para qualquer ataque coordenado modelado.
+// Diagrama 1 — Anatomia da ApplicationSession e o cluster relatedTo.
+// Mostra uma sessão "âncora" (s_a3f2) com suas quatro relações primárias
+// para Identity, Endpoint, Behavior, Mitigation; e três outras sessões
+// ligadas a ela por sub-relações relatedBy de peso alto, formando um
+// cluster cross-session. Painel lateral lista a família relatedTo completa.
+//
+// Paleta refinada: cinzas neutros + azul escuro pontual nas sessões e relações primárias.
 
 digraph ApplicationSessionAnatomy {
     rankdir=TB;
     bgcolor="white";
     fontname="Helvetica";
-    nodesep=0.6;
-    ranksep=0.8;
+    fontsize=11;
+    nodesep=0.4;
+    ranksep=0.9;
+    compound=true;
 
-    // Estilo global
-    node [fontname="Helvetica", fontsize=11];
-    edge [fontname="Helvetica", fontsize=10, color="#444444"];
+    node [fontname="Helvetica", fontsize=10, fontcolor="#1A1A1A"];
+    edge [fontname="Helvetica", fontsize=9, color="#6B6B6B", fontcolor="#4A4A4A"];
 
-    // Sessão central
-    session [
-        label=<<B>ApplicationSession</B><BR/>s_a3f2>,
+    // ----- Sessão âncora (central, azul escuro forte) -----
+    s_anchor [
+        label=<<B>ApplicationSession</B><BR/><FONT POINT-SIZE="9" COLOR="#DDE5EE">s_a3f2  (âncora)</FONT>>,
         shape=ellipse,
-        style="filled,bold",
-        fillcolor="#90EE90",
-        color="#2E8B57",
-        penwidth=2,
-        width=2.2,
-        height=1.0
+        style=filled,
+        fillcolor="#1F3A5F",
+        fontcolor="white",
+        color="#1F3A5F",
+        penwidth=1.5,
+        width=2.0,
+        height=0.9
     ];
 
-    // Nós relacionados
+    // ----- Outras três sessões do cluster (azul escuro mais claro) -----
+    s_b71c [
+        label=<<B>ApplicationSession</B><BR/><FONT POINT-SIZE="9" COLOR="#1F3A5F">s_b71c</FONT>>,
+        shape=ellipse,
+        style=filled,
+        fillcolor="#DDE5EE",
+        color="#1F3A5F",
+        penwidth=1.2,
+        width=1.6
+    ];
+    s_c92d [
+        label=<<B>ApplicationSession</B><BR/><FONT POINT-SIZE="9" COLOR="#1F3A5F">s_c92d</FONT>>,
+        shape=ellipse,
+        style=filled,
+        fillcolor="#DDE5EE",
+        color="#1F3A5F",
+        penwidth=1.2,
+        width=1.6
+    ];
+    s_d4f8 [
+        label=<<B>ApplicationSession</B><BR/><FONT POINT-SIZE="9" COLOR="#1F3A5F">s_d4f8</FONT>>,
+        shape=ellipse,
+        style=filled,
+        fillcolor="#DDE5EE",
+        color="#1F3A5F",
+        penwidth=1.2,
+        width=1.6
+    ];
+
+    // ----- Sub-relações relatedBy entre as quatro sessões (cluster) -----
+    s_anchor -> s_b71c [
+        label=<<FONT POINT-SIZE="8">relatedByTLSFingerprint</FONT>>,
+        style=dashed, dir=both, color="#1F3A5F", penwidth=1.1, fontcolor="#1F3A5F"
+    ];
+    s_anchor -> s_c92d [
+        label=<<FONT POINT-SIZE="8">relatedByTemporalPattern</FONT>>,
+        style=dashed, dir=both, color="#1F3A5F", penwidth=1.1, fontcolor="#1F3A5F"
+    ];
+    s_anchor -> s_d4f8 [
+        label=<<FONT POINT-SIZE="8">relatedByReusedIdentity</FONT>>,
+        style=dashed, dir=both, color="#1F3A5F", penwidth=1.1, fontcolor="#1F3A5F"
+    ];
+    s_b71c -> s_c92d [
+        label=<<FONT POINT-SIZE="8">relatedByTLSFingerprint</FONT>>,
+        style=dashed, dir=both, color="#6B6B6B", penwidth=1.0, fontcolor="#6B6B6B",
+        constraint=false
+    ];
+    s_c92d -> s_d4f8 [
+        label=<<FONT POINT-SIZE="8">relatedByTemporalPattern</FONT>>,
+        style=dashed, dir=both, color="#6B6B6B", penwidth=1.0, fontcolor="#6B6B6B",
+        constraint=false
+    ];
+
+    // ----- Entidades primárias (cinza neutro) -----
     identity [
-        label=<<B>Identity</B><BR/><FONT POINT-SIZE="9">cookie = sid_a3f2<BR/>ja4 = t13d_1516...<BR/>ip_prefix = 203.0.113/24</FONT>>,
+        label=<<B>Identity</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="9" COLOR="#4A4A4A">cookie = sid_a3f2<BR ALIGN="LEFT"/>tls_ja4 = t13d_1516...<BR ALIGN="LEFT"/>username (se observado)</FONT>>,
         shape=box,
-        style="filled,rounded",
-        fillcolor="#E6F2FF",
-        color="#4682B4"
+        style=filled,
+        fillcolor="#F5F5F5",
+        color="#6B6B6B",
+        penwidth=1
     ];
 
     endpoint [
-        label=<<B>Endpoint</B><BR/><FONT POINT-SIZE="9">path = /api/checkout/payment<BR/>type = APIEndpoint</FONT>>,
+        label=<<B>Endpoint</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="9" COLOR="#4A4A4A">path = /api/checkout/payment<BR ALIGN="LEFT"/>type = APIEndpoint</FONT>>,
         shape=box,
-        style="filled,rounded",
-        fillcolor="#E6F2FF",
-        color="#4682B4"
+        style=filled,
+        fillcolor="#F5F5F5",
+        color="#6B6B6B",
+        penwidth=1
     ];
 
     behavior [
-        label=<<B>Behavior</B><BR/><FONT POINT-SIZE="9">BotBehavior<BR/>byte_rate = 0.067 B/s<BR/>conn_duration = 165 s</FONT>>,
+        label=<<B>Behavior</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="9" COLOR="#4A4A4A">BotBehavior<BR ALIGN="LEFT"/>byte_rate = 0.067 B/s<BR ALIGN="LEFT"/>conn_duration = 165 s</FONT>>,
         shape=box,
-        style="filled,rounded",
-        fillcolor="#E6F2FF",
-        color="#4682B4"
+        style=filled,
+        fillcolor="#F5F5F5",
+        color="#6B6B6B",
+        penwidth=1
     ];
 
     mitigation [
-        label=<<B>Mitigation</B><BR/><FONT POINT-SIZE="9">Challenge<BR/>scope = (ja4, endpoint)</FONT>>,
+        label=<<B>Mitigation</B><BR ALIGN="LEFT"/><FONT POINT-SIZE="9" COLOR="#4A4A4A">Challenge<BR ALIGN="LEFT"/>scope derivado do cluster</FONT>>,
         shape=box,
-        style="filled,rounded",
-        fillcolor="#E6F2FF",
-        color="#4682B4"
+        style=filled,
+        fillcolor="#F5F5F5",
+        color="#6B6B6B",
+        penwidth=1
     ];
 
-    // Outra sessão (apenas referência, para mostrar relatedTo)
-    other_session [
-        label=<<B>ApplicationSession</B><BR/>s_b71c<BR/><FONT POINT-SIZE="9">(outra sessão no cluster)</FONT>>,
-        shape=ellipse,
-        style="filled",
-        fillcolor="#FFE4B5",
-        color="#B8860B"
-    ];
+    // ----- Relações primárias (azul escuro) -----
+    s_anchor -> identity   [label=<<B>hasIdentity</B>>,        color="#1F3A5F", fontcolor="#1F3A5F", penwidth=1.3];
+    s_anchor -> endpoint   [label=<<B>targets</B>>,             color="#1F3A5F", fontcolor="#1F3A5F", penwidth=1.3];
+    s_anchor -> behavior   [label=<<B>exhibitsBehavior</B>>,    color="#1F3A5F", fontcolor="#1F3A5F", penwidth=1.3];
+    s_anchor -> mitigation [label=<<B>mitigatedBy</B>>,         color="#1F3A5F", fontcolor="#1F3A5F", penwidth=1.3];
 
-    // Relações
-    session -> identity [label="hasIdentity", penwidth=1.5];
-    session -> endpoint [label="targets", penwidth=1.5];
-    session -> behavior [label="exhibitsBehavior", penwidth=1.5];
-    session -> mitigation [label="mitigatedBy", penwidth=1.5];
-    session -> other_session [
-        label="relatedTo",
-        style=dashed,
-        dir=both,
-        penwidth=1.5,
-        color="#B8860B"
-    ];
-
-    // Legenda
-    subgraph cluster_legend {
-        label="Tipos de relação";
-        style=dashed;
-        color="#888888";
+    // ----- Painel lateral: família relatedTo -----
+    subgraph cluster_family {
+        label=<<B>Família  relatedTo</B>  (sub-propriedades ponderadas)>;
+        labelloc="t";
+        labeljust="l";
         fontsize=10;
-        legend_solid [shape=plaintext, label=<<FONT POINT-SIZE="9">solid: relação primária (sessão para tipos)</FONT>>];
-        legend_dashed [shape=plaintext, label=<<FONT POINT-SIZE="9">dashed: relatedTo (sessão para sessão, cross-session)</FONT>>];
-        legend_solid -> legend_dashed [style=invis];
+        fontcolor="#1F3A5F";
+        style="filled,rounded";
+        fillcolor="#DDE5EE";
+        color="#1F3A5F";
+        penwidth=1;
+
+        family [
+            shape=plaintext,
+            label=<
+                <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+                    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9"><B>peso alto  (w = 0.9 – 1.0)</B></FONT></TD></TR>
+                    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  •  relatedByTLSFingerprint</FONT></TD></TR>
+                    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  •  relatedByReusedIdentity</FONT></TD></TR>
+                    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  •  relatedByTemporalPattern</FONT></TD></TR>
+                    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9"><B>peso médio  (w = 0.6)</B></FONT></TD></TR>
+                    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  •  relatedByPayloadSignature</FONT></TD></TR>
+                    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  •  relatedByEndpointConvergence</FONT></TD></TR>
+                    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9"><B>peso baixo  (w = 0.3)</B></FONT></TD></TR>
+                    <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="9">  •  relatedByNetworkProximity</FONT></TD></TR>
+                </TABLE>
+            >
+        ];
     }
+
+    // Conexão invisível para posicionar o painel
+    s_d4f8 -> family [style=invis];
 }

@@ -48,6 +48,13 @@ N.~Tripathi, N.~Hubballi, Application layer denial-of-service attacks and
   {Q1} {DDoS} threat report}, Cloudflare Blog (2025).
 \newline\urlprefix\url{https://blog.cloudflare.com/ddos-threat-report-for-2025-q1/}
 
+\bibitem{cambiaso2013slowdos}
+E.~Cambiaso, G.~Papaleo, G.~Chiola, M.~Aiello, Slow {DoS} attacks: Definition
+  and categorisation, in: International Journal of Trust Management in
+  Computing and Communications, Vol.~1, Inderscience, 2013, pp. 300--319.
+\newblock \href {https://doi.org/10.1504/IJTMCC.2013.056440}
+  {\path{doi:10.1504/IJTMCC.2013.056440}}.
+
 \bibitem{kemp2023approach}
 C.~Kemp, C.~Calvert, T.~M. Khoshgoftaar, J.~L. Leevy, An approach to
   application-layer {DoS} detection, Journal of Big Data 10~(1) (2023) 22.
@@ -101,12 +108,5 @@ V.~Bonagiri, P.~Priyadharshini, P.~PanneerSelvi, S.~Sahitya, R.~Swamy,
   Conference on Innovation in Technology (ASIANCON), IEEE, 2024.
 \newblock \href {https://doi.org/10.1109/ASIANCON62057.2024.10838144}
   {\path{doi:10.1109/ASIANCON62057.2024.10838144}}.
-
-\bibitem{cambiaso2013slowdos}
-E.~Cambiaso, G.~Papaleo, G.~Chiola, M.~Aiello, Slow {DoS} attacks: Definition
-  and categorisation, in: International Journal of Trust Management in
-  Computing and Communications, Vol.~1, Inderscience, 2013, pp. 300--319.
-\newblock \href {https://doi.org/10.1504/IJTMCC.2013.056440}
-  {\path{doi:10.1504/IJTMCC.2013.056440}}.
 
 \end{thebibliography}

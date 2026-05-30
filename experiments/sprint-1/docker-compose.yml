@@ -1,0 +1,20 @@
+services:
+  fuseki:
+    image: stain/jena-fuseki:5.1.0
+    container_name: kg-ddos-fuseki
+    ports:
+      - "3030:3030"
+    environment:
+      # Senha de admin (mude se quiser)
+      - ADMIN_PASSWORD=kgddos
+      # JVM heap
+      - JVM_ARGS=-Xmx2g
+    volumes:
+      # TDB2 backend persistente no HD externo
+      - ${DATA_ROOT}/kg/fuseki-tdb2:/fuseki
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3030/$$/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

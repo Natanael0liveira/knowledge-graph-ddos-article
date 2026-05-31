@@ -65,27 +65,38 @@ def load_flows(flows_dir: Path) -> pd.DataFrame:
 
 
 def normalize_flows(flows: pd.DataFrame) -> pd.DataFrame:
-    """Normalize CICFlowMeter column names to a standard schema."""
-    # CICFlowMeter columns vary slightly by version; normalize the essentials
+    """Normalize CICFlowMeter / CICIDS2017 / CIC-IoT2023 column names to standard schema.
+
+    CICIDS2017 _ISCX.csv files use slightly different names than CICFlowMeter output.
+    We accept both via this rename table.
+    """
     rename = {
-        "Src IP": "src_ip", "Source IP": "src_ip",
-        "Src Port": "src_port", "Source Port": "src_port",
-        "Dst IP": "dst_ip", "Destination IP": "dst_ip",
-        "Dst Port": "dst_port", "Destination Port": "dst_port",
-        "Protocol": "protocol",
-        "Timestamp": "timestamp",
-        "Flow Duration": "flow_duration_us",
-        "Total Fwd Packets": "fwd_pkts",
-        "Total Backward Packets": "bwd_pkts",
-        "Total Length of Fwd Packets": "fwd_bytes",
-        "Total Length of Bwd Packets": "bwd_bytes",
-        "Flow IAT Mean": "iat_mean",
-        "Flow IAT Std": "iat_std",
-        "Label": "label",
+        # IPs and ports
+        "Src IP": "src_ip", "Source IP": "src_ip", " Source IP": "src_ip",
+        "Src Port": "src_port", "Source Port": "src_port", " Source Port": "src_port",
+        "Dst IP": "dst_ip", "Destination IP": "dst_ip", " Destination IP": "dst_ip",
+        "Dst Port": "dst_port", "Destination Port": "dst_port", " Destination Port": "dst_port",
+        "Protocol": "protocol", " Protocol": "protocol",
+        # Time
+        "Timestamp": "timestamp", " Timestamp": "timestamp",
+        "Flow Duration": "flow_duration_us", " Flow Duration": "flow_duration_us",
+        # Counts (CICFlowMeter vs CICIDS2017 spacing variants)
+        "Total Fwd Packets": "fwd_pkts", " Total Fwd Packets": "fwd_pkts",
+        "Total Backward Packets": "bwd_pkts", " Total Backward Packets": "bwd_pkts",
+        "Total Length of Fwd Packets": "fwd_bytes", "Total Length of Fwd Packet": "fwd_bytes",
+        "Total Length of Bwd Packets": "bwd_bytes", " Total Length of Bwd Packets": "bwd_bytes",
+        "Flow IAT Mean": "iat_mean", " Flow IAT Mean": "iat_mean",
+        "Flow IAT Std": "iat_std", " Flow IAT Std": "iat_std",
+        # Labels (CICIDS2017 uses " Label" with leading space)
+        "Label": "label", " Label": "label",
     }
-    flows = flows.rename(columns=rename)
-    # Keep only known columns + label
-    known = list(set(rename.values())) + ["source_pcap"]
+    # Strip whitespace from all column names first (CICIDS2017 has trailing spaces)
+    flows.columns = [c.strip() if isinstance(c, str) else c for c in flows.columns]
+    # Re-strip the rename keys for matching
+    rename_clean = {k.strip(): v for k, v in rename.items()}
+    flows = flows.rename(columns=rename_clean)
+    # Keep only known columns + source_pcap
+    known = list(set(rename_clean.values())) + ["source_pcap"]
     return flows[[c for c in known if c in flows.columns]]
 
 

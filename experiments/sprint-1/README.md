@@ -1,6 +1,8 @@
 # Sprint 1 — Pipeline de Extração (PCAP → KG)
 
-> **Objetivo:** transformar PCAPs do CIC-DDoS2019 em um grafo de conhecimento consultável via SPARQL, com sessões reconstruídas, JA4 extraído e *ground truth* de *cluster* derivada.
+> **Objetivo:** transformar PCAPs do CICIDS2017 (Slowloris e variantes Slow HTTP) em um grafo de conhecimento consultável via SPARQL, com sessões reconstruídas, JA4 extraído e *ground truth* de *cluster* derivada.
+
+> **Dataset alvo:** CICIDS2017 (e não CIC-DDoS2019, conforme revisão de escopo). CICIDS2017 tem os PCAPs nomeados por ataque, incluindo Slowloris específico, alinhado ao foco experimental do paper na família Slow HTTP DoS.
 
 > **Tempo estimado de envolvimento ativo:** ~6 h, distribuídas em ~14 dias calendário.
 > A maior parte do *wall clock* (downloads, extrações pesadas) roda em *background*.
@@ -8,7 +10,7 @@
 ## Fluxo geral
 
 ```
-[CIC-DDoS2019 PCAPs] ──┐
+[CICIDS2017 PCAPs] ────┐
                        ├──► extract_ja4.py  ──► ja4.csv
                        └──► extract_flows.py ──► flows.csv
                                                        │
@@ -42,7 +44,7 @@ Itens validados pelo `make check`:
 | **1. Validar setup** | `make check` | 5 min | imediato | Detecta dependências faltantes |
 | **2. Subir Fuseki** | `make fuseki-up` | 2 min | 1 min | Container Apache Jena rodando em http://localhost:3030 |
 | **3. Teste com PCAP pequeno** | `make test` | 30 min | 5 min | Baixa amostra pública (~100 MB), roda pipeline completa, valida output |
-| **4. Aquisição do CIC-DDoS2019** | `make download` | 10 min | 8–24 h | Você confirma o registro UNB e dispara; volta no dia seguinte |
+| **4. Aquisição do CICIDS2017** | `make download` | 10 min | 6–12 h | Você confirma o registro UNB e dispara; volta no dia seguinte |
 | **5. Extração JA4** | `make extract-ja4` | 5 min | 2–6 h | Background. Logs em `$DATA_ROOT/logs/extract_ja4_*.log` |
 | **6. Extração de flows** | `make extract-flows` | 5 min | 2–4 h | Background |
 | **7. Reconstrução de sessões** | `make sessions` | 10 min | 30 min | Junta flows + JA4 |
@@ -68,7 +70,7 @@ make fuseki-down       # derruba o container
 make test              # pipeline completa em ~100 MB de PCAP
 
 # Pipeline principal
-make download          # CIC-DDoS2019 Slowloris subset
+make download          # CICIDS2017 Wednesday-WorkingHours (Slow HTTP family)
 make extract-ja4       # PCAPs → JA4 via tshark
 make extract-flows     # PCAPs → flows via CICFlowMeter
 make sessions          # flows + JA4 → sessions.parquet
@@ -88,12 +90,12 @@ make clean-all         # remove tudo (cuidado!)
 
 Ao final do Sprint 1, em `$DATA_ROOT`:
 
-- `processed/ja4/cic-ddos-2019/*.csv` — JA4 por flow
-- `processed/flows/cic-ddos-2019/*.csv` — flows CICFlowMeter
-- `processed/sessions/cic-ddos-2019.parquet` — sessões reconstruídas
-- `processed/clusters/cic-ddos-2019.csv` — *clusters* derivados
+- `processed/ja4/cicids2017/*.csv` — JA4 por flow
+- `processed/flows/cicids2017/*.csv` — flows CICFlowMeter
+- `processed/sessions/cicids2017.parquet` — sessões reconstruídas
+- `processed/clusters/cicids2017.csv` — *clusters* derivados
 - `kg/fuseki-tdb2/` — base RDF do Fuseki
-- `kg/exports/cic-ddos-2019.ttl` — snapshot Turtle exportável
+- `kg/exports/cicids2017.ttl` — snapshot Turtle exportável
 
 ## Gates de aprovação
 
@@ -112,7 +114,7 @@ Em caso de problemas, os logs estão em `$DATA_ROOT/logs/`. Os erros mais comuns
 | `tshark: command not found` | Wireshark não instalado | `brew install wireshark` |
 | `JA4 column empty` | tshark < 4.0 (sem plugin JA4) | Atualizar Wireshark via Homebrew |
 | `Docker daemon not running` | Docker Desktop fechado | Abrir Docker Desktop |
-| `cic-ddos-2019/` vazio | Registro UNB pendente | Visitar https://www.unb.ca/cic/datasets/ddos-2019.html |
+| `cicids2017/` vazio | Registro UNB pendente | Visitar https://www.unb.ca/cic/datasets/ids-2017.html |
 | `CICFlowMeter not found` | Java/JAR não baixado | `make install-cicflowmeter` |
 
 ## Onde se encaixa no paper

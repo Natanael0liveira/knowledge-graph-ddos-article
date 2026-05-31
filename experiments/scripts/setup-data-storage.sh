@@ -40,7 +40,7 @@ echo ""
 echo "[1/4] Criando estrutura em $DATA_ROOT..."
 
 mkdir -p "$DATA_ROOT"/{raw,processed,synth,kg,results,logs}
-mkdir -p "$DATA_ROOT"/raw/{cic-ddos-2019,cic-ids-2017,cic-iot-2023,rt-iot-2022,bccc-cpacket}
+mkdir -p "$DATA_ROOT"/raw/{cicids2017,cic-iot-2023,rt-iot-2022,bccc-cpacket}
 mkdir -p "$DATA_ROOT"/processed/{ja4,flows,sessions,clusters}
 mkdir -p "$DATA_ROOT"/synth/{distributions,scenarios}
 mkdir -p "$DATA_ROOT"/synth/scenarios/{A,B,C}

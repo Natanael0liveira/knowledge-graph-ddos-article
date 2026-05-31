@@ -15,13 +15,16 @@ endif
 
 DATA_ROOT ?= $(error DATA_ROOT não definido. Rode primeiro: ../scripts/setup-data-storage.sh /Volumes/SeuHD/kg-ddos-data)
 
+# Dataset alvo (default: CICIDS2017 para Sprint 1)
+DATASET ?= cicids2017
+
 # Caminhos derivados
-RAW_DIR        := $(DATA_ROOT)/raw/cic-ddos-2019
+RAW_DIR        := $(DATA_ROOT)/raw/$(DATASET)
 PROCESSED_DIR  := $(DATA_ROOT)/processed
-JA4_DIR        := $(PROCESSED_DIR)/ja4/cic-ddos-2019
-FLOWS_DIR      := $(PROCESSED_DIR)/flows/cic-ddos-2019
-SESSIONS_FILE  := $(PROCESSED_DIR)/sessions/cic-ddos-2019.parquet
-CLUSTERS_FILE  := $(PROCESSED_DIR)/clusters/cic-ddos-2019.csv
+JA4_DIR        := $(PROCESSED_DIR)/ja4/$(DATASET)
+FLOWS_DIR      := $(PROCESSED_DIR)/flows/$(DATASET)
+SESSIONS_FILE  := $(PROCESSED_DIR)/sessions/$(DATASET).parquet
+CLUSTERS_FILE  := $(PROCESSED_DIR)/clusters/$(DATASET).csv
 KG_DIR         := $(DATA_ROOT)/kg
 LOG_DIR        := $(DATA_ROOT)/logs
 
@@ -126,20 +129,21 @@ test:  ## Roda pipeline completa em PCAP de teste pequeno (~100 MB)
 	@echo "✅ Test pipeline OK. Verifique ../sample-data/"
 
 # ----- Pipeline principal: CIC-DDoS2019 -----
-download:  ## Instruções para baixar CIC-DDoS2019 (manual, requer registro UNB)
-	@echo "==> CIC-DDoS2019 requer registro manual na UNB:"
-	@echo "    https://www.unb.ca/cic/datasets/ddos-2019.html"
+download:  ## Instruções para baixar CICIDS2017 (requer registro UNB)
+	@echo "==> CICIDS2017 requer registro manual na UNB:"
+	@echo "    https://www.unb.ca/cic/datasets/ids-2017.html"
 	@echo ""
-	@echo "    Após registro, baixe os PCAPs de Slowloris e Slow HTTP DoS para:"
+	@echo "    Após registro/login, baixe APENAS:"
+	@echo "      📄 Wednesday-WorkingHours.pcap          (~12 GB)"
+	@echo "        → contém DoS slowloris, DoS Slowhttptest, DoS Hulk, DoS GoldenEye"
+	@echo "      📄 Wednesday-WorkingHours.pcap_ISCX.csv (~10 MB)"
+	@echo "        → rótulos por flow (BENIGN / DoS slowloris / DoS Slowhttptest / ...)"
+	@echo ""
+	@echo "    Salve em:"
 	@echo "    $(RAW_DIR)/"
 	@echo ""
-	@echo "    Arquivos esperados (subconjunto Slow HTTP):"
-	@echo "      - Slowloris.pcap (~3 GB)"
-	@echo "      - slowhttptest.pcap (~2 GB)"
-	@echo "      - Hulk.pcap (~5 GB)"
-	@echo "      - GoldenEye.pcap (~3 GB)"
-	@echo ""
-	@echo "    Quando terminar: make extract-ja4"
+	@echo "    Quando terminar:"
+	@echo "      make extract-ja4 && make extract-flows"
 
 extract-ja4: check  ## Extrai JA4 de cada PCAP em raw/ via tshark
 	@mkdir -p $(JA4_DIR) $(LOG_DIR)

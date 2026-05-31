@@ -1,0 +1,18 @@
+# Cenário C — Altamente distribuído (K ≥ 1000)
+# Botnet IoT-style: muitos ASNs e prefixos, mas mesma assinatura TLS.
+# Cenário onde a tese do paper se sustenta operacionalmente.
+
+K: 1000  # default; pode ser sobrescrito via --param K=10000
+legitimate_sessions: 1000
+attack_variant: slowloris
+window_s: 300
+
+# Coordenação alta nos sinais fortes (JA4 e identidade não são pulverizados
+# porque seria caro pro atacante), com algum jitter temporal
+coordination_ja4_share: 0.9
+coordination_identity_reuse: 0.2
+coordination_temporal_jitter: 0.3
+
+# Distribuição agressiva de rede (Mirai-style)
+asn_dispersion: 100
+prefix_dispersion: 50

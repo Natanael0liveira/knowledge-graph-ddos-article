@@ -86,7 +86,7 @@ experiments/
 | Sprint | Dataset alvo | Status |
 |---|---|---|
 | **1** — Pipeline de extração | CICIDS2017 (Slow HTTP family) | 🛠️ Infraestrutura pronta, aguardando download do dataset |
-| 2 — Gerador sintético | calibrado pelo Sprint 1 | ⏳ Será montado após validação do Sprint 1 |
+| **2** — Gerador sintético | calibrado pelo Sprint 1 | 🛠 Esqueleto criado (calibrate.py + generator.py + 3 configs); aguarda Sprint 1 |
 | 3 — Baselines + ablação | mesmo dataset do Sprint 1 + sintético | ⏳ |
 | 4 — Execução completa + calibração | + Sprint 2 | ⏳ |
 | **5** — Comparação com KLAGE | CIC-IoT2023 (mesmo de KLAGE) | 🛠 Stub criado, aguardando download do dataset |

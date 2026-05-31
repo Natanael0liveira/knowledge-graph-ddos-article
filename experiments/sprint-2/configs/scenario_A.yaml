@@ -1,0 +1,17 @@
+# Cenário A — Concentrado (K=1)
+# Single-source, sem coordenação cross-session.
+# Hipótese: baselines volumétricos clássicos são competitivos.
+
+K: 1
+legitimate_sessions: 500
+attack_variant: slowloris
+window_s: 300
+
+# Coordenação irrelevante (K=1)
+coordination_ja4_share: 1.0
+coordination_identity_reuse: 0.0
+coordination_temporal_jitter: 0.0
+
+# Concentração de rede (uma origem só)
+asn_dispersion: 1
+prefix_dispersion: 1

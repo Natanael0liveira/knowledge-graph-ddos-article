@@ -1,0 +1,15 @@
+# Cenário B — Moderadamente distribuído (K = 10..100)
+# Botnet pequena com JA4 compartilhado e alguns ASNs.
+
+K: 50  # default; pode ser sobrescrito via --param K=10 ou K=100
+legitimate_sessions: 500
+attack_variant: slowloris
+window_s: 300
+
+coordination_ja4_share: 0.95   # quase todos compartilham JA4
+coordination_identity_reuse: 0.3
+coordination_temporal_jitter: 0.2
+
+# Distribuição de rede moderada
+asn_dispersion: 5
+prefix_dispersion: 3

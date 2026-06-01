@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Extract flow features from a PCAP using CICFlowMeter.
+"""Extract flow features from a PCAP using cicflowmeter (Python implementation).
 
-Wraps the CICFlowMeter Java tool, which produces 80+ flow-level features
-per bidirectional flow (defined by 5-tuple).
+Wraps the cicflowmeter Python CLI, which produces flow-level features per
+bidirectional flow (defined by 5-tuple). This is a Python reimplementation
+of the original CICFlowMeter Java tool, with comparable feature output.
 
 Usage:
-    python extract_flows.py --pcap input.pcap --out flows.csv \\
-                            --cicflowmeter ../tools/CICFlowMeter.jar
+    python extract_flows.py --pcap input.pcap --out flows.csv
 """
 import argparse
 import logging
+import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 logging.basicConfig(
@@ -22,67 +22,68 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-def run_cicflowmeter(pcap: Path, jar: Path, out_dir: Path, java_bin: str = "java") -> Path:
-    """Run CICFlowMeter on pcap, output goes to out_dir/<basename>.pcap_Flow.csv."""
+def run_cicflowmeter(pcap: Path, out_csv: Path, cicflowmeter_bin: str = "cicflowmeter") -> None:
+    """Run cicflowmeter Python CLI on pcap.
+
+    Command:
+        cicflowmeter -f input.pcap -c output.csv
+    """
     cmd = [
-        java_bin, "-jar", str(jar),
-        str(pcap), str(out_dir),
+        cicflowmeter_bin,
+        "-f", str(pcap),
+        "-c", str(out_csv),
     ]
-    log.info("Running CICFlowMeter on %s ...", pcap.name)
+    log.info("Running cicflowmeter on %s ...", pcap.name)
     try:
         result = subprocess.run(
             cmd, capture_output=True, text=True, check=True, timeout=14400  # 4h
         )
     except FileNotFoundError:
-        log.error("java not found. Install Java 17+: `brew install openjdk@17`")
+        log.error("cicflowmeter not found in PATH. Install: pip install cicflowmeter")
         sys.exit(2)
     except subprocess.CalledProcessError as e:
-        log.error("CICFlowMeter exited with code %d", e.returncode)
+        log.error("cicflowmeter exited with code %d", e.returncode)
         log.error("stderr: %s", e.stderr[:500])
         sys.exit(3)
+    except subprocess.TimeoutExpired:
+        log.error("cicflowmeter timed out after 4 hours")
+        sys.exit(4)
 
-    log.debug("CICFlowMeter stdout: %s", result.stdout[-500:])
-    # CICFlowMeter saves <pcap_name>.pcap_Flow.csv in out_dir
-    expected = out_dir / f"{pcap.stem}.pcap_Flow.csv"
-    if not expected.exists():
-        # Try alternate naming
-        candidates = list(out_dir.glob(f"{pcap.stem}*_Flow.csv"))
-        if not candidates:
-            log.error("CICFlowMeter did not produce expected output in %s", out_dir)
-            sys.exit(4)
-        expected = candidates[0]
-    return expected
+    if result.stderr:
+        log.debug("stderr: %s", result.stderr[-300:])
+    log.debug("stdout: %s", result.stdout[-300:])
 
 
 def main():
-    import os
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--pcap", required=True, type=Path, help="Input PCAP")
     ap.add_argument("--out", required=True, type=Path, help="Output CSV (flows)")
+    # Mantém --cicflowmeter para compatibilidade com Makefile antigo (JAR), mas ignora
     ap.add_argument(
-        "--cicflowmeter", type=Path, default=Path("../tools/CICFlowMeter.jar"),
-        help="Path to CICFlowMeter JAR",
+        "--cicflowmeter", type=Path, default=None,
+        help="(Compat) Path to old CICFlowMeter JAR — ignorado, usamos pip cicflowmeter",
     )
     ap.add_argument(
-        "--java", default=os.environ.get("JAVA", "java"),
-        help="Path to java binary (defaults to env JAVA or 'java' in PATH)",
+        "--java", default=None,
+        help="(Compat) Path to java binary — ignorado, não usamos Java",
     )
     args = ap.parse_args()
 
     if not args.pcap.exists():
         log.error("PCAP not found: %s", args.pcap); sys.exit(1)
-    if not args.cicflowmeter.exists():
-        log.error("CICFlowMeter JAR not found: %s", args.cicflowmeter)
-        log.error("Run: make install-cicflowmeter")
-        sys.exit(1)
+
+    # Encontrar cicflowmeter CLI (prefere venv local, fallback global)
+    venv_bin = Path(__file__).resolve().parents[2] / ".venv" / "bin" / "cicflowmeter"
+    if venv_bin.exists():
+        cli = str(venv_bin)
+    elif shutil.which("cicflowmeter"):
+        cli = "cicflowmeter"
+    else:
+        log.error("cicflowmeter não encontrado. Execute: pip install cicflowmeter")
+        sys.exit(2)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
-
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp = Path(tmp)
-        produced = run_cicflowmeter(args.pcap, args.cicflowmeter, tmp, java_bin=args.java)
-        produced.rename(args.out)
-
+    run_cicflowmeter(args.pcap, args.out, cicflowmeter_bin=cli)
     log.info("Wrote %s", args.out)
 
 

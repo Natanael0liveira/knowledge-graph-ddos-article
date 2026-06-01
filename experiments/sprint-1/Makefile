@@ -93,14 +93,20 @@ install-deps: python-venv  ## Instala dependências Python (após criar venv)
 	$(PIP) install -r ../requirements.txt
 	@echo "✅ Dependências instaladas. Ative com: source $(VENV)/bin/activate"
 
-install-cicflowmeter:  ## Baixa CICFlowMeter JAR para ../tools/
-	@mkdir -p ../tools
-	@if [ ! -f ../tools/CICFlowMeter.jar ]; then \
-	  echo "==> Baixando CICFlowMeter..."; \
-	  curl -L -o ../tools/CICFlowMeter.jar \
-	    "https://github.com/ahlashkari/CICFlowMeter/releases/latest/download/CICFlowMeter.jar"; \
+install-cicflowmeter:  ## Instala cicflowmeter via pip + aplica patches (scapy 2.5 + bugfixes)
+	@if ! $(PYTHON) -c "import cicflowmeter" 2>/dev/null; then \
+	  echo "==> Instalando cicflowmeter via pip..."; \
+	  $(PIP) install cicflowmeter; \
 	fi
-	@echo "✅ CICFlowMeter em ../tools/CICFlowMeter.jar"
+	@# cicflowmeter 0.2.0 usa API antiga de sessions do scapy (toPacketList).
+	@# Em scapy >= 2.6 essa API mudou e cicflowmeter para de funcionar (CSV vazio).
+	@if ! $(PYTHON) -c "import scapy; v=tuple(int(x) for x in scapy.VERSION.split('.')[:2]); exit(0 if v <= (2,5) else 1)" 2>/dev/null; then \
+	  echo "==> Downgrade scapy para 2.5.0 (compat com cicflowmeter)..."; \
+	  $(PIP) install "scapy==2.5.0"; \
+	fi
+	@# Aplica patches in-place no venv (bugs de min() em sequência vazia)
+	@$(PYTHON) scripts/patch_cicflowmeter.py
+	@echo "✅ cicflowmeter pronto"
 
 # ----- Fuseki (Apache Jena triple store) -----
 fuseki-up:  ## Sobe Apache Jena Fuseki via Docker
@@ -145,12 +151,14 @@ download:  ## Instruções para baixar CICIDS2017 (requer registro UNB)
 	@echo "    Quando terminar:"
 	@echo "      make extract-ja4 && make extract-flows"
 
-extract-ja4: check  ## Extrai JA4 de cada PCAP em raw/ via tshark
+extract-ja4: check  ## Extrai JA4 de cada PCAP em raw/ (recursivo) via tshark
 	@mkdir -p $(JA4_DIR) $(LOG_DIR)
-	@for pcap in $(RAW_DIR)/*.pcap; do \
-	  [ -f "$$pcap" ] || { echo "❌ Nenhum PCAP em $(RAW_DIR). Rode 'make download' primeiro."; exit 1; }; \
-	  name=$$(basename "$$pcap" .pcap); \
-	  echo "==> Extraindo JA4 de $$name..."; \
+	@pcaps=$$(find $(RAW_DIR) -type f -name "*.pcap" -not -name "._*"); \
+	[ -n "$$pcaps" ] || { echo "❌ Nenhum PCAP em $(RAW_DIR). Rode 'make download' primeiro."; exit 1; }; \
+	for pcap in $$pcaps; do \
+	  relpath=$$(echo "$$pcap" | sed "s|$(RAW_DIR)/||"); \
+	  name=$$(echo "$$relpath" | sed "s|/|_|g" | sed "s|.pcap$$||"); \
+	  echo "==> Extraindo JA4 de $$relpath..."; \
 	  $(PYTHON) scripts/extract_ja4.py \
 	    --pcap "$$pcap" \
 	    --out "$(JA4_DIR)/$$name.csv" \
@@ -158,17 +166,17 @@ extract-ja4: check  ## Extrai JA4 de cada PCAP em raw/ via tshark
 	done
 	@echo "✅ JA4 extraído em $(JA4_DIR)/"
 
-extract-flows: check install-cicflowmeter  ## Extrai flows com CICFlowMeter
+extract-flows: check install-cicflowmeter  ## Extrai flows (recursivo) via cicflowmeter Python
 	@mkdir -p $(FLOWS_DIR) $(LOG_DIR)
-	@for pcap in $(RAW_DIR)/*.pcap; do \
-	  [ -f "$$pcap" ] || { echo "❌ Nenhum PCAP em $(RAW_DIR)"; exit 1; }; \
-	  name=$$(basename "$$pcap" .pcap); \
-	  echo "==> Extraindo flows de $$name..."; \
+	@pcaps=$$(find $(RAW_DIR) -type f -name "*.pcap" -not -name "._*"); \
+	[ -n "$$pcaps" ] || { echo "❌ Nenhum PCAP em $(RAW_DIR)"; exit 1; }; \
+	for pcap in $$pcaps; do \
+	  relpath=$$(echo "$$pcap" | sed "s|$(RAW_DIR)/||"); \
+	  name=$$(echo "$$relpath" | sed "s|/|_|g" | sed "s|.pcap$$||"); \
+	  echo "==> Extraindo flows de $$relpath..."; \
 	  $(PYTHON) scripts/extract_flows.py \
 	    --pcap "$$pcap" \
 	    --out "$(FLOWS_DIR)/$$name.csv" \
-	    --cicflowmeter ../tools/CICFlowMeter.jar \
-	    --java "$(JAVA)" \
 	    2>&1 | tee "$(LOG_DIR)/extract_flows_$$name.log"; \
 	done
 	@echo "✅ Flows extraídos em $(FLOWS_DIR)/"

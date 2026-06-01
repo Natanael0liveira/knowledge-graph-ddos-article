@@ -22,7 +22,9 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# tshark fields to extract for each TLS handshake
+# tshark fields to extract for each TLS handshake.
+# JA4 (cliente) está em tshark 4.0+; JA4S (server) não está em todas as builds.
+# JA3 mantido como fallback para PCAPs antigos ou clientes que não cobrem JA4.
 TSHARK_FIELDS = [
     "frame.time_epoch",
     "ip.src",
@@ -30,7 +32,7 @@ TSHARK_FIELDS = [
     "ip.dst",
     "tcp.dstport",
     "tls.handshake.ja4",
-    "tls.handshake.ja4s",
+    "tls.handshake.ja3",  # fallback
     "tls.handshake.extensions_server_name",  # SNI
 ]
 
@@ -91,7 +93,7 @@ def main():
 
     header = [
         "timestamp", "src_ip", "src_port",
-        "dst_ip", "dst_port", "ja4", "ja4s", "sni",
+        "dst_ip", "dst_port", "ja4", "ja3", "sni",
     ]
     with args.out.open("w", newline="") as f:
         w = csv.writer(f)

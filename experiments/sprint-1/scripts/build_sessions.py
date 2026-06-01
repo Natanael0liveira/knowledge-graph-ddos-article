@@ -38,6 +38,8 @@ def load_ja4(ja4_dir: Path) -> pd.DataFrame:
     """Load and concatenate all JA4 CSVs."""
     frames = []
     for f in sorted(ja4_dir.glob("*.csv")):
+        if f.name.startswith("._"):  # AppleDouble metadata on ExFAT
+            continue
         log.info("Loading JA4 from %s", f.name)
         df = pd.read_csv(f, dtype=str)
         df["source_pcap"] = f.stem
@@ -53,6 +55,8 @@ def load_flows(flows_dir: Path) -> pd.DataFrame:
     """Load and concatenate all flow CSVs from CICFlowMeter."""
     frames = []
     for f in sorted(flows_dir.glob("*.csv")):
+        if f.name.startswith("._"):
+            continue
         log.info("Loading flows from %s", f.name)
         df = pd.read_csv(f)
         df["source_pcap"] = f.stem.replace(".pcap_Flow", "")
@@ -65,10 +69,11 @@ def load_flows(flows_dir: Path) -> pd.DataFrame:
 
 
 def normalize_flows(flows: pd.DataFrame) -> pd.DataFrame:
-    """Normalize CICFlowMeter / CICIDS2017 / CIC-IoT2023 column names to standard schema.
+    """Normalize column names across three sources:
 
-    CICIDS2017 _ISCX.csv files use slightly different names than CICFlowMeter output.
-    We accept both via this rename table.
+    1. CICFlowMeter Java (CamelCase: "Src IP", "Total Fwd Packets", ...).
+    2. CICIDS2017 official CSVs (same, often with a leading space: " Source IP").
+    3. cicflowmeter Python 0.2.0 (snake_case: src_ip, tot_fwd_pkts, totlen_fwd_pkts).
     """
     rename = {
         # IPs and ports
@@ -80,24 +85,46 @@ def normalize_flows(flows: pd.DataFrame) -> pd.DataFrame:
         # Time
         "Timestamp": "timestamp", " Timestamp": "timestamp",
         "Flow Duration": "flow_duration_us", " Flow Duration": "flow_duration_us",
-        # Counts (CICFlowMeter vs CICIDS2017 spacing variants)
+        "flow_duration": "flow_duration_us",
+        # Packet counts (Java vs Python cicflowmeter)
         "Total Fwd Packets": "fwd_pkts", " Total Fwd Packets": "fwd_pkts",
+        "tot_fwd_pkts": "fwd_pkts",
         "Total Backward Packets": "bwd_pkts", " Total Backward Packets": "bwd_pkts",
+        "tot_bwd_pkts": "bwd_pkts",
+        # Byte totals
         "Total Length of Fwd Packets": "fwd_bytes", "Total Length of Fwd Packet": "fwd_bytes",
+        "totlen_fwd_pkts": "fwd_bytes",
         "Total Length of Bwd Packets": "bwd_bytes", " Total Length of Bwd Packets": "bwd_bytes",
+        "totlen_bwd_pkts": "bwd_bytes",
+        # Inter-arrival times
         "Flow IAT Mean": "iat_mean", " Flow IAT Mean": "iat_mean",
+        "flow_iat_mean": "iat_mean",
         "Flow IAT Std": "iat_std", " Flow IAT Std": "iat_std",
-        # Labels (CICIDS2017 uses " Label" with leading space)
+        "flow_iat_std": "iat_std",
+        # Labels (CICIDS2017 official CSVs only; Python cicflowmeter does not emit labels)
         "Label": "label", " Label": "label",
     }
-    # Strip whitespace from all column names first (CICIDS2017 has trailing spaces)
     flows.columns = [c.strip() if isinstance(c, str) else c for c in flows.columns]
-    # Re-strip the rename keys for matching
     rename_clean = {k.strip(): v for k, v in rename.items()}
     flows = flows.rename(columns=rename_clean)
-    # Keep only known columns + source_pcap
     known = list(set(rename_clean.values())) + ["source_pcap"]
-    return flows[[c for c in known if c in flows.columns]]
+    out = flows[[c for c in known if c in flows.columns]].copy()
+
+    # If no Label column present (Python cicflowmeter), derive a coarse label
+    # from the source PCAP name (works for CIC-IoT2023 where attacks live in
+    # separate PCAPs). CICIDS2017 Wednesday mixes BENIGN + Slow HTTP and needs
+    # time-window-based labelling downstream — for now mark as "UNLABELED".
+    if "label" not in out.columns and "source_pcap" in out.columns:
+        def _label_from_pcap(name: str) -> str:
+            n = name.lower()
+            if "slowloris" in n: return "Slowloris"
+            if "http_flood" in n or "http-flood" in n: return "HTTP-Flood"
+            if "benign" in n: return "BENIGN"
+            if "wednesday" in n: return "UNLABELED"
+            return "UNLABELED"
+        out["label"] = out["source_pcap"].astype(str).map(_label_from_pcap)
+
+    return out
 
 
 def build_sessions(
@@ -111,11 +138,18 @@ def build_sessions(
     flows = flows.dropna(subset=["timestamp"])
     flows = flows.sort_values("timestamp")
 
-    # Group key
+    # Group key — protocol is numeric (6=TCP, 17=UDP) in Python cicflowmeter
+    # but a string in CICIDS2017. Normalize to TCP/UDP/OTHER for stable joins.
+    def _proto(p) -> str:
+        s = str(p).strip()
+        if s in ("6", "TCP", "tcp"): return "TCP"
+        if s in ("17", "UDP", "udp"): return "UDP"
+        return s or "OTHER"
+    flows["proto_str"] = flows["protocol"].map(_proto)
     flows["tuple_key"] = (
         flows["src_ip"].astype(str) + ":" + flows["src_port"].astype(str) +
         "→" + flows["dst_ip"].astype(str) + ":" + flows["dst_port"].astype(str) +
-        "/" + flows["protocol"].astype(str)
+        "/" + flows["proto_str"]
     )
 
     # Split into sessions: within a tuple_key, split if gap > window
@@ -130,13 +164,15 @@ def build_sessions(
             flows.at[idx, "session_id"] = sid
             last_ts = row["timestamp"]
 
-    # JA4 lookup: first observed JA4 per 5-tuple
+    # JA4 lookup: first observed JA4 per 5-tuple. JA4 records are always TCP/TLS.
+    # Note: tshark 4.6.6 has no ja4s field, so we carry ja3 as a fallback column.
     ja4["tuple_key"] = (
         ja4["src_ip"].astype(str) + ":" + ja4["src_port"].astype(str) +
         "→" + ja4["dst_ip"].astype(str) + ":" + ja4["dst_port"].astype(str) +
-        "/TCP"  # JA4 is TCP/TLS
+        "/TCP"
     )
-    ja4_lookup = ja4.groupby("tuple_key").first()[["ja4", "ja4s", "sni"]]
+    ja4_cols = [c for c in ("ja4", "ja4s", "ja3", "sni") if c in ja4.columns]
+    ja4_lookup = ja4.groupby("tuple_key").first()[ja4_cols]
 
     # Aggregate per session
     aggs = {

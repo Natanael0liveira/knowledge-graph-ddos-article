@@ -281,10 +281,12 @@ def main():
 
     # Pools para origens coordenadas
     asn_pool = [rng.randint(64500, 64511) for _ in range(asn_dispersion)]
-    # prefix_dispersion /24s DISTINTOS no espaço RFC 2544 (198.18.0.0/15, 512 /24s,
-    # não-roteável). Antes ciclavam só 3 prefixos → ataque "distribuído" na verdade
-    # concentrado em 3 /24s, tornando NetworkProximity trivialmente forte.
-    prefix_pool = [f"198.{18 + (i // 256)}.{i % 256}." for i in range(prefix_dispersion)]
+    # prefix_dispersion /24s DISTINTOS no espaço 10.0.0.0/8 (privado, 65k /24s).
+    # Antes ciclavam só 3 prefixos → ataque "distribuído" concentrado em 3 /24s,
+    # tornando NetworkProximity trivialmente forte. Com prefix_dispersion ~ K
+    # (Mirai-style: ~1 bot por /24), a proximidade de rede fica fraca — como o
+    # paper assume (w_net=0.3) — e o JA4 compartilhado é que carrega a detecção.
+    prefix_pool = [f"10.{(i // 256) % 256}.{i % 256}." for i in range(prefix_dispersion)]
 
     shared_ja4 = f"t13d1516h2_synth_{args.seed:04x}"
     shared_token = f"synth_token_{args.seed:08x}"

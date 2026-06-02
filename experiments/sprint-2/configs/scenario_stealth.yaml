@@ -15,6 +15,8 @@ coordination_ja4_share: 0.9
 coordination_identity_reuse: 0.2
 coordination_temporal_jitter: 0.3
 
-# Distribuição agressiva de rede (Mirai-style): muitos /24 e ASNs
-asn_dispersion: 100
-prefix_dispersion: 50
+# Distribuição agressiva de rede (Mirai-style): ~1 bot por /24, para K até ~2000.
+# Proximidade de rede deliberadamente fraca (botnet disperso) — o sinal forte é o
+# JA4 compartilhado. É isto que separa (d) de (c) em cenário distribuído.
+asn_dispersion: 2000
+prefix_dispersion: 2000

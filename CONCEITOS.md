@@ -348,7 +348,7 @@ A combinação de **três escolhas** que, isoladas, já existiriam na literatura
 | **Lacuna confirmada pelos próprios autores ML** | Kemp et al. (2023) declara explicitamente: sem validação em tempo real, sem explicação |
 | **Lacuna confirmada por *survey* de KGs** | Liu et al. (2022) — KGs hoje não enfrentam situações reais de ataque/defesa em tempo de execução |
 | **Hipótese empírica testável** | Curva de *recall* vs. K — baselines caem, arcabouço com `relatedTo` mantém |
-| **Ablação isola a contribuição** | (a) ML *features* → (b) ontologia sem `relatedTo` → (c) arcabouço completo |
+| **Ablação isola a contribuição** | (a) ML *features* → (b) ontologia sem `relatedBy_*` → (c) só `relatedByNetworkProximity` → (d) arcabouço completo |
 
 ### O que **não** está sendo afirmado
 

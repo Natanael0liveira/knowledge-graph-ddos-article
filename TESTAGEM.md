@@ -5,6 +5,13 @@
 
 Para a visão de projeto, ver [`README.md`](README.md). Para a fundamentação, ver [`CONCEITOS.md`](CONCEITOS.md). Para decisões em aberto, ver [`docs/pontos-de-reflexao/`](docs/pontos-de-reflexao/).
 
+> **✅ Este plano FOI EXECUTADO (Fase B, Sprints 1–5, 2026-06-01).** Resultados,
+> gates e *caveats* em [`experiments/RESUME.md`](experiments/RESUME.md) e nos READMEs de
+> cada sprint. Resumo: detecção por-sessão colapsa em campanha furtiva distribuída
+> (F1≈0.18) enquanto o arcabouço cross-session detecta (F1=0.911 no CIC-IoT2023 real,
+> vs KLAGE 0.841). Ameaças à validade e o plano gratuito para endurecê-las:
+> [`experiments/HARDENING-PLAN.md`](experiments/HARDENING-PLAN.md).
+
 ---
 
 ## Por que a família Slow HTTP DDoS
@@ -193,18 +200,19 @@ Essa métrica é o que produtos comerciais auto-reportam (DataDome: FPR < 0.01% 
 
 ## Ablação — isolando a contribuição
 
-Três configurações sobre o mesmo conjunto subjacente de atributos de tráfego:
+**Quatro** configurações sobre o mesmo conjunto subjacente de atributos de tráfego:
 
 | Config | Componente |
 |---|---|
-| **(a)** | ML *baseline* (Random Forest sobre *features* agregadas de sessão) |
-| **(b)** | Arcabouço com ontologia mas **sem** `relatedTo` (sessões como nós isolados do grafo) |
-| **(c)** | Arcabouço completo, com `relatedTo` populada por identidade/JA4/prefixo |
+| **(a)** | ML *baseline* (Random Forest sobre *features* agregadas de sessão), sem ontologia |
+| **(b)** | Arcabouço com ontologia mas **sem** a família `relatedBy_*` (sessões como nós isolados) |
+| **(c)** | Ontologia + **apenas** `relatedByNetworkProximity` (o sinal de rede, peso baixo) |
+| **(d)** | Arcabouço completo: família `relatedBy_*` ponderada (TLS/JA4, endpoint, rede, …) |
 
-- (a) → (c): **contribuição total da abordagem**
-- (b) → (c): **ganho específico do raciocínio *cross-session***
+- (a) → (d): **contribuição total da abordagem**
+- (c) → (d): **ganho específico dos sinais de peso alto (JA4/identidade) sobre só proximidade de rede**
 
-Hipótese a validar: diferença (b)→(c) é pequena no Cenário A (single-source) e dominante no Cenário C (distribuído).
+Hipótese a validar: diferença (c)→(d) é pequena no Cenário A (single-source) e dominante no Cenário C (distribuído), onde a proximidade de rede é fraca e o JA4 compartilhado é que sustenta a detecção.
 
 ---
 

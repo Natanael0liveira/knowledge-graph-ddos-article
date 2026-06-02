@@ -127,16 +127,24 @@ knowledge-graph-ddos-article/
 
 ## Estado atual
 
+**Validação experimental (Fase B, Sprints 1–5) executada em 2026-06-01** — ver
+[`experiments/RESUME.md`](experiments/RESUME.md) e [`experiments/README.md`](experiments/README.md).
+Ameaças à validade e plano de endurecimento: [`experiments/HARDENING-PLAN.md`](experiments/HARDENING-PLAN.md).
+
 | Componente | Status |
 |---|---|
 | §1 Introdução do paper | ✅ Escrita completa |
-| §2–§6 + Apêndice | 🔄 Esqueletos guiados com prosa em desenvolvimento |
-| Ontologia OWL refinada para sessão | ⏳ Pendente — versão atual em `ontology/` é precursora multi-vetor |
-| *Pipeline* em tempo de execução | 🔄 Refatoração em curso |
-| Gerador sintético parametrizado por K | ⏳ Pendente |
-| Ambiente Docker do laboratório | ⏳ Pendente |
-| Extração de JA4 retroativa dos *datasets* | ⏳ Pendente |
-| *Baselines* (Fernandes, Bharathi, Kemp) | ⏳ Pendente |
+| §2–§6 + Apêndice | 🔄 Esqueletos; §5 (Resultados) a redigir com as tabelas/figura geradas |
+| *Pipeline* de extração (PCAP→sessões→KG) | ✅ Executado — CICIDS2017 + CIC-IoT2023 no Fuseki |
+| Extração de JA4 dos *datasets* | ✅ Feita (gates G1–G2 PASS) |
+| Gerador sintético parametrizado por K | ✅ Calibrado (KS≤0.02), modo *stealth* |
+| Ambiente Docker do laboratório (Fuseki) | ✅ Funcional (TDB2 no SSD; bulk load nativo) |
+| *Baselines* (Fernandes, Bharathi, Kemp) | ✅ Implementados (operacionalizações; fidelidade a endurecer — ver HARDENING-PLAN) |
+| Ablação a/b/c/d + estatística (n=30) | ✅ (d)−(c) p<0.01 (Bonferroni), d=2.91 |
+| Comparação com KLAGE (CIC-IoT2023) | ✅ F1=0.911 (caveat: granularidade nó-vs-sessão) |
+| Ontologia OWL: 6 sub-propriedades `relatedBy_*` formalizadas | ⏳ Pendente |
+| Pilares 2 e 4 (reasoner SWRL · cadeia de evidência + mitigação cirúrgica) | ⏳ Não codificados |
+| Calibração real de pesos $w_i$ · RT-IoT2022 | ⏳ Pendente (ver HARDENING-PLAN) |
 
 ---
 

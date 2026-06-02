@@ -4,6 +4,11 @@
 
 Este arquivo documenta exatamente onde paramos para que a próxima sessão retome sem reler todo o histórico.
 
+> **➡️ PRÓXIMA SESSÃO (2026-06-02):** começar por [`HARDENING-PLAN.md`](HARDENING-PLAN.md)
+> — plano gratuito para endurecer a validade dos resultados (auto-auditoria cética
+> encontrou circularidade no sintético, comparação KLAGE não-controlada, baselines
+> não-fiéis, pesos não-calibrados). Passo 1 = generalização multi-ataque em dados reais.
+
 ---
 
 ## ⚡ 2026-06-01: carga no Fuseki RESOLVIDA (ambos KGs no ar)

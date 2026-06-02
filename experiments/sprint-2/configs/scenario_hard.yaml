@@ -1,0 +1,23 @@
+# Cenário DIFÍCIL — sinais de coordenação PARCIAIS e conflitantes.
+# Objetivo: tornar o grid search de pesos w_i DISCRIMINATIVO (no scenario_stealth
+# todo peso dava AUC=1.0 — saturado). Aqui nenhum sinal isolado basta, então a
+# ponderação relativa entre JA4/endpoint/rede passa a importar de fato.
+#
+# Uso (Passo C do HARDENING): gerar com este config (vários seeds) e rodar
+#   sprint-4/scripts/weight_search.py sobre os cenários resultantes.
+
+K: 500
+legitimate_sessions: 1000
+attack_variant: slowloris
+window_s: 300
+stealth: true               # per-sessão indistinguível do benigno
+
+# Coordenação PARCIAL: nenhum sinal sozinho cobre a campanha
+coordination_ja4_share: 0.5        # só metade compartilha JA4 (era 0.9)
+coordination_identity_reuse: 0.2
+coordination_temporal_jitter: 0.6  # padrão temporal ruidoso
+
+# Rede moderadamente dispersa: proximidade existe mas é fraca (nem 1-bot-por-/24,
+# nem concentrada) — força o trade-off com o JA4
+asn_dispersion: 200
+prefix_dispersion: 200

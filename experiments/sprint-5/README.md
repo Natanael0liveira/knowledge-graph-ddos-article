@@ -17,8 +17,18 @@ Detecção de Slowloris (one-vs-rest), `make run`:
 
 **ΔF1(d−a) = +0.732.** No CIC-IoT2023 o Slowloris é per-sessão indistinguível do
 benigno (n_req≈1, dur≈0) e distribuído (143 /24s) — a detecção por-sessão colapsa
-(F1=0.18, AUC≈acaso), enquanto o arcabouço cross-session atinge F1=0.911,
-**superando o KLAGE (+0.070)**. A tese se sustenta em dados reais.
+(F1=0.18, AUC≈acaso), enquanto o arcabouço cross-session atinge **F1=0.911**.
+
+**Como ler a comparação com o KLAGE (honestamente):** o F1=0.911 está **na mesma
+ordem de grandeza** do 0.841 publicado pelo KLAGE — **não é um head-to-head
+controlado** e NÃO afirmamos "superar". São experimentos diferentes: granularidade
+distinta (sessão × nó de rede), protocolo distinto (binário ataque-vs-resto num
+split nosso × multiclasse deles), e cobertura distinta (só CIC-IoT2023 × RT-IoT2022
++ CIC-IoT2023). A leitura defensável é: *nosso método session-level é competitivo com
+o estado-da-arte node-level em DDoS Slowloris, e adiciona o que o KLAGE não tem —
+veredicto simbólico auditável e dano colateral mensurável.* O resultado forte e
+**interno** (controlado) é o Δd−a: detecção por-sessão colapsa onde a cross-session
+detecta. A tese se sustenta em dados reais.
 
 **⚠️ Caveats honestos:**
 - **Granularidade:** KLAGE classifica *nós de rede*; nós classificamos *sessões*. Os

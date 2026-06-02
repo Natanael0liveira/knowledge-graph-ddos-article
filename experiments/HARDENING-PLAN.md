@@ -113,6 +113,20 @@ reportar os pesos empíricos honestamente.
   (+ alvo `make -C sprint-3 multiattack`). Validado num parquet sintético (ataque
   furtivo → (a) AUC=0.5, (d) AUC=1.0). **Pronto para rodar nos dados reais quando o
   HD voltar** — é o primeiro comando da próxima sessão online.
+- ✅ **Passo B codado (smoke mecânico):** `sprint-4/scripts/robustness_sweep.py` —
+  curva AUC(d) vs força de coordenação. Roda end-to-end; a curva CIENTÍFICA exige as
+  distribuições calibradas (HD), senão o fallback default torna o ataque não-furtivo.
+- ✅ **Passo C config pronto:** `sprint-2/configs/scenario_hard.yaml` (sinais parciais)
+  → rodar `weight_search.py` sobre ele online p/ a calibração de pesos não saturar.
+- ✅ **Passo D-2 feito:** reescopo honesto do KLAGE no `sprint-5/README.md`
+  ("comparável/mesma ordem", NÃO "superamos"; head-to-head não-controlado).
+- ⏳ **Passo D-1 (tunar baselines):** melhor fazer online (validar ±5% precisa de dado).
+
+### Ordem na próxima sessão ONLINE (HD montado)
+1. `make -C experiments/sprint-3 multiattack`  (Passo A — dados reais)
+2. `make -C experiments/sprint-4` recalibrar + `robustness_sweep.py` (Passo B real)
+3. gerar `scenario_hard` (vários seeds) + `weight_search.py` (Passo C)
+4. tunar baselines (Passo D-1)
 - ⏳ **Descoberto:** namespace da ontologia (`security.example.org/ontology/ddos#`) ≠
   namespace dos dados em runtime (`kg-ddos.example/ontology#` em `load_to_fuseki.py`).
   As instâncias carregadas não são tipadas pela ontologia. Alinhar (mudar o

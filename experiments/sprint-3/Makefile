@@ -19,7 +19,7 @@ GEN    := ../sprint-2/scripts
 SEED   ?= 7
 
 .DEFAULT_GOAL := help
-.PHONY: help scenarios ablation clean
+.PHONY: help scenarios ablation multiattack clean
 
 help:  ## Lista targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -43,6 +43,18 @@ ablation:  ## Roda baselines + ablação a/b/c/d e imprime a tabela
 	             K50=$(SYNTH_DIR)/stealth_K50.parquet \
 	             K1000=$(SYNTH_DIR)/stealth_K1000.parquet \
 	  2>&1 | tee $(LOG_DIR)/sprint3_ablation.log
+
+REAL_S1 := $(DATA_ROOT)/processed/sessions/cicids2017.parquet
+REAL_S2 := $(DATA_ROOT)/processed/sessions/cic-iot-2023.parquet
+
+multiattack:  ## Passo A do HARDENING: generalização multi-ataque em dados reais (a vs d)
+	@[ -f $(REAL_S1) ] || { echo "❌ $(REAL_S1) não existe (HD externo montado?)"; exit 1; }
+	@mkdir -p results
+	$(PYTHON) scripts/run_real_multiattack.py \
+	  --dataset cicids2017=$(REAL_S1) \
+	  --dataset cic-iot-2023=$(REAL_S2) \
+	  --out results/real_multiattack.csv \
+	  2>&1 | tee $(LOG_DIR)/sprint3_multiattack.log
 
 clean:  ## Remove cenários do Sprint 3
 	rm -rf $(SYNTH_DIR)

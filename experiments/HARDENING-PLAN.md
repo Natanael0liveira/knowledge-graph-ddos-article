@@ -109,6 +109,10 @@ reportar os pesos empíricos honestamente.
 
 - ✅ **6 sub-propriedades `relatedBy_*` formalizadas no `.owl`** (com pesos via
   `coordinationWeight`). Fecha a lacuna paper↔ontologia (contribuição 1).
+- ✅ **Passo A codado + smoke-testado:** `sprint-3/scripts/run_real_multiattack.py`
+  (+ alvo `make -C sprint-3 multiattack`). Validado num parquet sintético (ataque
+  furtivo → (a) AUC=0.5, (d) AUC=1.0). **Pronto para rodar nos dados reais quando o
+  HD voltar** — é o primeiro comando da próxima sessão online.
 - ⏳ **Descoberto:** namespace da ontologia (`security.example.org/ontology/ddos#`) ≠
   namespace dos dados em runtime (`kg-ddos.example/ontology#` em `load_to_fuseki.py`).
   As instâncias carregadas não são tipadas pela ontologia. Alinhar (mudar o

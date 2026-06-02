@@ -105,6 +105,15 @@ reportar os pesos empíricos honestamente.
 - **RT-IoT2022** e datasets **fora da família CIC** (download com conta/manual).
 - → No paper: seção "Ameaças à Validade" + "Trabalho Futuro" honestas.
 
+## Feito offline (2026-06-02, sem HD)
+
+- ✅ **6 sub-propriedades `relatedBy_*` formalizadas no `.owl`** (com pesos via
+  `coordinationWeight`). Fecha a lacuna paper↔ontologia (contribuição 1).
+- ⏳ **Descoberto:** namespace da ontologia (`security.example.org/ontology/ddos#`) ≠
+  namespace dos dados em runtime (`kg-ddos.example/ontology#` em `load_to_fuseki.py`).
+  As instâncias carregadas não são tipadas pela ontologia. Alinhar (mudar o
+  `load_to_fuseki.py` para o namespace da ontologia + recarregar) — precisa do HD.
+
 ## Fora deste plano (implementação, não validação)
 
 - **Pilar 2** (reasoner SWRL, veredicto-como-derivação) e **Pilar 4** (cadeia de

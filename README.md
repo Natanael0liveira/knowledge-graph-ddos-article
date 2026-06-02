@@ -142,7 +142,8 @@ Ameaças à validade e plano de endurecimento: [`experiments/HARDENING-PLAN.md`]
 | *Baselines* (Fernandes, Bharathi, Kemp) | ✅ Implementados (operacionalizações; fidelidade a endurecer — ver HARDENING-PLAN) |
 | Ablação a/b/c/d + estatística (n=30) | ✅ (d)−(c) p<0.01 (Bonferroni), d=2.91 |
 | Comparação com KLAGE (CIC-IoT2023) | ✅ F1=0.911 (caveat: granularidade nó-vs-sessão) |
-| Ontologia OWL: 6 sub-propriedades `relatedBy_*` formalizadas | ⏳ Pendente |
+| Ontologia OWL: 6 sub-propriedades `relatedBy_*` ponderadas | ✅ Formalizadas (com `coordinationWeight`) |
+| Alinhamento de namespace ontologia↔dados em runtime | ⏳ Pendente (instâncias usam namespace distinto do `.owl`) |
 | Pilares 2 e 4 (reasoner SWRL · cadeia de evidência + mitigação cirúrgica) | ⏳ Não codificados |
 | Calibração real de pesos $w_i$ · RT-IoT2022 | ⏳ Pendente (ver HARDENING-PLAN) |
 

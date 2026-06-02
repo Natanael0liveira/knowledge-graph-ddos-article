@@ -1,0 +1,27 @@
+# Gate G4 — coordinatedHTTPFlood (Sprint 1)
+#
+# Retorna clusters de detecção (label-agnósticos, agrupados por endpoint+janela)
+# cujo score de coordenação Ω(S) cruza o limiar, com tamanho e taxa agregada
+# mínimos. Ω(S) é pré-computado por scripts/compute_coordination.py e materializado
+# como kg:DetectionCluster / kg:coordinationScore via tdb2.tdbloader (make coordination).
+#
+# Os parâmetros abaixo (τ_cluster=85.5, k_min=5, τ_rate=1.0) são os do cic-iot-2023;
+# τ_cluster = percentil 99 do Ω dos clusters dominados por tráfego benigno.
+# G4 PASSA se a query retorna ≥ 1 linha.
+#
+# Uso:
+#   curl -s -u admin:kgddos -H "Accept: text/csv" \
+#     --data-urlencode query@queries/coordinatedHTTPFlood.rq \
+#     http://localhost:3030/cic-iot-2023/sparql
+
+PREFIX kg: <https://kg-ddos.example/ontology#>
+
+SELECT ?endpoint ?omega ?size ?rate WHERE {
+  ?c a kg:DetectionCluster ;
+     kg:coordinationScore ?omega ;
+     kg:clusterSize        ?size ;
+     kg:aggregateRate      ?rate ;
+     kg:targetEndpoint     ?endpoint .
+  FILTER(?omega >= 85.5 && ?size >= 5 && ?rate >= 1.0)
+}
+ORDER BY DESC(?omega)

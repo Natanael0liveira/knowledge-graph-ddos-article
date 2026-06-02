@@ -49,8 +49,9 @@ Itens validados pelo `make check`:
 | **6. Extração de flows** | `make extract-flows` | 5 min | 2–4 h | Background |
 | **7. Reconstrução de sessões** | `make sessions` | 10 min | 30 min | Junta flows + JA4 |
 | **8. Ground truth de cluster** | `make clusters` | 30 min | 10 min + revisão | Revisa amostra de 10 *clusters* manualmente |
-| **9. Carga no Fuseki** | `make load-kg` | 30 min | 1 h | KG navegável em http://localhost:3030 |
-| **10. Validação final** | `make validate` | 2 h | 1 h | Abre notebook Jupyter com gráficos e estatísticas |
+| **9. Carga no Fuseki** | `make install-jena-tools && make DATASET=<ds> load-kg-bulk` | 5 min | ~2 min | Bulk load nativo (`tdb2.tdbloader`). **Não use `load-kg`** (HTTP POST) p/ datasets grandes — trava. Ver "Carga no KG" abaixo. |
+| **10. Coordenação + gates G3/G4** | `make DATASET=<ds> coordination` | 5 min | ~2 min | Computa Ω(S), ROC AUC (G3) e materializa `coordinatedHTTPFlood` (G4) no Fuseki |
+| **11. Validação final** | `make validate` | 2 h | 1 h | Abre notebook Jupyter com gráficos e estatísticas |
 | **Buffer** | — | 1 h | — | Imprevistos |
 
 **Total seu envolvimento ativo:** ~6 h.
@@ -75,7 +76,12 @@ make extract-ja4       # PCAPs → JA4 via tshark
 make extract-flows     # PCAPs → flows via CICFlowMeter
 make sessions          # flows + JA4 → sessions.parquet
 make clusters          # sessions → clusters.csv (ground truth heurística)
-make load-kg           # sessions/clusters → Apache Jena Fuseki
+
+# Carga no KG (use a versão bulk — ver seção "Carga no KG")
+make install-jena-tools                  # baixa apache-jena (tdb2.tdbloader nativo)
+make DATASET=<ds> load-kg-bulk           # stream → .nt → tdb2.tdbloader → Fuseki (~2 min)
+make DATASET=<ds> coordination           # Ω(S) + gates G3 (ROC AUC) e G4 (SPARQL)
+# make load-kg                           # DEPRECADO: HTTP POST chunked, trava em datasets grandes
 
 # Validação
 make validate          # abre notebook validate.ipynb
@@ -85,6 +91,25 @@ make stats             # imprime contagens e estatísticas básicas
 make clean             # remove artefatos intermediários (mantém raw e KG)
 make clean-all         # remove tudo (cuidado!)
 ```
+
+## Carga no KG (por que `load-kg-bulk` e não `load-kg`)
+
+`make load-kg` carrega via HTTP POST em chunks transacionais. Em datasets grandes
+(>~1.2M triples) isso **trava** numa máquina Apple Silicon: a imagem `stain/jena-fuseki`
+roda sob emulação amd64 (QEMU) e o commit por chunk faz thrashing de índice. Além disso,
+o banco TDB2 **não pode** ficar em exfat (memory-map sem semântica POSIX). A solução:
+
+1. `FUSEKI_DB` no `.env` aponta o banco para o **SSD interno** (ver `.env.example`); só o
+   banco mora local, os dados/exports seguem em `DATA_ROOT` (pode ser HD externo).
+2. `make install-jena-tools` baixa o Apache Jena **na mesma versão da imagem Fuseki**
+   (formato TDB2 idêntico).
+3. `make DATASET=<ds> load-kg-bulk`:
+   - `load_to_fuseki.py --stream` serializa as sessions em N-Triples com **memória
+     constante** (o build de grafo rdflib inteiro estoura swap em >400k sessions);
+   - para o Fuseki, roda `tdb2.tdbloader` nativo (JVM ARM do host) e reinicia.
+   - ~10M triples em ~2 min vs horas (e trava) pelo caminho HTTP.
+
+A query do gate G4 fica em [`queries/coordinatedHTTPFlood.rq`](queries/coordinatedHTTPFlood.rq).
 
 ## Saídas esperadas
 

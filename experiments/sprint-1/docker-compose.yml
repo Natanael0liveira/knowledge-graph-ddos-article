@@ -10,8 +10,10 @@ services:
       # JVM heap
       - JVM_ARGS=-Xmx2g
     volumes:
-      # TDB2 backend persistente no HD externo
-      - ${DATA_ROOT}/kg/fuseki-tdb2:/fuseki
+      # TDB2 backend no SSD interno (APFS). ExFAT (DATA_ROOT) trava o TDB2:
+      # memory-map + fsync sem semântica POSIX => commit por chunk faz thrashing.
+      # Dados crus e TTL exportado continuam em DATA_ROOT; só o banco mora local.
+      - ${FUSEKI_DB}:/fuseki
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3030/$$/ping"]

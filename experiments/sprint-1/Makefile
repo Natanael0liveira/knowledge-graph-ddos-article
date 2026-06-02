@@ -40,12 +40,25 @@ JAVA := $(shell [ -x "$(JAVA_BREW)" ] && echo "$(JAVA_BREW)" || command -v java 
 # Fuseki
 FUSEKI_URL := http://localhost:3030
 
+# Carga em massa nativa (ARM) via Apache Jena tools — evita o POST transacional
+# por chunk numa JVM amd64 emulada (que travava ~5h). Carrega 4.5M triples em ~40s.
+# Versão DEVE casar com a imagem do Fuseki (docker-compose.yml) p/ formato TDB2 idêntico.
+JENA_VERSION ?= 5.1.0
+JENA_HOME    ?= $(HOME)/apache-jena-$(JENA_VERSION)
+JENA_JAVA_HOME := $(shell brew --prefix openjdk@17 2>/dev/null)
+# Export em N-Triples (streaming, memória constante). O build do grafo rdflib
+# inteiro em RAM estoura swap em datasets grandes (>~400k sessions).
+NT_FILE      := $(KG_DIR)/exports/$(DATASET).nt
+# Banco TDB2 mora no SSD interno (FUSEKI_DB no .env); exfat trava o memory-map do TDB2.
+FUSEKI_DB    ?= $(error FUSEKI_DB não definido no .env — aponte para um caminho no SSD interno)
+
 # ----- Default -----
 .DEFAULT_GOAL := help
 
 .PHONY: help check python-venv install-deps install-cicflowmeter \
         fuseki-up fuseki-down fuseki-logs \
         test download extract-ja4 extract-flows sessions clusters load-kg \
+        install-jena-tools export-nt load-kg-bulk coordination \
         validate stats clean clean-all
 
 # ----- Help -----
@@ -200,16 +213,75 @@ clusters:  ## Deriva ground truth de cluster
 	  2>&1 | tee $(LOG_DIR)/derive_clusters.log
 	@echo "✅ Clusters em $(CLUSTERS_FILE) (amostra para revisão manual: $(CLUSTERS_FILE).sample)"
 
-load-kg:  ## Carrega sessões e clusters no Apache Jena Fuseki
+load-kg:  ## Carrega sessões e clusters no Fuseki. Use REUSE_TTL=1 se TTL já exportado.
+	@mkdir -p $(KG_DIR)/exports $(LOG_DIR)
 	$(PYTHON) scripts/load_to_fuseki.py \
 	  --sessions $(SESSIONS_FILE) \
 	  --clusters $(CLUSTERS_FILE) \
 	  --ontology ../../ontology/ddos_ontology.owl \
 	  --fuseki-url $(FUSEKI_URL) \
-	  --dataset cic-ddos-2019 \
-	  --export-ttl $(KG_DIR)/exports/cic-ddos-2019.ttl \
-	  2>&1 | tee $(LOG_DIR)/load_to_fuseki.log
-	@echo "✅ KG carregado em $(FUSEKI_URL)/cic-ddos-2019/sparql"
+	  --dataset $(DATASET) \
+	  --export-ttl $(KG_DIR)/exports/$(DATASET).ttl \
+	  --chunk $(or $(CHUNK),200000) \
+	  $(if $(REUSE_TTL),--reuse-ttl,) \
+	  2>&1 | tee $(LOG_DIR)/load_to_fuseki_$(DATASET).log
+	@echo "✅ KG carregado em $(FUSEKI_URL)/$(DATASET)/sparql"
+
+export-nt:  ## Gera N-Triples (.nt) via streaming, memória constante, sem upload HTTP
+	@mkdir -p $(KG_DIR)/exports $(LOG_DIR)
+	$(PYTHON) scripts/load_to_fuseki.py \
+	  --sessions $(SESSIONS_FILE) \
+	  --clusters $(CLUSTERS_FILE) \
+	  --ontology ../../ontology/ddos_ontology.owl \
+	  --fuseki-url $(FUSEKI_URL) \
+	  --dataset $(DATASET) \
+	  --export-ttl $(NT_FILE) \
+	  --stream \
+	  2>&1 | tee $(LOG_DIR)/export_nt_$(DATASET).log
+	@echo "✅ N-Triples em $(NT_FILE)"
+
+install-jena-tools:  ## Baixa Apache Jena ($(JENA_VERSION)) p/ bulk load nativo (tdb2.tdbloader)
+	@if [ -x "$(JENA_HOME)/bin/tdb2.tdbloader" ]; then \
+	  echo "✅ Jena já presente em $(JENA_HOME)"; \
+	else \
+	  echo "▶ baixando apache-jena-$(JENA_VERSION) (mesma versão da imagem Fuseki)..."; \
+	  curl -fsSL -o /tmp/apache-jena-$(JENA_VERSION).tar.gz \
+	    https://archive.apache.org/dist/jena/binaries/apache-jena-$(JENA_VERSION).tar.gz; \
+	  tar xzf /tmp/apache-jena-$(JENA_VERSION).tar.gz -C $(HOME); \
+	  echo "✅ Jena extraído em $(JENA_HOME)"; \
+	fi
+
+load-kg-bulk:  ## Carga RÁPIDA via tdb2.tdbloader nativo ARM (~40s/4.5M). Gera .nt se faltar.
+	@[ -x "$(JENA_HOME)/bin/tdb2.tdbloader" ] || { echo "❌ tdb2.tdbloader não achado em $(JENA_HOME). Rode: make install-jena-tools"; exit 1; }
+	@[ -f "$(NT_FILE)" ] || $(MAKE) DATASET=$(DATASET) export-nt
+	@echo "▶ parando Fuseki (libera lock TDB2)..."
+	-docker compose down
+	@echo "▶ recriando DB de $(DATASET) (carga limpa)..."
+	rm -rf "$(FUSEKI_DB)/databases/$(DATASET)"
+	@echo "▶ bulk load nativo (JVM ARM do host)..."
+	JAVA_HOME="$(JENA_JAVA_HOME)" JVM_ARGS="-Xmx6g" \
+	  "$(JENA_HOME)/bin/tdb2.tdbloader" --loc "$(FUSEKI_DB)/databases/$(DATASET)" "$(NT_FILE)" \
+	  2>&1 | tee $(LOG_DIR)/tdbloader_$(DATASET).log
+	@echo "▶ subindo Fuseki..."
+	docker compose up -d
+	@echo "✅ $(DATASET) carregado em $(FUSEKI_URL)/$(DATASET)/sparql (verifique COUNT)"
+
+COORD_FILE := $(PROCESSED_DIR)/coordination/$(DATASET).csv
+COORD_NT   := $(KG_DIR)/exports/$(DATASET)-coordination.nt
+
+coordination:  ## Computa Ω(S) + gates G3 (ROC AUC) e G4 (coordinatedHTTPFlood)
+	@mkdir -p $(dir $(COORD_FILE)) $(LOG_DIR)
+	$(PYTHON) scripts/compute_coordination.py \
+	  --sessions $(SESSIONS_FILE) \
+	  --out $(COORD_FILE) \
+	  --emit-nt $(COORD_NT) \
+	  2>&1 | tee $(LOG_DIR)/coordination_$(DATASET).log
+	@echo "▶ carregando Ω(S) no Fuseki (append) p/ a query SPARQL G4..."
+	-docker compose down
+	JAVA_HOME="$(JENA_JAVA_HOME)" JVM_ARGS="-Xmx4g" \
+	  "$(JENA_HOME)/bin/tdb2.tdbloader" --loc "$(FUSEKI_DB)/databases/$(DATASET)" "$(COORD_NT)"
+	docker compose up -d
+	@echo "✅ Coordenação em $(COORD_FILE). Query G4: ver notebooks/ ou README (kg:DetectionCluster / kg:coordinationScore)"
 
 # ----- Validação -----
 validate:  ## Abre notebook Jupyter com relatório de validação

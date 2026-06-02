@@ -1,8 +1,50 @@
 # Ponto de parada — Sprint 1
 
-**Última atualização**: 2026-05-31 23:50
+**Última atualização**: 2026-06-01 21:00
 
 Este arquivo documenta exatamente onde paramos para que a próxima sessão retome sem reler todo o histórico.
+
+---
+
+## ⚡ 2026-06-01: carga no Fuseki RESOLVIDA (ambos KGs no ar)
+
+| Dataset | Triples | ApplicationSessions |
+|---|---|---|
+| cicids2017 | 4.553.508 | 368.777 |
+| cic-iot-2023 | 9.750.257 | 787.237 |
+
+**O que travava** (e a correção, já no Makefile):
+1. **Banco TDB2 no exfat** → memory-map/fsync sem semântica POSIX. Movido para o **SSD interno** via `FUSEKI_DB` no `.env` (`docker-compose.yml` monta `${FUSEKI_DB}:/fuseki`). Dados crus/exports continuam no HD externo. O banco é derivado, reconstruível em ~1min.
+2. **POST HTTP transacional por chunk numa JVM amd64 emulada** (imagem `stain/jena-fuseki` roda sob QEMU no Mac ARM) → travava ~chunk 6 (~1.2M triples). Trocado por **bulk load offline com `tdb2.tdbloader` nativo** (Apache Jena 5.1.0 em `~/apache-jena-5.1.0`, rodando na JVM ARM do host `openjdk@17`). 4.5M em ~40s.
+3. **`build_graph` rdflib inteiro em RAM** estourava swap em datasets grandes (cic-iot-2023 congelou a 3% CPU). Trocado por **escritor streaming de N-Triples em lotes** (memória constante). Flag `--stream` no `load_to_fuseki.py`.
+
+**Como recarregar (reproduzível):**
+```bash
+make DATASET=cicids2017 load-kg-bulk     # gera .nt via stream + tdb2.tdbloader nativo + sobe Fuseki
+make DATASET=cic-iot-2023 load-kg-bulk
+```
+Pré-requisito: `~/apache-jena-5.1.0` (mesma versão da imagem Fuseki) e `FUSEKI_DB` no `.env` apontando p/ SSD interno.
+
+⚠️ O alvo antigo `load-kg` (HTTP POST chunked) ficou **deprecado** — só serve p/ datasets pequenos.
+
+**Próximo:** rodar `validate.ipynb` (gates G1–G4) e resolver o gap de labels do CICIDS2017 (pré-req do G3) — ver seções abaixo.
+
+---
+
+## ⚡ 2026-06-01 (cont.): gates G3 + G4 implementados (cic-iot-2023)
+
+Novo script [`scripts/compute_coordination.py`](sprint-1/scripts/compute_coordination.py) + alvo `make DATASET=cic-iot-2023 coordination`.
+
+**Decisões:**
+- **Escopo Ω(S) = "3 limpas"**: relatedByTLSFingerprint (w=1.0, JA4), relatedByEndpointConvergence (0.6), relatedByNetworkProximity /24 (0.3). As outras 3 (ReusedIdentity, TemporalPattern, PayloadSignature) **não têm dado** a nível de session neste dataset.
+- **Anti-circularidade (crítico)**: `cluster_id` do `derive_clusters` é formado por `[label, dst_ip, dst_port]` → embute a resposta. NÃO usar como S. Em vez disso, **clusters de detecção label-agnósticos** por `(endpoint, janela 300s)`. Labels só para avaliar.
+- **Ω(S) em O(N)**: pares que compartilham sinal = Σ C(n,2) por valor; nunca materializa O(N²).
+
+**Resultados (cic-iot-2023):**
+- **G3 (ROC AUC ≥ 0.85): PASS** — RF combinado 0.999; **ablação coordenação-só = 0.966** (features relatedBy_* sozinhas, evidência limpa); comportamental-só 0.994 (CIC é trivialmente separável por fluxo — caveat).
+- **G4 (coordinatedHTTPFlood ≥ 1 cluster): PASS** — query SPARQL real contra Fuseki retorna **33 clusters** (τ=85.5 = pct99 do benigno, |S|≥5, rate≥1). Top: `192.168.137.29:443` Ω=2.06e8 |S|=21415 (Slowloris). 13/33 attack-dominant. Triples `kg:DetectionCluster`/`kg:coordinationScore` carregados via tdbloader-append.
+
+**Pendências:** (a) calibrar τ_cluster (paper adia p/ Sprint 4); (b) CICIDS2017 ainda UNLABELED → rodar gates lá depende do temporal join; (c) formalizar as 6 sub-propriedades no `.owl`.
 
 ---
 

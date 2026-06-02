@@ -55,7 +55,12 @@ senão serviços benignos de alto volume (DNS :53) dominam Ω por massa de endpo
 
 **Labeling CICIDS2017 (resolvido):** `scripts/label_cicids2017.py` — par atacante `172.16.0.1→192.168.10.50:80` + janelas verificadas nos bursts reais (5min): Slowloris 4035, Slowhttptest 4217, Hulk 30391, GoldenEye 7472, BENIGN 322658. Backup do parquet em `.unlabeled.bak`.
 
-**Pendências:** (a) calibrar τ_cluster (Sprint 4); (b) recarregar KG com labels novos do cicids2017 (groundTruthLabel atual está UNLABELED — não afeta G3/G4 que leem o parquet); (c) formalizar as 6 sub-propriedades no `.owl`; (d) gate de cobertura JA4 (decisão de threshold).
+**Fechados 2026-06-01 (cont.):**
+- ✅ **Gate JA4 reformulado** — era "≥50% de TODAS as sessões" (irreal: HTTP/DNS puro não tem JA4). Agora "G1: ≥5 JA4 distintos" + "cobertura ≥50% do subconjunto TLS (:443|sni|ja3)". Resultado: cicids2017 98.6%, cic-iot-2023 68.6% → PASS. Extração estava ótima; só a métrica estava errada.
+- ✅ **KG cicids2017 recarregado** com labels (groundTruthLabel: BENIGN 322658, Hulk 30391, …). DetectionClusters re-anexados. 4.63M triples.
+- ✅ **validate.ipynb integrado** — gates G1–G4 num único relatório (importa `compute_coordination`); **todos os gates PASS nos dois datasets**, executado via nbconvert.
+
+**Pendências (Sprint 4):** (a) calibrar τ_cluster (grid search); (b) formalizar as 6 sub-propriedades relatedBy_* no `.owl`; (c) ativar as 3 sub-relações faltantes (Identity/Temporal/Payload) quando houver dado.
 
 ---
 

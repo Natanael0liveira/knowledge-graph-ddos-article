@@ -460,6 +460,94 @@
         <rdfs:label>belongs to identity</rdfs:label>
     </owl:ObjectProperty>
 
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Cross-Session Coordination — família relatedTo ponderada (contribuição 1 do paper)
+    //
+    // relatedTo liga DUAS ApplicationSession e é especializada em seis sub-propriedades
+    // tipadas, cada uma instanciada a partir de um sinal específico de coordenação. A
+    // detecção opera por SOMA PONDERADA: Ω(S) = Σ_i coordinationWeight(i) · |pares ligados
+    // por relatedBy_i em S|. Os pesos refletem o custo de evasão para o atacante (alto =
+    // caro de falsificar). Ver CONCEITOS.md e papers/http-session/article.tex §3.3.
+    ///////////////////////////////////////////////////////////////////////////////////////
+    -->
+
+    <!-- Propriedade de anotação que carrega o peso w_i de cada sub-relação -->
+    <owl:AnnotationProperty rdf:about="http://security.example.org/ontology/ddos#coordinationWeight">
+        <rdfs:label>coordination weight</rdfs:label>
+        <rdfs:comment>Peso w_i da sub-relação na soma ponderada Ω(S). Alto = sinal caro de falsificar (resistência à evasão).</rdfs:comment>
+    </owl:AnnotationProperty>
+
+    <!-- Super-propriedade abstrata: coordenação entre sessões (mútua => simétrica) -->
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedTo">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:label>related to</rdfs:label>
+        <rdfs:comment>Liga duas sessões coordenadas. Abstrata: instanciada via suas seis sub-propriedades, nunca diretamente. Habilita o raciocínio cross-session.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByTLSFingerprint">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://security.example.org/ontology/ddos#relatedTo"/>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">1.0</coordinationWeight>
+        <rdfs:label>related by TLS fingerprint</rdfs:label>
+        <rdfs:comment>Sessões com JA4 igual ou quase igual (distância ≤ 1). Peso alto: trocar o stack TLS é caro para o atacante.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByReusedIdentity">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://security.example.org/ontology/ddos#relatedTo"/>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">1.0</coordinationWeight>
+        <rdfs:label>related by reused identity</rdfs:label>
+        <rdfs:comment>Sessões com interseção de identidade (cookie, token JWT, username). Peso alto: adquirir identidades continuamente é caro.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByTemporalPattern">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://security.example.org/ontology/ddos#relatedTo"/>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0.9</coordinationWeight>
+        <rdfs:label>related by temporal pattern</rdfs:label>
+        <rdfs:comment>Sessões com cadência de inter-chegada coerente (DTW normalizado ≤ τ). Emerge da coordenação operacional do botnet.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByPayloadSignature">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://security.example.org/ontology/ddos#relatedTo"/>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0.6</coordinationWeight>
+        <rdfs:label>related by payload signature</rdfs:label>
+        <rdfs:comment>Sessões com estatísticas de payload similares (tamanho, User-Agent, Content-Type). Peso médio: randomizável, mas perde coerência de campanha.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByEndpointConvergence">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://security.example.org/ontology/ddos#relatedTo"/>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0.6</coordinationWeight>
+        <rdfs:label>related by endpoint convergence</rdfs:label>
+        <rdfs:comment>Sessões que convergem no mesmo endpoint-alvo (match exato ou de padrão de path). Peso médio.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByNetworkProximity">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://security.example.org/ontology/ddos#relatedTo"/>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0.3</coordinationWeight>
+        <rdfs:label>related by network proximity</rdfs:label>
+        <rdfs:comment>Sessões no mesmo /24 (ou /48, ou ASN). Peso baixo: botnets modernas distribuem agressivamente em prefixo/ASN, então o sinal é fraco por construção.</rdfs:comment>
+    </owl:ObjectProperty>
+
     <!-- Behavior Relations -->
     
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#exhibitsBehavior">

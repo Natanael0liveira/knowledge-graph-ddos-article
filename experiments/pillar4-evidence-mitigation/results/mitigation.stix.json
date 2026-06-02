@@ -1,0 +1,33 @@
+{
+  "type": "bundle",
+  "id": "bundle--coord-c001",
+  "objects": [
+    {
+      "type": "indicator",
+      "id": "indicator--coord-c001",
+      "spec_version": "2.1",
+      "name": "Coordinated HTTP Flood (cluster c001)",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern_type": "stix",
+      "pattern": "[x-tls:ja4 = 't13d_botnetX'] AND [network-traffic:dst_ref.value = '10.0.0.1' AND network-traffic:dst_port = 443]",
+      "description": "Ω(S)=105.6, 12 sessões; sub-relações: relatedByTLSFingerprint, relatedByEndpointConvergence"
+    },
+    {
+      "type": "course-of-action",
+      "id": "course-of-action--coord-c001",
+      "spec_version": "2.1",
+      "name": "Mitigação cirúrgica de escopo derivado",
+      "description": "Filtrar/desafiar apenas o tráfego que casa com o discriminador do cluster: {\"tlsJa4\": \"t13d_botnetX\", \"endpoint\": \"10.0.0.1:443\"}"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--coord-c001",
+      "spec_version": "2.1",
+      "relationship_type": "mitigates",
+      "source_ref": "course-of-action--coord-c001",
+      "target_ref": "indicator--coord-c001"
+    }
+  ]
+}

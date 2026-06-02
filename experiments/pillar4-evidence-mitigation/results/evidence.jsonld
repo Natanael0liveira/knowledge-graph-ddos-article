@@ -1,0 +1,29 @@
+{
+  "@context": {
+    "kg": "http://security.example.org/ontology/ddos#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "kg:cluster/c001",
+  "@type": "kg:CoordinatedHTTPFlood",
+  "kg:clusterSize": 12,
+  "kg:coordinationScore": 105.6,
+  "kg:verdict": "coordinated-campaign",
+  "kg:activatedSubRelations": [
+    {
+      "@type": "kg:relatedByTLSFingerprint",
+      "kg:coordinationWeight": 1.0,
+      "kg:linkedPairs": 66,
+      "kg:weightedContribution": 66.0
+    },
+    {
+      "@type": "kg:relatedByEndpointConvergence",
+      "kg:coordinationWeight": 0.6,
+      "kg:linkedPairs": 66,
+      "kg:weightedContribution": 39.6
+    }
+  ],
+  "kg:derivedMitigationScope": {
+    "kg:tlsJa4": "t13d_botnetX",
+    "kg:endpoint": "10.0.0.1:443"
+  }
+}

@@ -144,7 +144,8 @@ Ameaças à validade e plano de endurecimento: [`experiments/HARDENING-PLAN.md`]
 | Comparação com KLAGE (CIC-IoT2023) | ✅ F1=0.911 (caveat: granularidade nó-vs-sessão) |
 | Ontologia OWL: 6 sub-propriedades `relatedBy_*` ponderadas | ✅ Formalizadas (com `coordinationWeight`) |
 | Alinhamento de namespace ontologia↔dados em runtime | ⏳ Pendente (instâncias usam namespace distinto do `.owl`) |
-| Pilares 2 e 4 (reasoner SWRL · cadeia de evidência + mitigação cirúrgica) | ⏳ Não codificados |
+| **Pilar 4** (cadeia de evidência JSON-LD/STIX + mitigação cirúrgica) | ✅ Codado + demo (toy: 0% colateral vs 49,5% global); testar em cluster real pendente |
+| Pilar 2 (reasoner SWRL · veredicto-como-derivação) | ⏳ Não codificado |
 | Calibração real de pesos $w_i$ · RT-IoT2022 | ⏳ Pendente (ver HARDENING-PLAN) |
 
 ---

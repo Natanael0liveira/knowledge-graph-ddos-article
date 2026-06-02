@@ -60,7 +60,13 @@ senão serviços benignos de alto volume (DNS :53) dominam Ω por massa de endpo
 - ✅ **KG cicids2017 recarregado** com labels (groundTruthLabel: BENIGN 322658, Hulk 30391, …). DetectionClusters re-anexados. 4.63M triples.
 - ✅ **validate.ipynb integrado** — gates G1–G4 num único relatório (importa `compute_coordination`); **todos os gates PASS nos dois datasets**, executado via nbconvert.
 
-**Pendências (Sprint 4):** (a) calibrar τ_cluster (grid search); (b) formalizar as 6 sub-propriedades relatedBy_* no `.owl`; (c) ativar as 3 sub-relações faltantes (Identity/Temporal/Payload) quando houver dado.
+## ⚡ 2026-06-01 (cont.): Sprints 3, 4, 5 — Fase B completa
+
+- **Sprint 3** (`experiments/sprint-3/`, `make scenarios && make ablation`): ablação a/b/c/d + 3 baselines (Fernandes/Bharathi/Kemp). Em campanha **furtiva** (ataque per-sessão indistinguível do benigno), (a) ML e baselines ~acaso (0.5), (d) cross-session ~1.0. Exigiu o modo `stealth: true` no gerador do S2.
+- **Sprint 4** (`experiments/sprint-4/`, `make run|weights|figures`): n=30 seeds, IC bootstrap + Wilcoxon + Bonferroni + Cohen's d. **GATE: (d)−(c) no Cenário C, p_bonf=2.2e-05, d=2.91**. Money figure em `results/`. Caveat: grid search de pesos satura (todo w_i dá AUC=1.0 no sintético).
+- **Sprint 5** (`experiments/sprint-5/`, `make run`): comparação com KLAGE em DDoS Slowloris no **CIC-IoT2023 real**. Nosso (d) **F1=0.911 > KLAGE 0.841**; (a) por-sessão colapsa (F1=0.18). Caveats: granularidade sessão-vs-nó; RT-IoT2022 não adquirido.
+
+**Pendências (fora da Fase B):** (a) RT-IoT2022 (download manual IEEE DataPort); (b) calibração real de w_i (precisa de dados mais difíceis — sintético satura); (c) formalizar as 6 sub-propriedades relatedBy_* no `.owl`; (d) pilares 2 e 4 do paper (cadeia de evidência JSON-LD/STIX + mitigação cirúrgica) ainda não codificados; (e) redação da §5.
 
 ---
 

@@ -75,21 +75,29 @@ experiments/
 │   └── notebooks/
 │       └── validate.ipynb
 │
-├── sprint-2/                       # Gerador sintético (pendente)
-├── sprint-3/                       # Baselines + ablação (pendente)
-├── sprint-4/                       # Execução completa + grid search (pendente)
-└── sprint-5/                       # Comparação com KLAGE (pendente)
+├── sprint-2/                       # Gerador sintético calibrado (✅)
+├── sprint-3/                       # Baselines + ablação a/b/c/d (✅)
+├── sprint-4/                       # Execução estatística n=30 + figura (✅)
+└── sprint-5/                       # Comparação com KLAGE (✅ CIC-IoT2023)
 ```
 
-## Estado atual
+## Estado atual — Fase B completa (2026-06-01)
 
-| Sprint | Dataset alvo | Status |
+| Sprint | Dataset | Status / resultado |
 |---|---|---|
-| **1** — Pipeline de extração | CICIDS2017 (Slow HTTP family) | 🛠️ Infraestrutura pronta, aguardando download do dataset |
-| **2** — Gerador sintético | calibrado pelo Sprint 1 | 🛠 Esqueleto criado (calibrate.py + generator.py + 3 configs); aguarda Sprint 1 |
-| 3 — Baselines + ablação | mesmo dataset do Sprint 1 + sintético | ⏳ |
-| 4 — Execução completa + calibração | + Sprint 2 | ⏳ |
-| **5** — Comparação com KLAGE | CIC-IoT2023 (mesmo de KLAGE) | 🛠 Stub criado, aguardando download do dataset |
+| **1** — Pipeline + KG | CICIDS2017 + CIC-IoT2023 | ✅ ambos carregados; gates G1–G4 PASS no `validate.ipynb` |
+| **2** — Gerador sintético | calibrado pelo S1 | ✅ KS pass (D≤0.02); reprodutível; modo *stealth* |
+| **3** — Baselines + ablação | sintético furtivo | ✅ (d) cross-session ≫ (a)/baselines (Δ até +0.73) |
+| **4** — Execução estatística | sintético, n=30 | ✅ (d)−(c) em C: p_bonf=2.2e-05, Cohen's d=2.91 |
+| **5** — Comparação KLAGE | CIC-IoT2023 (real) | ✅ nosso F1=0.911 > KLAGE 0.841 (DDoS Slowloris) |
+
+**Tese sustentada em 3 frentes:** ablação controlada (S3), significância estatística
+(S4), superação do estado-da-arte em dados reais (S5). Cada sprint tem README próprio
+com resultados, gates e caveats. Para carga no KG, ver `sprint-1/README.md`.
+
+**Pendências (fora da Fase B):** RT-IoT2022 (download manual IEEE DataPort);
+calibração real de w_i (sintético satura); pilares 2 e 4 do paper (cadeia de evidência
+JSON-LD/STIX + mitigação cirúrgica) ainda não codificados; redação da §5.
 
 ## Como começar o Sprint 1
 

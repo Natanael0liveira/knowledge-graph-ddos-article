@@ -48,6 +48,10 @@ def extract_numeric_distribution(values: pd.Series, n_bins: int = 50) -> dict:
     if len(values) == 0:
         return {"count": 0}
     hist, edges = np.histogram(values, bins=n_bins)
+    # Quantis empíricos (inverse-CDF) — reproduzem fielmente distribuições muito
+    # concentradas (duração ~0, n_requests ~1) que o histograma de bins largos
+    # borraria. O gerador amostra via estes quantis.
+    quantiles = np.quantile(values, np.linspace(0.0, 1.0, 1001)).tolist()
     return {
         "count": int(len(values)),
         "min": float(values.min()),
@@ -60,6 +64,7 @@ def extract_numeric_distribution(values: pd.Series, n_bins: int = 50) -> dict:
         "p90": float(values.quantile(0.90)),
         "p99": float(values.quantile(0.99)),
         "std": float(values.std()),
+        "quantiles": quantiles,
         "histogram": {
             "edges": edges.tolist(),
             "counts": hist.tolist(),
@@ -98,12 +103,16 @@ def main():
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. Duração das sessões
+    # 1. Duração das sessões — condicionada a n_req≥2.
+    # No real, sessões de 1 request têm duração 0 (sem span); a duração>0 vive nas
+    # multi-request. O gerador dá span 0 a n_req=1 e amostra ESTA distribuição para
+    # n_req≥2, preservando a correlação duração⇔n_req (senão o gate KS de duração falha).
     if "duration_s" in benign.columns:
-        dist = extract_numeric_distribution(benign["duration_s"])
+        multi = benign[benign["n_requests"] >= 2] if "n_requests" in benign.columns else benign
+        dist = extract_numeric_distribution(multi["duration_s"])
         (args.out_dir / "session_duration.json").write_text(json.dumps(dist, indent=2))
-        log.info("Duração das sessões: mean=%.1fs, median=%.1fs",
-                 dist.get("mean", 0), dist.get("median", 0))
+        log.info("Duração (n_req≥2, n=%d): mean=%.1fs, median=%.1fs",
+                 len(multi), dist.get("mean", 0), dist.get("median", 0))
 
     # 2. Requisições por sessão
     if "n_requests" in benign.columns:

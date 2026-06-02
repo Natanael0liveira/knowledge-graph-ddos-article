@@ -55,15 +55,25 @@ def sample_categorical(dist: dict, rng: random.Random):
 
 
 def sample_numeric(dist: dict, rng: random.Random, default: float = 0.0) -> float:
-    """Amostra de uma distribuição numérica via histograma."""
-    if not dist or "histogram" not in dist:
+    """Amostra de uma distribuição numérica.
+
+    Prefere inverse-CDF via quantis empíricos (fiel a distribuições concentradas);
+    cai para o histograma se os quantis não existirem (calibração antiga).
+    """
+    if not dist:
         return default
-    hist = dist["histogram"]
-    edges = hist["edges"]
-    counts = hist["counts"]
-    if not counts or sum(counts) == 0:
+    q = dist.get("quantiles")
+    if q:
+        # interpolação linear entre dois quantis vizinhos (CDF empírica suave)
+        u = rng.random() * (len(q) - 1)
+        lo = int(u)
+        frac = u - lo
+        hi = min(lo + 1, len(q) - 1)
+        return q[lo] + frac * (q[hi] - q[lo])
+    hist = dist.get("histogram")
+    if not hist or not hist.get("counts") or sum(hist["counts"]) == 0:
         return dist.get("median", default)
-    # Amostra um bin proporcional à contagem, depois uniforme dentro do bin
+    edges, counts = hist["edges"], hist["counts"]
     bin_idx = rng.choices(range(len(counts)), weights=counts, k=1)[0]
     return rng.uniform(edges[bin_idx], edges[bin_idx + 1])
 
@@ -72,19 +82,30 @@ def generate_legitimate_session(
     sid: str, t0: datetime, rng: random.Random, dists: dict
 ) -> list[dict]:
     """Gera uma sessão legítima como lista de requisições HTTP."""
-    duration = max(1.0, sample_numeric(dists.get("session_duration", {}), rng, 10.0))
-    n_req = max(1, int(sample_numeric(dists.get("session_requests", {}), rng, 5)))
+    # Sem clamp distorcivo: o real tem muitas sessões de duração ~0 / 1 request;
+    # forçar mínimos quebraria o casamento de distribuição (gate KS).
+    duration = max(0.0, sample_numeric(dists.get("session_duration", {}), rng, 10.0))
+    n_req = max(1, round(sample_numeric(dists.get("session_requests", {}), rng, 5)))
     ja4 = sample_categorical(dists.get("ja4_users", {}), rng) or "t13d1516h2_default"
     port = sample_categorical(dists.get("endpoints", {}), rng) or "443"
 
-    # IPs aleatórios em faixa RFC 5737
-    src_ip = f"192.0.2.{rng.randint(1, 254)}"
+    # Clientes legítimos vêm de MUITAS redes (diversidade realista). Espaço RFC 6598
+    # (100.64.0.0/10): ~16k /24s distintos → colisões de /24 raras entre as sessões,
+    # como no tráfego real. Antes: todos em 192.0.2.0/24, inflando relatedByNetworkProximity.
+    src_ip = f"100.{rng.randint(64, 127)}.{rng.randint(0, 255)}.{rng.randint(1, 254)}"
     src_port = rng.randint(30000, 60000)
     asn = rng.randint(64496, 64511)  # RFC 5398
 
+    # Ancorar o span ao duration amostrado: 1º request em t0, último em t0+duration.
+    # Sem isso, o span observado encolhe vs a duração amostrada (artefato que
+    # enviesava o gate KS de duração).
+    offsets = sorted(rng.uniform(0, duration) for _ in range(n_req))
+    if n_req >= 2:
+        offsets[0], offsets[-1] = 0.0, duration
+
     events = []
     for i in range(n_req):
-        t = t0 + timedelta(seconds=rng.uniform(0, duration))
+        t = t0 + timedelta(seconds=offsets[i])
         events.append({
             "timestamp": t.isoformat() + "Z",
             "src_ip": src_ip,

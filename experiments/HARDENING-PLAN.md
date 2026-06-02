@@ -121,22 +121,27 @@ reportar os pesos empíricos honestamente.
 - ✅ **Passo D-2 feito:** reescopo honesto do KLAGE no `sprint-5/README.md`
   ("comparável/mesma ordem", NÃO "superamos"; head-to-head não-controlado).
 - ⏳ **Passo D-1 (tunar baselines):** melhor fazer online (validar ±5% precisa de dado).
+- ✅ **Pilar 2 codado + demo:** `experiments/pillar2-symbolic-reasoning/` (SWRL+SPARQL,
+  veredicto-como-derivação; pesos lidos da ontologia). `make demo`.
+- ✅ **Pilar 4 codado + demo:** `experiments/pillar4-evidence-mitigation/` (cadeia
+  JSON-LD/STIX + mitigação cirúrgica; toy: 0% colateral vs 49,5% global). `make demo`.
 
 ### Ordem na próxima sessão ONLINE (HD montado)
 1. `make -C experiments/sprint-3 multiattack`  (Passo A — dados reais)
 2. `make -C experiments/sprint-4` recalibrar + `robustness_sweep.py` (Passo B real)
 3. gerar `scenario_hard` (vários seeds) + `weight_search.py` (Passo C)
 4. tunar baselines (Passo D-1)
+5. rodar Pilares 2 e 4 sobre um cluster REAL detectado (não toy)
 - ⏳ **Descoberto:** namespace da ontologia (`security.example.org/ontology/ddos#`) ≠
   namespace dos dados em runtime (`kg-ddos.example/ontology#` em `load_to_fuseki.py`).
   As instâncias carregadas não são tipadas pela ontologia. Alinhar (mudar o
   `load_to_fuseki.py` para o namespace da ontologia + recarregar) — precisa do HD.
 
-## Fora deste plano (implementação, não validação)
+## Pilares 2 e 4 — ✅ CODIFICADOS (2026-06-02)
 
-- **Pilar 2** (reasoner SWRL, veredicto-como-derivação) e **Pilar 4** (cadeia de
-  evidência JSON-LD/STIX + mitigação cirúrgica de escopo derivado): são contribuições
-  do paper ainda NÃO codificadas. Factíveis sem custo, mas é outra frente.
+Os dois pilares que faltavam (raciocínio simbólico e evidência+mitigação) foram
+codados offline com demos toy (ver acima). Pendente: rodá-los sobre um **cluster
+REAL** detectado (precisa do HD) e a redação correspondente no paper.
 - Redação da §5 do `.tex` com as tabelas/figuras.
 
 ## Ordem de execução amanhã

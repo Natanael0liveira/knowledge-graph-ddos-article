@@ -78,8 +78,17 @@ experiments/
 ├── sprint-2/                       # Gerador sintético calibrado (✅)
 ├── sprint-3/                       # Baselines + ablação a/b/c/d (✅)
 ├── sprint-4/                       # Execução estatística n=30 + figura (✅)
-└── sprint-5/                       # Comparação com KLAGE (✅ CIC-IoT2023)
+├── sprint-5/                       # Comparação com KLAGE (✅ CIC-IoT2023)
+├── pillar2-symbolic-reasoning/     # Pilar 2: SWRL+SPARQL, veredicto-como-derivação (✅ demo)
+├── pillar4-evidence-mitigation/    # Pilar 4: cadeia JSON-LD/STIX + mitigação cirúrgica (✅ demo)
+├── HARDENING-PLAN.md               # Plano de endurecimento da validade (próximos passos)
+└── RESUME.md                       # Ponto de parada / handoff
 ```
+
+> **Pilares do paper codificados** (além dos 5 sprints): Pilar 2 (`pillar2-*`) e
+> Pilar 4 (`pillar4-*`) têm `make demo` offline. Os 4 pilares agora existem como
+> código; rodá-los sobre clusters reais e calibrar pesos é o trabalho online restante
+> (ver [`HARDENING-PLAN.md`](HARDENING-PLAN.md)).
 
 ## Estado atual — Fase B completa (2026-06-01)
 

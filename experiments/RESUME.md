@@ -71,7 +71,29 @@ senão serviços benignos de alto volume (DNS :53) dominam Ω por massa de endpo
 - **Sprint 4** (`experiments/sprint-4/`, `make run|weights|figures`): n=30 seeds, IC bootstrap + Wilcoxon + Bonferroni + Cohen's d. **GATE: (d)−(c) no Cenário C, p_bonf=2.2e-05, d=2.91**. Money figure em `results/`. Caveat: grid search de pesos satura (todo w_i dá AUC=1.0 no sintético).
 - **Sprint 5** (`experiments/sprint-5/`, `make run`): comparação com KLAGE em DDoS Slowloris no **CIC-IoT2023 real**. Nosso (d) **F1=0.911 > KLAGE 0.841**; (a) por-sessão colapsa (F1=0.18). Caveats: granularidade sessão-vs-nó; RT-IoT2022 não adquirido.
 
-**Pendências (fora da Fase B):** (a) RT-IoT2022 (download manual IEEE DataPort); (b) calibração real de w_i (precisa de dados mais difíceis — sintético satura); (c) formalizar as 6 sub-propriedades relatedBy_* no `.owl`; (d) pilares 2 e 4 do paper (cadeia de evidência JSON-LD/STIX + mitigação cirúrgica) ainda não codificados; (e) redação da §5.
+**Pendências (fora da Fase B):** ver bloco 2026-06-02 abaixo (várias já resolvidas).
+
+## ⚡ 2026-06-02 (offline, sem HD): ontologia + pilares 2/4 + hardening preparado
+
+Sessão offline (HD ejetado). Tudo commitado e pushado.
+
+- ✅ **Ontologia formalizada:** 6 sub-propriedades `relatedBy_*` + `coordinationWeight`
+  no `ddos_ontology.owl` (estava com 0). Fecha a lacuna paper↔ontologia (Pilar 1).
+- ✅ **Pilar 2 codado:** `experiments/pillar2-symbolic-reasoning/` (SWRL+SPARQL,
+  veredicto-como-derivação, pesos da ontologia). `make demo`.
+- ✅ **Pilar 4 codado:** `experiments/pillar4-evidence-mitigation/` (cadeia JSON-LD/STIX
+  + mitigação cirúrgica; toy: 0% colateral vs 49,5% global). `make demo`.
+  → **Os 4 pilares do paper agora existem como código.**
+- ✅ **Bateria de hardening preparada offline:** Passo A (`run_real_multiattack.py`),
+  B (`robustness_sweep.py`), C (`scenario_hard.yaml`) codados+smoke; D-2 (reescopo KLAGE
+  honesto) feito. Ver [`HARDENING-PLAN.md`](HARDENING-PLAN.md).
+
+**Pendências reais que restam:** (a) rodar hardening A/B/C + pilares 2/4 sobre dados/
+clusters REAIS (precisa do HD); (b) calibração real de w_i (sintético satura → usar
+`scenario_hard`); (c) alinhar namespace ontologia↔dados no `load_to_fuseki.py`;
+(d) RT-IoT2022; (e) redação da §5 do paper.
+
+**Próxima sessão ONLINE:** começar por `make -C experiments/sprint-3 multiattack`.
 
 ---
 

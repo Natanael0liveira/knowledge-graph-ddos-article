@@ -1,0 +1,37 @@
+# Regras SWRL — instanciação par-a-par da família relatedBy_*
+# (Pilar 2 do paper: raciocínio simbólico nativo sobre as sub-relações)
+#
+# Sintaxe SWRL legível (antecedente ^ ... -> consequente). Cada regra instancia
+# UMA sub-propriedade de relatedTo a partir de um sinal compartilhado entre duas
+# sessões. São regras de Horn puras — exatamente o que SWRL expressa bem.
+#
+# IMPORTANTE: a AGREGAÇÃO Ω(S) = Σ w_i·|pares relatedBy_i| ≥ τ NÃO é SWRL — SWRL
+# não soma/agrega. Essa parte é SPARQL (ver scripts/reason.py, query Ω + regra
+# coordinatedHTTPFlood). Os pesos w_i vêm de coordinationWeight na ontologia.
+#
+# Prefixo: kg = http://security.example.org/ontology/ddos#
+
+# (1) relatedByTLSFingerprint  (w=1.0): mesmo JA4
+ApplicationSession(?a) ^ ApplicationSession(?b) ^ differentFrom(?a, ?b) ^
+  tlsJa4(?a, ?j) ^ tlsJa4(?b, ?j)
+  -> relatedByTLSFingerprint(?a, ?b)
+
+# (2) relatedByReusedIdentity (w=1.0): mesma identidade (cookie/token/username)
+ApplicationSession(?a) ^ ApplicationSession(?b) ^ differentFrom(?a, ?b) ^
+  hasIdentityValue(?a, ?id) ^ hasIdentityValue(?b, ?id)
+  -> relatedByReusedIdentity(?a, ?b)
+
+# (3) relatedByEndpointConvergence (w=0.6): mesmo endpoint-alvo
+ApplicationSession(?a) ^ ApplicationSession(?b) ^ differentFrom(?a, ?b) ^
+  targets(?a, ?e) ^ targets(?b, ?e)
+  -> relatedByEndpointConvergence(?a, ?b)
+
+# (4) relatedByNetworkProximity (w=0.3): mesmo prefixo /24
+ApplicationSession(?a) ^ ApplicationSession(?b) ^ differentFrom(?a, ?b) ^
+  srcNet24(?a, ?n) ^ srcNet24(?b, ?n)
+  -> relatedByNetworkProximity(?a, ?b)
+
+# (5) relatedByTemporalPattern (w=0.9) e (6) relatedByPayloadSignature (w=0.6)
+# exigem comparação numérica (DTW / cosseno ≤ τ) — expressas como built-ins SWRL
+# (swrlb:lessThanOrEqual sobre a distância pré-computada), omitidas aqui por não
+# haver dado a nível de sessão nos datasets atuais (ver ablação "3 limpas").

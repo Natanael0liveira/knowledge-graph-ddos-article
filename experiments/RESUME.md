@@ -40,11 +40,22 @@ Novo script [`scripts/compute_coordination.py`](sprint-1/scripts/compute_coordin
 - **Anti-circularidade (crítico)**: `cluster_id` do `derive_clusters` é formado por `[label, dst_ip, dst_port]` → embute a resposta. NÃO usar como S. Em vez disso, **clusters de detecção label-agnósticos** por `(endpoint, janela 300s)`. Labels só para avaliar.
 - **Ω(S) em O(N)**: pares que compartilham sinal = Σ C(n,2) por valor; nunca materializa O(N²).
 
-**Resultados (cic-iot-2023):**
-- **G3 (ROC AUC ≥ 0.85): PASS** — RF combinado 0.999; **ablação coordenação-só = 0.966** (features relatedBy_* sozinhas, evidência limpa); comportamental-só 0.994 (CIC é trivialmente separável por fluxo — caveat).
-- **G4 (coordinatedHTTPFlood ≥ 1 cluster): PASS** — query SPARQL real contra Fuseki retorna **33 clusters** (τ=85.5 = pct99 do benigno, |S|≥5, rate≥1). Top: `192.168.137.29:443` Ω=2.06e8 |S|=21415 (Slowloris). 13/33 attack-dominant. Triples `kg:DetectionCluster`/`kg:coordinationScore` carregados via tdbloader-append.
+Filtro HTTP no G4 (a regra é `coordinatedHTTPFlood`): portas {80,443,8080,...} —
+senão serviços benignos de alto volume (DNS :53) dominam Ω por massa de endpoint.
 
-**Pendências:** (a) calibrar τ_cluster (paper adia p/ Sprint 4); (b) CICIDS2017 ainda UNLABELED → rodar gates lá depende do temporal join; (c) formalizar as 6 sub-propriedades no `.owl`.
+**Resultados (AMBOS datasets, gates G3+G4 PASS, validados via SPARQL real):**
+
+| | G3 coord-só / melhor | G4 clusters | attack-dom |
+|---|---|---|---|
+| cic-iot-2023 | 0.966 / 0.999 | 16 | **11/16 (69%)** |
+| cicids2017 | 1.0 / 1.0 | 65 | 4/65 (6%) |
+
+- **Achado de precisão**: Ω é forte quando há sinal de alto peso (cic-iot-2023: bots com JA4 compartilhado → 69% precisão). No cicids2017 o JA4 é quase ausente → τ frouxo (pct99 benigno) deixa passar HTTP benigno grande (4/65), MAS os 4 ataques (Hulk/GoldenEye/Slowhttptest/Slowloris) têm o **maior Ω** (topo do ranking SPARQL). Precision@top-k seria a métrica certa; calibrar τ é Sprint 4.
+- **G3 caveat**: AUC alto é parte trivial (CIC separável por fluxo: comportamental-só 0.994/0.9998). No cicids2017 há circularidade parcial (label derivado do IP atacante ↔ share_net). Evidência limpa = ablação coordenação-só.
+
+**Labeling CICIDS2017 (resolvido):** `scripts/label_cicids2017.py` — par atacante `172.16.0.1→192.168.10.50:80` + janelas verificadas nos bursts reais (5min): Slowloris 4035, Slowhttptest 4217, Hulk 30391, GoldenEye 7472, BENIGN 322658. Backup do parquet em `.unlabeled.bak`.
+
+**Pendências:** (a) calibrar τ_cluster (Sprint 4); (b) recarregar KG com labels novos do cicids2017 (groundTruthLabel atual está UNLABELED — não afeta G3/G4 que leem o parquet); (c) formalizar as 6 sub-propriedades no `.owl`; (d) gate de cobertura JA4 (decisão de threshold).
 
 ---
 

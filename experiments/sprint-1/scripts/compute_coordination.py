@@ -43,7 +43,14 @@ W_TLS = 1.0
 W_ENDPOINT = 0.6
 W_NET = 0.3
 
-ATTACK_LABELS_DEFAULT = {"HTTP-Flood", "Slowloris"}  # everything else (BENIGN) = 0
+# Dataset-agnostic: attack = any labeled session that is not benign. Works for
+# cic-iot-2023 (HTTP-Flood/Slowloris) and cicids2017 (Hulk/GoldenEye/Slow*/DoS-Other).
+BENIGN_LABELS = {"BENIGN"}
+NON_LABELS = {"UNLABELED", None}
+
+
+def _is_attack(s: pd.Series) -> pd.Series:
+    return ~s.isin(BENIGN_LABELS | NON_LABELS)
 
 
 def _pairs(n: pd.Series) -> pd.Series:
@@ -107,19 +114,29 @@ def compute_omega(df: pd.DataFrame) -> pd.DataFrame:
     label_col = "label_first" if "label_first" in df.columns else "label"
     dom = g[label_col].agg(lambda s: s.value_counts().idxmax()).rename("dominant_label")
     attack_frac = (
-        g[label_col].agg(lambda s: s.isin(ATTACK_LABELS_DEFAULT).mean())
+        g[label_col].agg(lambda s: _is_attack(s).mean())
         .rename("attack_frac")
     )
     out = out.join(dom).join(attack_frac)
     return out.reset_index()
 
 
-def gate_g4(clusters: pd.DataFrame, tau_cluster: float, k_min: int, tau_rate: float):
-    """coordinatedHTTPFlood: clusters with Ω ≥ τ, |S| ≥ k_min, rate ≥ τ_rate."""
-    hits = clusters[
-        (clusters["omega"] >= tau_cluster)
-        & (clusters["size"] >= k_min)
-        & (clusters["agg_rate"] >= tau_rate)
+def gate_g4(clusters: pd.DataFrame, tau_cluster: float, k_min: int, tau_rate: float,
+            http_ports: set | None = None):
+    """coordinatedHTTPFlood: clusters with Ω ≥ τ, |S| ≥ k_min, rate ≥ τ_rate.
+
+    The rule is HTTP-specific, so when ``http_ports`` is given we restrict to
+    endpoints on those ports — otherwise high-volume benign services (e.g. DNS on
+    :53) dominate Ω purely via endpoint-convergence mass.
+    """
+    c = clusters
+    if http_ports:
+        port = c["endpoint"].str.rsplit(":", n=1).str[1]
+        c = c[pd.to_numeric(port, errors="coerce").isin(http_ports)]
+    hits = c[
+        (c["omega"] >= tau_cluster)
+        & (c["size"] >= k_min)
+        & (c["agg_rate"] >= tau_rate)
     ].sort_values("omega", ascending=False)
     return hits
 
@@ -140,7 +157,7 @@ def session_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def gate_g3(df: pd.DataFrame, attack_labels: set):
+def gate_g3(df: pd.DataFrame):
     """Simple classifiers (LogReg + RandomForest); report ROC AUC (attack vs benign).
 
     Both are off-the-shelf "simple" models. LogReg is linear; RF captures the
@@ -154,7 +171,7 @@ def gate_g3(df: pd.DataFrame, attack_labels: set):
     from sklearn.preprocessing import StandardScaler
 
     label_col = "label_first" if "label_first" in df.columns else "label"
-    y = df[label_col].isin(attack_labels).astype(int).values
+    y = _is_attack(df[label_col]).astype(int).values
 
     feats = [
         "n_requests", "duration_s", "req_per_s",
@@ -209,6 +226,8 @@ def main():
     ap.add_argument("--tau-rate", type=float, default=1.0)
     ap.add_argument("--tau-cluster", type=float, default=None,
                     help="Ω threshold; default = 99th pct of benign-dominant clusters")
+    ap.add_argument("--http-ports", default="80,443,8080,8000,8008,8443,8888",
+                    help="comma ports treated as HTTP for the G4 rule; empty = no filter")
     ap.add_argument("--emit-nt", type=Path, default=None,
                     help="Write detection-cluster coordination triples (N-Triples) "
                          "for SPARQL-side G4 — load into Fuseki with tdb2.tdbloader.")
@@ -236,7 +255,10 @@ def main():
     log.info("τ_cluster = %.3f (k_min=%d, τ_rate=%.2f)", tau, args.k_min, args.tau_rate)
 
     # ---- G4 ----
-    hits = gate_g4(clusters, tau, args.k_min, args.tau_rate)
+    http_ports = {int(p) for p in args.http_ports.split(",") if p.strip()} or None
+    hits = gate_g4(clusters, tau, args.k_min, args.tau_rate, http_ports)
+    if http_ports:
+        log.info("  (filtro HTTP ativo: portas %s)", sorted(http_ports))
     g4_pass = len(hits) >= 1
     attack_purity = hits["attack_frac"].mean() if len(hits) else float("nan")
     n_attack_dom = int((hits["attack_frac"] >= 0.5).sum()) if len(hits) else 0
@@ -255,7 +277,7 @@ def main():
 
     # ---- G3 ----
     df = session_features(df)
-    auc_lr, auc_rf, feats, importances, ablation = gate_g3(df, ATTACK_LABELS_DEFAULT)
+    auc_lr, auc_rf, feats, importances, ablation = gate_g3(df)
     auc = max(auc_lr, auc_rf)
     g3_pass = auc >= 0.85
     log.info("=== G3 ROC AUC ===")

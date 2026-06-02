@@ -51,8 +51,7 @@ multiattack:  ## Passo A do HARDENING: generalização multi-ataque em dados rea
 	@[ -f $(REAL_S1) ] || { echo "❌ $(REAL_S1) não existe (HD externo montado?)"; exit 1; }
 	@mkdir -p results
 	$(PYTHON) scripts/run_real_multiattack.py \
-	  --dataset cicids2017=$(REAL_S1) \
-	  --dataset cic-iot-2023=$(REAL_S2) \
+	  --dataset cicids2017=$(REAL_S1) cic-iot-2023=$(REAL_S2) \
 	  --out results/real_multiattack.csv \
 	  2>&1 | tee $(LOG_DIR)/sprint3_multiattack.log
 

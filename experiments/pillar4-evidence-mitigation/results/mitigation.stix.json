@@ -11,15 +11,15 @@
         "malicious-activity"
       ],
       "pattern_type": "stix",
-      "pattern": "[x-tls:ja4 = 't13d_botnetX'] AND [network-traffic:dst_ref.value = '10.0.0.1' AND network-traffic:dst_port = 443]",
-      "description": "Ω(S)=105.6, 12 sessões; sub-relações: relatedByTLSFingerprint, relatedByEndpointConvergence"
+      "pattern": "[network-traffic:dst_ref.value = '192.168.137.132' AND network-traffic:dst_port = 8080] AND [ipv4-addr:value ISSUBSET '192.168.137.0/24']",
+      "description": "Ω(S)=3778266838.5, 91631 sessões; sub-relações: relatedByEndpointConvergence, relatedByNetworkProximity"
     },
     {
       "type": "course-of-action",
       "id": "course-of-action--coord-c001",
       "spec_version": "2.1",
       "name": "Mitigação cirúrgica de escopo derivado",
-      "description": "Filtrar/desafiar apenas o tráfego que casa com o discriminador do cluster: {\"tlsJa4\": \"t13d_botnetX\", \"endpoint\": \"10.0.0.1:443\"}"
+      "description": "Filtrar/desafiar apenas o tráfego que casa com o discriminador do cluster: {\"endpoint\": \"192.168.137.132:8080\", \"srcNet24\": \"192.168.137.0/24\"}"
     },
     {
       "type": "relationship",

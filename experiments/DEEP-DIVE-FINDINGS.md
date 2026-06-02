@@ -56,3 +56,14 @@ produção. (§5.5 do paper atualizado com esse caveat.)
 - **Tese de MITIGAÇÃO cirúrgica:** ✅ em princípio / ❌ não demonstrável nos datasets atuais.
 - **Calibração de pesos:** permanece teórica (não empírica).
 - **Robustez:** sinais redundantes (perde JA4, endpoint carrega).
+
+## Atualização — Item #3 fechado (mitigação cirúrgica em sintético calibrado)
+
+`pillar4-evidence-mitigation/scripts/collateral_eval.py` sobre 30 cenários stealth
+calibrados (K=1000): JA4 no escopo em 30/30; **cirúrgico 0,00% [0,00–0,00]** vs
+**global 22,5% [22,1–23,0]** → **redução 100%** do dano colateral, com IC. Eleva o
+toy a resultado calibrado+estatístico. Continua sintético (condições que o gerador
+modela; KS-validado); produção real permanece trabalho futuro. §5.5 do paper atualizado.
+
+Pendentes: #1 (isolar JA4 com endpoint disperso — redesign de cluster) e #2 (calibração
+de pesos com objetivo mais difícil) — médio valor, opcionais.

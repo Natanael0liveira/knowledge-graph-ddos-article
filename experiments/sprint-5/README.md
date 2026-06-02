@@ -2,8 +2,35 @@
 
 > **Objetivo:** rodar o arcabouço no mesmo *dataset* usado por KLAGE (Belcastro et al., FGCS 2026) para comparação direta em DDoS Slowloris. KLAGE reporta $F_1 = 84{,}1\%$; queremos reportar o nosso F1 lado a lado, com a métrica adicional de dano colateral em legítimos.
 
-> **Status:** 🛠 Stub — infraestrutura a ser construída após validação do Sprint 1.
-> Para já, esta pasta serve para guardar o *dataset* CIC-IoT2023 quando você baixar.
+> **Status:** ✅ Executado em CIC-IoT2023 (já adquirido e processado no Sprint 1).
+> RT-IoT2022 fica pendente de download (IEEE DataPort, manual).
+
+## ✅ Resultados — DDoS Slowloris, CIC-IoT2023
+
+Detecção de Slowloris (one-vs-rest), `make run`:
+
+| método | F1 | prec | rec | AUC | dano colateral (FPR benigno) |
+|---|---|---|---|---|---|
+| **KLAGE** (node-level, Graph-BERT) | 0.841 | — | — | — | não reportado |
+| nosso **(a)** ML por-sessão | 0.179 | 0.691 | 0.103 | 0.551 | 1.06% |
+| nosso **(d)** cross-session completo | **0.911** | 0.908 | 0.915 | 0.982 | 2.73% |
+
+**ΔF1(d−a) = +0.732.** No CIC-IoT2023 o Slowloris é per-sessão indistinguível do
+benigno (n_req≈1, dur≈0) e distribuído (143 /24s) — a detecção por-sessão colapsa
+(F1=0.18, AUC≈acaso), enquanto o arcabouço cross-session atinge F1=0.911,
+**superando o KLAGE (+0.070)**. A tese se sustenta em dados reais.
+
+**⚠️ Caveats honestos:**
+- **Granularidade:** KLAGE classifica *nós de rede*; nós classificamos *sessões*. Os
+  F1 não são diretamente comutáveis — comparação de ordem de grandeza. Vantagem
+  qualitativa nossa: veredicto simbólico auditável (regra SPARQL) + dano colateral
+  mensurável (KLAGE não reporta).
+- KLAGE avalia em RT-IoT2022 **+** CIC-IoT2023; aqui só CIC-IoT2023 (RT-IoT2022 não
+  adquirido).
+- (d) tem dano colateral maior que (a) (2.73% vs 1.06%): pega muito mais ataque mas
+  sinaliza levemente mais benigno — ainda baixo.
+
+Artefato: [`results/klage_comparison.json`](results/klage_comparison.json).
 
 ## Quando rodar este sprint
 

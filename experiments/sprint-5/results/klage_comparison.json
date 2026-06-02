@@ -1,0 +1,21 @@
+{
+  "dataset": "CIC-IoT2023",
+  "attack": "Slowloris",
+  "klage_f1": 0.841,
+  "ours": {
+    "a_ml_sem_ontologia": {
+      "f1": 0.1793391475248741,
+      "precision": 0.6905032160423761,
+      "recall": 0.10305203421892205,
+      "auc": 0.5508179999683951,
+      "collateral_fpr_benign": 0.010636574074074074
+    },
+    "d_completo": {
+      "f1": 0.9112289536241261,
+      "precision": 0.9079721926332903,
+      "recall": 0.9145091617493436,
+      "auc": 0.9816876203379489,
+      "collateral_fpr_benign": 0.02730324074074074
+    }
+  }
+}

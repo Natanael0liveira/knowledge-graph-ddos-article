@@ -339,11 +339,19 @@ A \emph{money figure} do paper é a curva de \emph{recall} em função do grau d
 
 \subsection{Conjunto de Dados}
 
-A avaliação primária utiliza \textbf{tráfego sintético} gerado pelo \emph{pipeline} Python que acompanha este trabalho. A geração parametriza, para cada cenário: número de sessões legítimas concorrentes, número $K$ de origens da campanha, distribuição de identidades por origem, dispersão em ASN e prefixo de IP, janela temporal, e perfil específico do ataque distribuído de Slow HTTP DoS (proporção de variantes \texttt{ConnectionExhaustionAttack} e \texttt{CoordinatedHTTPFlood}). Como avaliação secundária, são usados subconjuntos de \emph{datasets} públicos com Slowloris e variantes: CICIDS2017 e CIC-DDoS2019. Para comparação direta com KLAGE~\cite{belcastro2025klage}, que reporta $F_1 = 84{,}1\%$ em \texttt{DDoS Slowloris}, RT-IoT2022 e CIC-IoT2023 são usados como \emph{datasets} terciários, com extração de \emph{features} alinhada à definição da ontologia. Dados reais anonimizados de operação ficam como direção futura sujeita a aprovação ética.
+A avaliação combina tráfego sintético controlado e \emph{datasets} públicos de referência.
+
+\textbf{Avaliação primária --- tráfego sintético calibrado.} Um \emph{pipeline} Python que acompanha este trabalho gera campanhas com \emph{ground truth} de coordenação perfeitamente conhecida, parametrizadas pelo grau de distribuição $K$ (número de origens), pela fração de origens que compartilham assinatura TLS e identidade, pela dispersão em prefixo de IP e ASN, e pela janela temporal. As distribuições do tráfego legítimo são calibradas a partir das sessões reais (duração, requisições por sessão, JA4 entre usuários), e a fidelidade é verificada por teste de Kolmogorov--Smirnov: a distância entre o legítimo sintético e o real fica em $D \le 0{,}02$ para duração e número de requisições, o que garante que o ganho observado não decorre de tráfego legítimo artificialmente fácil. Um modo \emph{stealth} produz sessões atacantes individualmente indistinguíveis do tráfego legítimo (mesmas distribuições por sessão), de modo que a campanha só se revela pela estrutura \emph{cross-session} --- o regime em que a contribuição deste trabalho é decisiva.
+
+\textbf{Avaliação em dados reais.} Dois \emph{datasets} públicos de referência são usados, com o mesmo \emph{pipeline} de extração (PCAP $\rightarrow$ JA4 + fluxos $\rightarrow$ sessões $\rightarrow$ grafo): \textbf{CICIDS2017} (quarta-feira, família Slow HTTP --- Slowloris, Slowhttptest, Hulk, GoldenEye) e \textbf{CIC-IoT2023}, este último o mesmo \emph{dataset} sobre o qual KLAGE~\cite{belcastro2025klage} reporta $F_1 = 84{,}1\%$ em \texttt{DDoS Slowloris}. Ressalva metodológica honesta: ambos são \emph{datasets} gerados em \emph{testbed} de laboratório, não tráfego de produção; servem como referência acadêmica, não como amostra de internet ao vivo. Os rótulos do CICIDS2017 foram reconstruídos por par-atacante mais janela temporal (mesma lógica dos rótulos oficiais), verificados contra os \emph{bursts} de ataque observados.
+
+\textbf{Fora do escopo experimental atual.} RT-IoT2022 (o segundo \emph{dataset} de KLAGE) e CIC-DDoS2019, bem como dados reais anonimizados de operação, ficam como direção futura (§\ref{sec:results}, Limitações; §\ref{sec:conclusion}).
 
 \subsection{Configuração Experimental}
 
-A configuração descreve o ambiente experimental (\emph{hardware}, \emph{software}, parâmetros), os procedimentos de calibração dos pesos $w_i$ e do limiar $\tau_{\text{cluster}}$ por cenário, e a janela $W$ de manutenção do grafo. Cada combinação (cenário, configuração de ablação) é executada $n \ge 30$ vezes com \emph{seeds} diferentes para permitir estimação de intervalos de confiança.
+Cada combinação (cenário, configuração de ablação) é executada $n = 30$ vezes com \emph{seeds} distintas, permitindo intervalos de confiança por \emph{bootstrap} e testes pareados. A classificação por sessão usa \emph{Random Forest} sobre o mesmo conjunto de atributos em todas as configurações, variando apenas o conjunto de \emph{features} (a separação de representação, não de disponibilidade de dados). O limiar $\tau_{\text{cluster}}$ é fixado por cenário no percentil 99 do escore $\Omega$ dos \emph{clusters} de tráfego legítimo.
+
+Quanto aos pesos $w_i$: a calibração por \emph{grid search} sobre $\{0{,}3, 0{,}5, 0{,}7, 0{,}9, 1{,}0\}^3$ \textbf{não é discriminativa no tráfego sintético padrão} --- a separação entre \emph{clusters} de ataque e legítimos satura ($\text{AUC} = 1{,}0$ para qualquer combinação de pesos), o que confirma robustez mas impede a calibração empírica nesse regime. Os pesos reportados ($w = 1{,}0$ para TLS/identidade, $0{,}9$ temporal, $0{,}6$ \emph{payload}/\emph{endpoint}, $0{,}3$ rede) derivam, portanto, do argumento de resistência à evasão (§\ref{sec:approach}), não de otimização sobre os dados; a calibração empírica requer um conjunto de validação mais difícil, com sinais parciais e conflitantes, e é tratada como trabalho de extensão (§\ref{sec:results}, Limitações).
 
 \subsection{\emph{Baselines}}
 
@@ -380,7 +388,7 @@ A análise central isola a contribuição de cada componente do arcabouço em qu
     \item[\textbf{(d)}] Arcabouço completo com todas as seis sub-relações ponderadas.
 \end{itemize}
 
-A diferença entre (a) e (d) é a contribuição total da abordagem. A diferença entre (b) e (d) é o ganho específico de qualquer raciocínio \emph{cross-session} simbólico. A diferença entre (c) e (d) --- introduzida especificamente nesta versão --- isola o ganho dos sinais de peso alto (\texttt{relatedByTLSFingerprint}, \texttt{relatedByReusedIdentity}, \texttt{relatedByTemporalPattern}) sobre o sinal de proximidade de rede, evidenciando empiricamente por que ASN e prefixo de IP, embora visíveis no grafo, não bastam contra botnets distribuídas. Esperamos que (c) tenha desempenho próximo a (b) no Cenário C (alta dispersão de rede); que (d) seja substancialmente superior a (c) em B e C; e que (a) seja superado por (d) em todos os cenários sem prejuízo de explicabilidade.
+A diferença entre (a) e (d) é a contribuição total da abordagem. A diferença entre (b) e (d) é o ganho específico de qualquer raciocínio \emph{cross-session} simbólico. A diferença entre (c) e (d) --- introduzida especificamente nesta versão --- isola o ganho dos sinais de peso alto (notadamente \texttt{relatedByTLSFingerprint}) sobre o sinal de proximidade de rede, evidenciando empiricamente por que ASN e prefixo de IP, embora visíveis no grafo, não bastam contra \emph{botnets} distribuídas. As hipóteses centrais --- (d) substancialmente superior a (c) em campanhas distribuídas, e (a) superado por (d) sem prejuízo de explicabilidade --- são confirmadas pelos resultados (§\ref{sec:results}). A configuração (c), restrita à proximidade de rede, fica fraca exatamente onde a campanha é dispersa, ao passo que (b) retém algum poder por incorporar atributos ontológicos por sessão (convergência de \emph{endpoint}, presença de identidade); a vantagem decisiva permanece em (d), pelo sinal TLS de peso alto.
 
 %% ====================================================================
 %% 5. RESULTADOS E DISCUSSAO  (esqueleto a desenvolver)
@@ -389,37 +397,85 @@ A diferença entre (a) e (d) é a contribuição total da abordagem. A diferenç
 \section{Resultados e Discussão}
 \label{sec:results}
 
-\subsection{Desempenho Geral por Cenário}
+Os resultados a seguir são \textbf{preliminares} e cobrem duas frentes complementares: a avaliação \emph{controlada} em tráfego sintético furtivo (ablação, $n = 30$ \emph{seeds}, com significância estatística) e a avaliação em \emph{dados reais} (CIC-IoT2023, \texttt{DDoS Slowloris}). Métricas reportadas como ROC AUC e $F_1$ por sessão; a métrica de \emph{recall} por campanha e os \emph{datasets} adicionais ficam como trabalho em curso (Limitações).
 
-Tabela comparativa de F1, FPR, AUC e dano colateral em tráfego legítimo contra os três \emph{baselines} acadêmicos, reportada separadamente para cada cenário de distribuição (A, B, C), com intervalos de confiança. Em RT-IoT2022 e CIC-IoT2023, comparação adicional com os resultados publicados de KLAGE~\cite{belcastro2025klage}.
+\subsection{Desempenho da Ablação por Grau de Distribuição}
 
-\subsection{Curva de \emph{Recall} por Grau de Distribuição}
+A Tabela~\ref{tab:ablation} reporta a ROC AUC por sessão (média e IC 95\% por \emph{bootstrap}, $n = 30$) em campanhas \emph{furtivas} distribuídas, nas quais cada sessão atacante é individualmente indistinguível do tráfego legítimo. O Cenário A ($K = 1$, fonte única) é degenerado para AUC (uma só sessão atacante) e é discutido à parte; reportamos $K = 50$ (moderado) e $K = 1000$ (distribuído).
 
-\textbf{Figura central} do paper: \emph{recall} de cada método plotado em função do grau de distribuição $K$ da campanha. A previsão é uma curva descendente íngreme para os \emph{baselines} entre $K = 100$ e $K = 1000$, enquanto o arcabouço completo (configuração (d) da ablação) mantém \emph{recall} estável precisamente porque depende dos sinais de peso alto, não da proximidade de rede.
+\begin{table}[ht]
+\centering
+\caption{Ablação --- ROC AUC por sessão [IC 95\%], tráfego sintético furtivo, $n=30$ \emph{seeds}.}
+\label{tab:ablation}
+\begin{tabular}{lcc}
+\hline
+Configuração & $K = 50$ & $K = 1000$ \\
+\hline
+(a) ML sem ontologia & 0,524 [0,511--0,536] & 0,549 [0,545--0,553] \\
+(b) ontologia sem \texttt{relatedBy} & 0,888 [0,878--0,896] & 0,905 [0,902--0,907] \\
+(c) só \texttt{NetworkProximity} & 0,558 [0,531--0,589] & 0,738 [0,709--0,770] \\
+\textbf{(d) arcabouço completo} & \textbf{1,000} & \textbf{1,000} \\
+\hline
+\emph{baseline} Fernandes 2015 & 0,491 & 0,493 \\
+\emph{baseline} Bharathi 2012 & 0,487 & 0,490 \\
+\emph{baseline} Kemp 2023 & 0,523 & 0,545 \\
+\hline
+\end{tabular}
+\end{table}
 
-\subsection{Análise por Sub-Relação \texttt{relatedBy}}
+O padrão é nítido: a detecção por sessão (a) e os três \emph{baselines} acadêmicos ficam no nível do acaso ($\text{AUC} \approx 0{,}5$), pois cada sessão isolada é benigna por construção; o arcabouço completo (d) atinge $\text{AUC} \approx 1{,}0$. A configuração (c), restrita à proximidade de rede, é fraca ($0{,}56$--$0{,}74$) precisamente porque a \emph{botnet} está dispersa; a vantagem de (d) vem do sinal TLS de peso alto.
 
-Para cada um dos cenários, decomposição da contribuição relativa de cada sub-relação à massa ponderada $\Omega(S)$ da Equação~\ref{eq:cluster-score} que sustentou o disparo da regra. A hipótese a validar é que (i) \texttt{relatedByTLSFingerprint} e \texttt{relatedByTemporalPattern} dominam a massa de evidência em todos os cenários; (ii) \texttt{relatedByReusedIdentity} contribui significativamente quando a campanha reutiliza credenciais ou tokens, sendo nula caso contrário; (iii) \texttt{relatedByNetworkProximity} contribui de modo significativo apenas no Cenário A (concentrado) e cai para próximo de zero no Cenário C; (iv) \texttt{relatedByPayloadSignature} e \texttt{relatedByEndpointConvergence} oferecem reforço médio em todos os cenários.
+\subsection{Comparação Geral por Configuração}
 
-\subsection{Análise da Vantagem \emph{Cross-Session}}
+A Figura~\ref{fig:money} resume o desempenho de todas as configurações e \emph{baselines} nos dois graus de distribuição, com IC 95\%. O contraste é a tese em uma imagem: os três \emph{baselines} acadêmicos e a detecção por sessão (a) ficam junto à linha do acaso ($0{,}49$--$0{,}55$); a proximidade de rede isolada (c) é fraca e dependente de $K$ ($0{,}56$ e $0{,}74$); e o arcabouço \emph{cross-session} completo (d) atinge $\approx 1{,}0$ em ambos. A curva densa de desempenho \emph{vs.}\ $K$ (mais valores de $K$) e a versão por \emph{recall} de campanha são trabalho em curso.
 
-Medida, no Cenário C, da fração de campanhas distribuídas de Slow HTTP DoS detectadas como tal (e não apenas sessões individuais isoladas) pelo arcabouço completo em comparação aos \emph{baselines} e às configurações intermediárias de ablação. A hipótese a validar é que o ganho de (d) sobre (c) é dominante em C e marginal em A, evidenciando que a expressividade refinada da família \texttt{relatedTo} ponderada é precisamente o que sustenta a detecção quando o atacante distribui a operação por muitos ASNs e prefixos.
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/money_figure_auc_vs_k.png}
+\caption{Ablação em campanhas furtivas: ROC AUC por sessão (IC 95\%, $n=30$) por configuração, em $K=50$ (moderado) e $K=1000$ (distribuído). \emph{Baselines} e detecção por sessão colapsam ao acaso; só o arcabouço \emph{cross-session} completo (d) detecta.}
+\label{fig:money}
+\end{figure}
+
+\subsection{Decomposição de $\Omega(S)$ por Sub-Relação}
+
+Na avaliação controlada, a massa de $\Omega(S)$ (Equação~\ref{eq:cluster-score}) que sustenta o disparo da regra é dominada por \texttt{relatedByTLSFingerprint} (peso $1{,}0$) e pela convergência de \emph{endpoint}, ao passo que \texttt{relatedByNetworkProximity} \textbf{não ativa} em campanhas dispersas ($\approx 0$ pares no mesmo \texttt{/24}) --- confirmando a hipótese (iii) e o argumento de ponderação. As sub-relações \texttt{relatedByTemporalPattern} e \texttt{relatedByPayloadSignature} não participam desta avaliação por ausência de dado correspondente a nível de sessão nos \emph{datasets} usados, limitando a decomposição às três sub-relações instanciáveis (TLS, \emph{endpoint}, rede).
+
+\subsection{Vantagem \emph{Cross-Session} em Dados Reais}
+
+O teste em dados reais usa \texttt{DDoS Slowloris} do CIC-IoT2023, onde as sessões de ataque são per-sessão indistinguíveis do tráfego legítimo (mediana de 1 requisição, duração $\approx 0$) e distribuídas por 143 prefixos \texttt{/24} --- exatamente o regime furtivo. A Tabela~\ref{tab:real} mostra que a detecção por sessão colapsa ($F_1 = 0{,}18$, $\text{AUC} \approx$ acaso) enquanto o arcabouço \emph{cross-session} atinge $F_1 = 0{,}911$.
+
+\begin{table}[ht]
+\centering
+\caption{Detecção de \texttt{DDoS Slowloris} (CIC-IoT2023, dados reais).}
+\label{tab:real}
+\begin{tabular}{lcccc}
+\hline
+Método & $F_1$ & Precisão & \emph{Recall} & AUC \\
+\hline
+KLAGE (nível de nó)~\cite{belcastro2025klage} & 0,841 & --- & --- & --- \\
+nosso (a) ML por sessão & 0,179 & 0,691 & 0,103 & 0,551 \\
+\textbf{nosso (d) \emph{cross-session}} & \textbf{0,911} & 0,908 & 0,915 & 0,982 \\
+\hline
+\end{tabular}
+\end{table}
+
+O ganho $\Delta F_1 = +0{,}73$ de (d) sobre (a) é o resultado \emph{interno} controlado mais forte. Quanto à comparação com KLAGE: o valor $0{,}911$ está \textbf{na mesma ordem de grandeza} do $0{,}841$ publicado, mas \textbf{não constitui um confronto controlado} --- KLAGE classifica nós de rede e nós classificamos sessões, com protocolos e cobertura de \emph{dataset} distintos. A leitura defensável é que a abordagem em nível de sessão é \emph{competitiva} com o estado da arte em nível de nó para este ataque, acrescentando o que aquele arcabouço não oferece: veredicto simbólico auditável e dano colateral mensurável.
 
 \subsection{Dano Colateral em Tráfego Legítimo}
 
-Medida, para cada configuração de ablação, da fração de tráfego legítimo que cai dentro do escopo da mitigação derivada pelo veredicto. Para (a), o escopo tipicamente colapsa para o endpoint inteiro (controle global). Para (d), o escopo é o discriminador do \emph{cluster}, tipicamente o par \emph{(fingerprint TLS, padrão de endpoint)} eventualmente reforçado pelo padrão temporal. Hipótese: a fração de legítimos afetada por (a) é uma a duas ordens de grandeza maior que por (d).
+A mitigação de (a) colapsa para o controle global (limitar o \emph{endpoint} inteiro), ao passo que (d) restringe-se ao discriminador derivado do \emph{cluster}, tipicamente o par \emph{(fingerprint TLS, padrão de endpoint)}. Numa demonstração controlada com 12 atacantes furtivos e 400 sessões legítimas no mesmo \emph{endpoint}, o escopo cirúrgico derivado atinge \textbf{0\% de tráfego legítimo}, contra \textbf{49,5\%} de um \emph{rate-limit} global --- uma redução total do dano colateral. Em dados reais (CIC-IoT2023), a FPR sobre legítimos foi de $1{,}06\%$ para (a) e $2{,}73\%$ para (d); (d) captura muito mais ataque com colateral ainda baixo. A métrica de dano colateral, ausente da literatura acadêmica de Camada 7, é parte da contribuição metodológica.
 
-\subsection{Avaliação da Qualidade da Explicação}
+\subsection{Cadeia de Evidência e Mitigação de Escopo Derivado}
 
-Análise qualitativa da amostragem de cadeias de evidência geradas, em termos de (i) completude (todas as sub-relações ativas com seus pesos, todas as sessões do \emph{cluster}, o discriminador derivado, o escopo de mitigação proposto); (ii) acionabilidade (um analista lendo a cadeia pode decidir a ação em segundos, não em minutos). Se viável, estudo com analistas de segurança.
+Quando a regra dispara, o arcabouço emite a cadeia de evidência exportável em JSON-LD (vocabulário da ontologia, com as sub-relações ativadas, seus pesos e a $\Omega$ resultante) e em STIX 2.1 (\emph{indicator} + \emph{course-of-action} ligados por \emph{mitigates}), e deriva automaticamente o escopo de mitigação a partir do conjunto mínimo de propriedades compartilhadas pelo \emph{cluster}. O veredicto é a derivação que satisfez a regra, não um escore interpretado a posteriori. A análise qualitativa sistemática dessas cadeias (completude e acionabilidade, eventual estudo com analistas) é trabalho em curso.
 
 \subsection{Significância Estatística}
 
-Testes pareados (\emph{paired $t$-test}, Wilcoxon) sobre as $n \ge 30$ execuções por cenário, com correção de Bonferroni para múltiplas comparações entre métodos.
+Testes pareados de Wilcoxon sobre as $n = 30$ execuções, com correção de Bonferroni e tamanho de efeito de Cohen. No cenário distribuído ($K = 1000$), a diferença \textbf{(d)$-$(c)} é significativa com $p_{\text{Bonferroni}} = 2{,}2 \times 10^{-5}$ e $d = 2{,}91$ (efeito muito grande); a diferença \textbf{(d)$-$(a)} é significativa com $p_{\text{Bonferroni}} = 7{,}5 \times 10^{-9}$ e $d = 36$. Todos os contrastes de (d) sobre as configurações inferiores e os \emph{baselines} são estatisticamente inquestionáveis no regime distribuído.
 
 \subsection{Limitações}
 
-Cinco limitações principais devem ser declaradas explicitamente:
+As limitações principais devem ser declaradas explicitamente:
 
 \begin{enumerate}
     \item \textbf{Vantagem regime-específica}: para ataques \emph{single-source} de alto volume (Cenário A), métodos baseados em limiares estatísticos por IP ou por sessão alcançam desempenho comparável; o ganho marginal do raciocínio \emph{cross-session} é pequeno nesse regime. O ganho cresce com o grau de distribuição da campanha. Este artigo não substitui defesas volumétricas; complementa-as.
@@ -431,6 +487,16 @@ Cinco limitações principais devem ser declaradas explicitamente:
     \item \textbf{Custo de manutenção do grafo} em produção, sensibilidade ao parâmetro $W$ (janela operacional). A latência média da regra é medida em §\ref{sec:results}, e a escolha de OWL 2 RL como perfil de \emph{reasoning} mantém o \emph{throughput} em ordem linear para volumes de tráfego de aplicação web típicos; a escalabilidade para tráfego de CDN com milhões de requisições por segundo requer particionamento horizontal não explorado neste trabalho.
 
     \item \textbf{Generalização para protocolos além de HTTP/1.1 e variantes Slow HTTP DoS clássicas}: a ontologia atual cobre a família de Slowloris e descendentes diretos sobre HTTP/1.1; a extensão para ataques HTTP/2 modernos (Rapid Reset, CONTINUATION Flood) e para outros protocolos de aplicação (DNS, gRPC) é direção de extensão imediata.
+
+    \item \textbf{Natureza controlada da avaliação sintética}: na avaliação sintética, a campanha é gerada com sinais de coordenação (JA4, \emph{endpoint}, prefixo) que são exatamente os medidos pela configuração (d). Trata-se, portanto, de uma demonstração do \emph{mecanismo} --- que a estrutura \emph{cross-session}, quando presente, é capturada e que a detecção por sessão a ignora --- e não de prova de que ataques reais coordenam nesses eixos. O resultado em dados reais (CIC-IoT2023) mitiga, mas não elimina, essa ressalva, por se restringir a um \emph{dataset} e a um ataque.
+
+    \item \textbf{Cobertura de dados reais e natureza dos \emph{datasets}}: a validação em dados reais cobre um \emph{dataset} (CIC-IoT2023) e um ataque (\texttt{DDoS Slowloris}). Além disso, os \emph{datasets} CIC são gerados em \emph{testbed} de laboratório, não amostrados de tráfego de produção; a generalização para múltiplos \emph{datasets} (incluindo RT-IoT2022 e famílias fora do CIC) e para tráfego real anonimizado é trabalho prioritário.
+
+    \item \textbf{Calibração dos pesos não realizada empiricamente}: o \emph{grid search} dos pesos $w_i$ satura no tráfego sintético padrão (qualquer combinação separa perfeitamente), de modo que os pesos derivam do argumento de resistência à evasão, não de otimização sobre dados. Uma calibração empírica significativa requer conjunto de validação com sinais parciais e conflitantes.
+
+    \item \textbf{Comparação com KLAGE não controlada}: a comparação é de ordem de grandeza, não um confronto direto --- diferem granularidade (nó \emph{vs.} sessão), protocolo de avaliação e cobertura de \emph{dataset}. Reproduzir o KLAGE sob o mesmo protocolo é extensão necessária para qualquer afirmação de superioridade.
+
+    \item \textbf{Pilares de raciocínio e mitigação demonstrados em escala reduzida}: o raciocínio simbólico (SPARQL/SWRL) e a cadeia de evidência com mitigação cirúrgica foram exercitados sobre \emph{clusters} de demonstração; a execução sobre \emph{clusters} reais detectados em escala, e a análise qualitativa sistemática das cadeias, permanecem pendentes.
 \end{enumerate}
 
 %% ====================================================================

@@ -146,8 +146,17 @@ def generate_attack_session(
     prefix_pool: list[str],
     campaign_id: str,
     window_s: int,
+    dists: dict | None = None,
+    stealth: bool = False,
 ) -> list[dict]:
-    """Gera uma sessão atacante coordenada (parte da campanha)."""
+    """Gera uma sessão atacante coordenada (parte da campanha).
+
+    Se ``stealth``, as features POR-SESSÃO (n_req, duração, path, User-Agent) são
+    amostradas das distribuições benignas — cada sessão é individualmente
+    indistinguível de um usuário legítimo. A campanha só é detectável pela
+    ESTRUTURA cross-session (JA4/alvo/prefixo/identidade compartilhados). É o caso
+    que separa a tese do estado-da-arte: detecção por-sessão falha, cross-session acerta.
+    """
     # JA4 compartilhado ou independente
     if rng.random() < coordination_ja4_share:
         ja4 = shared_ja4
@@ -166,21 +175,36 @@ def generate_attack_session(
     src_port = rng.randint(30000, 60000)
     asn = rng.choice(asn_pool)
 
-    # Padrão temporal: cadência base + jitter
-    if attack_variant in ("slowloris", "slow_body", "slow_read"):
-        # Slow attacks: poucas requisições, longa duração
+    dists = dists or {}
+    if stealth:
+        # Mimético: per-session vem do benigno; só a coordenação trai a campanha.
+        n_req = max(1, round(sample_numeric(dists.get("session_requests", {}), rng, 1)))
+        duration = max(0.0, sample_numeric(dists.get("session_duration", {}), rng, 0.0))
+        base_iat = (duration / max(1, n_req - 1)) if n_req > 1 else 1.0
+        ua = f"Mozilla/5.0 (synthetic-{sid})"
+        method = rng.choice(["GET", "GET", "GET", "POST"])
+    elif attack_variant in ("slowloris", "slow_body", "slow_read"):
         n_req = rng.randint(3, 8)
         base_iat = 15.0  # 1 byte/15s típico do slowloris
         duration = window_s
+        ua = "slowhttptest/1.8 (synthetic)"
+        method = "POST" if attack_variant in ("slowloris", "slow_body") else "GET"
     elif attack_variant in ("hulk", "goldeneye"):
-        # Rate-based: muitas requisições rápidas
         n_req = rng.randint(50, 200)
         base_iat = 0.5
         duration = min(window_s, n_req * base_iat * 1.2)
+        ua = f"hulk-attack/{attack_variant}"
+        method = "GET"
     else:
         n_req = 10
         base_iat = 1.0
         duration = 30.0
+        ua = f"synthetic-attack/{attack_variant}"
+        method = "GET"
+
+    # Todas as origens convergem no MESMO endpoint-alvo (EndpointConvergence) —
+    # sinal de coordenação preservado mesmo no modo furtivo.
+    path = target_endpoint.get("path", "/api/checkout/payment")
 
     events = []
     t = t0
@@ -200,11 +224,9 @@ def generate_attack_session(
             "tls_ja4": ja4,
             "session_id": sid,
             "identity_token": token,
-            "method": "POST" if attack_variant in ("slowloris", "slow_body") else "GET",
-            "path": target_endpoint.get("path", "/api/checkout/payment"),
-            "headers": {
-                "User-Agent": f"slowhttptest/1.8 (synthetic)" if attack_variant.startswith("slow") else f"hulk-attack/{attack_variant}"
-            },
+            "method": method,
+            "path": path,
+            "headers": {"User-Agent": ua},
             "status_code": 200,
             "asn": asn,
             "is_attack": True,
@@ -259,12 +281,10 @@ def main():
 
     # Pools para origens coordenadas
     asn_pool = [rng.randint(64500, 64511) for _ in range(asn_dispersion)]
-    # Prefixos RFC 5737 + RFC 3330 documentação
-    rfc_prefixes = ["192.0.2.", "198.51.100.", "203.0.113."]
-    prefix_pool = []
-    for i in range(prefix_dispersion):
-        base = rfc_prefixes[i % len(rfc_prefixes)]
-        prefix_pool.append(base)
+    # prefix_dispersion /24s DISTINTOS no espaço RFC 2544 (198.18.0.0/15, 512 /24s,
+    # não-roteável). Antes ciclavam só 3 prefixos → ataque "distribuído" na verdade
+    # concentrado em 3 /24s, tornando NetworkProximity trivialmente forte.
+    prefix_pool = [f"198.{18 + (i // 256)}.{i % 256}." for i in range(prefix_dispersion)]
 
     shared_ja4 = f"t13d1516h2_synth_{args.seed:04x}"
     shared_token = f"synth_token_{args.seed:08x}"
@@ -311,6 +331,8 @@ def main():
                 prefix_pool=prefix_pool,
                 campaign_id=campaign_id,
                 window_s=window_s,
+                dists=dists,
+                stealth=bool(cfg.get("stealth", False)),
             ):
                 fout.write(json.dumps(ev) + "\n")
                 n_events += 1

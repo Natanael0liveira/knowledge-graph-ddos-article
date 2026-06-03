@@ -67,3 +67,16 @@ modela; KS-validado); produção real permanece trabalho futuro. §5.5 do paper 
 
 Pendentes: #1 (isolar JA4 com endpoint disperso — redesign de cluster) e #2 (calibração
 de pesos com objetivo mais difícil) — médio valor, opcionais.
+
+## Atualização — #3 Calibração de pesos a nível de SESSÃO (objetivo mais difícil)
+
+`sprint-4/scripts/weight_calibration_session.py` sobre o `scenario_hard` (8 seeds,
+features z-score, AUC por sessão). Agora **é discriminativo** (spread 0,33), mas:
+- Melhor: w(tls,ep,net)=(0,3, 1,0, 0,9) → AUC 0,974; pesos do paper (1,0/0,6/0,3) → 0,682.
+- AUC de cada sinal sozinho: **share_ja4=0,345 (anti-discriminativo!)**, cluster_size=0,890, share_net=0,950.
+- **Causa:** o benigno sintético compartilha JA4 de um pool pequeno (39 distintos, herdado
+  do CIC), então benignos têm *mais* JA4 compartilhado que atacantes parcialmente
+  coordenados → JA4 inverte de sinal. É **artefato da baixa diversidade de JA4 benigno**,
+  não refutação: na internet real o JA4 benigno é altamente diverso (a premissa do paper).
+- **Conclusão:** calibrar pesos no sintético dá números enganosos; os pesos teóricos
+  (custo de evasão) se mantêm; calibração fiel exige diversidade de JA4 realista (produção).

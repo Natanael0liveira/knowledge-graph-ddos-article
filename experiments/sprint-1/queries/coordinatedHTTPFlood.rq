@@ -14,7 +14,7 @@
 #     --data-urlencode query@queries/coordinatedHTTPFlood.rq \
 #     http://localhost:3030/cic-iot-2023/sparql
 
-PREFIX kg: <https://kg-ddos.example/ontology#>
+PREFIX kg: <http://security.example.org/ontology/ddos#>
 
 SELECT ?endpoint ?omega ?size ?rate WHERE {
   ?c a kg:DetectionCluster ;

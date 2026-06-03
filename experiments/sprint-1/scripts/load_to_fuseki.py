@@ -30,7 +30,7 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-KG = Namespace("https://kg-ddos.example/ontology#")
+KG = Namespace("http://security.example.org/ontology/ddos#")
 
 
 def _add_session_triples(g: Graph, row) -> None:

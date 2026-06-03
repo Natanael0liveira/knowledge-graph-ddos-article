@@ -4,10 +4,12 @@
 
 Este arquivo documenta exatamente onde paramos para que a próxima sessão retome sem reler todo o histórico.
 
-> **➡️ PRÓXIMA SESSÃO (2026-06-02):** começar por [`HARDENING-PLAN.md`](HARDENING-PLAN.md)
-> — plano gratuito para endurecer a validade dos resultados (auto-auditoria cética
-> encontrou circularidade no sintético, comparação KLAGE não-controlada, baselines
-> não-fiéis, pesos não-calibrados). Passo 1 = generalização multi-ataque em dados reais.
+> **➡️ ESTADO (2026-06-03):** Fase B (Sprints 1–5) + os 4 pilares + endurecimento em
+> dados reais + consolidação do paper estão **concluídos**. Documentos-mestre:
+> [`METODOLOGIA-DECISOES-RESULTADOS.md`](METODOLOGIA-DECISOES-RESULTADOS.md) (por quê /
+> cálculos / resultados / prático esperado por etapa) e
+> [`DEEP-DIVE-FINDINGS.md`](DEEP-DIVE-FINDINGS.md) (resultados em dados reais).
+> As pendências reais estão no fim deste arquivo.
 
 ---
 
@@ -84,16 +86,23 @@ Sessão offline (HD ejetado). Tudo commitado e pushado.
 - ✅ **Pilar 4 codado:** `experiments/pillar4-evidence-mitigation/` (cadeia JSON-LD/STIX
   + mitigação cirúrgica; toy: 0% colateral vs 49,5% global). `make demo`.
   → **Os 4 pilares do paper agora existem como código.**
-- ✅ **Bateria de hardening preparada offline:** Passo A (`run_real_multiattack.py`),
-  B (`robustness_sweep.py`), C (`scenario_hard.yaml`) codados+smoke; D-2 (reescopo KLAGE
-  honesto) feito. Ver [`HARDENING-PLAN.md`](HARDENING-PLAN.md).
+- ✅ **Deep-dive em dados reais EXECUTADO (2026-06-02/03):** Passo A (6 ataques reais:
+  (a) ~acaso 0,52–0,72 → (d) 0,96–1,0); Passo B (robustez = redundância de sinais, não
+  isola JA4); Passo C (calibração de pesos **não-alcançável**, satura); Pilar 4 em
+  cluster real (mitigação cirúrgica **não se manifesta** no CIC: LAN+não-TLS) e em
+  sintético calibrado (**0% vs 22,5%**, n=30, IC). Registro: [`DEEP-DIVE-FINDINGS.md`](DEEP-DIVE-FINDINGS.md).
+- ✅ **Paper consolidado:** abstract + §4–§6 + apêndice alinhados aos resultados reais,
+  com caveats honestos; *money figure* (ablação) no `.tex`. §2 revisado (coerente).
 
-**Pendências reais que restam:** (a) rodar hardening A/B/C + pilares 2/4 sobre dados/
-clusters REAIS (precisa do HD); (b) calibração real de w_i (sintético satura → usar
-`scenario_hard`); (c) alinhar namespace ontologia↔dados no `load_to_fuseki.py`;
-(d) RT-IoT2022; (e) redação da §5 do paper.
-
-**Próxima sessão ONLINE:** começar por `make -C experiments/sprint-3 multiattack`.
+**Pendências reais que restam:**
+- (a) **Figuras candidatas** em `figures-candidatas/` (figC multi-ataque real; figB
+  colateral cirúrgico×global) — decidir quais entram no `.tex` + ajustes cosméticos.
+- (b) **#1 isolar o JA4**: sweep com *endpoint* disperso (exige redesign do cluster).
+- (c) **#2 calibração de pesos** com objetivo mais difícil (recall por sessão / adversarial).
+- (d) **Namespace** ontologia↔dados no `load_to_fuseki.py` (+ reload).
+- (e) **RT-IoT2022** (2º dataset do KLAGE; download IEEE ~12 GB) — fecha a comparação.
+- (f) **Avaliação em produção** (TLS observável + atacantes dispersos) — onde a mitigação
+  cirúrgica se realiza plenamente (a única forma de "dado mais real").
 
 ---
 

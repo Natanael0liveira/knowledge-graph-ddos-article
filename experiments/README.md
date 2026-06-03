@@ -79,16 +79,19 @@ experiments/
 ├── sprint-3/                       # Baselines + ablação a/b/c/d (✅)
 ├── sprint-4/                       # Execução estatística n=30 + figura (✅)
 ├── sprint-5/                       # Comparação com KLAGE (✅ CIC-IoT2023)
-├── pillar2-symbolic-reasoning/     # Pilar 2: SWRL+SPARQL, veredicto-como-derivação (✅ demo)
-├── pillar4-evidence-mitigation/    # Pilar 4: cadeia JSON-LD/STIX + mitigação cirúrgica (✅ demo)
-├── HARDENING-PLAN.md               # Plano de endurecimento da validade (próximos passos)
-└── RESUME.md                       # Ponto de parada / handoff
+├── pillar2-symbolic-reasoning/     # Pilar 2: SWRL+SPARQL, veredicto-como-derivação (✅)
+├── pillar4-evidence-mitigation/    # Pilar 4: cadeia JSON-LD/STIX + mitigação cirúrgica (✅)
+├── figures-candidatas/             # Figuras candidatas ao artigo (fora do .tex, p/ revisão)
+├── METODOLOGIA-DECISOES-RESULTADOS.md  # Por quê/cálculos/resultados/prático por etapa
+├── DEEP-DIVE-FINDINGS.md           # Resultados em dados reais (Passos A–C + Pilar 4)
+└── RESUME.md                       # Ponto de parada / handoff (status + pendências)
 ```
 
-> **Pilares do paper codificados** (além dos 5 sprints): Pilar 2 (`pillar2-*`) e
-> Pilar 4 (`pillar4-*`) têm `make demo` offline. Os 4 pilares agora existem como
-> código; rodá-los sobre clusters reais e calibrar pesos é o trabalho online restante
-> (ver [`HARDENING-PLAN.md`](HARDENING-PLAN.md)).
+> **Estado:** os 5 sprints e os 4 pilares do paper estão codificados e **executados em
+> dados reais** (ver `DEEP-DIVE-FINDINGS.md`); o paper está consolidado com os resultados.
+> Para o raciocínio das decisões e o significado dos cálculos por etapa, ver
+> [`METODOLOGIA-DECISOES-RESULTADOS.md`](METODOLOGIA-DECISOES-RESULTADOS.md); o status
+> atual e as pendências reais estão em [`RESUME.md`](RESUME.md).
 
 ## Estado atual — Fase B completa (2026-06-01)
 

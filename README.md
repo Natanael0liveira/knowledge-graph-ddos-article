@@ -127,26 +127,31 @@ knowledge-graph-ddos-article/
 
 ## Estado atual
 
-**Validação experimental (Fase B, Sprints 1–5) executada em 2026-06-01** — ver
-[`experiments/RESUME.md`](experiments/RESUME.md) e [`experiments/README.md`](experiments/README.md).
-Ameaças à validade e plano de endurecimento: [`experiments/HARDENING-PLAN.md`](experiments/HARDENING-PLAN.md).
+**Fase B (Sprints 1–5) + os 4 pilares + endurecimento em dados reais + consolidação do
+paper concluídos (2026-06).** Raciocínio das decisões e significado dos cálculos por
+etapa: [`experiments/METODOLOGIA-DECISOES-RESULTADOS.md`](experiments/METODOLOGIA-DECISOES-RESULTADOS.md);
+resultados em dados reais e ameaças à validade:
+[`experiments/DEEP-DIVE-FINDINGS.md`](experiments/DEEP-DIVE-FINDINGS.md); status atual e
+pendências: [`experiments/RESUME.md`](experiments/RESUME.md).
 
 | Componente | Status |
 |---|---|
 | §1 Introdução do paper | ✅ Escrita completa |
-| §2–§6 + Apêndice | 🔄 Esqueletos; §5 (Resultados) a redigir com as tabelas/figura geradas |
+| §2–§6 + Apêndice | ✅ Consolidados com resultados reais + caveats; §5 preenchida (tabelas + *money figure*); §2 revisado |
 | *Pipeline* de extração (PCAP→sessões→KG) | ✅ Executado — CICIDS2017 + CIC-IoT2023 no Fuseki |
 | Extração de JA4 dos *datasets* | ✅ Feita (gates G1–G2 PASS) |
 | Gerador sintético parametrizado por K | ✅ Calibrado (KS≤0.02), modo *stealth* |
 | Ambiente Docker do laboratório (Fuseki) | ✅ Funcional (TDB2 no SSD; bulk load nativo) |
-| *Baselines* (Fernandes, Bharathi, Kemp) | ✅ Implementados (operacionalizações; fidelidade a endurecer — ver HARDENING-PLAN) |
+| *Baselines* (Fernandes, Bharathi, Kemp) | ✅ Implementados (operacionalizações; no acaso em ataque furtivo — ver DEEP-DIVE-FINDINGS) |
+| **Generalização em dados reais** (6 ataques, 2 datasets) | ✅ (a) por-sessão ~acaso → (d) cross-session 0,96–1,0 |
 | Ablação a/b/c/d + estatística (n=30) | ✅ (d)−(c) p<0.01 (Bonferroni), d=2.91 |
 | Comparação com KLAGE (CIC-IoT2023) | ✅ F1=0.911 (caveat: granularidade nó-vs-sessão) |
 | Ontologia OWL: 6 sub-propriedades `relatedBy_*` ponderadas | ✅ Formalizadas (com `coordinationWeight`) |
 | Alinhamento de namespace ontologia↔dados em runtime | ⏳ Pendente (instâncias usam namespace distinto do `.owl`) |
-| **Pilar 4** (cadeia de evidência JSON-LD/STIX + mitigação cirúrgica) | ✅ Codado + demo (toy: 0% colateral vs 49,5% global); testar em cluster real pendente |
-| **Pilar 2** (raciocínio simbólico SWRL+SPARQL · veredicto-como-derivação) | ✅ Codado + demo (regra dispara com derivação; pesos da ontologia); testar no KG real pendente |
-| Calibração real de pesos $w_i$ · RT-IoT2022 | ⏳ Pendente (ver HARDENING-PLAN) |
+| **Pilar 4** (cadeia de evidência JSON-LD/STIX + mitigação cirúrgica) | ✅ Codado + rodado em cluster real e sintético calibrado (cirúrgico 0% vs global 22,5%, n=30); não se manifesta no CIC (LAN+não-TLS) |
+| **Pilar 2** (raciocínio simbólico SWRL+SPARQL · veredicto-como-derivação) | ✅ Codado; regra dispara com a derivação; pesos lidos da ontologia |
+| Calibração empírica de pesos $w_i$ | ⏳ Não-alcançável no sintético (satura); pesos teóricos — ver DEEP-DIVE-FINDINGS |
+| RT-IoT2022 (2º dataset KLAGE) · avaliação em produção | ⏳ Pendente (trabalho futuro) |
 
 ---
 

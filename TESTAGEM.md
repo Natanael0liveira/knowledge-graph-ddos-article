@@ -9,8 +9,9 @@ Para a visão de projeto, ver [`README.md`](README.md). Para a fundamentação, 
 > gates e *caveats* em [`experiments/RESUME.md`](experiments/RESUME.md) e nos READMEs de
 > cada sprint. Resumo: detecção por-sessão colapsa em campanha furtiva distribuída
 > (F1≈0.18) enquanto o arcabouço cross-session detecta (F1=0.911 no CIC-IoT2023 real,
-> vs KLAGE 0.841). Ameaças à validade e o plano gratuito para endurecê-las:
-> [`experiments/HARDENING-PLAN.md`](experiments/HARDENING-PLAN.md).
+> vs KLAGE 0.841). Resultados em dados reais e ameaças à validade:
+> [`experiments/DEEP-DIVE-FINDINGS.md`](experiments/DEEP-DIVE-FINDINGS.md); metodologia
+> e decisões por etapa: [`experiments/METODOLOGIA-DECISOES-RESULTADOS.md`](experiments/METODOLOGIA-DECISOES-RESULTADOS.md).
 
 ---
 

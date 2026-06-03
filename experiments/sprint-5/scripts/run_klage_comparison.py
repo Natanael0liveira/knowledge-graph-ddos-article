@@ -39,6 +39,9 @@ log = logging.getLogger(__name__)
 
 KLAGE_F1 = 0.841
 ATTACK = "Slowloris"
+# baseline por-sessão FORTE (8 features de fluxo) — o honesto, não os 3 de FLOW.
+STRONG_FLOW = FLOW + ["fwd_bytes_sum", "bwd_bytes_sum", "fwd_pkts_sum",
+                      "bwd_pkts_sum", "iat_mean_mean", "iat_std_mean"]
 
 
 def evaluate(df, feats, y, benign_mask, rng=42):
@@ -76,7 +79,9 @@ def main():
              len(df), int(y.sum()), int(benign_mask.sum()),
              len(df) - int(y.sum()) - int(benign_mask.sum()))
 
-    configs = {"a_ml_sem_ontologia": FLOW, "d_completo": FEATURE_SETS["d_completo"]}
+    configs = {"a_ml_sem_ontologia": FLOW,
+               "a_ml_forte": STRONG_FLOW,
+               "d_completo": FEATURE_SETS["d_completo"]}
     res = {c: evaluate(df, feats, y, benign_mask) for c, feats in configs.items()}
 
     print("\n" + "=" * 72)
@@ -85,14 +90,20 @@ def main():
     print(f"{'método':<34}{'F1':>8}{'prec':>8}{'rec':>8}{'AUC':>8}{'dano colat.':>13}")
     print("-" * 72)
     print(f"{'KLAGE (node-level, Graph-BERT)':<34}{KLAGE_F1:>8.3f}{'—':>8}{'—':>8}{'—':>8}{'não reportado':>13}")
-    names = {"a_ml_sem_ontologia": "nosso (a) ML por-sessão",
+    names = {"a_ml_sem_ontologia": "nosso (a) ML por-sessão (3 feat)",
+             "a_ml_forte": "nosso (a') ML por-sessão FORTE (8 feat)",
              "d_completo": "nosso (d) cross-session completo"}
     for c, r in res.items():
-        print(f"{names[c]:<34}{r['f1']:>8.3f}{r['precision']:>8.3f}{r['recall']:>8.3f}"
+        print(f"{names[c]:<40}{r['f1']:>8.3f}{r['precision']:>8.3f}{r['recall']:>8.3f}"
               f"{r['auc']:>8.3f}{r['collateral_fpr_benign']:>13.4f}")
     print("-" * 72)
-    d = res["d_completo"]; a = res["a_ml_sem_ontologia"]
-    print(f"\nΔF1 (d − a) = {d['f1']-a['f1']:+.3f}  |  nosso (d) vs KLAGE: {d['f1']-KLAGE_F1:+.3f}")
+    d = res["d_completo"]; a = res["a_ml_sem_ontologia"]; af = res["a_ml_forte"]
+    print(f"\nΔF1 (d − a magro) = {d['f1']-a['f1']:+.3f}  |  ΔF1 (d − a FORTE) = {d['f1']-af['f1']:+.3f}")
+    print(f"nosso (d) vs KLAGE: {d['f1']-KLAGE_F1:+.3f}  |  a FORTE vs KLAGE: {af['f1']-KLAGE_F1:+.3f}")
+    print("\n⚠️ HONESTO: em DADOS REAIS o ML por-sessão FORTE NÃO colapsa (Slowloris do")
+    print("   CIC-IoT2023 tem assinatura de fluxo por-sessão). O 'colapso por-sessão' só")
+    print("   vale com baseline magro OU no regime furtivo sintético. Aqui (d) ainda supera")
+    print("   KLAGE, mas a vantagem sobre o per-session forte é pequena — reportar sem maquiar.")
     print("\n⚠️ MAPEAMENTO DE GRANULARIDADE (honesto): KLAGE classifica NÓS DE REDE;")
     print("   nós classificamos SESSÕES. F1 não é diretamente comutável — comparação")
     print("   é de ordem de grandeza. Nossa vantagem qualitativa: símbolo auditável")

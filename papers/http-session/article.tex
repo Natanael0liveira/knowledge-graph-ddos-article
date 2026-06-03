@@ -359,7 +359,7 @@ A comparação experimental é feita contra três \emph{baselines} acadêmicos, 
 
 \begin{itemize}
     \item \textbf{Perfilamento estatístico} (aproximação de Fernandes et al.~\cite{fernandes2015autonomous}): PCA sobre estatísticas agregadas de sessão.
-    \item \textbf{Matriz de comportamento} (aproximação de Bharathi e Sukanesh~\cite{bharathi2012pca}): $k$-means sobre matriz de \emph{features} por sessão.
+    \item \textbf{Matriz de comportamento} (aproximação de Bharathi e Sukanesh~\cite{bharathi2012pca}): agrupamento por $k$-means sobre a matriz de \emph{features} por sessão. O trabalho original emprega PCA; adotamos $k$-means para representar a família de detecção por \emph{agrupamento} comportamental de modo distinto do perfilamento por PCA de Fernandes, evitando dois \emph{baselines} sobre a mesma ferramenta.
     \item \textbf{Aprendizado de máquina supervisionado} (aproximação de Kemp et al.~\cite{kemp2023approach}): Random Forest e SVM sobre o mesmo vetor de \emph{features} de sessão.
 \end{itemize}
 

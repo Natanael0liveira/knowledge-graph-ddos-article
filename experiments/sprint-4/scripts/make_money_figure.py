@@ -65,7 +65,7 @@ def main():
     ax.set_xlim(0.4, 1.04)
     ax.set_xlabel("ROC AUC por sessão (detecção de campanha furtiva)")
     ax.set_title("Ablação (baseline por-sessão FORTE, n=30): per-session e baselines\n"
-                 "ficam no acaso; só o raciocínio cross-session (d) detecta", fontsize=11.5,
+                 "ficam no acaso; só o raciocínio entre sessões (d) detecta", fontsize=11.5,
                  color="#1f3a5f")
     ax.legend(handles=[Patch(color=C50, label="K = 50 (moderado)"),
                        Patch(color=C1000, label="K = 1000 (distribuído)")],

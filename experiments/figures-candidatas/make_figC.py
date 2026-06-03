@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""figC (honesta, enxuta): ML por-sessão FORTE (8-9 features) × cross-session.
+"""figC (honesta, enxuta): ML por-sessão FORTE (8-9 features) × entre sessões.
 
 Dois regimes, baseline forte nos dois lados:
   - Ataques reais convencionais (média de 6, CIC): per-session já basta — coordenação
     não acrescenta (ambos ~1.0). Floods de assinatura óbvia.
   - Furtivo-distribuído (sintético, n=30 seeds, K=1000): cada sessão calibrada para
-    parecer benigna -> per-session no acaso (0.50); só a coordenação cross-session
+    parecer benigna -> per-session no acaso (0.50); só a coordenação entre sessões
     detecta (0.99). É o regime que datasets públicos não contêm.
 Paleta cinza + navy estratégico. NÃO está no .tex (revisão).
 """
@@ -43,7 +43,7 @@ h = 0.34
 
 fig, ax = plt.subplots(figsize=(9, 3.4))
 ax.barh(y + h/2, ps, height=h, color=GRAY, label="ML por sessão (forte, 8–9 features)", zorder=3)
-ax.barh(y - h/2, cs, height=h, color=NAVY, label="cross-session (nosso)", zorder=3)
+ax.barh(y - h/2, cs, height=h, color=NAVY, label="entre sessões (nosso)", zorder=3)
 for yi, (lab, vp, vc, hi) in zip(y, groups):
     ax.text(vp + .008, yi + h/2, f"{vp:.2f}".replace(".", ","), va="center",
             fontsize=9, fontweight="bold" if hi else "normal", color=CHANCE if hi else "#333")
@@ -57,7 +57,7 @@ ax.set_yticklabels(labels, fontsize=9)
 ax.set_xlim(0.4, 1.05)
 ax.set_xlabel("ROC AUC por sessão (ataque-vs-benigno)")
 ax.set_title("ML por-sessão forte já resolve ataques convencionais;\n"
-             "só no regime furtivo-distribuído a coordenação cross-session é necessária",
+             "só no regime furtivo-distribuído a coordenação entre sessões é necessária",
              color=NAVY, fontsize=10.5)
 ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.28), ncol=2, fontsize=9, frameon=False)
 ax.grid(axis="x", alpha=.3)

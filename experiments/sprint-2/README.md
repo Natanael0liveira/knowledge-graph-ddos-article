@@ -71,7 +71,7 @@ Os campos `is_attack` e `campaign_id` são **ground truth** que o pipeline **nã
 
 | Cenário | $K$ | Descrição | Config |
 |---|---|---|---|
-| **A — Concentrado** | 1 | Single-source, sem coordenação cross-session | `configs/scenario_A.yaml` |
+| **A — Concentrado** | 1 | Single-source, sem coordenação entre sessões | `configs/scenario_A.yaml` |
 | **B — Moderado** | 10, 50, 100 | Botnet pequena, JA4 compartilhado, alguns ASNs | `configs/scenario_B.yaml` |
 | **C — Distribuído** | 1000, 10000 | Mirai-style: muitos ASNs, mesma assinatura TLS | `configs/scenario_C.yaml` |
 

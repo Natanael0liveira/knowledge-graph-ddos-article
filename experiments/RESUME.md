@@ -69,9 +69,9 @@ senão serviços benignos de alto volume (DNS :53) dominam Ω por massa de endpo
 
 ## ⚡ 2026-06-01 (cont.): Sprints 3, 4, 5 — Fase B completa
 
-- **Sprint 3** (`experiments/sprint-3/`, `make scenarios && make ablation`): ablação a/b/c/d + 3 baselines (Fernandes/Bharathi/Kemp). Em campanha **furtiva** (ataque per-sessão indistinguível do benigno), (a) ML e baselines ~acaso (0.5), (d) cross-session ~1.0. Exigiu o modo `stealth: true` no gerador do S2.
-- **Sprint 4** (`experiments/sprint-4/`, `make run|weights|figures`): n=30 seeds, IC bootstrap + Wilcoxon + Bonferroni + Cohen's d. **GATE: (d)−(c) no Cenário C, p_bonf=2.2e-05, d=2.91**. Money figure em `results/`. Caveat: grid search de pesos satura (todo w_i dá AUC=1.0 no sintético).
-- **Sprint 5** (`experiments/sprint-5/`, `make run`): comparação com KLAGE em DDoS Slowloris no **CIC-IoT2023 real**. Nosso (d) **F1=0.911 > KLAGE 0.841**; (a) por-sessão colapsa (F1=0.18). Caveats: granularidade sessão-vs-nó; RT-IoT2022 não adquirido.
+- **Sprint 3** (`experiments/sprint-3/`, `make scenarios && make ablation`): ablação a/b/c/d + 3 baselines (Fernandes/Bharathi/Kemp). Em campanha **furtiva** (ataque per-sessão indistinguível do benigno), mesmo o (a) ML **forte** (8–9 features) e os baselines ficam ~acaso (0,505/0,498), e o (d) completo entre sessões ~1,0 (0,969/0,992). Exigiu o modo `stealth: true` no gerador do S2.
+- **Sprint 4** (`experiments/sprint-4/`, `make run|weights|figures`): n=30 seeds, IC bootstrap + Wilcoxon + Bonferroni + Cohen's d. **GATE: (d)−(c) no Cenário C, p_bonf=7,4×10⁻⁹, d=14,1** (e (d)−(a) p_bonf=7,4×10⁻⁹, d=22,1). Money figure em `results/`. Caveat: grid search de pesos satura (todo w_i dá AUC=1.0 no sintético).
+- **Sprint 5** (`experiments/sprint-5/`, `make run`): comparação com KLAGE em DDoS Slowloris no **CIC-IoT2023 real**. Nosso (d) entre sessões **F1=0,911** e o (a') por-sessão **forte** (8 feat) **F1=0,900** ambos superam KLAGE 0,841; o antigo "colapso por-sessão F1=0,18" era **artefato do baseline magro** (3 feat) — um por-sessão forte não colapsa e a vantagem do entre-sessões sobre ele é marginal (+0,011); a dianteira sobre o KLAGE **não** é atribuível ao raciocínio entre sessões. Caveats: granularidade sessão-vs-nó; RT-IoT2022 não adquirido.
 
 **Pendências (fora da Fase B):** ver bloco 2026-06-02 abaixo (várias já resolvidas).
 
@@ -87,7 +87,9 @@ Sessão offline (HD ejetado). Tudo commitado e pushado.
   + mitigação cirúrgica; toy: 0% colateral vs 49,5% global). `make demo`.
   → **Os 4 pilares do paper agora existem como código.**
 - ✅ **Deep-dive em dados reais EXECUTADO (2026-06-02/03):** Passo A (6 ataques reais:
-  (a) ~acaso 0,52–0,72 → (d) 0,96–1,0); Passo B (robustez = redundância de sinais, não
+  um ML **por-sessão forte** já atinge AUC 0,98–1,00 sozinho e o (d) entre sessões fica
+  ~1,00 — ganho ≈0, porque ataques reais convencionais têm assinatura de fluxo por sessão;
+  a coordenação entre sessões NÃO é necessária neles); Passo B (robustez = redundância de sinais, não
   isola JA4); Passo C (calibração de pesos **não-alcançável**, satura); Pilar 4 em
   cluster real (mitigação cirúrgica **não se manifesta** no CIC: LAN+não-TLS) e em
   sintético calibrado (**0% vs 22,5%**, n=30, IC). Registro: [`DEEP-DIVE-FINDINGS.md`](DEEP-DIVE-FINDINGS.md).

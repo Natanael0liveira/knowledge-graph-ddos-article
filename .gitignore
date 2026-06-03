@@ -65,3 +65,6 @@ env/
 # ============================================================
 build/
 dist/
+
+# Claude Code local session data
+.claude/

@@ -9,7 +9,7 @@
 1. [O problema que justifica a abordagem](#1-o-problema-que-justifica-a-abordagem)
 2. [Ontologia, OWL e Grafo de Conhecimento](#2-ontologia-owl-e-grafo-de-conhecimento)
 3. [Por que a sessão HTTP deve ser tratada como entidade](#3-por-que-a-sessão-http-deve-ser-tratada-como-entidade)
-4. [Raciocínio cross-session](#4-raciocínio-cross-session)
+4. [Raciocínio entre sessões](#4-raciocínio-entre-sessões)
 5. [A ontologia do paper](#5-a-ontologia-do-paper)
 6. [Três especializações de ataque coordenado](#6-três-especializações-de-ataque-coordenado)
 7. [Pipeline em tempo de execução vs. KGs estáticos](#7-pipeline-em-tempo-de-execução-vs-kgs-estáticos)
@@ -54,7 +54,7 @@ Consequência: o detector **não consegue raciocinar sobre relações entre sess
 
 1. **Sessão como *feature aggregate*, não como entidade.**
 2. **Ausência de explicação ontológica** — analistas decidem dezenas de vezes por hora; "parece um ataque" não é decisão.
-3. **Ausência de raciocínio *cross-session*** — campanhas coordenadas dependem dele.
+3. **Ausência de raciocínio entre sessões** — campanhas coordenadas dependem dele.
 
 ---
 
@@ -131,11 +131,11 @@ A sessão deixa de ser estatística e passa a ser **objeto raciocinável**.
 
 ---
 
-## 4. Raciocínio cross-session
+## 4. Raciocínio entre sessões
 
 ### Definição
 
-**Raciocínio *cross-session*** é a capacidade de relacionar múltiplas sessões através de identificadores compartilhados do cliente — em vez de tratar cada sessão como caso independente.
+**Raciocínio entre sessões** é a capacidade de relacionar múltiplas sessões através de identificadores compartilhados do cliente — em vez de tratar cada sessão como caso independente.
 
 ### Por que é estruturalmente necessário
 
@@ -182,7 +182,7 @@ Assinatura computada a partir do *handshake* TLS — identifica o *software* cli
 | `hasIdentity` | `ApplicationSession` | `Identity` | Cookie, *token*, *username* ou *fingerprint* TLS |
 | `targets` | `ApplicationSession` | `Endpoint` | Endpoint da aplicação atingido |
 | `exhibitsBehavior` | `ApplicationSession` | `Behavior` | `UserBehavior` ou `BotBehavior` |
-| `relatedTo` | `ApplicationSession` | `ApplicationSession` | **Habilitador do raciocínio cross-session** |
+| `relatedTo` | `ApplicationSession` | `ApplicationSession` | **Habilitador do raciocínio entre sessões** |
 | `mitigatedBy` | `ApplicationSession` ∪ `Attack` | `Mitigation` | `RateLimit`, `Challenge`, `Block` |
 
 ### Hierarquia de classes auxiliares
@@ -338,7 +338,7 @@ A combinação de **três escolhas** que, isoladas, já existiriam na literatura
 
 1. **Sessão HTTP modelada como entidade ontológica de primeira classe** (não vetor de *features*).
 2. **KG construído em tempo de execução** a partir do tráfego (não estaticamente de texto).
-3. **Regras semânticas explícitas que dependem de `relatedTo`** entre sessões — habilitando raciocínio *cross-session* com cadeia de evidência auditável.
+3. **Regras semânticas explícitas que dependem de `relatedTo`** entre sessões — habilitando raciocínio entre sessões com cadeia de evidência auditável.
 
 ### O que sustenta a defesa científica do paper
 

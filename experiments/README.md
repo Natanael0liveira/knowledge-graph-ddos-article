@@ -99,12 +99,14 @@ experiments/
 |---|---|---|
 | **1** — Pipeline + KG | CICIDS2017 + CIC-IoT2023 | ✅ ambos carregados; gates G1–G4 PASS no `validate.ipynb` |
 | **2** — Gerador sintético | calibrado pelo S1 | ✅ KS pass (D≤0.02); reprodutível; modo *stealth* |
-| **3** — Baselines + ablação | sintético furtivo | ✅ (d) cross-session ≫ (a)/baselines (Δ até +0.73) |
-| **4** — Execução estatística | sintético, n=30 | ✅ (d)−(c) em C: p_bonf=2.2e-05, Cohen's d=2.91 |
-| **5** — Comparação KLAGE | CIC-IoT2023 (real) | ✅ nosso F1=0.911 > KLAGE 0.841 (DDoS Slowloris) |
+| **3** — Baselines + ablação | sintético furtivo | ✅ (d) entre sessões ≫ (a) forte/baselines (0,969 vs 0,505 em K=50) |
+| **4** — Execução estatística | sintético, n=30 | ✅ (d)−(c) em C: p_bonf=7,4×10⁻⁹, Cohen's d=14,1 |
+| **5** — Comparação KLAGE | CIC-IoT2023 (real) | ✅ (d) F1=0,911 e (a') por-sessão forte F1=0,900 > KLAGE 0,841; vantagem entre-sessões marginal (dataset convencional) |
 
-**Tese sustentada em 3 frentes:** ablação controlada (S3), significância estatística
-(S4), superação do estado-da-arte em dados reais (S5). Cada sprint tem README próprio
+**Tese sustentada:** a vantagem do raciocínio entre sessões é real e estatisticamente
+fortíssima no regime **furtivo-distribuído** sintético (S3, S4); em datasets reais
+convencionais (S5) um ML por-sessão forte já basta, mas as contribuições de arcabouço
+(sessão ontológica, veredicto simbólico, evidência, mitigação cirúrgica) permanecem. Cada sprint tem README próprio
 com resultados, gates e caveats. Para carga no KG, ver `sprint-1/README.md`.
 
 **Pendências (fora da Fase B):** RT-IoT2022 (download manual IEEE DataPort);

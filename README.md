@@ -6,7 +6,7 @@
 
 ## A tese, em uma frase
 
-Campanhas coordenadas de DDoS de Camada 7 (Slowloris distribuído, *credential stuffing*, abuso de API por frota de *tokens*) ficam sub-limiares em qualquer sessão isolada — o sinal de ataque mora na **estrutura entre sessões** ligadas por identidade reaproveitada, *fingerprint* TLS (JA4) ou prefixo de cliente. Tratamos esse padrão estrutural como **objeto raciocinável** numa ontologia OWL, em vez de descartá-lo no vetor de *features* do classificador.
+Campanhas coordenadas e **furtivas** de DDoS de Camada 7 (Slowloris distribuído calibrado para parecer benigno por sessão, *credential stuffing*, abuso de API por frota de *tokens*) ficam sub-limiares em qualquer sessão isolada — o sinal de ataque mora na **estrutura entre sessões** ligadas por identidade reaproveitada, *fingerprint* TLS (JA4) ou prefixo de cliente. Tratamos esse padrão estrutural como **objeto raciocinável** numa ontologia OWL, em vez de descartá-lo no vetor de *features* do classificador.
 
 ---
 
@@ -15,7 +15,7 @@ Campanhas coordenadas de DDoS de Camada 7 (Slowloris distribuído, *credential s
 | Eixo | Estado da arte | Nossa proposta |
 |---|---|---|
 | Representação da sessão | Vetor de *features* (taxa, duração, contagens) | **Entidade ontológica** com identidade, alvo, comportamento, mitigação |
-| Granularidade do raciocínio | Por sessão isolada | **Cross-session** via `relatedTo` (identidade, JA4, prefixo IP) |
+| Granularidade do raciocínio | Por sessão isolada | **Entre sessões** via `relatedTo` (identidade, JA4, prefixo IP) |
 | Saída do detector | Rótulo binário opaco | **Cadeia de evidência** percorrendo o grafo |
 | Mitigação aplicada | Limite global (afeta legítimos) | **Escopo cirúrgico** derivado do discriminador do *cluster* |
 | KGs em cibersegurança | Construídos estaticamente a partir de texto | **Construído em tempo de execução** sobre o tráfego |
@@ -35,7 +35,7 @@ Classe central `ApplicationSession` com cinco relações tipadas:
 | `hasIdentity` | Cookie, *token* JWT, *username*, **JA4 TLS fingerprint** |
 | `targets` | Endpoint (`AuthEndpoint`, `APIEndpoint`, `StaticAsset`) |
 | `exhibitsBehavior` | `UserBehavior` ou `BotBehavior` |
-| `relatedTo` | **Outra sessão** com identidade/JA4/prefixo compartilhado — habilitador do raciocínio *cross-session* |
+| `relatedTo` | **Outra sessão** com identidade/JA4/prefixo compartilhado — habilitador do raciocínio entre sessões |
 | `mitigatedBy` | Política aplicável com **escopo derivado** do *cluster* |
 
 Três subclasses de ataque coordenado, todas com `exhibitsCrossSessionStructure`:
@@ -88,7 +88,7 @@ Detalhes em [`TESTAGEM.md`](TESTAGEM.md).
 knowledge-graph-ddos-article/
 │
 ├── README.md                       # Este arquivo
-├── CONCEITOS.md                    # Fundamentação: sessão como entidade, cross-session, JA4
+├── CONCEITOS.md                    # Fundamentação: sessão como entidade, raciocínio entre sessões, JA4
 ├── TESTAGEM.md                     # Plano experimental ancorado em Slowloris
 │
 ├── papers/
@@ -143,9 +143,9 @@ pendências: [`experiments/RESUME.md`](experiments/RESUME.md).
 | Gerador sintético parametrizado por K | ✅ Calibrado (KS≤0.02), modo *stealth* |
 | Ambiente Docker do laboratório (Fuseki) | ✅ Funcional (TDB2 no SSD; bulk load nativo) |
 | *Baselines* (Fernandes, Bharathi, Kemp) | ✅ Implementados (operacionalizações; no acaso em ataque furtivo — ver DEEP-DIVE-FINDINGS) |
-| **Generalização em dados reais** (6 ataques, 2 datasets) | ✅ (a) por-sessão ~acaso → (d) cross-session 0,96–1,0 |
-| Ablação a/b/c/d + estatística (n=30) | ✅ (d)−(c) p<0.01 (Bonferroni), d=2.91 |
-| Comparação com KLAGE (CIC-IoT2023) | ✅ F1=0.911 (caveat: granularidade nó-vs-sessão) |
+| **Generalização em dados reais** (6 ataques, 2 datasets) | ✅ ML por-sessão **forte** já atinge AUC 0,98–1,00 sozinho; entre sessões fica ~1,00 (ganho ≈0): ataques reais convencionais têm assinatura por sessão |
+| Ablação a/b/c/d + estatística (n=30) | ✅ regime furtivo-distribuído sintético: (a) forte 0,505→(d) 0,969 (K=50); (d)−(c) p_bonf=7,4×10⁻⁹, d=14,1 |
+| Comparação com KLAGE (CIC-IoT2023) | ✅ (d) F1=0,911 e (a') por-sessão forte F1=0,900 superam KLAGE 0,841; o F1=0,18 antigo era artefato do baseline magro (caveat: granularidade nó-vs-sessão) |
 | Ontologia OWL: 6 sub-propriedades `relatedBy_*` ponderadas | ✅ Formalizadas (com `coordinationWeight`) |
 | Alinhamento de namespace ontologia↔dados em runtime | ⏳ Pendente (instâncias usam namespace distinto do `.owl`) |
 | **Pilar 4** (cadeia de evidência JSON-LD/STIX + mitigação cirúrgica) | ✅ Codado + rodado em cluster real e sintético calibrado (cirúrgico 0% vs global 22,5%, n=30); não se manifesta no CIC (LAN+não-TLS) |
@@ -157,7 +157,7 @@ pendências: [`experiments/RESUME.md`](experiments/RESUME.md).
 
 ## Por onde começar
 
-- **Entender a ideia:** ler [`CONCEITOS.md`](CONCEITOS.md) (sessão como entidade, raciocínio *cross-session*, papel do JA4).
+- **Entender a ideia:** ler [`CONCEITOS.md`](CONCEITOS.md) (sessão como entidade, raciocínio entre sessões, papel do JA4).
 - **Entender o experimento:** ler [`TESTAGEM.md`](TESTAGEM.md) (por que Slowloris, qual *dataset*, como o lab é montado).
 - **Entender o paper:** ler [`papers/http-session/README.md`](papers/http-session/README.md) e [`papers/http-session/article.tex`](papers/http-session/article.tex).
 - **Acompanhar decisões em aberto:** consultar [`docs/pontos-de-reflexao/`](docs/pontos-de-reflexao/).

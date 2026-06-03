@@ -3,11 +3,13 @@
 Execução da bateria de hardening + pilares sobre os dados reais (HD reconectado).
 Tom: honesto, incluindo os resultados que NÃO favorecem a tese.
 
-## Passo A — Generalização multi-ataque (DETECÇÃO) — ✅ forte
+## Passo A — Generalização multi-ataque (DETECÇÃO) — ✅ detecção, mas ganho entre sessões ≈ 0
 
-`make -C sprint-3 multiattack`. Detecção ataque-vs-BENIGN, (a) por-sessão × (d) cross-session:
+`make -C sprint-3 multiattack`. Detecção ataque-vs-BENIGN, (a) por-sessão × (d) entre sessões.
+A coluna AUC(a) abaixo é o baseline **magro** (3 features) — preservada por registro
+histórico; ela **não** é o baseline justo:
 
-| dataset | ataque | AUC(a) | AUC(d) |
+| dataset | ataque | AUC(a) magro | AUC(d) |
 |---|---|---|---|
 | cic-iot-2023 | HTTP-Flood | 0,517 | 0,964 |
 | cic-iot-2023 | Slowloris | 0,554 | 0,991 |
@@ -16,10 +18,18 @@ Tom: honesto, incluindo os resultados que NÃO favorecem a tese.
 | cicids2017 | Slowhttptest | 0,634 | 1,000 |
 | cicids2017 | Slowloris | 0,582 | 1,000 |
 
-**Em 6 ataques reais, por-sessão é fraco e cross-session quase perfeito.** Ataca
-circularidade (ataques não fabricados) e generalização (6 ataques/2 datasets).
+**Reauditoria (baseline forte):** com as 8–9 features de fluxo por sessão (baseline
+**forte**), o ML por-sessão **já atinge AUC 0,98–1,00 sozinho** nesses 6 ataques; o (d)
+entre sessões fica ~1,00 → **o ganho do raciocínio entre sessões é ≈ 0**. A aparente
+"fraqueza por-sessão" das colunas acima era artefato do baseline magro.
+
+**Conclusão honesta:** em ataques reais **convencionais** (Hulk, GoldenEye, Slowloris,
+Slowhttptest, HTTP-Flood) a coordenação entre sessões **NÃO é necessária** — eles têm
+assinatura de fluxo por sessão. Esses datasets não contêm o regime furtivo-distribuído;
+ataca circularidade (ataques não fabricados) e generalização (6 ataques/2 datasets), mas
+a vantagem entre-sessões só se manifesta no sintético furtivo (Sprint 3/4).
 **Caveat:** cicids2017 (d)=1,000 é parcialmente circular (rótulos por IP ↔ `share_net`);
-cic-iot-2023 usa rótulos oficiais (0,96–0,99) e é o resultado limpo.
+cic-iot-2023 usa rótulos oficiais (0,96–0,99).
 
 ## Passo B — Sweep de robustez — ⚠️ redundância, não isolamento
 
@@ -52,7 +62,7 @@ produção. (§5.5 do paper atualizado com esse caveat.)
 
 ## Síntese
 
-- **Tese de DETECÇÃO (cross-session > por-sessão):** ✅ sustentada em dados reais, 6 ataques.
+- **Tese de DETECÇÃO (entre sessões > por-sessão):** ✅ no regime **furtivo-distribuído** (sintético); em dados reais convencionais um por-sessão **forte** já basta (ganho entre-sessões ≈ 0).
 - **Tese de MITIGAÇÃO cirúrgica:** ✅ em princípio / ❌ não demonstrável nos datasets atuais.
 - **Calibração de pesos:** permanece teórica (não empírica).
 - **Robustez:** sinais redundantes (perde JA4, endpoint carrega).

@@ -1,15 +1,17 @@
 # Plano de Testagem — Família Slow HTTP DDoS como Caso Experimental
 
-> **Pergunta operacional:** como validar empiricamente que o raciocínio *cross-session* sobre o grafo detecta campanhas que defesas por sessão isolada não veem?
+> **Pergunta operacional:** como validar empiricamente que o raciocínio entre sessões sobre o grafo detecta campanhas que defesas por sessão isolada não veem?
 > **Resposta:** instâncias da **família Slow HTTP DDoS distribuído** como casos experimentais concretos, em três fontes complementares de dados.
 
 Para a visão de projeto, ver [`README.md`](README.md). Para a fundamentação, ver [`CONCEITOS.md`](CONCEITOS.md). Para decisões em aberto, ver [`docs/pontos-de-reflexao/`](docs/pontos-de-reflexao/).
 
 > **✅ Este plano FOI EXECUTADO (Fase B, Sprints 1–5, 2026-06-01).** Resultados,
 > gates e *caveats* em [`experiments/RESUME.md`](experiments/RESUME.md) e nos READMEs de
-> cada sprint. Resumo: detecção por-sessão colapsa em campanha furtiva distribuída
-> (F1≈0.18) enquanto o arcabouço cross-session detecta (F1=0.911 no CIC-IoT2023 real,
-> vs KLAGE 0.841). Resultados em dados reais e ameaças à validade:
+> cada sprint. Resumo: no regime **furtivo-distribuído** (sintético) a detecção por-sessão
+> fica no acaso (AUC 0,505) enquanto o arcabouço de correlação entre sessões detecta
+> (AUC 0,969–0,992); em dados reais convencionais (CIC-IoT2023, F1=0,911 vs KLAGE 0,841)
+> um ML por-sessão **forte** já basta (F1=0,900) — o antigo "colapso F1≈0,18" era
+> artefato do baseline magro de 3 features. Resultados em dados reais e ameaças à validade:
 > [`experiments/DEEP-DIVE-FINDINGS.md`](experiments/DEEP-DIVE-FINDINGS.md); metodologia
 > e decisões por etapa: [`experiments/METODOLOGIA-DECISOES-RESULTADOS.md`](experiments/METODOLOGIA-DECISOES-RESULTADOS.md).
 
@@ -161,7 +163,7 @@ Conexões sem *handshake* TLS observável (HTTP cleartext) ficam sem JA4 — tra
 ### Caveats que apareceram em peer review
 
 - **Engelen et al. (2021)** alerta sobre rótulos ruidosos em CICIDS2017 — por isso CICIDS2017 fica fora desta seleção. CIC-DDoS2019 é distinto (não tem os problemas reportados em 2017).
-- **Datasets cobrem majoritariamente single-source.** Por isso são *sanity check* do Cenário A, não primários para a tese de *cross-session*.
+- **Datasets cobrem majoritariamente single-source.** Por isso são *sanity check* do Cenário A, não primários para a tese de correlação entre sessões.
 - **JA4 extraído retroativamente** pode divergir de JA4 vivo — efeito uniforme sobre todos os métodos (não enviesa a comparação).
 
 ---
@@ -176,7 +178,7 @@ Precisão, *recall*, F1, AUC, FPR por sessão.
 
 ### 2. *Recall* por **campanha** (não por sessão)
 
-Para cada campanha coordenada instrumentada, qual fração foi detectada **como pertencente à campanha** (não apenas sessões individuais isoladas). Essa métrica captura diretamente o ganho do raciocínio *cross-session*.
+Para cada campanha coordenada instrumentada, qual fração foi detectada **como pertencente à campanha** (não apenas sessões individuais isoladas). Essa métrica captura diretamente o ganho do raciocínio entre sessões.
 
 ### 3. Dano colateral em tráfego legítimo
 

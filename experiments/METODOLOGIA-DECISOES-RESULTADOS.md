@@ -9,7 +9,7 @@ para a consolidação do paper.
 > distribuído) ficam *sub-limiares em cada sessão isolada* — o sinal de ataque mora na
 > **estrutura entre sessões** (mesmo *fingerprint* TLS, identidade reaproveitada,
 > convergência de endpoint). Modelamos isso como objeto raciocinável numa ontologia e
-> mostramos que a detecção **por sessão falha onde a *cross-session* acerta**.
+> mostramos que a detecção **por sessão falha onde o raciocínio entre sessões acerta** — no regime furtivo-distribuído.
 
 > **Como ler as métricas (glossário rápido).**
 > - **ROC AUC** — probabilidade de o detector dar nota maior a um ataque que a um
@@ -64,7 +64,7 @@ cada um valida uma pré-condição antes de prosseguir:
 gates passam nos dois (JA4 cobre 98,6% / 68,6% do TLS; G4 retorna clusters reais).
 
 **Resultado prático esperado.** Ter o **substrato** — um grafo de sessões consultável —
-sobre o qual todo o raciocínio cross-session, a detecção e a mitigação operam.
+sobre o qual todo o raciocínio entre sessões, a detecção e a mitigação operam.
 
 ---
 
@@ -72,7 +72,7 @@ sobre o qual todo o raciocínio cross-session, a detecção e a mitigação oper
 
 **Por que decidimos assim.** Os *datasets* públicos rotulam *flows*, **não campanhas
 coordenadas**; e não controlam o **grau de distribuição K** (nº de origens). Sem
-*ground truth* de coordenação não dá para medir a vantagem cross-session. Então
+*ground truth* de coordenação não dá para medir a vantagem do raciocínio entre sessões. Então
 construímos um gerador que produz campanhas com verdade perfeitamente conhecida.
 Duas decisões-chave:
 - **Calibrar o legítimo a partir do real** (duração, requisições, JA4) — para que o
@@ -94,7 +94,7 @@ bit-a-bit (mesma *seed* → mesmo arquivo).
 
 **Resultado prático esperado.** Um **"laboratório de campanhas"** onde conhecemos a
 verdade e **controlamos a dificuldade** (K, furtividade, dispersão) — permitindo medir
-exatamente onde a vantagem cross-session aparece.
+exatamente onde a vantagem do raciocínio entre sessões aparece.
 
 ---
 
@@ -104,7 +104,7 @@ exatamente onde a vantagem cross-session aparece.
 (e não de "mais features" ou de um classificador melhor), comparamos quatro
 configurações sobre **o mesmo input e o mesmo classificador**, variando **apenas o
 conjunto de features**:
-- **(a)** ML só com features de fluxo por-sessão (estado-da-arte por-sessão).
+- **(a)** ML só com features de fluxo por-sessão (estado-da-arte por-sessão; baseline **forte** com as 8–9 features de fluxo, não o magro de 3).
 - **(b)** ontologia, mas **sem** as relações `relatedBy_*` (sessões isoladas).
 - **(c)** só `relatedByNetworkProximity` (o sinal de rede, peso baixo).
 - **(d)** arcabouço completo (família `relatedBy_*` ponderada).
@@ -124,11 +124,14 @@ quanto para as *features* de (c)/(d). É também uma limitação honesta declara
 
 **O que os cálculos representam.** A **ROC AUC por configuração** isola contribuições:
 **(a)→(d)** = contribuição total; **(c)→(d)** = ganho específico dos sinais de peso
-alto (JA4) sobre a proximidade de rede. Δ grande = vantagem cross-session real.
+alto (JA4) sobre a proximidade de rede. Δ grande = vantagem do raciocínio entre sessões real.
 
-**Resultados (campanha furtiva).** (a) e os 3 baselines ficam **no acaso (AUC ~0,5)**;
-(d) atinge **~1,0**. A vantagem só aparece no regime furtivo — em ataque de assinatura
-óbvia, (a) já resolve (resultado honesto, não escondido).
+**Resultados (campanha furtiva, n=30 seeds, ROC AUC [K=50 / K=1000]).** Mesmo o (a) ML
+**forte** (8–9 features) e os 3 baselines ficam **no acaso**: (a) 0,505 / 0,498; (c) só
+NetworkProximity 0,502 / 0,678; baselines acadêmicos ~0,50. A ontologia sem `relatedBy`
+(b) chega a 0,877 / 0,893, e o arcabouço completo (d) atinge **0,969 / 0,992**. A
+vantagem só aparece no regime furtivo — em ataque de assinatura óbvia, (a) já resolve
+(resultado honesto, não escondido).
 
 **Resultado prático esperado.** Demonstrar que **um detector que ignora a estrutura
 entre sessões é cego** à campanha furtiva distribuída — exatamente o ponto cego do
@@ -150,14 +153,16 @@ aplicamos estatística formal.
   (evita falso positivo estatístico).
 - **Cohen's d:** o *tamanho* da diferença, em desvios-padrão.
 
-**Resultados.** No cenário distribuído, **(d)−(c): p_Bonferroni = 2,2×10⁻⁵, Cohen's
-d = 2,91** (efeito enorme); (d)−(a) ainda mais forte (d = 36). A vantagem é
-**estatisticamente inquestionável** no regime distribuído.
+**Resultados (K=1000).** No cenário distribuído, **(d)−(c): p_Bonferroni = 7,4×10⁻⁹,
+Cohen's d = 14,1** (efeito enorme); (d)−(a) ainda mais forte (p_Bonferroni = 7,4×10⁻⁹,
+d = 22,1). A vantagem é **estatisticamente inquestionável** no regime distribuído.
 
 **Caveat honesto.** Este resultado é **sintético** e parcialmente circular: a campanha
 é gerada com os sinais (JA4, endpoint) que (d) mede. Prova o *mecanismo*, não que
-ataques reais coordenam assim. Quem fecha essa lacuna é a validação em **dados reais**
-(ver `DEEP-DIVE-FINDINGS.md`: 6 ataques reais, (a) ~acaso → (d) 0,96–1,0).
+ataques reais coordenam assim. Em **dados reais** convencionais (ver
+`DEEP-DIVE-FINDINGS.md`: 6 ataques reais) um ML **por-sessão forte** já atinge AUC
+0,98–1,00 sozinho e o ganho entre-sessões é ≈0 — esses datasets não contêm o regime
+furtivo-distribuído onde a vantagem vive.
 
 **Resultado prático esperado.** Transformar "funciona numa rodada" em "**funciona com
 significância estatística**" — o padrão exigível para a §5 do paper.
@@ -177,11 +182,14 @@ vez de acurácia porque as classes são desbalanceadas) e **dano colateral** (fr
 legítimos atingidos pela mitigação) — métrica que produtos comerciais reportam mas a
 academia de Camada 7 não usa sistematicamente.
 
-**Resultados (dados reais).** O Slowloris do CIC-IoT2023 é per-sessão indistinguível
-do benigno → **(a) colapsa (F1 = 0,18, AUC ≈ acaso)**; **(d) atinge F1 = 0,911**,
-**mesma ordem** do KLAGE (0,841). Afirmação defensável: *competitivo* com o SOTA em
-nível de nó, **acrescentando** veredicto simbólico auditável e dano colateral
-mensurável (que o KLAGE não tem).
+**Resultados (dados reais).** O antigo "colapso por-sessão" (F1 = 0,18, AUC ≈ acaso) era
+**artefato do baseline magro** (3 features): com o baseline **forte** (8 features), o
+por-sessão **não colapsa** — (a') F1 = 0,900, AUC = 0,987. O **(d) atinge F1 = 0,911**,
+**mesma ordem** do KLAGE (0,841). Tanto (a') quanto (d) superam o KLAGE (a' +0,059,
+d +0,070), mas a vantagem de (d) sobre o por-sessão forte é **marginal** (+0,011) — logo
+a dianteira sobre o KLAGE **não** é atribuível ao raciocínio entre sessões. Afirmação
+defensável: *competitivo* com o SOTA em nível de nó, **acrescentando** veredicto
+simbólico auditável e dano colateral mensurável (que o KLAGE não tem).
 
 **Resultado prático esperado.** Mostrar que a abordagem em nível de sessão **se equipara
 ao estado-da-arte** no ataque-alvo e **vai além** em explicabilidade e mitigação.
@@ -280,8 +288,8 @@ forma que tem:
 
 Um arcabouço que, sobre tráfego de aplicação web, **(i) detecta** campanhas L7
 distribuídas e furtivas que a análise por-sessão (e o estado-da-arte por-features)
-**não vê** — provado em **dados reais** (6 ataques) e com **significância estatística**
-(sintético, p<0,01, d=2,91); **(ii) explica** o veredicto como derivação simbólica
+**não vê** — com **significância estatística** no regime furtivo-distribuído
+(sintético, p_bonf=7,4×10⁻⁹, d=14,1); **(ii) explica** o veredicto como derivação simbólica
 auditável; e **(iii) mitiga cirurgicamente**, poupando o tráfego legítimo (provado em
 sintético calibrado: 0% vs 22,5% de colateral).
 

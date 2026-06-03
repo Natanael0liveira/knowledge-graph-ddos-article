@@ -8,11 +8,11 @@
 
 Detecção e explicação de ataques DDoS de Camada 7 sobre HTTP (HTTP Flood, Login Flood, abuso de API) tratando a **sessão HTTP como entidade semântica de primeira classe** em um grafo de conhecimento, e não como vetor de *features* agregadas.
 
-A novidade está na capacidade de **raciocínio cross-session**: ligar múltiplas sessões pela identidade compartilhada do cliente (cookie, *token*, *fingerprint* TLS, prefixo de IP) para detectar campanhas distribuídas que ficam sub-limiares em qualquer sessão isolada — *credential stuffing*, *scraping* orquestrado, abuso de API por frota de *tokens*.
+A novidade está na capacidade de **raciocínio entre sessões**: ligar múltiplas sessões pela identidade compartilhada do cliente (cookie, *token*, *fingerprint* TLS, prefixo de IP) para detectar campanhas distribuídas que ficam sub-limiares em qualquer sessão isolada — *credential stuffing*, *scraping* orquestrado, abuso de API por frota de *tokens*.
 
 ## Citação curta da contribuição
 
-> A sessão HTTP, tratada como entidade ontológica de primeira classe ligada por relações tipadas a identidade, *endpoint* e comportamento, habilita raciocínio *cross-session* que detectores baseados em *features* agregadas de sessão estruturalmente não conseguem realizar.
+> A sessão HTTP, tratada como entidade ontológica de primeira classe ligada por relações tipadas a identidade, *endpoint* e comportamento, habilita raciocínio entre sessões que detectores baseados em *features* agregadas de sessão estruturalmente não conseguem realizar.
 
 ## Como compilar
 

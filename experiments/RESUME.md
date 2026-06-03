@@ -94,15 +94,23 @@ Sessão offline (HD ejetado). Tudo commitado e pushado.
 - ✅ **Paper consolidado:** abstract + §4–§6 + apêndice alinhados aos resultados reais,
   com caveats honestos; *money figure* (ablação) no `.tex`. §2 revisado (coerente).
 
+**✅ Fechados 2026-06-03 (passos 2/3/4):**
+- **#2 Namespace** ontologia↔dados **alinhado** (`load_to_fuseki`/`compute_coordination`/`.rq`
+  → namespace da ontologia); ambos os `.nt` regenerados (0 linhas do antigo). Falta só
+  reaplicar no Fuseki via `make load-kg-bulk` (precisa Docker up) — mecânico.
+- **#3 Calibração de pesos** (objetivo por-sessão): discriminativo (spread 0,33), mas o
+  ótimo **contradiz** o paper porque o JA4 benigno do lab é pouco diverso (artefato);
+  conclusão: pesos teóricos se mantêm, calibração fiel exige JA4 realista. (`weight_calibration_session.py`)
+- **#4 Isolamento do JA4**: com JA4 benigno realista, a detecção JA4-only acompanha o
+  `ja4_share` (AUC 1,0→0,41) → responde ao sinal genuíno, não a artefato. (`ja4_isolation.py`)
+
 **Pendências reais que restam:**
 - (a) **Figuras candidatas** em `figures-candidatas/` (figC multi-ataque real; figB
-  colateral cirúrgico×global) — decidir quais entram no `.tex` + ajustes cosméticos.
-- (b) **#1 isolar o JA4**: sweep com *endpoint* disperso (exige redesign do cluster).
-- (c) **#2 calibração de pesos** com objetivo mais difícil (recall por sessão / adversarial).
-- (d) **Namespace** ontologia↔dados no `load_to_fuseki.py` (+ reload).
-- (e) **RT-IoT2022** (2º dataset do KLAGE; download IEEE ~12 GB) — fecha a comparação.
-- (f) **Avaliação em produção** (TLS observável + atacantes dispersos) — onde a mitigação
-  cirúrgica se realiza plenamente (a única forma de "dado mais real").
+  colateral) — decidir quais entram no `.tex` + ajustes cosméticos. **(maior ROI agora)**
+- (b) **RT-IoT2022** — **bloqueado:** sem PCAP público (só CSV → sem JA4); CIC-DDoS2019 é
+  mau encaixe (volumétrico/UDP). Trabalho futuro.
+- (c) **Avaliação em produção** (TLS observável + atacantes dispersos) — onde a mitigação
+  cirúrgica e a calibração de pesos se realizam plenamente. Trabalho futuro.
 
 ---
 

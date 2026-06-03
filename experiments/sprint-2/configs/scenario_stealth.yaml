@@ -10,6 +10,11 @@ attack_variant: slowloris   # ignorado quando stealth=true (features vêm do ben
 window_s: 300
 stealth: true
 
+# Diversidade de JA4 benigno realista da internet (milhares de fingerprints), não as
+# dezenas de um lab. Necessária para que o JA4 compartilhado do atacante seja
+# discriminativo — caso contrário legítimos colidem em JA4 mais que a campanha.
+benign_ja4_pool: 2000
+
 # Coordenação alta nos sinais fortes (caro de pulverizar para o atacante)
 coordination_ja4_share: 0.9
 coordination_identity_reuse: 0.2

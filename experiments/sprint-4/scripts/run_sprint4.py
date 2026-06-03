@@ -38,6 +38,17 @@ log = logging.getLogger(__name__)
 
 STEALTH_CFG = S2.parent / "configs" / "scenario_stealth.yaml"
 
+# Baseline por-sessão FORTE (8 features de fluxo) — para não inflar o gap cross-session
+# com um baseline sub-dimensionado. Espelha STRONG_FLOW de run_real_multiattack.
+STRONG_FLOW = FLOW + ["fwd_bytes_sum", "bwd_bytes_sum", "fwd_pkts_sum",
+                      "bwd_pkts_sum", "iat_mean_mean", "iat_std_mean"]
+STRONG_SETS = {
+    "a_ml_sem_ontologia":      STRONG_FLOW,
+    "b_ontologia_sem_related": STRONG_FLOW + ["has_identity", "dst_port_first"],
+    "c_so_network_proximity":  STRONG_FLOW + ["share_net"],
+    "d_completo":              STRONG_FLOW + ["share_ja4", "share_net", "cluster_size"],
+}
+
 
 def ensure_scenario(py, dist_dir, work, K, seed):
     """Generate + convert one (K,seed) stealth scenario; cached."""
@@ -55,15 +66,15 @@ def ensure_scenario(py, dist_dir, work, K, seed):
     return parquet
 
 
-def one_run(parquet):
+def one_run(parquet, feature_sets=FEATURE_SETS, base_flow=FLOW):
     df = build_features(pd.read_parquet(parquet))
     y = _is_attack(df["label_first"]).astype(int).values
     if y.sum() < 2 or y.sum() == len(y):
         return None
     out = {}
-    for cfg, feats in FEATURE_SETS.items():
+    for cfg, feats in feature_sets.items():
         out[cfg], _ = auc_for(feats, df, y)
-    Xa = df[FLOW].replace([np.inf, -np.inf], np.nan).fillna(0.0).values
+    Xa = df[base_flow].replace([np.inf, -np.inf], np.nan).fillna(0.0).values
     Xtr, Xte, ytr, yte = train_test_split(Xa, y, test_size=0.3, random_state=42,
                                           stratify=y)
     for bname, (fn, _) in BASELINES.items():
@@ -94,23 +105,31 @@ def main():
     ap.add_argument("--dist-dir", required=True, type=Path)
     ap.add_argument("--work", required=True, type=Path)
     ap.add_argument("--out-dir", required=True, type=Path)
+    ap.add_argument("--strong", action="store_true",
+                    help="usa baseline por-sessão FORTE (8 features de fluxo) em todas as "
+                         "configs — gap cross-session honesto, não inflado por baseline magro")
     args = ap.parse_args()
     args.work.mkdir(parents=True, exist_ok=True)
     args.out_dir.mkdir(parents=True, exist_ok=True)
     py = sys.executable
 
+    feature_sets = STRONG_SETS if args.strong else FEATURE_SETS
+    base_flow = STRONG_FLOW if args.strong else FLOW
+    log.info("Baseline por-sessão: %s (%d features)",
+             "FORTE" if args.strong else "magro", len(base_flow))
+
     rows = []
     for K in args.K:
         for seed in range(1, args.seeds + 1):
             p = ensure_scenario(py, args.dist_dir, args.work, K, seed)
-            r = one_run(p)
+            r = one_run(p, feature_sets, base_flow)
             if r:
                 r.update({"K": K, "seed": seed})
                 rows.append(r)
         log.info("K=%d: %d runs concluídos", K, sum(1 for x in rows if x["K"] == K))
 
     df = pd.DataFrame(rows)
-    configs = list(FEATURE_SETS) + [f"base:{b}" for b in BASELINES]
+    configs = list(feature_sets) + [f"base:{b}" for b in BASELINES]
 
     # ---- agregação + CIs ----
     agg = {}

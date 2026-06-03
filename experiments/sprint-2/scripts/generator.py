@@ -79,14 +79,24 @@ def sample_numeric(dist: dict, rng: random.Random, default: float = 0.0) -> floa
 
 
 def generate_legitimate_session(
-    sid: str, t0: datetime, rng: random.Random, dists: dict
+    sid: str, t0: datetime, rng: random.Random, dists: dict, benign_ja4_pool: int = 0
 ) -> list[dict]:
-    """Gera uma sessão legítima como lista de requisições HTTP."""
+    """Gera uma sessão legítima como lista de requisições HTTP.
+
+    ``benign_ja4_pool``: se > 0, o JA4 legítimo é amostrado de um espaço de tamanho
+    ``benign_ja4_pool`` (diversidade realista de navegadores/dispositivos da internet,
+    milhares de fingerprints) em vez do pool pequeno (dezenas) herdado dos datasets de
+    laboratório. Necessário para que o JA4 compartilhado do atacante seja discriminativo
+    (do contrário, legítimos compartilham JA4 mais que a campanha — artefato de lab).
+    """
     # Sem clamp distorcivo: o real tem muitas sessões de duração ~0 / 1 request;
     # forçar mínimos quebraria o casamento de distribuição (gate KS).
     duration = max(0.0, sample_numeric(dists.get("session_duration", {}), rng, 10.0))
     n_req = max(1, round(sample_numeric(dists.get("session_requests", {}), rng, 5)))
-    ja4 = sample_categorical(dists.get("ja4_users", {}), rng) or "t13d1516h2_default"
+    if benign_ja4_pool and benign_ja4_pool > 0:
+        ja4 = f"benign_ja4_{rng.randint(0, benign_ja4_pool - 1)}"
+    else:
+        ja4 = sample_categorical(dists.get("ja4_users", {}), rng) or "t13d1516h2_default"
     port = sample_categorical(dists.get("endpoints", {}), rng) or "443"
 
     # Clientes legítimos vêm de MUITAS redes (diversidade realista). Espaço RFC 6598
@@ -308,7 +318,8 @@ def main():
             sid = f"legit_{i:06d}"
             iat = max(0.01, sample_numeric(dists.get("arrival", {}), rng, 0.5))
             t0 = t_start + timedelta(seconds=i * iat)
-            for ev in generate_legitimate_session(sid, t0, rng, dists):
+            for ev in generate_legitimate_session(sid, t0, rng, dists,
+                                                   benign_ja4_pool=int(cfg.get("benign_ja4_pool", 0))):
                 fout.write(json.dumps(ev) + "\n")
                 n_events += 1
                 n_legit += 1

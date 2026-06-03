@@ -80,3 +80,24 @@ features z-score, AUC por sessão). Agora **é discriminativo** (spread 0,33), m
   não refutação: na internet real o JA4 benigno é altamente diverso (a premissa do paper).
 - **Conclusão:** calibrar pesos no sintético dá números enganosos; os pesos teóricos
   (custo de evasão) se mantêm; calibração fiel exige diversidade de JA4 realista (produção).
+
+## Atualização — #4 Isolamento do JA4 (com diversidade de JA4 benigno realista)
+
+`sprint-4/scripts/ja4_isolation.py` (+ novo param `benign_ja4_pool` no gerador). Com
+benigno de JA4 diverso (pool=2000, ~internet) e detector usando SOMENTE `share_ja4`
+(sem cluster_size/endpoint), varrendo `coordination_ja4_share`:
+
+| ja4_share | AUC(JA4-only) | AUC(d) |
+|---|---|---|
+| 1,00 | 1,000 | 0,982 |
+| 0,75 | 0,857 | 0,960 |
+| 0,50 | 0,703 | 0,934 |
+| 0,25 | 0,556 | 0,910 |
+| 0,00 | 0,407 | 0,747 |
+
+**JA4 isolado como sinal:** a detecção JA4-only acompanha o ja4_share (1,0→0,41) →
+o método responde ao sinal genuíno de coordenação, **não a um artefato** (resposta
+direta à circularidade). O (d) completo permanece alto via **redundância** (endpoint
+carrega quando o JA4 some) — coerente com o Passo B. Requisito: diversidade de JA4
+benigno realista (o artefato identificado no #3); com o pool pequeno de lab, o JA4
+inverte de sinal.

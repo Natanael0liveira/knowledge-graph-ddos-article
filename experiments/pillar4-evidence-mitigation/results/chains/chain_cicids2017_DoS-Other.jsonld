@@ -1,0 +1,29 @@
+{
+  "@context": {
+    "kg": "http://security.example.org/ontology/ddos#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "kg:cluster/cicids2017-DoS-Other",
+  "@type": "kg:CoordinatedHTTPFlood",
+  "kg:clusterSize": 6,
+  "kg:coordinationScore": 10.8,
+  "kg:verdict": "coordinated-campaign",
+  "kg:activatedSubRelations": [
+    {
+      "@type": "kg:relatedByEndpointConvergence",
+      "kg:coordinationWeight": 0.6,
+      "kg:linkedPairs": 15,
+      "kg:weightedContribution": 9.0
+    },
+    {
+      "@type": "kg:relatedByNetworkProximity",
+      "kg:coordinationWeight": 0.3,
+      "kg:linkedPairs": 6,
+      "kg:weightedContribution": 1.8
+    }
+  ],
+  "kg:derivedMitigationScope": {
+    "kg:endpoint": "192.168.10.50:80",
+    "kg:srcNet24": "172.16.0.0/24"
+  }
+}

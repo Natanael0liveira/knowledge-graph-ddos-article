@@ -101,3 +101,14 @@ direta à circularidade). O (d) completo permanece alto via **redundância** (en
 carrega quando o JA4 some) — coerente com o Passo B. Requisito: diversidade de JA4
 benigno realista (o artefato identificado no #3); com o pool pequeno de lab, o JA4
 inverte de sinal.
+
+## Atualização — §5.6 Análise qualitativa das cadeias de evidência (clusters reais)
+
+`pillar4-evidence-mitigation/scripts/qualitative_evidence.py` sobre 7 clusters de ataque
+reais (5 CICIDS2017 + 2 CIC-IoT2023): **7/7 cadeias completas** (regra, |S|, sub-relações
++pesos, Ω, escopo) e **7/7 acionáveis** (escopo concreto não-vazio, tipicamente
+endpoint+/24). Exemplos JSON-LD/STIX salvos em `results/chains/`. Sub-relações ativadas:
+EndpointConvergence+NetworkProximity (TLS não ativa — ataques reais não-TLS). A força do
+escopo depende de discriminador de peso alto: no CICIDS2017 o atacante (172.16.0.0/24) é
+distinto dos legítimos → cirúrgico efetivo; em LAN não-TLS recai sobre legítimos. Estudo
+com analistas humanos = trabalho futuro. §5.6 e §5.8 do paper atualizados.

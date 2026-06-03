@@ -1,0 +1,8 @@
+dataset,ataque,|S|,Ω,sub-relações,escopo,completa,acionável
+cicids2017,DoS-Other,6,11.0,kg:EndpointConvergence+kg:NetworkProximity,"endpoint,srcNet24",True,True
+cicids2017,GoldenEye,7475,25133943.0,kg:EndpointConvergence+kg:NetworkProximity,"endpoint,srcNet24",True,True
+cicids2017,Hulk,30391,415612120.0,kg:EndpointConvergence+kg:NetworkProximity,"endpoint,srcNet24",True,True
+cicids2017,Slowhttptest,4217,8000492.0,kg:EndpointConvergence+kg:NetworkProximity,"endpoint,srcNet24",True,True
+cicids2017,Slowloris,4035,7324736.0,kg:EndpointConvergence+kg:NetworkProximity,"endpoint,srcNet24",True,True
+cic-iot-2023,HTTP-Flood,91631,3778266838.0,kg:EndpointConvergence+kg:NetworkProximity,"endpoint,srcNet24",True,True
+cic-iot-2023,Slowloris,23968,258498475.0,kg:EndpointConvergence+kg:NetworkProximity,"endpoint,srcNet24",True,True

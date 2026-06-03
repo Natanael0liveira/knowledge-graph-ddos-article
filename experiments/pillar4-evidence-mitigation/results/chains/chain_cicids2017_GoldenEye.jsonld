@@ -1,0 +1,29 @@
+{
+  "@context": {
+    "kg": "http://security.example.org/ontology/ddos#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "kg:cluster/cicids2017-GoldenEye",
+  "@type": "kg:CoordinatedHTTPFlood",
+  "kg:clusterSize": 7475,
+  "kg:coordinationScore": 25133942.7,
+  "kg:verdict": "coordinated-campaign",
+  "kg:activatedSubRelations": [
+    {
+      "@type": "kg:relatedByEndpointConvergence",
+      "kg:coordinationWeight": 0.6,
+      "kg:linkedPairs": 27934075,
+      "kg:weightedContribution": 16760445.0
+    },
+    {
+      "@type": "kg:relatedByNetworkProximity",
+      "kg:coordinationWeight": 0.3,
+      "kg:linkedPairs": 27911659,
+      "kg:weightedContribution": 8373497.7
+    }
+  ],
+  "kg:derivedMitigationScope": {
+    "kg:endpoint": "192.168.10.50:80",
+    "kg:srcNet24": "172.16.0.0/24"
+  }
+}

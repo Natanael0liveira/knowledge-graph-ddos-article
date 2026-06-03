@@ -1,0 +1,33 @@
+{
+  "type": "bundle",
+  "id": "bundle--coord-cicids2017-DoS-Other",
+  "objects": [
+    {
+      "type": "indicator",
+      "id": "indicator--coord-cicids2017-DoS-Other",
+      "spec_version": "2.1",
+      "name": "Coordinated HTTP Flood (cluster cicids2017-DoS-Other)",
+      "indicator_types": [
+        "malicious-activity"
+      ],
+      "pattern_type": "stix",
+      "pattern": "[network-traffic:dst_ref.value = '192.168.10.50' AND network-traffic:dst_port = 80] AND [ipv4-addr:value ISSUBSET '172.16.0.0/24']",
+      "description": "Ω(S)=10.8, 6 sessões; sub-relações: relatedByEndpointConvergence, relatedByNetworkProximity"
+    },
+    {
+      "type": "course-of-action",
+      "id": "course-of-action--coord-cicids2017-DoS-Other",
+      "spec_version": "2.1",
+      "name": "Mitigação cirúrgica de escopo derivado",
+      "description": "Filtrar/desafiar apenas o tráfego que casa com o discriminador do cluster: {\"endpoint\": \"192.168.10.50:80\", \"srcNet24\": \"172.16.0.0/24\"}"
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--coord-cicids2017-DoS-Other",
+      "spec_version": "2.1",
+      "relationship_type": "mitigates",
+      "source_ref": "course-of-action--coord-cicids2017-DoS-Other",
+      "target_ref": "indicator--coord-cicids2017-DoS-Other"
+    }
+  ]
+}

@@ -40,6 +40,15 @@ seus porquês:
   e carregado com **`tdb2.tdbloader` nativo (ARM)**, porque em disco exFAT + JVM
   emulada a carga travava (~5 h e falhava); na nova forma são ~2 min. Decisão de
   engenharia, mas que viabilizou todo o resto.
+- **Dois *datasets* reais, por quê:** **CIC-IoT2023** (tem rótulos oficiais e é o
+  *mesmo* dataset do KLAGE → comparação direta) e **CICIDS2017** (família Slow HTTP
+  completa: Slowloris, Slowhttptest, Hulk, GoldenEye → testa generalização entre
+  variantes do ataque). Um dá comparabilidade com o estado-da-arte; o outro, amplitude.
+- **Rotulagem do CICIDS2017, por quê assim:** o PCAP de quarta-feira não traz rótulos.
+  Rotular **só por janela temporal** marcaria como ataque também o tráfego legítimo que
+  ocorre durante a janela. Então rotulamos por **par-atacante** (`172.16.0.1 →
+  192.168.10.50:80`) **mais** a janela do *burst* — a mesma lógica dos rótulos oficiais
+  do CIC —, verificada contra os *bursts* reais observados a cada 5 min.
 
 **O que os cálculos representam (gates G1–G4).** São *checkpoints* de qualidade —
 cada um valida uma pré-condição antes de prosseguir:
@@ -104,6 +113,15 @@ Mais **3 baselines acadêmicos** (Fernandes/Bharathi/Kemp) como referência exte
 modo **label-agnóstico** (por endpoint+janela), nunca usando o rótulo — senão o
 resultado seria trivialmente circular.
 
+**Decisão de escopo "3 limpas", por quê:** das seis sub-relações da família
+`relatedBy_*`, só **três têm dado a nível de sessão** nos *datasets*: TLSFingerprint
+(JA4), EndpointConvergence (endpoint) e NetworkProximity (/24). As outras três
+—ReusedIdentity (cookie/token), TemporalPattern (cadência por requisição) e
+PayloadSignature (UA/content-type)— exigiriam instrumentação ausente. Decidimos usar
+**apenas as três computáveis exatamente**, em vez de aproximar as demais (o que
+introduziria ruído e desviaria das definições do paper). Isso vale tanto para o Ω(S)
+quanto para as *features* de (c)/(d). É também uma limitação honesta declarada.
+
 **O que os cálculos representam.** A **ROC AUC por configuração** isola contribuições:
 **(a)→(d)** = contribuição total; **(c)→(d)** = ganho específico dos sinais de peso
 alto (JA4) sobre a proximidade de rede. Δ grande = vantagem cross-session real.
@@ -135,6 +153,11 @@ aplicamos estatística formal.
 **Resultados.** No cenário distribuído, **(d)−(c): p_Bonferroni = 2,2×10⁻⁵, Cohen's
 d = 2,91** (efeito enorme); (d)−(a) ainda mais forte (d = 36). A vantagem é
 **estatisticamente inquestionável** no regime distribuído.
+
+**Caveat honesto.** Este resultado é **sintético** e parcialmente circular: a campanha
+é gerada com os sinais (JA4, endpoint) que (d) mede. Prova o *mecanismo*, não que
+ataques reais coordenam assim. Quem fecha essa lacuna é a validação em **dados reais**
+(ver `DEEP-DIVE-FINDINGS.md`: 6 ataques reais, (a) ~acaso → (d) 0,96–1,0).
 
 **Resultado prático esperado.** Transformar "funciona numa rodada" em "**funciona com
 significância estatística**" — o padrão exigível para a §5 do paper.
@@ -178,6 +201,13 @@ não soma/agrega). Os pesos vêm da **ontologia** (`coordinationWeight`), não
 S|** — a *massa de evidência de coordenação* dentro do conjunto S. Pesos refletem o
 **custo de evasão** (JA4/identidade = 1,0; endpoint = 0,6; rede = 0,3): premia a
 coordenação que o atacante **não consegue esconder barato**.
+
+Duas decisões de cálculo: **(i)** o conjunto candidato S é o **cluster de detecção =
+`(endpoint, janela 300s)`** — agrupar por alvo+tempo é o mínimo que define "campanha
+contra um endpoint"; **(ii)** Ω é computado em **O(N), não O(N²)**: em vez de
+materializar todas as arestas par-a-par (bilhões para milhões de sessões), contamos,
+para cada valor compartilhado por *n* sessões, os **C(n,2) = n(n−1)/2** pares — soma
+equivalente, tratável. Por isso a regra roda mesmo em grafos grandes.
 
 **Resultados.** A regra `coordinatedHTTPFlood` dispara emitindo a **derivação**
 (quais sub-relações, quantos pares, com que peso, somando a Ω) — não um número opaco.
@@ -226,6 +256,25 @@ as atacamos — porque "resultado bonito" sem ceticismo é frágil.
 | Mitigação só em toy | reproduzida em sintético calibrado (n=30, IC) | ✅ fortalecida |
 
 ---
+
+## Decisões transversais (guiaram todas as etapas)
+
+Três princípios atravessam todos os sprints e explicam *por que* o trabalho tem a
+forma que tem:
+
+- **Honestidade científica acima do resultado bonito.** Reportamos o que falha
+  (calibração de pesos que satura; mitigação que não se manifesta no CIC; comparação
+  KLAGE que não é controlada), declaramos *caveats* em cada etapa e atacamos a
+  circularidade explicitamente. Decisão: um resultado defensável vale mais que um
+  número alto — porque é o que sobrevive a um revisor cético.
+- **Reprodutibilidade por construção.** *Seeds* fixas, `Makefile` por sprint, logs,
+  artefatos versionados (figuras, JSONs) e commits descritivos. Decisão: qualquer
+  etapa deve rodar de novo com um comando e dar o mesmo número.
+- **A "descoberta do *stealth*".** O achado mais importante de método: num ataque com
+  assinatura de fluxo óbvia, a detecção por-sessão já resolve — então a tese **só é de
+  fato testada** quando o ataque é *furtivo* (per-sessão indistinguível do benigno).
+  Essa percepção reorientou o experimento: o regime furtivo/distribuído é onde a
+  contribuição vive, e é onde concentramos a avaliação.
 
 ## Síntese — o resultado prático geral que esperamos
 

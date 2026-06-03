@@ -27,8 +27,8 @@ log = logging.getLogger(__name__)
 
 def to_sessions(events: pd.DataFrame) -> pd.DataFrame:
     events["timestamp"] = pd.to_datetime(events["timestamp"], format="ISO8601")
-    g = events.groupby("session_id", sort=False)
-    rows = g.agg(
+    events = events.sort_values("timestamp")
+    aggs = dict(
         src_ip_first=("src_ip", "first"),
         src_port_first=("src_port", "first"),
         dst_ip_first=("dst_ip", "first"),
@@ -41,8 +41,24 @@ def to_sessions(events: pd.DataFrame) -> pd.DataFrame:
         asn=("asn", "first"),
         is_attack=("is_attack", "max"),
         campaign_id=("campaign_id", "first"),
-    ).reset_index()
+    )
+    # features de fluxo por-sessão (presentes quando o gerador emite volume por-requisição)
+    flow_cols = {"fwd_bytes": "fwd_bytes_sum", "bwd_bytes": "bwd_bytes_sum",
+                 "fwd_pkts": "fwd_pkts_sum", "bwd_pkts": "bwd_pkts_sum"}
+    for src, dst in flow_cols.items():
+        if src in events.columns:
+            aggs[dst] = (src, "sum")
+    g = events.groupby("session_id", sort=False)
+    rows = g.agg(**aggs).reset_index()
     rows["duration_s"] = (rows["end_ts"] - rows["start_ts"]).dt.total_seconds()
+    # IAT por-sessão (média/desvio dos intervalos entre requisições consecutivas),
+    # mesmos nomes de coluna do build_sessions real para o baseline forte funcionar.
+    if events["timestamp"].notna().any():
+        iat = events.groupby("session_id", sort=False)["timestamp"].apply(
+            lambda s: s.sort_values().diff().dt.total_seconds().dropna())
+        stats = iat.groupby(level=0).agg(["mean", "std"]).reindex(rows["session_id"])
+        rows["iat_mean_mean"] = stats["mean"].fillna(0.0).to_numpy()
+        rows["iat_std_mean"] = stats["std"].fillna(0.0).to_numpy()
     # label_first: attack variant (from UA) or BENIGN — keeps gate code unchanged.
     # The synthetic attack always carries is_attack=True; map to a single ATTACK
     # class (the variant is per-scenario, not per-session here).

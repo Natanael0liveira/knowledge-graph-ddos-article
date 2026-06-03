@@ -36,7 +36,8 @@ def load_distributions(dist_dir: Path) -> dict:
     """Carrega distribuições calibradas (saída de calibrate.py)."""
     dists = {}
     for fname in ["session_duration", "session_requests", "ja4_users",
-                  "endpoints", "arrival"]:
+                  "endpoints", "arrival",
+                  "flow_fwd_bytes", "flow_bwd_bytes", "flow_fwd_pkts", "flow_bwd_pkts"]:
         path = dist_dir / f"{fname}.json"
         if path.exists():
             dists[fname] = json.loads(path.read_text())
@@ -78,6 +79,21 @@ def sample_numeric(dist: dict, rng: random.Random, default: float = 0.0) -> floa
     return rng.uniform(edges[bin_idx], edges[bin_idx + 1])
 
 
+def sample_flow_per_request(rng: random.Random, dists: dict) -> dict:
+    """Amostra volume de UMA requisição das distribuições benignas reais (calibrate_flow).
+
+    Usado por sessões benignas E por sessões furtivas (miméticas): assim as features de
+    volume por-sessão (fwd/bwd bytes e pacotes) têm a MESMA distribuição nos dois casos,
+    e um ML por-sessão completo não consegue separá-las — só a coordenação cross-session.
+    """
+    return {
+        "fwd_bytes": max(0.0, sample_numeric(dists.get("flow_fwd_bytes", {}), rng, 180.0)),
+        "bwd_bytes": max(0.0, sample_numeric(dists.get("flow_bwd_bytes", {}), rng, 336.0)),
+        "fwd_pkts": max(1, round(sample_numeric(dists.get("flow_fwd_pkts", {}), rng, 2.0))),
+        "bwd_pkts": max(1, round(sample_numeric(dists.get("flow_bwd_pkts", {}), rng, 2.0))),
+    }
+
+
 def generate_legitimate_session(
     sid: str, t0: datetime, rng: random.Random, dists: dict, benign_ja4_pool: int = 0
 ) -> list[dict]:
@@ -116,6 +132,7 @@ def generate_legitimate_session(
     events = []
     for i in range(n_req):
         t = t0 + timedelta(seconds=offsets[i])
+        flow = sample_flow_per_request(rng, dists)
         events.append({
             "timestamp": t.isoformat() + "Z",
             "src_ip": src_ip,
@@ -135,6 +152,7 @@ def generate_legitimate_session(
             "asn": asn,
             "is_attack": False,
             "campaign_id": None,
+            **flow,
         })
     return sorted(events, key=lambda e: e["timestamp"])
 
@@ -216,15 +234,36 @@ def generate_attack_session(
     # sinal de coordenação preservado mesmo no modo furtivo.
     path = target_endpoint.get("path", "/api/checkout/payment")
 
+    # Volume por-requisição: furtivo amostra do benigno (mimético, indistinguível
+    # por-sessão); não-furtivo usa volume típico do variant.
+    def req_flow():
+        if stealth:
+            return sample_flow_per_request(rng, dists)
+        if attack_variant in ("hulk", "goldeneye"):      # flood: respostas grandes
+            return {"fwd_bytes": float(rng.randint(200, 600)),
+                    "bwd_bytes": float(rng.randint(5000, 50000)),
+                    "fwd_pkts": rng.randint(1, 3), "bwd_pkts": rng.randint(5, 40)}
+        return {"fwd_bytes": float(rng.randint(20, 200)),  # slow*: trickle minúsculo
+                "bwd_bytes": float(rng.randint(0, 200)),
+                "fwd_pkts": 1, "bwd_pkts": rng.randint(0, 2)}
+
     events = []
-    t = t0
-    for i in range(n_req):
-        # Jitter
-        jitter_factor = 1.0 + coordination_temporal_jitter * rng.uniform(-0.5, 0.5)
-        delta = base_iat * jitter_factor
-        t = t + timedelta(seconds=max(0.1, delta))
-        if (t - t0).total_seconds() > window_s:
-            break
+    if stealth:
+        # Timing mimético: mesmos offsets aleatórios sobre [0, duration] que o benigno,
+        # para que IAT médio/desvio por-sessão também batam com o tráfego legítimo.
+        offsets = sorted(rng.uniform(0, duration) for _ in range(n_req))
+        if n_req >= 2:
+            offsets[0], offsets[-1] = 0.0, duration
+        times = [t0 + timedelta(seconds=o) for o in offsets]
+    else:
+        times, t = [], t0
+        for _ in range(n_req):
+            jitter_factor = 1.0 + coordination_temporal_jitter * rng.uniform(-0.5, 0.5)
+            t = t + timedelta(seconds=max(0.1, base_iat * jitter_factor))
+            if (t - t0).total_seconds() > window_s:
+                break
+            times.append(t)
+    for t in times:
         events.append({
             "timestamp": t.isoformat() + "Z",
             "src_ip": src_ip,
@@ -241,6 +280,7 @@ def generate_attack_session(
             "asn": asn,
             "is_attack": True,
             "campaign_id": campaign_id,
+            **req_flow(),
         })
     return events
 

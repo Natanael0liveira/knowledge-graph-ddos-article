@@ -37,6 +37,11 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 log = logging.getLogger(__name__)
 
 NON_ATTACK = {"BENIGN", "UNLABELED"}
+# Baseline por-sessão FORTE e justo: todas as features de fluxo disponíveis por sessão
+# (não só taxa/duração). Evita inflar o gap cross-session com um baseline sub-dimensionado.
+STRONG_FLOW = FLOW + ["fwd_bytes_sum", "bwd_bytes_sum", "fwd_pkts_sum",
+                      "bwd_pkts_sum", "iat_mean_mean", "iat_std_mean"]
+COORD = ["share_ja4", "share_net", "cluster_size"]
 CONFIGS = {"a_ml_sem_ontologia": FLOW, "d_completo": FEATURE_SETS["d_completo"]}
 
 
@@ -66,7 +71,14 @@ def main():
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--min-attack", type=int, default=50,
                     help="mínimo de sessões do ataque para avaliar")
+    ap.add_argument("--strong-baseline", action="store_true",
+                    help="(a) usa TODAS as features de fluxo por sessão (baseline justo); "
+                         "(d) = essas + coordenação. Mede o ganho da coordenação sobre um "
+                         "ML por-sessão forte, sem inflar o gap.")
     args = ap.parse_args()
+
+    configs = ({"a_ml_sem_ontologia": STRONG_FLOW, "d_completo": STRONG_FLOW + COORD}
+               if args.strong_baseline else CONFIGS)
 
     rows = []
     for pair in args.dataset:
@@ -82,7 +94,7 @@ def main():
                 log.warning("  %s: amostra insuficiente (atk=%d), pulando", atk, int(y.sum()))
                 continue
             benign_mask = (sub["label_first"] == "BENIGN").values
-            for cfg, feats in CONFIGS.items():
+            for cfg, feats in configs.items():
                 r = eval_config(sub, feats, y, benign_mask)
                 r.update({"dataset": name, "attack": atk, "config": cfg,
                           "n_attack": int(y.sum()), "n_benign": int((y == 0).sum())})
@@ -90,9 +102,9 @@ def main():
             log.info("  %s: a.AUC=%.3f d.AUC=%.3f a.F1=%.3f d.F1=%.3f",
                      atk,
                      *[next(x["auc"] for x in rows if x["attack"] == atk and x["config"] == c)
-                       for c in CONFIGS],
+                       for c in configs],
                      *[next(x["f1"] for x in rows if x["attack"] == atk and x["config"] == c)
-                       for c in CONFIGS])
+                       for c in configs])
 
     res = pd.DataFrame(rows)
     # ---- relatório: pivot por (dataset, ataque) com a e d lado a lado ----

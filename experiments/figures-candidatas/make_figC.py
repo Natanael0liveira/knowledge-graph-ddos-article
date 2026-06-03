@@ -26,7 +26,7 @@ real = pd.read_csv("experiments/sprint-3/results/real_multiattack_strong.csv")
 conv_a = real[real.config == "a_ml_sem_ontologia"]["auc"].mean()
 conv_d = real[real.config == "d_completo"]["auc"].mean()
 # --- furtivo: Sprint 4 forte, n=30, K=1000 ---
-agg = json.load(open("experiments/sprint-4/results/strong/sprint4_aggregated.json"))
+agg = json.load(open("experiments/sprint-4/results/sprint4_aggregated.json"))
 cfgK = agg["aggregate"]["K=1000"]["configs"]
 stealth_a = cfgK["a_ml_sem_ontologia"]["mean"]
 stealth_d = cfgK["d_completo"]["mean"]

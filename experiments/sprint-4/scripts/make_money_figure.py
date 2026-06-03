@@ -25,12 +25,13 @@ LABELS = {
     "base:bharathi2012": "Bharathi 2012 (baseline)",
     "base:fernandes2015": "Fernandes 2015 (baseline)",
     "base:kemp2023": "Kemp 2023 (baseline)",
-    "a_ml_sem_ontologia": "(a) ML por sessão",
+    "a_ml_sem_ontologia": "(a) ML por sessão (forte, 8–9 feat)",
     "c_so_network_proximity": "(c) só proximidade de rede",
     "b_ontologia_sem_related": "(b) ontologia sem relatedBy",
     "d_completo": "(d) arcabouço completo",
 }
-C50, C1000 = "#9ecae1", "#08519c"  # claro / escuro
+C50, C1000 = "#b0b0b0", "#1f3a5f"  # cinza claro (K=50) / navy (K=1000)
+CHANCE = "#6e6e6e"
 
 
 def main():
@@ -53,8 +54,8 @@ def main():
                     zorder=3)
             ax.text(min(hi+0.012, 1.005), y, f"{m:.2f}".replace(".", ","),
                     va="center", ha="left", fontsize=8, color="#222")
-    ax.axvline(0.5, color="#d62728", ls="--", lw=1.4, zorder=2)
-    ax.text(0.5, len(ORDER)-0.35, " acaso (0,5)", color="#d62728", fontsize=9, va="top")
+    ax.axvline(0.5, color=CHANCE, ls="--", lw=1.4, zorder=2)
+    ax.text(0.5, len(ORDER)-0.35, " acaso (0,5)", color=CHANCE, fontsize=9, va="top")
     ax.axvline(1.0, color="#999", ls=":", lw=1, zorder=1)
 
     ax.set_yticks(range(len(ORDER)))
@@ -63,8 +64,9 @@ def main():
     ax.get_yticklabels()[ORDER.index("d_completo")].set_fontweight("bold")
     ax.set_xlim(0.4, 1.04)
     ax.set_xlabel("ROC AUC por sessão (detecção de campanha furtiva)")
-    ax.set_title("Ablação: por-sessão e baselines colapsam ao acaso;\n"
-                 "o raciocínio cross-session completo (d) detecta", fontsize=12)
+    ax.set_title("Ablação (baseline por-sessão FORTE, n=30): per-session e baselines\n"
+                 "ficam no acaso; só o raciocínio cross-session (d) detecta", fontsize=11.5,
+                 color="#1f3a5f")
     ax.legend(handles=[Patch(color=C50, label="K = 50 (moderado)"),
                        Patch(color=C1000, label="K = 1000 (distribuído)")],
               loc="lower right", fontsize=9, framealpha=0.95)

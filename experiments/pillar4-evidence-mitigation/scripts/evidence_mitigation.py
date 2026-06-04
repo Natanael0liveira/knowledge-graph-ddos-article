@@ -74,24 +74,38 @@ def decompose_omega(cluster: pd.DataFrame) -> dict:
 
 
 def derive_scope(cluster: pd.DataFrame, coverage: float = 0.9) -> dict:
-    """Escopo mínimo: propriedades compartilhadas por ≥coverage do cluster.
-    Prioriza sinais de peso alto (JA4) sobre baixo (rede) — escopo cirúrgico."""
+    """Escopo mínimo: propriedades compartilhadas por ≥coverage do SUBCONJUNTO COORDENADO.
+
+    O escopo descreve a coordenação que a regra flagrou, não o cluster bruto de
+    (endpoint, janela). Num serviço sob ataque, usuários legítimos compartilham o
+    endpoint mas têm JA4 diverso; computar a cobertura sobre o cluster inteiro diluiria
+    o JA4 do atacante abaixo do limiar e degradaria o escopo para o endpoint inteiro
+    (mitigação global). Restringimos ao subconjunto que compartilha o sinal de peso alto
+    dominante (JA4 modal) --- a assinatura da campanha. Quando não há JA4 (tráfego não-TLS,
+    como nos datasets CIC), recai sobre o cluster inteiro e o escopo fica em endpoint/rede
+    --- honestamente igual à mitigação global (sem discriminador, sem ganho cirúrgico)."""
     cluster = cluster.copy()
     cluster["endpoint"] = cluster["dst_ip_first"].astype(str) + ":" + cluster["dst_port_first"].astype(str)
     cluster["net24"] = cluster["src_ip_first"].map(_net24)
-    n = len(cluster)
-    scope = {}
-    # JA4 (peso 1.0): valor modal cobre ≥coverage das sessões COM ja4?
+    # subconjunto coordenado: sessões que compartilham o JA4 modal (≥2 sharers)
+    coord = cluster
     if cluster["ja4"].notna().any():
-        top_ja4, cnt = cluster["ja4"].value_counts().index[0], cluster["ja4"].value_counts().iloc[0]
+        vc = cluster["ja4"].value_counts()
+        if vc.iloc[0] >= 2:
+            coord = cluster[cluster["ja4"] == vc.index[0]]
+    n = len(coord)
+    scope = {}
+    # JA4 (peso 1.0): valor modal cobre ≥coverage do subconjunto coordenado?
+    if coord["ja4"].notna().any():
+        top_ja4, cnt = coord["ja4"].value_counts().index[0], coord["ja4"].value_counts().iloc[0]
         if cnt / n >= coverage:
             scope["tlsJa4"] = top_ja4
     # Endpoint (peso 0.6)
-    top_ep, cnt = cluster["endpoint"].value_counts().index[0], cluster["endpoint"].value_counts().iloc[0]
+    top_ep, cnt = coord["endpoint"].value_counts().index[0], coord["endpoint"].value_counts().iloc[0]
     if cnt / n >= coverage:
         scope["endpoint"] = top_ep
     # /24 (peso 0.3): só entra como reforço se um único /24 dominar (botnet concentrado)
-    top_net, cnt = cluster["net24"].value_counts().index[0], cluster["net24"].value_counts().iloc[0]
+    top_net, cnt = coord["net24"].value_counts().index[0], coord["net24"].value_counts().iloc[0]
     if cnt / n >= coverage:
         scope["srcNet24"] = top_net + ".0/24"
     return scope

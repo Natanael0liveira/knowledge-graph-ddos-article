@@ -19,7 +19,7 @@ GRAY = "#b0b0b0"   # rate-limit global (baseline rombudo)
 
 # (rótulo do cenário, colateral cirúrgico %, colateral global %, err_global(lo,hi), nota)
 groups = [
-    ("Sintético\n(discriminador presente:\nJA4 de botnet distinto)", 0.0, 22.5, (22.1, 23.0), "redução total"),
+    ("Sintético — mesmo serviço\n(discriminador presente:\nJA4 de botnet distinto)", 0.0, 100.0, None, "redução total"),
     ("Real — CIC-IoT2023\n(LAN, sem TLS observável:\nsem discriminador)", 31.8, 31.8, None, "redução nula"),
 ]
 x = np.arange(len(groups))
@@ -31,26 +31,26 @@ for i, (lab, surg, glob, err, nota) in enumerate(groups):
     ax.bar(i - w/2, surg, w, color=NAVY, zorder=3)
     ax.bar(i + w/2, glob, w, color=GRAY, zorder=3,
            yerr=yerr, error_kw=dict(ecolor="#333", lw=1, capsize=3))
-    ax.text(i - w/2, surg + 0.6, f"{surg:.1f}%".replace(".", ","),
+    ax.text(i - w/2, surg + 1.5, f"{surg:.1f}%".replace(".", ","),
             ha="center", fontsize=9, fontweight="bold", color=NAVY)
-    ax.text(i + w/2, glob + 0.6, f"{glob:.1f}%".replace(".", ","),
+    ax.text(i + w/2, min(glob + 1.5, 101), f"{glob:.1f}%".replace(".", ","),
             ha="center", fontsize=9, color="#444")
-    # seta/nota da redução entre as duas barras
+    # nota da redução, em altura fixa para não colidir com os rótulos das barras
     col = NAVY if nota == "redução total" else "#8a8a8a"
-    ax.text(i, max(surg, glob) + 3.0, nota, ha="center", fontsize=9,
-            style="italic", color=col)
+    ax.text(i, 109, nota, ha="center", fontsize=9, style="italic", color=col)
 
 ax.set_xticks(x)
 ax.set_xticklabels([g[0] for g in groups], fontsize=9)
 ax.set_ylabel("Dano colateral — % do tráfego legítimo atingido")
-ax.set_ylim(0, 38)
-ax.set_title("Mitigação cirúrgica zera o colateral SÓ quando há discriminador de peso alto;\n"
-             "sem ele (LAN/não-TLS), iguala-se ao bloqueio global", color=NAVY, fontsize=10.5)
+ax.set_ylim(0, 116)
+ax.set_title("Mitigação cirúrgica zera o colateral quando há discriminador de peso alto\n"
+             "(serviço sob ataque: global derruba 100% dos legítimos); sem ele, iguala o global",
+             color=NAVY, fontsize=10)
 ax.legend(handles=[Patch(color=NAVY, label="mitigação cirúrgica (escopo derivado)"),
                    Patch(color=GRAY, label="rate-limit global no endpoint")],
-          loc="upper left", fontsize=9, frameon=False)
+          loc="upper center", bbox_to_anchor=(0.5, -0.18), ncol=2, fontsize=9, frameon=False)
 ax.grid(axis="y", alpha=.3, zorder=0)
 ax.spines[["top", "right"]].set_visible(False)
 fig.tight_layout()
 fig.savefig("experiments/figures-candidatas/figB_colateral.png", dpi=160, bbox_inches="tight")
-print("OK: figB (sintético 0%/22,5% × real 31,8%/31,8%)")
+print("OK: figB (sintético 0%/100% × real 31,8%/31,8%)")

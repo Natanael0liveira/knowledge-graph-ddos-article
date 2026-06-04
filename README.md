@@ -144,7 +144,7 @@ pendências: [`experiments/RESUME.md`](experiments/RESUME.md).
 | Ambiente Docker do laboratório (Fuseki) | ✅ Funcional (TDB2 no SSD; bulk load nativo) |
 | *Baselines* (Fernandes, Bharathi, Kemp) | ✅ Implementados (operacionalizações; no acaso em ataque furtivo — ver DEEP-DIVE-FINDINGS) |
 | **Generalização em dados reais** (6 ataques, 2 datasets) | ✅ ML por-sessão **forte** já atinge AUC 0,98–1,00 sozinho; entre sessões fica ~1,00 (ganho ≈0): ataques reais convencionais têm assinatura por sessão |
-| Ablação a/b/c/d + estatística (n=30) | ✅ regime furtivo-distribuído sintético: (a) forte 0,505→(d) 0,969 (K=50); (d)−(c) p_bonf=7,4×10⁻⁹, d=14,1 |
+| Ablação a/b/c/d + estatística (n=30) | ✅ regime furtivo-distribuído sintético (cenário realista de mesmo serviço, :443): (a) forte 0,519 e (b) ontologia s/ relatedBy 0,527 ambos no acaso → (d) 0,968 (K=50); (d)−(c) p_bonf=7,4×10⁻⁹, d=12,2 |
 | Comparação com KLAGE (CIC-IoT2023) | ✅ (d) F1=0,911 e (a') por-sessão forte F1=0,900 superam KLAGE 0,841; o F1=0,18 antigo era artefato do baseline magro (caveat: granularidade nó-vs-sessão) |
 | Ontologia OWL: 6 sub-propriedades `relatedBy_*` ponderadas | ✅ Formalizadas (com `coordinationWeight`) |
 | Alinhamento de namespace ontologia↔dados em runtime | ⏳ Pendente (instâncias usam namespace distinto do `.owl`) |

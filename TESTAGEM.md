@@ -7,9 +7,10 @@ Para a visão de projeto, ver [`README.md`](README.md). Para a fundamentação, 
 
 > **✅ Este plano FOI EXECUTADO (Fase B, Sprints 1–5, 2026-06-01).** Resultados,
 > gates e *caveats* em [`experiments/RESUME.md`](experiments/RESUME.md) e nos READMEs de
-> cada sprint. Resumo: no regime **furtivo-distribuído** (sintético) a detecção por-sessão
-> fica no acaso (AUC 0,505) enquanto o arcabouço de correlação entre sessões detecta
-> (AUC 0,969–0,992); em dados reais convencionais (CIC-IoT2023, F1=0,911 vs KLAGE 0,841)
+> cada sprint. Resumo: no regime **furtivo-distribuído** (sintético, cenário realista de
+> mesmo serviço em :443) tanto a detecção por-sessão quanto a ontologia sem `relatedBy`
+> ficam no acaso (AUC 0,519 e 0,527) enquanto o arcabouço de correlação entre sessões detecta
+> (AUC 0,968–0,976); em dados reais convencionais (CIC-IoT2023, F1=0,911 vs KLAGE 0,841)
 > um ML por-sessão **forte** já basta (F1=0,900) — o antigo "colapso F1≈0,18" era
 > artefato do baseline magro de 3 features. Resultados em dados reais e ameaças à validade:
 > [`experiments/DEEP-DIVE-FINDINGS.md`](experiments/DEEP-DIVE-FINDINGS.md); metodologia

@@ -126,12 +126,17 @@ quanto para as *features* de (c)/(d). É também uma limitação honesta declara
 **(a)→(d)** = contribuição total; **(c)→(d)** = ganho específico dos sinais de peso
 alto (JA4) sobre a proximidade de rede. Δ grande = vantagem do raciocínio entre sessões real.
 
-**Resultados (campanha furtiva, n=30 seeds, ROC AUC [K=50 / K=1000]).** Mesmo o (a) ML
-**forte** (8–9 features) e os 3 baselines ficam **no acaso**: (a) 0,505 / 0,498; (c) só
-NetworkProximity 0,502 / 0,678; baselines acadêmicos ~0,50. A ontologia sem `relatedBy`
-(b) chega a 0,877 / 0,893, e o arcabouço completo (d) atinge **0,969 / 0,992**. A
-vantagem só aparece no regime furtivo — em ataque de assinatura óbvia, (a) já resolve
-(resultado honesto, não escondido).
+**Resultados (campanha furtiva, n=30 seeds, ROC AUC [K=50 / K=1000], cenário realista de
+mesmo serviço — usuários legítimos acessam o serviço atacado em `:443`).** Mesmo o (a) ML
+**forte** (8–9 features) e os 3 baselines ficam **no acaso**: (a) 0,519 / 0,502; (c) só
+NetworkProximity 0,523 / 0,664; baselines acadêmicos ~0,50. A ontologia sem `relatedBy`
+(b) — que adiciona atributos por-sessão (identidade, porta-alvo) mas nenhuma relação
+entre sessões — **também fica no acaso** (0,527 / 0,503), porque benigno e atacante
+compartilham o mesmo endpoint `:443` e **nenhum atributo por-sessão os distingue**; **só**
+as relações explícitas `relatedBy_*` (d) separam, atingindo **0,968 / 0,976**. É a versão
+**mais forte** do resultado: o *gap* (d)−(b) cresceu de ~0,10 para ~0,47, e o efeito não
+pode mais ser descartado como artefato da porta-alvo. A vantagem só aparece no regime
+furtivo — em ataque de assinatura óbvia, (a) já resolve (resultado honesto, não escondido).
 
 **Resultado prático esperado.** Demonstrar que **um detector que ignora a estrutura
 entre sessões é cego** à campanha furtiva distribuída — exatamente o ponto cego do
@@ -154,8 +159,8 @@ aplicamos estatística formal.
 - **Cohen's d:** o *tamanho* da diferença, em desvios-padrão.
 
 **Resultados (K=1000).** No cenário distribuído, **(d)−(c): p_Bonferroni = 7,4×10⁻⁹,
-Cohen's d = 14,1** (efeito enorme); (d)−(a) ainda mais forte (p_Bonferroni = 7,4×10⁻⁹,
-d = 22,1). A vantagem é **estatisticamente inquestionável** no regime distribuído.
+Cohen's d = 12,2** (efeito enorme); (d)−(a) ainda mais forte (p_Bonferroni = 7,4×10⁻⁹,
+d = 19,6). A vantagem é **estatisticamente inquestionável** no regime distribuído.
 
 **Caveat honesto.** Este resultado é **sintético** e parcialmente circular: a campanha
 é gerada com os sinais (JA4, endpoint) que (d) mede. Prova o *mecanismo*, não que
@@ -289,7 +294,7 @@ forma que tem:
 Um arcabouço que, sobre tráfego de aplicação web, **(i) detecta** campanhas L7
 distribuídas e furtivas que a análise por-sessão (e o estado-da-arte por-features)
 **não vê** — com **significância estatística** no regime furtivo-distribuído
-(sintético, p_bonf=7,4×10⁻⁹, d=14,1); **(ii) explica** o veredicto como derivação simbólica
+(sintético, p_bonf=7,4×10⁻⁹, d=12,2); **(ii) explica** o veredicto como derivação simbólica
 auditável; e **(iii) mitiga cirurgicamente**, poupando o tráfego legítimo (provado em
 sintético calibrado: 0% vs 22,5% de colateral).
 

@@ -99,8 +99,8 @@ experiments/
 |---|---|---|
 | **1** — Pipeline + KG | CICIDS2017 + CIC-IoT2023 | ✅ ambos carregados; gates G1–G4 PASS no `validate.ipynb` |
 | **2** — Gerador sintético | calibrado pelo S1 | ✅ KS pass (D≤0.02); reprodutível; modo *stealth* |
-| **3** — Baselines + ablação | sintético furtivo | ✅ (d) entre sessões ≫ (a) forte/baselines (0,969 vs 0,505 em K=50) |
-| **4** — Execução estatística | sintético, n=30 | ✅ (d)−(c) em C: p_bonf=7,4×10⁻⁹, Cohen's d=14,1 |
+| **3** — Baselines + ablação | sintético furtivo (mesmo serviço, :443) | ✅ (d) entre sessões ≫ (a) forte/(b) ontologia s/ relatedBy/baselines, todos no acaso (0,968 vs 0,519/0,527 em K=50) |
+| **4** — Execução estatística | sintético, n=30 | ✅ (d)−(c) em C: p_bonf=7,4×10⁻⁹, Cohen's d=12,2 |
 | **5** — Comparação KLAGE | CIC-IoT2023 (real) | ✅ (d) F1=0,911 e (a') por-sessão forte F1=0,900 > KLAGE 0,841; vantagem entre-sessões marginal (dataset convencional) |
 
 **Tese sustentada:** a vantagem do raciocínio entre sessões é real e estatisticamente

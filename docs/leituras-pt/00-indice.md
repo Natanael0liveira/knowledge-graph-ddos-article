@@ -24,7 +24,7 @@ Esta pasta contém traduções integrais dos 11 artigos em [`docs/pdfs/`](../pdf
 
 ## Ordem de leitura recomendada
 
-### Tier 1 — Leia primeiro, leia inteiro (4 papers, ~11.5 h)
+### Tier 1 — Leia primeiro, leia inteiro (5 papers, ~13 h)
 
 | Ordem | Arquivo | Paper | Tempo | Citado em |
 |---|---|---|---|---|
@@ -32,6 +32,7 @@ Esta pasta contém traduções integrais dos 11 artigos em [`docs/pdfs/`](../pdf
 | 2 | [`02-odusami-2020.md`](02-odusami-2020.md) | Odusami et al. (2020), IJ Communication Systems — Meta-análise de 75 estudos | 3 h | Abstract, §1.1, §1.2 (gap 1) |
 | 3 | [`03-kemp-2023.md`](03-kemp-2023.md) | Kemp et al. (2023), J. Big Data — Detecção ML para Layer 7 HTTP lento | 1.5 h | §1.1, §1.2 (gap 2), §1.4, §4.4 (baseline) |
 | 4 | [`04-liu-2022.md`](04-liu-2022.md) | Liu et al. (2022), Electronics MDPI — Survey de KG em Cibersegurança | 2 h | §1.2 (gap 3) — *quote literal* |
+| 5 | [`12-belcastro-2026-klage.md`](12-belcastro-2026-klage.md) | Belcastro et al. (2026), FGCS — **KLAGE: KG + Graph-BERT + LLM** (trabalho relacionado mais próximo) | 1.5 h | §1, §2, §5.4 (comparação) |
 
 ### Tier 2 — Leia depois, leia partes-chave (3 papers, ~3.5 h)
 
@@ -94,6 +95,7 @@ Esta pasta contém traduções integrais dos 11 artigos em [`docs/pdfs/`](../pdf
 | Meta-análise de métodos de detecção | 02-Odusami |
 | Lacuna de KG em segurança operacional | 04-Liu |
 | Construção de KG em cibersegurança | 05-Jia, 06-Bonagiri |
+| **KG + Graph-BERT + LLM (relacionado mais próximo)** | **12-Belcastro (KLAGE)** |
 | Definição formal de KG | 07-Ehrlinger |
 | Baseline ML moderno para HTTP Slow | 03-Kemp |
 | Baseline estatístico (perfilamento PCA) | 08-Fernandes |

@@ -22,9 +22,9 @@ ORDER = ["base:bharathi2012", "base:fernandes2015", "base:kemp2023",
          "a_ml_sem_ontologia", "c_so_network_proximity",
          "b_ontologia_sem_related", "d_completo"]
 LABELS = {
-    "base:bharathi2012": "Bharathi 2012 (baseline)",
-    "base:fernandes2015": "Fernandes 2015 (baseline)",
-    "base:kemp2023": "Kemp 2023 (baseline)",
+    "base:bharathi2012": "Bharathi 2012 (literatura)",
+    "base:fernandes2015": "Fernandes 2015 (literatura)",
+    "base:kemp2023": "Kemp 2023 (literatura)",
     "a_ml_sem_ontologia": "(a) ML por sessão (forte, 8–9 feat)",
     "c_so_network_proximity": "(c) só proximidade de rede",
     "b_ontologia_sem_related": "(b) ontologia sem relatedBy",
@@ -64,9 +64,9 @@ def main():
     ax.get_yticklabels()[ORDER.index("d_completo")].set_fontweight("bold")
     ax.set_xlim(0.4, 1.04)
     ax.set_xlabel("ROC AUC por sessão (detecção de campanha furtiva)")
-    ax.set_title("Ablação (baseline por-sessão FORTE, n=30): per-session e baselines\n"
-                 "ficam no acaso; só o raciocínio entre sessões (d) detecta", fontsize=11.5,
-                 color="#1f3a5f")
+    ax.set_title("Detecção por sessão fica no acaso — classificador forte (8–9 atributos)\n"
+                 "e métodos da literatura; só o raciocínio entre sessões (d) detecta (n=30)",
+                 fontsize=11, color="#1f3a5f")
     ax.legend(handles=[Patch(color=C50, label="K = 50 (moderado)"),
                        Patch(color=C1000, label="K = 1000 (distribuído)")],
               loc="lower right", fontsize=9, framealpha=0.95)

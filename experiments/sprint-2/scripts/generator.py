@@ -95,7 +95,8 @@ def sample_flow_per_request(rng: random.Random, dists: dict) -> dict:
 
 
 def generate_legitimate_session(
-    sid: str, t0: datetime, rng: random.Random, dists: dict, benign_ja4_pool: int = 0
+    sid: str, t0: datetime, rng: random.Random, dists: dict, benign_ja4_pool: int = 0,
+    benign_same_service: bool = False
 ) -> list[dict]:
     """Gera uma sessão legítima como lista de requisições HTTP.
 
@@ -113,7 +114,14 @@ def generate_legitimate_session(
         ja4 = f"benign_ja4_{rng.randint(0, benign_ja4_pool - 1)}"
     else:
         ja4 = sample_categorical(dists.get("ja4_users", {}), rng) or "t13d1516h2_default"
-    port = sample_categorical(dists.get("endpoints", {}), rng) or "443"
+    # Cenário realista: usuários legítimos acessam o MESMO serviço atacado (porta 443),
+    # como acontece num ataque a um serviço web em produção. Remove o artefato em que a
+    # diversidade de portas do benigno (herdada do CIC: 53/80/443/...) separa trivialmente
+    # do ataque (fixo em 443) — sem isto, a porta-alvo vaza como discriminador por-sessão.
+    if benign_same_service:
+        port = "443"
+    else:
+        port = sample_categorical(dists.get("endpoints", {}), rng) or "443"
 
     # Clientes legítimos vêm de MUITAS redes (diversidade realista). Espaço RFC 6598
     # (100.64.0.0/10): ~16k /24s distintos → colisões de /24 raras entre as sessões,
@@ -359,7 +367,8 @@ def main():
             iat = max(0.01, sample_numeric(dists.get("arrival", {}), rng, 0.5))
             t0 = t_start + timedelta(seconds=i * iat)
             for ev in generate_legitimate_session(sid, t0, rng, dists,
-                                                   benign_ja4_pool=int(cfg.get("benign_ja4_pool", 0))):
+                                                   benign_ja4_pool=int(cfg.get("benign_ja4_pool", 0)),
+                                                   benign_same_service=bool(cfg.get("benign_same_service", False))):
                 fout.write(json.dumps(ev) + "\n")
                 n_events += 1
                 n_legit += 1

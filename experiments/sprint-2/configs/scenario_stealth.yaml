@@ -15,6 +15,11 @@ stealth: true
 # discriminativo — caso contrário legítimos colidem em JA4 mais que a campanha.
 benign_ja4_pool: 2000
 
+# Cenário realista de produção: usuários legítimos acessam o MESMO serviço atacado (:443),
+# não portas diversas. Remove o artefato em que a porta-alvo separa trivialmente o ataque
+# do benigno (config (b)). Com isto, só a coordenação entre sessões (JA4) discrimina.
+benign_same_service: true
+
 # Coordenação alta nos sinais fortes (caro de pulverizar para o atacante)
 coordination_ja4_share: 0.9
 coordination_identity_reuse: 0.2

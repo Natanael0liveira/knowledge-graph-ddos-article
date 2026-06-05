@@ -84,15 +84,19 @@ Sessão offline (HD ejetado). Tudo commitado e pushado.
 - ✅ **Pilar 2 codado:** `experiments/pillar2-symbolic-reasoning/` (SWRL+SPARQL,
   veredicto-como-derivação, pesos da ontologia). `make demo`.
 - ✅ **Pilar 4 codado:** `experiments/pillar4-evidence-mitigation/` (cadeia JSON-LD/STIX
-  + mitigação cirúrgica; toy: 0% colateral vs 49,5% global). `make demo`.
+  + mitigação cirúrgica; cenário realista de mesmo serviço: 0% colateral vs 100% global). `make demo`.
   → **Os 4 pilares do paper agora existem como código.**
 - ✅ **Deep-dive em dados reais EXECUTADO (2026-06-02/03):** Passo A (6 ataques reais:
   um ML **por-sessão forte** já atinge AUC 0,98–1,00 sozinho e o (d) entre sessões fica
   ~1,00 — ganho ≈0, porque ataques reais convencionais têm assinatura de fluxo por sessão;
-  a coordenação entre sessões NÃO é necessária neles); Passo B (robustez = redundância de sinais, não
-  isola JA4); Passo C (calibração de pesos **não-alcançável**, satura); Pilar 4 em
+  a coordenação entre sessões NÃO é necessária neles); Passo B (a suposta "redundância de
+  endpoint" era artefato do cenário antigo — ver §4 de isolamento: no cenário realista de
+  mesmo serviço o (d) cai a ≈ acaso ao perder o JA4); Passo C (calibração de pesos
+  **não-alcançável**, satura); Pilar 4 em
   cluster real (mitigação cirúrgica **não se manifesta** no CIC: LAN+não-TLS) e em
-  sintético calibrado (**0% vs 22,5%**, n=30, IC). Registro: [`DEEP-DIVE-FINDINGS.md`](DEEP-DIVE-FINDINGS.md).
+  sintético calibrado no cenário realista de mesmo serviço (**0% cirúrgico vs 100% global**,
+  n=30, K=1000; escopo derivado do **subconjunto coordenado** — JA4 modal —, não do cluster
+  cru). Registro: [`DEEP-DIVE-FINDINGS.md`](DEEP-DIVE-FINDINGS.md).
 - ✅ **Paper consolidado:** abstract + §4–§6 + apêndice alinhados aos resultados reais,
   com caveats honestos; *money figure* (ablação) no `.tex`. §2 revisado (coerente).
 
@@ -103,8 +107,15 @@ Sessão offline (HD ejetado). Tudo commitado e pushado.
 - **#3 Calibração de pesos** (objetivo por-sessão): discriminativo (spread 0,33), mas o
   ótimo **contradiz** o paper porque o JA4 benigno do lab é pouco diverso (artefato);
   conclusão: pesos teóricos se mantêm, calibração fiel exige JA4 realista. (`weight_calibration_session.py`)
-- **#4 Isolamento do JA4**: com JA4 benigno realista, a detecção JA4-only acompanha o
-  `ja4_share` (AUC 1,0→0,41) → responde ao sinal genuíno, não a artefato. (`ja4_isolation.py`)
+- **#4 Isolamento do JA4** (cenário realista de mesmo serviço, variando `ja4_share`): JA4-only
+  AUC 0,999 (share=1) → 0,31 (share=0); **arcabouço completo (d) AUC 0,996 → 0,475 ≈ acaso**.
+  Conclusão corrigida: quando os legítimos compartilham o endpoint atacado, a convergência de
+  endpoint **NÃO compensa** a perda do JA4 — detecção e (sobretudo) mitigação cirúrgica
+  **dependem de um discriminador de peso alto** que os atacantes têm e os legítimos não (JA4 de
+  botnet com mesmo stack, ou identidade/credencial reaproveitada). Contra um atacante que
+  randomiza JA4 sem reaproveitar identidade, o arcabouço ainda sinaliza a anomalia agregada mas
+  perde separação por-sessão e precisão cirúrgica (reforça a limitação de adversário adaptativo).
+  (`ja4_isolation.py`)
 
 **Pendências reais que restam:**
 - (a) **Figuras candidatas** em `figures-candidatas/` (figC multi-ataque real; figB

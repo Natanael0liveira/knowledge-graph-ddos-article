@@ -56,7 +56,7 @@ Todas as regras dependem de `relatedTo`. Nenhuma é satisfeita por uma sessão i
 
 ### 4. Mitigação com escopo cirúrgico
 
-A cadeia de evidência **identifica o discriminador do *cluster*** (JA4 + endpoint, ou JA4 + ASN). Esse discriminador vira o `scope` da política de mitigação — *Challenge* só para o tráfego que bate o JA4, não para todo mundo na rota. Tráfego legítimo é preservado; o ataque é contido.
+A cadeia de evidência **identifica o discriminador do *subconjunto coordenado*** — as sessões que compartilham o JA4 modal (a assinatura da campanha), **não** o *cluster* `(endpoint, janela)` cru. Esse discriminador vira o `scope` da política de mitigação — *Challenge* só para o tráfego que bate o JA4, não para todo mundo na rota. Tráfego legítimo é preservado; o ataque é contido. (Derivar o escopo do cluster inteiro era um erro: os legítimos diluíam o JA4 do atacante abaixo do limiar de cobertura e o escopo degradava para o endpoint todo — i.e. global; restringir ao subconjunto coordenado restaura o 0% cirúrgico.)
 
 Esse é o eixo onde nossa contribuição se diferencia de WAFs e *rate-limiters* tradicionais: eles **funcionam** contra a campanha (com limite global), mas pagam em **dano colateral em legítimos** — métrica que produtos comerciais auto-reportam mas a literatura acadêmica não usa sistematicamente em L7 DDoS.
 
@@ -148,7 +148,7 @@ pendências: [`experiments/RESUME.md`](experiments/RESUME.md).
 | Comparação com KLAGE (CIC-IoT2023) | ✅ (d) F1=0,911 e (a') por-sessão forte F1=0,900 superam KLAGE 0,841; o F1=0,18 antigo era artefato do baseline magro (caveat: granularidade nó-vs-sessão) |
 | Ontologia OWL: 6 sub-propriedades `relatedBy_*` ponderadas | ✅ Formalizadas (com `coordinationWeight`) |
 | Alinhamento de namespace ontologia↔dados em runtime | ⏳ Pendente (instâncias usam namespace distinto do `.owl`) |
-| **Pilar 4** (cadeia de evidência JSON-LD/STIX + mitigação cirúrgica) | ✅ Codado + rodado em cluster real e sintético calibrado (cirúrgico 0% vs global 22,5%, n=30); não se manifesta no CIC (LAN+não-TLS) |
+| **Pilar 4** (cadeia de evidência JSON-LD/STIX + mitigação cirúrgica) | ✅ Codado + rodado em cluster real e sintético calibrado no cenário realista de mesmo serviço (cirúrgico 0% vs global 100%, n=30, K=1000; escopo derivado do **subconjunto coordenado**, não do cluster cru); não se manifesta no CIC (LAN+não-TLS, surgical=global=31,8%) |
 | **Pilar 2** (raciocínio simbólico SWRL+SPARQL · veredicto-como-derivação) | ✅ Codado; regra dispara com a derivação; pesos lidos da ontologia |
 | Calibração empírica de pesos $w_i$ | ⏳ Não-alcançável no sintético (satura); pesos teóricos — ver DEEP-DIVE-FINDINGS |
 | RT-IoT2022 (2º dataset KLAGE) · avaliação em produção | ⏳ Pendente (trabalho futuro) |

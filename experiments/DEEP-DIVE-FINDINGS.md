@@ -31,13 +31,15 @@ a vantagem entre-sessões só se manifesta no sintético furtivo (Sprint 3/4).
 **Caveat:** cicids2017 (d)=1,000 é parcialmente circular (rótulos por IP ↔ `share_net`);
 cic-iot-2023 usa rótulos oficiais (0,96–0,99).
 
-## Passo B — Sweep de robustez — ⚠️ redundância, não isolamento
+## Passo B — Sweep de robustez — ⚠️ a "redundância de endpoint" era artefato do cenário
 
-AUC(d) NÃO cai quando o JA4 some (1,000→0,999); (a) fica em ~0,54. Motivo: os
-atacantes sempre convergem no mesmo endpoint → `cluster_size`/convergência carregam
-sozinhos. Mostra **redundância de sinais** (a tese da soma ponderada), mas **não isola
-o JA4** → não dispele a circularidade (isso é o Passo A). Refinamento: dispersar
-também o endpoint.
+Numa versão antiga (legítimos **fora** do endpoint atacado) o AUC(d) não caía quando o JA4
+sumia (1,000→0,999), o que se interpretou como **redundância de sinais** — a convergência de
+endpoint carregaria sozinha. **Essa conclusão foi superada** (ver §4 de isolamento, cenário
+realista de mesmo serviço): quando os legítimos compartilham o endpoint atacado, a
+convergência de endpoint deixa de discriminar e o (d) cai a ≈ acaso junto com o JA4. Ou seja,
+**não há redundância real** — a detecção e a mitigação cirúrgica dependem de um discriminador
+de peso alto (JA4 / identidade reaproveitada) que os legítimos não compartilham.
 
 ## Passo C — Calibração de pesos — ❌ não alcançável
 
@@ -65,15 +67,24 @@ produção. (§5.5 do paper atualizado com esse caveat.)
 - **Tese de DETECÇÃO (entre sessões > por-sessão):** ✅ no regime **furtivo-distribuído** (sintético); em dados reais convencionais um por-sessão **forte** já basta (ganho entre-sessões ≈ 0).
 - **Tese de MITIGAÇÃO cirúrgica:** ✅ em princípio / ❌ não demonstrável nos datasets atuais.
 - **Calibração de pesos:** permanece teórica (não empírica).
-- **Robustez:** sinais redundantes (perde JA4, endpoint carrega).
+- **Robustez:** **não** há redundância de endpoint no cenário realista de mesmo serviço — ao
+  perder o JA4, o (d) cai a ≈ acaso (AUC 0,475); a detecção depende de um discriminador de peso
+  alto (JA4 / identidade reaproveitada).
 
 ## Atualização — Item #3 fechado (mitigação cirúrgica em sintético calibrado)
 
 `pillar4-evidence-mitigation/scripts/collateral_eval.py` sobre 30 cenários stealth
-calibrados (K=1000): JA4 no escopo em 30/30; **cirúrgico 0,00% [0,00–0,00]** vs
-**global 22,5% [22,1–23,0]** → **redução 100%** do dano colateral, com IC. Eleva o
-toy a resultado calibrado+estatístico. Continua sintético (condições que o gerador
-modela; KS-validado); produção real permanece trabalho futuro. §5.5 do paper atualizado.
+calibrados (K=1000), no **cenário realista de mesmo serviço** (os legítimos acessam o
+**mesmo** serviço atacado em `:443`): JA4 no escopo em 30/30; **cirúrgico 0,00% [0,00–0,00]**
+vs **global 100%** → **redução de 100%** do dano colateral. O global é agora 100% por
+definição: um *rate-limit* global no serviço atacado bloqueia **todos** os legítimos desse
+serviço. **Correção de mecanismo:** o escopo é derivado do **subconjunto coordenado** (as
+sessões que compartilham o JA4 modal = assinatura da campanha), **não** do cluster
+`(endpoint, janela)` cru. Um bug anterior derivava do cluster inteiro, onde os legítimos
+diluíam o JA4 do atacante abaixo do limiar de cobertura e degradavam o escopo para o endpoint
+todo (= global); restringir ao subconjunto coordenado restaura o 0% cirúrgico. Continua
+sintético (condições que o gerador modela; KS-validado); produção real permanece trabalho
+futuro. §5.5 do paper atualizado.
 
 Pendentes: #1 (isolar JA4 com endpoint disperso — redesign de cluster) e #2 (calibração
 de pesos com objetivo mais difícil) — médio valor, opcionais.
@@ -93,24 +104,25 @@ features z-score, AUC por sessão). Agora **é discriminativo** (spread 0,33), m
 
 ## Atualização — #4 Isolamento do JA4 (com diversidade de JA4 benigno realista)
 
-`sprint-4/scripts/ja4_isolation.py` (+ novo param `benign_ja4_pool` no gerador). Com
-benigno de JA4 diverso (pool=2000, ~internet) e detector usando SOMENTE `share_ja4`
-(sem cluster_size/endpoint), varrendo `coordination_ja4_share`:
+`sprint-4/scripts/ja4_isolation.py` (+ novo param `benign_ja4_pool` no gerador). No
+**cenário realista de mesmo serviço** (legítimos acessam o endpoint atacado em `:443`), com
+benigno de JA4 diverso (pool=2000, ~internet), varrendo `coordination_ja4_share` — JA4-only
+(detector usando SOMENTE `share_ja4`) vs arcabouço completo (d):
 
 | ja4_share | AUC(JA4-only) | AUC(d) |
 |---|---|---|
-| 1,00 | 1,000 | 0,982 |
-| 0,75 | 0,857 | 0,960 |
-| 0,50 | 0,703 | 0,934 |
-| 0,25 | 0,556 | 0,910 |
-| 0,00 | 0,407 | 0,747 |
+| 1,00 | 0,999 | 0,996 |
+| 0,00 | 0,31 | **0,475 ≈ acaso** |
 
-**JA4 isolado como sinal:** a detecção JA4-only acompanha o ja4_share (1,0→0,41) →
-o método responde ao sinal genuíno de coordenação, **não a um artefato** (resposta
-direta à circularidade). O (d) completo permanece alto via **redundância** (endpoint
-carrega quando o JA4 some) — coerente com o Passo B. Requisito: diversidade de JA4
-benigno realista (o artefato identificado no #3); com o pool pequeno de lab, o JA4
-inverte de sinal.
+**Conclusão corrigida:** quando os legítimos compartilham o endpoint atacado, a convergência
+de endpoint **NÃO compensa** a perda do JA4 — o (d) completo cai a ≈ acaso (0,475) junto com
+o sinal JA4. Logo, tanto a detecção quanto (sobretudo) a mitigação cirúrgica **dependem de um
+discriminador de peso alto** que os atacantes compartilham e os legítimos não: JA4 (botnet com
+mesmo stack) ou identidade/credencial reaproveitada (*credential stuffing*). Contra um atacante
+que randomiza o JA4 sem reaproveitar identidade, o arcabouço ainda sinaliza a anomalia agregada,
+mas **perde separação por-sessão e precisão cirúrgica** — o que alinha e reforça a limitação de
+adversário adaptativo. Requisito: diversidade de JA4 benigno realista (o artefato identificado
+no #3); com o pool pequeno de lab, o JA4 inverte de sinal.
 
 ## Atualização — §5.6 Análise qualitativa das cadeias de evidência (clusters reais)
 

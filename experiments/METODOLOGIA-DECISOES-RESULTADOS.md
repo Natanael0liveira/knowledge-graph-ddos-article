@@ -243,11 +243,19 @@ detecção) + **dano colateral**: fração de legítimos que cai no escopo **cir
 (JA4-específico) vs no **global** (endpoint inteiro). A diferença é o tráfego legítimo
 poupado.
 
-**Resultados.** Em sintético **calibrado** (n = 30, com IC): escopo inclui o JA4 em
-30/30; **cirúrgico 0,00% [0–0] vs global 22,5% [22,1–23,0] → redução de 100%** do dano
-colateral. **Caveat honesto:** no CIC-IoT2023 a vantagem **não se manifesta** — é uma
-LAN (atacante e legítimo no mesmo /24) e não-TLS (sem JA4), então não há discriminador;
-a vantagem **depende** de o atacante ter um sinal de peso alto que o legítimo não tem.
+**Resultados.** Em sintético **calibrado**, no **cenário realista de mesmo serviço** (os
+legítimos acessam o **mesmo** serviço atacado em `:443`; n = 30, K = 1000): escopo inclui o
+JA4 em 30/30; **cirúrgico 0% vs global 100% → redução de 100%** do dano colateral. O global é
+100% por definição — um *rate-limit* global no serviço atacado bloqueia **todos** os legítimos
+daquele serviço. **Mecanismo (correção):** o escopo é derivado do **subconjunto coordenado**
+(as sessões que compartilham o JA4 modal = assinatura da campanha), **não** do cluster
+`(endpoint, janela)` cru; derivá-lo do cluster inteiro era um bug — os legítimos diluíam o JA4
+do atacante abaixo do limiar de cobertura e o escopo degradava para o endpoint todo (= global).
+Restringir ao subconjunto coordenado restaura o 0% cirúrgico. **Caveat honesto:** no CIC-IoT2023
+a vantagem **não se manifesta** — é uma LAN (atacante e legítimo no mesmo /24) e não-TLS (sem
+JA4), então não há discriminador e o escopo recai sobre endpoint/net24: cirúrgico = global =
+31,8% (redução 0%). A vantagem **depende** de o atacante ter um sinal de peso alto que o
+legítimo não tem.
 
 **Resultado prático esperado.** **Parar a campanha sem derrubar o usuário legítimo** —
 quando há um discriminador (TLS/rede) observável. Em produção (TLS visível, atacantes
@@ -296,7 +304,8 @@ distribuídas e furtivas que a análise por-sessão (e o estado-da-arte por-feat
 **não vê** — com **significância estatística** no regime furtivo-distribuído
 (sintético, p_bonf=7,4×10⁻⁹, d=12,2); **(ii) explica** o veredicto como derivação simbólica
 auditável; e **(iii) mitiga cirurgicamente**, poupando o tráfego legítimo (provado em
-sintético calibrado: 0% vs 22,5% de colateral).
+sintético calibrado, cenário realista de mesmo serviço: 0% cirúrgico vs 100% global, com
+escopo derivado do subconjunto coordenado).
 
 **Limites honestos, que delimitam o "esperado":** a vantagem de detecção é **regime-
 específica** (cresce com a distribuição/furtividade; é pequena em ataque single-source

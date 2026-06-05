@@ -110,7 +110,9 @@ convencionais (S5) um ML por-sessão forte já basta, mas as contribuições de 
 com resultados, gates e caveats. Para carga no KG, ver `sprint-1/README.md`.
 
 **Pendências (fora da Fase B):** RT-IoT2022 (download manual IEEE DataPort);
-calibração real de w_i (sintético satura); pilares 2 e 4 do paper (cadeia de evidência
+calibração dos **valores absolutos** de w_i em produção (no cenário realista de mesmo
+serviço o *grid search* já de-satura e corrobora a **ordem** TLS-dominante — ver
+DEEP-DIVE-FINDINGS); pilares 2 e 4 do paper (cadeia de evidência
 JSON-LD/STIX + mitigação cirúrgica) ainda não codificados; redação da §5.
 
 ## Como começar o Sprint 1

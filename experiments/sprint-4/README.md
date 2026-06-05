@@ -52,17 +52,24 @@ descartado como artefato da porta-alvo.
 
 - [x] **n≥30 runs/config** concluídos
 - [x] **(d)−(c) significativo no Cenário C, p<0.01 após Bonferroni** (p_bonf=7.4e-09, d=12.2) ✅
-- [x] Pesos documentados com sensibilidade ±20% — **mas ver caveat**
+- [x] Pesos documentados com sensibilidade ±20% — **corroborados no regime realista**
 
-## Calibração de pesos — caveat honesto
+## Calibração de pesos — corroborada no cenário realista de mesmo serviço
 
-O grid search dos pesos $w_i \in \{0.3,0.5,0.7,0.9,1.0\}^3$ satura (AUC alta para
-praticamente toda combinação, inclusive os pesos do paper 1.0/0.6/0.3, robusto a ±20%). Isso
-**não** significa que os pesos são ótimos — significa que o sintético é fácil demais
-para *discriminar* pesos: a separação attack-dominante vs benigno no nível de cluster
-está saturada. Calibração significativa de $w_i$ exige um conjunto de validação mais
-difícil (tráfego real, ou sintético com sinais parciais que se compensem). Documentado
+No **cenário realista de mesmo serviço** (legítimos acessam o serviço atacado em `:443`),
+o *grid search* dos pesos $w_i$ **de-satura e corrobora o esquema**: o melhor vetor é
+**(w_tls=1,0, w_endpoint=0,3, w_net=0,3)** — TLS dominante, os demais no mínimo —,
+confirmando **empiricamente** que o *fingerprint* TLS deve dominar a ponderação. Os pesos
+do paper (1,0 / 0,6 / 0,3) ficam a **0,006 de AUC do ótimo** (0,879 vs 0,885) e são
+**robustos a ±20%** (queda máxima de 0,006). Nuance honesta a manter: isso valida a
+**ORDEM** dos pesos (TLS ≫ endpoint ≈ rede), **não** seus valores absolutos; a calibração
+plena ainda exige dados de produção com sinais parciais/conflitantes. Documentado
 em [`results/sprint4_weights.json`](results/sprint4_weights.json).
+
+> **Nota histórica (superada).** Numa versão anterior, num sintético fácil demais, o *grid
+> search* parecia saturar (AUC alta para toda combinação) e a calibração foi declarada
+> inconclusiva; no cenário realista de mesmo serviço o *grid* de-satura e passa a
+> corroborar a ordenação acima.
 
 ## Limitações → trabalho futuro
 
@@ -73,4 +80,6 @@ em [`results/sprint4_weights.json`](results/sprint4_weights.json).
   separa — só as relações `relatedBy_*` de (d) separam. (A versão antiga, em que (b)
   chegava a ~0,88, embutia um artefato sintético: a porta de destino distinguia
   trivialmente ataque de benigno.)
-- Pesos não-calibráveis no sintético (acima). Sprint 5 / dados reais (KLAGE).
+- Calibração de pesos: a **ordem** (TLS dominante) é corroborada no cenário realista de
+  mesmo serviço (acima); a calibração dos **valores absolutos** exige dados de produção
+  com sinais parciais/conflitantes. Sprint 5 / dados reais (KLAGE).

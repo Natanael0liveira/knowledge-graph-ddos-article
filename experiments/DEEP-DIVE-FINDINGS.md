@@ -41,12 +41,21 @@ convergência de endpoint deixa de discriminar e o (d) cai a ≈ acaso junto com
 **não há redundância real** — a detecção e a mitigação cirúrgica dependem de um discriminador
 de peso alto (JA4 / identidade reaproveitada) que os legítimos não compartilham.
 
-## Passo C — Calibração de pesos — ❌ não alcançável
+## Passo C — Calibração de pesos — ✅ ordenação corroborada no cenário realista
 
-Mesmo no `scenario_hard` (sinais parciais), o grid satura: pesos do paper (1,0/0,6/0,3)
-dão AUC=0,972 vs melhor 1,0, e o "melhor" (0,3/0,3/1,0) degeneradamente favorece rede
-(contradiz a tese). **Calibração empírica não é viável neste sintético**; os pesos
-seguem justificados pelo argumento teórico (custo de evasão). Confirma a limitação #4.
+Re-executado no **cenário realista de mesmo serviço** (legítimos acessam o serviço atacado
+em `:443`), o *grid search* **de-satura e corrobora o esquema**: o melhor vetor é
+**(w_tls=1,0, w_endpoint=0,3, w_net=0,3)** — TLS dominante, os demais no mínimo —,
+confirmando **empiricamente** que o *fingerprint* TLS deve dominar a ponderação. Os pesos
+do paper (1,0/0,6/0,3) ficam a **0,006 de AUC do ótimo** (0,879 vs 0,885) e são robustos a
+±20% (queda máxima 0,006). **Nuance honesta:** isso valida a **ORDEM** dos pesos
+(TLS ≫ endpoint ≈ rede), não seus valores absolutos — a calibração plena ainda exige dados
+de produção com sinais parciais/conflitantes.
+
+> **Nota histórica (superada).** Numa versão anterior, num sintético fácil demais (e no
+> `scenario_hard`), o *grid* parecia saturar e a calibração empírica foi declarada
+> não-viável; no cenário realista de mesmo serviço ela de-satura e passa a corroborar a
+> ordenação acima.
 
 ## Pilar 4 em cluster REAL — ⚠️ mitigação cirúrgica NÃO se manifesta no CIC-IoT2023
 
@@ -66,7 +75,10 @@ produção. (§5.5 do paper atualizado com esse caveat.)
 
 - **Tese de DETECÇÃO (entre sessões > por-sessão):** ✅ no regime **furtivo-distribuído** (sintético); em dados reais convencionais um por-sessão **forte** já basta (ganho entre-sessões ≈ 0).
 - **Tese de MITIGAÇÃO cirúrgica:** ✅ em princípio / ❌ não demonstrável nos datasets atuais.
-- **Calibração de pesos:** permanece teórica (não empírica).
+- **Calibração de pesos:** no cenário realista de mesmo serviço o *grid* **de-satura e
+  corrobora a ordenação** (TLS dominante: melhor vetor 1,0/0,3/0,3; pesos do paper a 0,006
+  de AUC do ótimo, robustos a ±20%); valida a **ordem**, não os valores absolutos —
+  estes ainda exigem dados de produção com sinais parciais/conflitantes.
 - **Robustez:** **não** há redundância de endpoint no cenário realista de mesmo serviço — ao
   perder o JA4, o (d) cai a ≈ acaso (AUC 0,475); a detecção depende de um discriminador de peso
   alto (JA4 / identidade reaproveitada).
@@ -89,18 +101,23 @@ futuro. §5.5 do paper atualizado.
 Pendentes: #1 (isolar JA4 com endpoint disperso — redesign de cluster) e #2 (calibração
 de pesos com objetivo mais difícil) — médio valor, opcionais.
 
-## Atualização — #3 Calibração de pesos a nível de SESSÃO (objetivo mais difícil)
+## Atualização — #3 Calibração de pesos a nível de SESSÃO (histórica — superada pelo Passo C)
+
+> **Superada.** O resultado abaixo usava um pool de JA4 benigno pequeno (39 distintos,
+> herdado do CIC), que invertia o sinal do JA4 — um artefato de baixa diversidade. Com a
+> diversidade de JA4 benigno realista (pool=2000) **no cenário realista de mesmo serviço**,
+> a calibração de-satura e corrobora a ordenação TLS-dominante (ver **Passo C** atualizado).
+> Mantido por registro histórico.
 
 `sprint-4/scripts/weight_calibration_session.py` sobre o `scenario_hard` (8 seeds,
-features z-score, AUC por sessão). Agora **é discriminativo** (spread 0,33), mas:
+features z-score, AUC por sessão). Era discriminativo (spread 0,33), mas:
 - Melhor: w(tls,ep,net)=(0,3, 1,0, 0,9) → AUC 0,974; pesos do paper (1,0/0,6/0,3) → 0,682.
 - AUC de cada sinal sozinho: **share_ja4=0,345 (anti-discriminativo!)**, cluster_size=0,890, share_net=0,950.
-- **Causa:** o benigno sintético compartilha JA4 de um pool pequeno (39 distintos, herdado
-  do CIC), então benignos têm *mais* JA4 compartilhado que atacantes parcialmente
-  coordenados → JA4 inverte de sinal. É **artefato da baixa diversidade de JA4 benigno**,
-  não refutação: na internet real o JA4 benigno é altamente diverso (a premissa do paper).
-- **Conclusão:** calibrar pesos no sintético dá números enganosos; os pesos teóricos
-  (custo de evasão) se mantêm; calibração fiel exige diversidade de JA4 realista (produção).
+- **Causa:** o benigno sintético compartilhava JA4 de um pool pequeno (39 distintos, herdado
+  do CIC), então benignos tinham *mais* JA4 compartilhado que atacantes parcialmente
+  coordenados → JA4 invertia de sinal. Era **artefato da baixa diversidade de JA4 benigno**,
+  não refutação: na internet real o JA4 benigno é altamente diverso (a premissa do paper) —
+  e com pool realista a calibração corrobora a tese (Passo C).
 
 ## Atualização — #4 Isolamento do JA4 (com diversidade de JA4 benigno realista)
 
@@ -115,9 +132,12 @@ benigno de JA4 diverso (pool=2000, ~internet), varrendo `coordination_ja4_share`
 | 0,00 | 0,31 | **0,475 ≈ acaso** |
 
 **Conclusão corrigida:** quando os legítimos compartilham o endpoint atacado, a convergência
-de endpoint **NÃO compensa** a perda do JA4 — o (d) completo cai a ≈ acaso (0,475) junto com
-o sinal JA4. Logo, tanto a detecção quanto (sobretudo) a mitigação cirúrgica **dependem de um
-discriminador de peso alto** que os atacantes compartilham e os legítimos não: JA4 (botnet com
+de endpoint **NÃO compensa** a perda do JA4 — o (d) completo cai à faixa 0,47–0,74 (≈ acaso)
+sob randomização total do JA4. **Diagnóstico honesto:** o resíduo acima do acaso **não** é
+detecção genuína — é um **artefato do pool finito de JA4 benigno** (≈1000 benignos colidem num
+pool de ~2000 e parecem fracamente "coordenados" frente a atacantes cujo JA4 agora é
+randomizado); com diversidade de JA4 em escala de internet, tende ao acaso. Logo, tanto a
+detecção quanto (sobretudo) a mitigação cirúrgica **dependem de um discriminador de peso alto** que os atacantes compartilham e os legítimos não: JA4 (botnet com
 mesmo stack) ou identidade/credencial reaproveitada (*credential stuffing*). Contra um atacante
 que randomiza o JA4 sem reaproveitar identidade, o arcabouço ainda sinaliza a anomalia agregada,
 mas **perde separação por-sessão e precisão cirúrgica** — o que alinha e reforça a limitação de

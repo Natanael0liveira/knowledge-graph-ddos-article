@@ -70,7 +70,7 @@ senão serviços benignos de alto volume (DNS :53) dominam Ω por massa de endpo
 ## ⚡ 2026-06-01 (cont.): Sprints 3, 4, 5 — Fase B completa
 
 - **Sprint 3** (`experiments/sprint-3/`, `make scenarios && make ablation`): ablação a/b/c/d + 3 baselines (Fernandes/Bharathi/Kemp). Em campanha **furtiva** (ataque per-sessão indistinguível do benigno), no **cenário realista de mesmo serviço** (legítimos acessam o serviço atacado em :443, `benign_same_service=true`), mesmo o (a) ML **forte** (8–9 features), a (b) ontologia sem `relatedBy` e os baselines ficam ~acaso (a) 0,519/0,502, (b) 0,527/0,503), e o (d) completo entre sessões ~1,0 (0,968/0,976). Sem porta-alvo distinguindo, **só** as relações `relatedBy_*` separam — o *gap* (d)−(b) saltou de ~0,10 para ~0,47 (a versão antiga, com (b)~0,88, embutia o artefato da porta). Exigiu o modo `stealth: true` no gerador do S2.
-- **Sprint 4** (`experiments/sprint-4/`, `make run|weights|figures`): n=30 seeds, IC bootstrap + Wilcoxon + Bonferroni + Cohen's d. **GATE: (d)−(c) no Cenário C, p_bonf=7,4×10⁻⁹, d=12,2** (e (d)−(a) p_bonf=7,4×10⁻⁹, d=19,6). Money figure em `results/`. Caveat: grid search de pesos satura (todo w_i dá AUC=1.0 no sintético).
+- **Sprint 4** (`experiments/sprint-4/`, `make run|weights|figures`): n=30 seeds, IC bootstrap + Wilcoxon + Bonferroni + Cohen's d. **GATE: (d)−(c) no Cenário C, p_bonf=7,4×10⁻⁹, d=12,2** (e (d)−(a) p_bonf=7,4×10⁻⁹, d=19,6). Money figure em `results/`. Calibração de pesos: no cenário realista de mesmo serviço o grid search **de-satura e corrobora a ordem** (TLS dominante; melhor 1,0/0,3/0,3; pesos do paper a 0,006 de AUC do ótimo, robustos a ±20%) — valida a ordem, não os valores absolutos.
 - **Sprint 5** (`experiments/sprint-5/`, `make run`): comparação com KLAGE em DDoS Slowloris no **CIC-IoT2023 real**. Nosso (d) entre sessões **F1=0,911** e o (a') por-sessão **forte** (8 feat) **F1=0,900** ambos superam KLAGE 0,841; o antigo "colapso por-sessão F1=0,18" era **artefato do baseline magro** (3 feat) — um por-sessão forte não colapsa e a vantagem do entre-sessões sobre ele é marginal (+0,011); a dianteira sobre o KLAGE **não** é atribuível ao raciocínio entre sessões. Caveats: granularidade sessão-vs-nó; RT-IoT2022 não adquirido.
 
 **Pendências (fora da Fase B):** ver bloco 2026-06-02 abaixo (várias já resolvidas).
@@ -91,8 +91,10 @@ Sessão offline (HD ejetado). Tudo commitado e pushado.
   ~1,00 — ganho ≈0, porque ataques reais convencionais têm assinatura de fluxo por sessão;
   a coordenação entre sessões NÃO é necessária neles); Passo B (a suposta "redundância de
   endpoint" era artefato do cenário antigo — ver §4 de isolamento: no cenário realista de
-  mesmo serviço o (d) cai a ≈ acaso ao perder o JA4); Passo C (calibração de pesos
-  **não-alcançável**, satura); Pilar 4 em
+  mesmo serviço o (d) cai a ≈ acaso ao perder o JA4); Passo C (calibração de pesos: no
+  cenário realista de mesmo serviço o grid **de-satura e corrobora a ordem** TLS-dominante —
+  melhor 1,0/0,3/0,3, pesos do paper a 0,006 de AUC do ótimo; valida a ordem, não os valores
+  absolutos); Pilar 4 em
   cluster real (mitigação cirúrgica **não se manifesta** no CIC: LAN+não-TLS) e em
   sintético calibrado no cenário realista de mesmo serviço (**0% cirúrgico vs 100% global**,
   n=30, K=1000; escopo derivado do **subconjunto coordenado** — JA4 modal —, não do cluster
@@ -104,9 +106,11 @@ Sessão offline (HD ejetado). Tudo commitado e pushado.
 - **#2 Namespace** ontologia↔dados **alinhado** (`load_to_fuseki`/`compute_coordination`/`.rq`
   → namespace da ontologia); ambos os `.nt` regenerados (0 linhas do antigo). Falta só
   reaplicar no Fuseki via `make load-kg-bulk` (precisa Docker up) — mecânico.
-- **#3 Calibração de pesos** (objetivo por-sessão): discriminativo (spread 0,33), mas o
-  ótimo **contradiz** o paper porque o JA4 benigno do lab é pouco diverso (artefato);
-  conclusão: pesos teóricos se mantêm, calibração fiel exige JA4 realista. (`weight_calibration_session.py`)
+- **#3 Calibração de pesos:** no cenário realista de mesmo serviço (JA4 benigno diverso,
+  pool=2000) o grid **de-satura e corrobora a ordem** TLS-dominante (melhor 1,0/0,3/0,3;
+  pesos do paper a 0,006 de AUC do ótimo, robustos a ±20%) — valida a ordem, não os valores
+  absolutos. (A versão histórica por-sessão no `scenario_hard`, com pool pequeno de 39 JA4,
+  invertia o sinal do JA4 — artefato superado.) (`weight_calibration_session.py`)
 - **#4 Isolamento do JA4** (cenário realista de mesmo serviço, variando `ja4_share`): JA4-only
   AUC 0,999 (share=1) → 0,31 (share=0); **arcabouço completo (d) AUC 0,996 → 0,475 ≈ acaso**.
   Conclusão corrigida: quando os legítimos compartilham o endpoint atacado, a convergência de

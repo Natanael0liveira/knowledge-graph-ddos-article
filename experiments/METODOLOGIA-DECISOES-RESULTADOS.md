@@ -273,7 +273,7 @@ as atacamos — porque "resultado bonito" sem ceticismo é frágil.
 | Circularidade do sintético (plantamos o sinal que medimos) | Passo A: 6 ataques **reais** | ✅ mitigada (detecção real) |
 | Generalização fina (1 dataset/ataque) | 6 ataques × 2 datasets reais | ✅ ampliada |
 | Comparação KLAGE não-controlada | reescrita como "mesma ordem", não "superamos" | ✅ honesta |
-| Pesos não calibrados | tentado em cenário difícil — satura | ❌ permanece teórico (declarado) |
+| Pesos não calibrados | *grid search* no cenário realista de mesmo serviço de-satura e corrobora a ordem (TLS dominante; melhor 1,0/0,3/0,3; pesos do paper a 0,006 de AUC do ótimo) | ✅ ordem corroborada; valores absolutos exigem produção |
 | Mitigação só em toy | reproduzida em sintético calibrado (n=30, IC) | ✅ fortalecida |
 
 ---
@@ -283,10 +283,10 @@ as atacamos — porque "resultado bonito" sem ceticismo é frágil.
 Três princípios atravessam todos os sprints e explicam *por que* o trabalho tem a
 forma que tem:
 
-- **Honestidade científica acima do resultado bonito.** Reportamos o que falha
-  (calibração de pesos que satura; mitigação que não se manifesta no CIC; comparação
-  KLAGE que não é controlada), declaramos *caveats* em cada etapa e atacamos a
-  circularidade explicitamente. Decisão: um resultado defensável vale mais que um
+- **Honestidade científica acima do resultado bonito.** Reportamos as limitações
+  (mitigação que não se manifesta no CIC; comparação KLAGE que não é controlada; calibração
+  de pesos que corrobora apenas a **ordem**, não os valores absolutos), declaramos *caveats*
+  em cada etapa e atacamos a circularidade explicitamente. Decisão: um resultado defensável vale mais que um
   número alto — porque é o que sobrevive a um revisor cético.
 - **Reprodutibilidade por construção.** *Seeds* fixas, `Makefile` por sprint, logs,
   artefatos versionados (figuras, JSONs) e commits descritivos. Decisão: qualquer
@@ -310,6 +310,8 @@ escopo derivado do subconjunto coordenado).
 **Limites honestos, que delimitam o "esperado":** a vantagem de detecção é **regime-
 específica** (cresce com a distribuição/furtividade; é pequena em ataque single-source
 óbvio); a mitigação cirúrgica **exige TLS observável + atacantes dispersos** — condição
-de **produção**, ausente nos *datasets* de laboratório; e a calibração de pesos é
-teórica (custo de evasão), não empírica. O passo que falta para a promessa completa é
-**avaliação em tráfego de produção anonimizado**.
+de **produção**, ausente nos *datasets* de laboratório; e a calibração de pesos, no cenário
+realista de mesmo serviço, **corrobora a ordem** (TLS dominante; melhor 1,0/0,3/0,3; pesos
+do paper a 0,006 de AUC do ótimo, robustos a ±20%) — mas a calibração dos **valores
+absolutos** ainda exige dados com sinais parciais/conflitantes. O passo que falta para a
+promessa completa é **avaliação em tráfego de produção anonimizado**.

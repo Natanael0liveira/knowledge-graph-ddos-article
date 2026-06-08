@@ -2,6 +2,7 @@
 # Data and experiment artifacts (stored on external HD)
 # ============================================================
 experiments/data/
+experiments/data
 experiments/*/data/
 experiments/*/logs/
 experiments/.env

@@ -1,0 +1,76 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram name="Ontologia" id="onto-1">
+    <mxGraphModel dx="1100" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="830" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Ontologia centrada na sessão HTTP — entidade de 1ª classe e família relatedTo ponderada"
+          style="text;html=1;align=center;fontStyle=1;fontSize=15;fontColor=#1F3A5F;" vertex="1" parent="1">
+          <mxGeometry x="180" y="16" width="840" height="30" as="geometry" /></mxCell>
+
+        <!-- sessões -->
+        <mxCell id="si" value="ApplicationSession&#10;(Sᵢ)"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1F3A5F;strokeColor=#1F3A5F;fontColor=#FFFFFF;fontStyle=1;fontSize=14;"
+          vertex="1" parent="1"><mxGeometry x="360" y="220" width="190" height="74" as="geometry" /></mxCell>
+        <mxCell id="sj" value="ApplicationSession&#10;(Sⱼ)"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#34618C;strokeColor=#1F3A5F;fontColor=#FFFFFF;fontStyle=1;fontSize=14;"
+          vertex="1" parent="1"><mxGeometry x="780" y="220" width="190" height="74" as="geometry" /></mxCell>
+        <mxCell id="sjnote" value="(mesmas relações primárias de Sᵢ)"
+          style="text;html=1;align=center;fontSize=10;fontColor=#777777;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="775" y="296" width="200" height="20" as="geometry" /></mxCell>
+
+        <!-- relatedTo entre as sessões -->
+        <mxCell id="rel" value="relatedTo  (entre sessões)"
+          style="endArrow=classic;startArrow=classic;html=1;curved=1;strokeColor=#1F3A5F;strokeWidth=3;fontColor=#1F3A5F;fontStyle=1;fontSize=13;labelBackgroundColor=#FFFFFF;"
+          edge="1" parent="1" source="si" target="sj">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="665" y="150" /></Array>
+          </mxGeometry></mxCell>
+
+        <!-- satélites de Si (coluna esquerda) -->
+        <mxCell id="ident" value="Identity&#10;(Cookie / Token / JA4)"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECECEC;strokeColor=#9A9A9A;fontSize=11;"
+          vertex="1" parent="1"><mxGeometry x="40" y="70" width="220" height="56" as="geometry" /></mxCell>
+        <mxCell id="ip" value="IPAddress / Host"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECECEC;strokeColor=#9A9A9A;fontSize=11;"
+          vertex="1" parent="1"><mxGeometry x="40" y="150" width="220" height="56" as="geometry" /></mxCell>
+        <mxCell id="ep" value="Endpoint&#10;(API / Login / Checkout)"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECECEC;strokeColor=#9A9A9A;fontSize=11;"
+          vertex="1" parent="1"><mxGeometry x="40" y="230" width="220" height="56" as="geometry" /></mxCell>
+        <mxCell id="beh" value="Behavior&#10;(UserBehavior / BotBehavior)"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECECEC;strokeColor=#9A9A9A;fontSize=11;"
+          vertex="1" parent="1"><mxGeometry x="40" y="310" width="220" height="56" as="geometry" /></mxCell>
+
+        <mxCell id="r_id" value="hasIdentity" style="endArrow=open;html=1;strokeColor=#666666;fontSize=10;fontStyle=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="ident" target="si"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r_ip" value="originatesFrom" style="endArrow=open;html=1;strokeColor=#666666;fontSize=10;fontStyle=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="ip" target="si"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r_ep" value="targets" style="endArrow=open;html=1;strokeColor=#666666;fontSize=10;fontStyle=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="ep" target="si"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r_beh" value="exhibitsBehavior" style="endArrow=open;html=1;strokeColor=#666666;fontSize=10;fontStyle=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="beh" target="si"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- caixa da família ponderada -->
+        <mxCell id="family" value="família relatedTo — 6 sub-propriedades ponderadas  (peso = custo de evasão p/ o atacante)&#10;&#10;● alto    relatedByTLSFingerprint        w = 1,0&#10;● alto    relatedByReusedIdentity        w = 1,0&#10;● alto    relatedByTemporalPattern       w = 0,9&#10;● médio   relatedByEndpointConvergence   w = 0,6&#10;● médio   relatedByPayloadSignature      w = 0,6&#10;● baixo   relatedByNetworkProximity      w = 0,3"
+          style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#F4F7FB;strokeColor=#1F3A5F;fontFamily=Courier New;fontSize=11;fontColor=#222222;"
+          vertex="1" parent="1"><mxGeometry x="360" y="350" width="610" height="200" as="geometry" /></mxCell>
+        <mxCell id="r_fam" value="" style="endArrow=open;html=1;dashed=1;strokeColor=#1F3A5F;" edge="1" parent="1" source="rel" target="family"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- hierarquia de ataque -->
+        <mxCell id="hier" value="Hierarquia de ataque (subclasses)&#10;&#10;DDoSAttack ▸ ApplicationLayerAttack ▸ SlowHTTPDoSFamily ▸&#10;   ConnectionExhaustionAttack ▸ {Slowloris, SlowBody, SlowRead}&#10;   CoordinatedHTTPFlood ▸ {HULK, GoldenEye}&#10;   LoginFlood ▸ CredentialStuffing · APIAttack ▸ CoordinatedAPIAbuse"
+          style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=10;fillColor=#FFFFFF;strokeColor=#9A9A9A;fontFamily=Courier New;fontSize=10;fontColor=#222222;"
+          vertex="1" parent="1"><mxGeometry x="40" y="600" width="470" height="150" as="geometry" /></mxCell>
+
+        <!-- regra -> mitigação -->
+        <mxCell id="rule" value="DetectionRule&#10;CoordinatedHTTPFlood&#10;Ω(S)=Σ wᵢ·pares ; dispara se Ω ≥ τ"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECECEC;strokeColor=#1F3A5F;fontSize=11;"
+          vertex="1" parent="1"><mxGeometry x="560" y="610" width="300" height="90" as="geometry" /></mxCell>
+        <mxCell id="coa" value="CourseOfAction&#10;mitigação cirúrgica&#10;(escopo do subconjunto coordenado)"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1F3A5F;strokeColor=#1F3A5F;fontColor=#FFFFFF;fontSize=11;"
+          vertex="1" parent="1"><mxGeometry x="900" y="610" width="270" height="90" as="geometry" /></mxCell>
+        <mxCell id="r_mit" value="mitigatedBy" style="endArrow=block;html=1;strokeColor=#1F3A5F;strokeWidth=1.6;fontColor=#1F3A5F;fontSize=10;fontStyle=2;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="rule" target="coa"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="foot" value="Ontologia OWL alinhada a STIX 2.1 (indicator + course-of-action ligados por mitigates) e MITRE ATT&amp;CK"
+          style="text;html=1;align=center;fontSize=10;fontStyle=2;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="200" y="780" width="800" height="20" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

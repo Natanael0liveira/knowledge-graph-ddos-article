@@ -174,31 +174,82 @@
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#HTTPFlood">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ApplicationLayerAttack"/>
         <rdfs:label>HTTP Flood Attack</rdfs:label>
-        <rdfs:comment>Flood of HTTP requests overwhelming the application</rdfs:comment>
+        <rdfs:comment>Flood genérico de requisições HTTP (e.g. HTTP-Flood do CIC-IoT2023)</rdfs:comment>
     </owl:Class>
-    
+
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#LoginFlood">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ApplicationLayerAttack"/>
         <rdfs:label>Login Flood Attack</rdfs:label>
         <rdfs:comment>Flood of login attempts targeting authentication</rdfs:comment>
     </owl:Class>
-    
-    <owl:Class rdf:about="http://security.example.org/ontology/ddos#SlowRequestAttack">
-        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ApplicationLayerAttack"/>
-        <rdfs:label>Slow Request Attack</rdfs:label>
-        <rdfs:comment>Slow attacks consuming server resources (Slowloris, RUDY)</rdfs:comment>
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#CredentialStuffing">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#LoginFlood"/>
+        <rdfs:label>Credential Stuffing</rdfs:label>
+        <rdfs:comment>Tentativas distribuídas de login com credenciais reaproveitadas; compartilha exhibitsCrossSessionStructure (identidade/credencial reaproveitada). Declarada; não operacionalizada experimentalmente.</rdfs:comment>
     </owl:Class>
-    
+
+    <!-- Família central deste trabalho: Slow HTTP DoS distribuído -->
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#SlowHTTPDoSFamily">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ApplicationLayerAttack"/>
+        <rdfs:label>Slow HTTP DoS Family</rdfs:label>
+        <rdfs:comment>Família de ataques distribuídos de Slow HTTP DoS. Especializa-se em ConnectionExhaustionAttack (connection-holding) e CoordinatedHTTPFlood (rate-based). Ambas exibem exhibitsCrossSessionStructure quando Ω(S) excede o limiar.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#SlowHTTPDoSFamily"/>
+        <rdfs:label>Connection Exhaustion Attack</rdfs:label>
+        <rdfs:comment>Variantes connection-holding: Slowloris, slow body, slow read.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#CoordinatedHTTPFlood">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#SlowHTTPDoSFamily"/>
+        <rdfs:label>Coordinated HTTP Flood</rdfs:label>
+        <rdfs:comment>Variantes rate-based que ainda usam conexões sustentadas (HULK, GoldenEye). Classe-alvo da regra de detecção central por soma ponderada Omega(S).</rdfs:comment>
+    </owl:Class>
+
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#Slowloris">
-        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#SlowRequestAttack"/>
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack"/>
         <rdfs:label>Slowloris Attack</rdfs:label>
         <rdfs:comment>Slow HTTP attack keeping connections open</rdfs:comment>
     </owl:Class>
-    
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#SlowBody">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack"/>
+        <rdfs:label>Slow Body (Slow POST) Attack</rdfs:label>
+        <rdfs:comment>Envio lento do corpo da requisição para manter conexões abertas</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#SlowRead">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack"/>
+        <rdfs:label>Slow Read Attack</rdfs:label>
+        <rdfs:comment>Leitura lenta da resposta para manter conexões abertas</rdfs:comment>
+    </owl:Class>
+
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#RUDY">
-        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#SlowRequestAttack"/>
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack"/>
         <rdfs:label>R-U-Dead-Yet Attack</rdfs:label>
-        <rdfs:comment>Slow POST attack</rdfs:comment>
+        <rdfs:comment>Slow POST attack (variante de slow body)</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#HULK">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#CoordinatedHTTPFlood"/>
+        <rdfs:label>HULK Attack</rdfs:label>
+        <rdfs:comment>HTTP Unbearable Load King: flood de alta taxa sobre conexões sustentadas</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#GoldenEye">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#CoordinatedHTTPFlood"/>
+        <rdfs:label>GoldenEye Attack</rdfs:label>
+        <rdfs:comment>Flood de alta taxa mantendo conexões keep-alive</rdfs:comment>
+    </owl:Class>
+
+    <!-- Alias legado (compatibilidade com regras anteriores): ver ConnectionExhaustionAttack -->
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#SlowRequestAttack">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack"/>
+        <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
+        <rdfs:label>Slow Request Attack (legacy)</rdfs:label>
+        <rdfs:comment>Alias legado de ConnectionExhaustionAttack, mantido para compatibilidade.</rdfs:comment>
     </owl:Class>
     
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#APIAttack">
@@ -206,7 +257,13 @@
         <rdfs:label>API Abuse Attack</rdfs:label>
         <rdfs:comment>Abuse of API endpoints</rdfs:comment>
     </owl:Class>
-    
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#CoordinatedAPIAbuse">
+        <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#APIAttack"/>
+        <rdfs:label>Coordinated API Abuse</rdfs:label>
+        <rdfs:comment>Abuso coordenado de endpoints de API por múltiplas sessões; compartilha exhibitsCrossSessionStructure (tokens distintos convergindo por relatedByTLSFingerprint). Declarada; não operacionalizada experimentalmente.</rdfs:comment>
+    </owl:Class>
+
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#ScrapingAttack">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ApplicationLayerAttack"/>
         <rdfs:label>Scraping Attack</rdfs:label>
@@ -944,7 +1001,7 @@
             ApplicationSession(?session) ^ hasEndpoint(?request, ?endpoint) ^
             requestCount(?session, ?count) ^ sessionAge(?session, ?age) ^
             divide(?count, ?age, ?rate) ^ greaterThan(?rate, 100) ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, HTTPFlood) ^
+            Anomaly(?anomaly) ^ indicates(?anomaly, CoordinatedHTTPFlood) ^
             triggeredBy(?anomaly, ?session) ^ anomalyScore(?anomaly, 0.8)
         </rdfs:comment>
     </owl:NamedIndividual>
@@ -1048,7 +1105,7 @@
             SWRL representation:
             HTTPRequest(?request) ^ responseTime(?request, ?time) ^
             greaterThan(?time, 30000) ^ httpMethod(?request, "POST") ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, SlowRequestAttack) ^
+            Anomaly(?anomaly) ^ indicates(?anomaly, ConnectionExhaustionAttack) ^
             triggeredBy(?anomaly, ?request) ^ anomalyScore(?anomaly, 0.75)
         </rdfs:comment>
     </owl:NamedIndividual>

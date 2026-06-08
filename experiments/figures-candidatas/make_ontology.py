@@ -95,10 +95,10 @@ arrow((7.9, 7.0), (8.0, 4.6), color=NAVY, lw=1.3, rad=0.12)
 ax.add_patch(FancyBboxPatch((0.2, 0.35), 5.35, 1.55, boxstyle="round,pad=0.05,rounding_size=0.08",
              linewidth=1.2, edgecolor=GRAYB, facecolor="white", zorder=3))
 ax.text(0.45, 1.72, "Hierarquia de ataque (subclasses)", ha="left", fontsize=9, fontweight="bold", color="#444")
-hier = ("DDoSAttack ▸ ApplicationLayerAttack ▸\n"
-        "  SlowRequestAttack ▸ {Slowloris, SlowRead, SlowBody}\n"
-        "  HTTPFlood ▸ CoordinatedHTTPFlood\n"
-        "  CredentialStuffing, CoordinatedAPIAbuse")
+hier = ("DDoSAttack ▸ ApplicationLayerAttack ▸ SlowHTTPDoSFamily ▸\n"
+        "  ConnectionExhaustionAttack ▸ {Slowloris, SlowBody, SlowRead}\n"
+        "  CoordinatedHTTPFlood ▸ {HULK, GoldenEye}\n"
+        "  LoginFlood ▸ CredentialStuffing · APIAttack ▸ CoordinatedAPIAbuse")
 ax.text(0.45, 1.42, hier, ha="left", va="top", fontsize=7.9, color=TXT, family="monospace")
 
 # ---- regra → mitigação (inferior direito) ----

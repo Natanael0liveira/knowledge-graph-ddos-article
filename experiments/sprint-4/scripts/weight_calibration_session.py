@@ -52,6 +52,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--scenarios", required=True, type=Path)
     ap.add_argument("--max-files", type=int, default=12)
+    ap.add_argument("--out", type=Path, default=None, help="salva o resultado em JSON")
     args = ap.parse_args()
     files = sorted(p for p in args.scenarios.glob("*.parquet") if not p.name.startswith("._"))[: args.max_files]
     data = [build(f) for f in files]
@@ -88,6 +89,27 @@ def main():
     spread = best - results[-1][1]
     print(f"  Spread (melhor − pior do grid): {spread:.4f}  "
           f"→ {'DISCRIMINATIVO' if spread > 0.02 else 'SATURADO (pesos não importam)'}")
+
+    if args.out:
+        import json
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps({
+            "objective": "per-session ROC AUC (z-scored features), grid {0.3..1.0}^3",
+            "scenarios_dir": str(args.scenarios),
+            "n_scenarios": len(files),
+            "n_sessions": int(sum(len(y) for _, y in data)),
+            "grid": GRID,
+            "feats_order": FEATS,
+            "best_weights": list(best_w),
+            "best_auc": round(best, 4),
+            "paper_weights": [1.0, 0.6, 0.3],
+            "paper_auc": round(paper, 4),
+            "solo_auc": {k: round(v, 4) for k, v in solo.items()},
+            "max_drop_pm20pct": round(max_drop, 4),
+            "spread": round(spread, 4),
+            "top5": [{"w": list(w), "auc": round(a, 4)} for w, a in results[:5]],
+        }, indent=2, ensure_ascii=False))
+        print(f"\n  ✅ salvo em {args.out}")
 
 
 if __name__ == "__main__":

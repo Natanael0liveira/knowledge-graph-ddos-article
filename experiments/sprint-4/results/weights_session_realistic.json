@@ -1,0 +1,79 @@
+{
+  "objective": "per-session ROC AUC (z-scored features), grid {0.3..1.0}^3",
+  "scenarios_dir": "/Volumes/Untitled/kg-ddos-data/synth/sprint4_realistic_work",
+  "n_scenarios": 60,
+  "n_sessions": 91500,
+  "grid": [
+    0.3,
+    0.5,
+    0.7,
+    0.9,
+    1.0
+  ],
+  "feats_order": [
+    "share_ja4",
+    "cluster_size",
+    "share_net"
+  ],
+  "best_weights": [
+    1.0,
+    0.3,
+    0.3
+  ],
+  "best_auc": 0.9428,
+  "paper_weights": [
+    1.0,
+    0.6,
+    0.3
+  ],
+  "paper_auc": 0.9428,
+  "solo_auc": {
+    "share_ja4": 0.9303,
+    "cluster_size": 0.5032,
+    "share_net": 0.5767
+  },
+  "max_drop_pm20pct": 0.0,
+  "spread": 0.0415,
+  "top5": [
+    {
+      "w": [
+        1.0,
+        0.3,
+        0.3
+      ],
+      "auc": 0.9428
+    },
+    {
+      "w": [
+        1.0,
+        0.5,
+        0.3
+      ],
+      "auc": 0.9428
+    },
+    {
+      "w": [
+        1.0,
+        0.7,
+        0.3
+      ],
+      "auc": 0.9428
+    },
+    {
+      "w": [
+        1.0,
+        0.9,
+        0.3
+      ],
+      "auc": 0.9428
+    },
+    {
+      "w": [
+        1.0,
+        1.0,
+        0.3
+      ],
+      "auc": 0.9428
+    }
+  ]
+}

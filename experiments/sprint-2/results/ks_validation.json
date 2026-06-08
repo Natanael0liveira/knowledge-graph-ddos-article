@@ -1,0 +1,15 @@
+{
+  "real_benign_n": 322658,
+  "synth_benign_n": 60000,
+  "scenario": "sprint4_realistic_work (mesmo servico :443)",
+  "features": {
+    "duration_s": {
+      "ks_D": 0.0027,
+      "p_value": 0.8399
+    },
+    "n_requests": {
+      "ks_D": 0.002,
+      "p_value": 0.9866
+    }
+  }
+}

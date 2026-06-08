@@ -405,21 +405,21 @@ A Tabela~\ref{tab:ablation} reporta a ROC AUC por sessão (média e IC 95\% por 
 
 \begin{table}[ht]
 \centering
-\caption{Ablação --- ROC AUC por sessão [IC 95\%], tráfego sintético furtivo, $n=30$ \emph{seeds}, com \emph{baseline} por sessão \textbf{forte} (8--9 atributos de fluxo) e usuários legítimos acessando o \emph{mesmo} serviço sob ataque (sem artefato de porta).}
+\caption{Ablação --- ROC AUC por sessão [IC 95\%], tráfego sintético furtivo, $n=30$ \emph{seeds}, com \emph{baseline} por sessão \textbf{forte} (8--9 atributos de fluxo) e usuários legítimos acessando o \emph{mesmo} serviço sob ataque (sem artefato de porta). Os três \emph{baselines} acadêmicos são reportados como média de $n=30$ (estimativa pontual).}
 \label{tab:ablation}
 \begin{tabular}{lcc}
-\hline
+\toprule
 Configuração & $K = 50$ & $K = 1000$ \\
-\hline
+\midrule
 (a) ML por sessão (forte, 8--9 atrib.) & 0,519 [0,496--0,545] & 0,502 [0,494--0,510] \\
 (b) ontologia sem \texttt{relatedBy} & 0,527 [0,504--0,550] & 0,503 [0,496--0,511] \\
 (c) só \texttt{NetworkProximity} & 0,523 [0,502--0,544] & 0,664 [0,655--0,673] \\
 \textbf{(d) arcabouço completo} & \textbf{0,968 [0,957--0,979]} & \textbf{0,976 [0,974--0,978]} \\
-\hline
+\midrule
 \emph{baseline} Fernandes 2015 & 0,520 & 0,502 \\
 \emph{baseline} Bharathi 2012 & 0,517 & 0,501 \\
 \emph{baseline} Kemp 2023 & 0,519 & 0,502 \\
-\hline
+\bottomrule
 \end{tabular}
 \end{table}
 
@@ -450,14 +450,14 @@ O teste em dados reais usa \texttt{DDoS Slowloris} do CIC-IoT2023, distribuído 
 \caption{Detecção de \texttt{DDoS Slowloris} (CIC-IoT2023, dados reais). O \emph{baseline} por sessão \emph{forte} (8 atributos) não colapsa; a vantagem do raciocínio entre sessões sobre ele é marginal neste ataque convencional.}
 \label{tab:real}
 \begin{tabular}{lcccc}
-\hline
+\toprule
 Método & $F_1$ & Precisão & \emph{Recall} & AUC \\
-\hline
+\midrule
 KLAGE (nível de nó)~\cite{belcastro2025klage} & 0,841 & --- & --- & --- \\
 nosso (a) ML por sessão (magro, 3 atrib.) & 0,179 & 0,691 & 0,103 & 0,551 \\
 nosso (a$'$) ML por sessão (forte, 8 atrib.) & 0,900 & 0,901 & 0,899 & 0,987 \\
 \textbf{nosso (d) entre sessões} & \textbf{0,911} & 0,908 & 0,915 & 0,982 \\
-\hline
+\bottomrule
 \end{tabular}
 \end{table}
 

@@ -44,13 +44,15 @@ de peso alto (JA4 / identidade reaproveitada) que os legítimos não compartilha
 ## Passo C — Calibração de pesos — ✅ ordenação corroborada no cenário realista
 
 Re-executado no **cenário realista de mesmo serviço** (legítimos acessam o serviço atacado
-em `:443`), o *grid search* **de-satura e corrobora o esquema**: o melhor vetor é
-**(w_tls=1,0, w_endpoint=0,3, w_net=0,3)** — TLS dominante, os demais no mínimo —,
-confirmando **empiricamente** que o *fingerprint* TLS deve dominar a ponderação. Os pesos
-do paper (1,0/0,6/0,3) ficam a **0,006 de AUC do ótimo** (0,879 vs 0,885) e são robustos a
-±20% (queda máxima 0,006). **Nuance honesta:** isso valida a **ORDEM** dos pesos
-(TLS ≫ endpoint ≈ rede), não seus valores absolutos — a calibração plena ainda exige dados
-de produção com sinais parciais/conflitantes.
+em `:443`), a **calibração por sessão** dos pesos corrobora a ordenação proposta: o melhor
+vetor é **(w_tls=1,0, w_endpoint=0,3, w_net=0,3)** — TLS dominante — e o *fingerprint* TLS é
+o **único sinal individualmente discriminativo** (AUC isolada 0,93, contra 0,50 da convergência
+de endpoint e 0,58 da proximidade de rede). Os pesos do paper (1,0/0,6/0,3) atingem o **mesmo
+AUC ótimo (0,943)** e são robustos a ±20% (queda nula). **Nuance honesta:** isso valida a
+**ORDEM** dos pesos (TLS ≫ endpoint ≈ rede), não seus valores absolutos — no regime de mesmo
+serviço puro os pesos médio/baixo não são separadamente identificáveis; a calibração plena
+ainda exige dados de produção. Artefato reproduzível:
+`sprint-4/results/weights_session_realistic.json` (60 cenários, 91,5k sessões).
 
 > **Nota histórica (superada).** Numa versão anterior, num sintético fácil demais (e no
 > `scenario_hard`), o *grid* parecia saturar e a calibração empírica foi declarada
@@ -75,12 +77,13 @@ produção. (§5.5 do paper atualizado com esse caveat.)
 
 - **Tese de DETECÇÃO (entre sessões > por-sessão):** ✅ no regime **furtivo-distribuído** (sintético); em dados reais convencionais um por-sessão **forte** já basta (ganho entre-sessões ≈ 0).
 - **Tese de MITIGAÇÃO cirúrgica:** ✅ em princípio / ❌ não demonstrável nos datasets atuais.
-- **Calibração de pesos:** no cenário realista de mesmo serviço o *grid* **de-satura e
-  corrobora a ordenação** (TLS dominante: melhor vetor 1,0/0,3/0,3; pesos do paper a 0,006
-  de AUC do ótimo, robustos a ±20%); valida a **ordem**, não os valores absolutos —
-  estes ainda exigem dados de produção com sinais parciais/conflitantes.
+- **Calibração de pesos:** no cenário realista de mesmo serviço a calibração por sessão
+  **corrobora a ordenação** (TLS dominante: melhor vetor 1,0/0,3/0,3; pesos do paper atingem o
+  **mesmo AUC ótimo, 0,943**, robustos a ±20%; TLS único sinal discriminativo isolado); valida a
+  **ordem**, não os valores absolutos — estes ainda exigem dados de produção.
 - **Robustez:** **não** há redundância de endpoint no cenário realista de mesmo serviço — ao
-  perder o JA4, o (d) cai a ≈ acaso (AUC 0,475); a detecção depende de um discriminador de peso
+  perder o JA4, o (d) cai para AUC≈0,74 (média; `robustness_sweep.csv`), resíduo de pool finito
+  que tende ao acaso (~0,5) em escala-internet; a detecção depende de um discriminador de peso
   alto (JA4 / identidade reaproveitada).
 
 ## Atualização — Item #3 fechado (mitigação cirúrgica em sintético calibrado)
@@ -124,16 +127,18 @@ features z-score, AUC por sessão). Era discriminativo (spread 0,33), mas:
 `sprint-4/scripts/ja4_isolation.py` (+ novo param `benign_ja4_pool` no gerador). No
 **cenário realista de mesmo serviço** (legítimos acessam o endpoint atacado em `:443`), com
 benigno de JA4 diverso (pool=2000, ~internet), varrendo `coordination_ja4_share` — JA4-only
-(detector usando SOMENTE `share_ja4`) vs arcabouço completo (d):
+(detector usando SOMENTE `share_ja4`) vs arcabouço completo (d). **Nota:** este run
+(`ja4_isolation`) não tem artefato commitado; o sweep canônico e commitado é
+`sprint-4/results/robustness_sweep.csv`, que dá **AUC(d)≈0,74** em share=0:
 
-| ja4_share | AUC(JA4-only) | AUC(d) |
+| ja4_share | AUC(JA4-only) | AUC(d) — sweep commitado |
 |---|---|---|
-| 1,00 | 0,999 | 0,996 |
-| 0,00 | 0,31 | **0,475 ≈ acaso** |
+| 1,00 | 0,999 | 1,00 |
+| 0,00 | 0,31 | **≈0,74 (média; tende ao acaso em escala-internet)** |
 
 **Conclusão corrigida:** quando os legítimos compartilham o endpoint atacado, a convergência
-de endpoint **NÃO compensa** a perda do JA4 — o (d) completo cai à faixa 0,47–0,74 (≈ acaso)
-sob randomização total do JA4. **Diagnóstico honesto:** o resíduo acima do acaso **não** é
+de endpoint **NÃO compensa** a perda do JA4 — o (d) completo cai para AUC≈0,74 (média do sweep
+commitado) sob randomização total do JA4, resíduo que tende ao acaso (~0,5) em escala-internet. **Diagnóstico honesto:** o resíduo acima do acaso **não** é
 detecção genuína — é um **artefato do pool finito de JA4 benigno** (≈1000 benignos colidem num
 pool de ~2000 e parecem fracamente "coordenados" frente a atacantes cujo JA4 agora é
 randomizado); com diversidade de JA4 em escala de internet, tende ao acaso. Logo, tanto a

@@ -111,9 +111,9 @@ com resultados, gates e caveats. Para carga no KG, ver `sprint-1/README.md`.
 
 **Pendências (fora da Fase B):** RT-IoT2022 (download manual IEEE DataPort);
 calibração dos **valores absolutos** de w_i em produção (no cenário realista de mesmo
-serviço o *grid search* já de-satura e corrobora a **ordem** TLS-dominante — ver
-DEEP-DIVE-FINDINGS); pilares 2 e 4 do paper (cadeia de evidência
-JSON-LD/STIX + mitigação cirúrgica) ainda não codificados; redação da §5.
+serviço a calibração por sessão já corrobora a **ordem** TLS-dominante, com os pesos do paper
+atingindo o AUC ótimo 0,943 — ver DEEP-DIVE-FINDINGS); integração das figuras finais no
+`article.tex` (§3 arquitetura+ontologia, §5.4 figC, §5.5 figB), aguardando a edição dos `.drawio`.
 
 ## Como começar o Sprint 1
 

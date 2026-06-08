@@ -57,14 +57,15 @@ descartado como artefato da porta-alvo.
 ## Calibração de pesos — corroborada no cenário realista de mesmo serviço
 
 No **cenário realista de mesmo serviço** (legítimos acessam o serviço atacado em `:443`),
-o *grid search* dos pesos $w_i$ **de-satura e corrobora o esquema**: o melhor vetor é
-**(w_tls=1,0, w_endpoint=0,3, w_net=0,3)** — TLS dominante, os demais no mínimo —,
-confirmando **empiricamente** que o *fingerprint* TLS deve dominar a ponderação. Os pesos
-do paper (1,0 / 0,6 / 0,3) ficam a **0,006 de AUC do ótimo** (0,879 vs 0,885) e são
-**robustos a ±20%** (queda máxima de 0,006). Nuance honesta a manter: isso valida a
-**ORDEM** dos pesos (TLS ≫ endpoint ≈ rede), **não** seus valores absolutos; a calibração
-plena ainda exige dados de produção com sinais parciais/conflitantes. Documentado
-em [`results/sprint4_weights.json`](results/sprint4_weights.json).
+a **calibração por sessão** dos pesos $w_i$ corrobora a ordenação proposta: o melhor vetor é
+**(w_tls=1,0, w_endpoint=0,3, w_net=0,3)** — TLS dominante — e o *fingerprint* TLS é o **único
+sinal individualmente discriminativo** (AUC isolada 0,93, contra 0,50 da convergência de
+endpoint e 0,58 da proximidade de rede). Os pesos do paper (1,0 / 0,6 / 0,3) atingem o **mesmo
+AUC ótimo (0,943)** e são **robustos a ±20%** (queda nula). Nuance honesta a manter: isso valida
+a **ORDEM** dos pesos (TLS ≫ endpoint ≈ rede), **não** seus valores absolutos — no regime de
+mesmo serviço puro os pesos médio/baixo não são separadamente identificáveis; a calibração
+plena ainda exige dados de produção. Documentado em
+[`results/weights_session_realistic.json`](results/weights_session_realistic.json).
 
 > **Nota histórica (superada).** Numa versão anterior, num sintético fácil demais, o *grid
 > search* parecia saturar (AUC alta para toda combinação) e a calibração foi declarada

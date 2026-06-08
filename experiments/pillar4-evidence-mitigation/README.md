@@ -38,6 +38,13 @@ DANO COLATERAL (400 BENIGN):
 
 Saídas em `--out-dir`: `evidence.jsonld`, `mitigation.stix.json`.
 
+> **Nota — toy vs. número canônico do paper.** Este demo-brinquedo dá global 49,5% (só
+> ~metade dos 400 benignos cai na janela do cluster). O número **canônico** do paper vem do
+> `collateral_eval.py` no **cenário realista de mesmo serviço** (n=30, K=1000), em que os
+> legítimos acessam o serviço atacado: aí um *rate-limit* global derruba **100%** dos
+> legítimos e o escopo cirúrgico **0%** → redução de 100% (JA4 no escopo em 30/30). É esse
+> 0% vs 100% que a §5.5 e a figB reportam.
+
 ## Como ligar aos dados reais (próxima sessão online)
 
 O cluster de entrada é uma fatia das sessões que a `coordinatedHTTPFlood` (G4)

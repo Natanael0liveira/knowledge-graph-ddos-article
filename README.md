@@ -150,7 +150,7 @@ pendências: [`experiments/RESUME.md`](experiments/RESUME.md).
 | Alinhamento de namespace ontologia↔dados em runtime | ⏳ Pendente (instâncias usam namespace distinto do `.owl`) |
 | **Pilar 4** (cadeia de evidência JSON-LD/STIX + mitigação cirúrgica) | ✅ Codado + rodado em cluster real e sintético calibrado no cenário realista de mesmo serviço (cirúrgico 0% vs global 100%, n=30, K=1000; escopo derivado do **subconjunto coordenado**, não do cluster cru); não se manifesta no CIC (LAN+não-TLS, surgical=global=31,8%) |
 | **Pilar 2** (raciocínio simbólico SWRL+SPARQL · veredicto-como-derivação) | ✅ Codado; regra dispara com a derivação; pesos lidos da ontologia |
-| Calibração empírica de pesos $w_i$ | ✅ No cenário realista de mesmo serviço o *grid search* corrobora a **ordem** (TLS dominante; melhor 1,0/0,3/0,3; pesos do paper a 0,006 de AUC do ótimo, robustos a ±20%); valores absolutos exigem produção — ver DEEP-DIVE-FINDINGS |
+| Calibração empírica de pesos $w_i$ | ✅ No cenário realista de mesmo serviço a calibração por sessão corrobora a **ordem** (TLS dominante; melhor 1,0/0,3/0,3; pesos do paper atingem o mesmo AUC ótimo 0,943, robustos a ±20%; TLS único sinal discriminativo isolado); valores absolutos exigem produção — ver DEEP-DIVE-FINDINGS |
 | RT-IoT2022 (2º dataset KLAGE) · avaliação em produção | ⏳ Pendente (trabalho futuro) |
 
 ---

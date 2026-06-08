@@ -83,9 +83,11 @@ Duas decisões-chave:
   chega a ser testada.
 
 **O que os cálculos representam.** O **teste KS (Kolmogorov–Smirnov)** mede a maior
-distância entre a distribuição do legítimo *sintético* e a do *real*. **D ≤ 0,02
-significa "quase idênticas"** → prova que **não trapaceamos**: o detector acerta o
-ataque porque o sinal existe, não porque o benigno foi feito artificialmente fácil.
+distância entre a distribuição do legítimo *sintético* e a do *real*. Medido contra ~322k
+sessões legítimas reais: **D = 0,003 (duração) e D = 0,002 (nº de requisições)**, p > 0,8 →
+distribuições quase idênticas (`sprint-2/results/ks_validation.json`), provando que **não
+trapaceamos**: o detector acerta o ataque porque o sinal existe, não porque o benigno foi
+feito artificialmente fácil.
 Usamos **quantis empíricos** (inverse-CDF) na calibração porque o histograma de bins
 largos borrava distribuições concentradas (duração ~0, 1 requisição).
 
@@ -273,7 +275,7 @@ as atacamos — porque "resultado bonito" sem ceticismo é frágil.
 | Circularidade do sintético (plantamos o sinal que medimos) | Passo A: 6 ataques **reais** | ✅ mitigada (detecção real) |
 | Generalização fina (1 dataset/ataque) | 6 ataques × 2 datasets reais | ✅ ampliada |
 | Comparação KLAGE não-controlada | reescrita como "mesma ordem", não "superamos" | ✅ honesta |
-| Pesos não calibrados | *grid search* no cenário realista de mesmo serviço de-satura e corrobora a ordem (TLS dominante; melhor 1,0/0,3/0,3; pesos do paper a 0,006 de AUC do ótimo) | ✅ ordem corroborada; valores absolutos exigem produção |
+| Pesos não calibrados | calibração por sessão no cenário realista de mesmo serviço corrobora a ordem (TLS dominante; melhor 1,0/0,3/0,3; pesos do paper atingem o mesmo AUC ótimo 0,943; TLS único sinal discriminativo isolado) | ✅ ordem corroborada; valores absolutos exigem produção |
 | Mitigação só em toy | reproduzida em sintético calibrado (n=30, IC) | ✅ fortalecida |
 
 ---
@@ -312,6 +314,6 @@ específica** (cresce com a distribuição/furtividade; é pequena em ataque sin
 óbvio); a mitigação cirúrgica **exige TLS observável + atacantes dispersos** — condição
 de **produção**, ausente nos *datasets* de laboratório; e a calibração de pesos, no cenário
 realista de mesmo serviço, **corrobora a ordem** (TLS dominante; melhor 1,0/0,3/0,3; pesos
-do paper a 0,006 de AUC do ótimo, robustos a ±20%) — mas a calibração dos **valores
+do paper atingem o mesmo AUC ótimo 0,943, robustos a ±20%) — mas a calibração dos **valores
 absolutos** ainda exige dados com sinais parciais/conflitantes. O passo que falta para a
 promessa completa é **avaliação em tráfego de produção anonimizado**.

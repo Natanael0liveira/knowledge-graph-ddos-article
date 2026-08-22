@@ -262,3 +262,108 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# =====================================================================
+# Derivação de escopo por ENRIQUECIMENTO (Sprint 6 / NOMS).
+#
+# O `derive_scope` acima escolhe o JA4 MODAL do subconjunto coordenado. Essa
+# heurística falha exatamente onde importa: contra uma botnet heterogênea, cada
+# stack do atacante fica menor que a cabeça da distribuição benigna, o modal do
+# cluster passa a ser um fingerprint LEGÍTIMO, e o escopo derivado vira um filtro
+# que bloqueia usuários e nenhum atacante (medido: 0% de cobertura do ataque,
+# 40% de colateral).
+#
+# A causa é conceitual: frequência premia o que é comum, e o que é comum é o
+# tráfego legítimo. O critério correto é ENRIQUECIMENTO — quanto um fingerprint
+# está super-representado no cluster detectado em relação ao tráfego de fundo.
+# É informação que o grafo já tem e que o modal descarta.
+#
+# Consequência desejável: quando o adversário se esconde num fingerprint benigno
+# popular, o enriquecimento desse fingerprint é ~1 e ele é corretamente RECUSADO;
+# o escopo cai para endpoint/rede e o arcabouço reporta honestamente que não há
+# discriminador, em vez de emitir um filtro que só machuca legítimos.
+# =====================================================================
+
+def derive_scope_enriched(cluster: pd.DataFrame, background: pd.DataFrame,
+                          min_enrichment: float = 3.0,
+                          min_support: float = 0.01,
+                          max_values: int = 32) -> dict:
+    """Escopo cujo discriminador é escolhido por enriquecimento, não por frequência.
+
+    ``cluster``    sessões do cluster que disparou a regra.
+    ``background`` PERFIL HISTÓRICO de prevalência de fingerprints — um DataFrame
+                   de tráfego de referência ou uma Series ja4->prevalência. Precisa
+                   vir de fora do episódio de ataque: usar a própria janela como
+                   fundo não funciona, porque a campanha atravessa a janela inteira
+                   e a prevalência no cluster iguala a do fundo (enriquecimento ~1
+                   para tudo, medido). A suposição operacional é a que um defensor
+                   real satisfaz: perfilar o tráfego normal fora de ataque. Nenhum
+                   rótulo é usado em tempo de decisão.
+    ``min_enrichment`` razão mínima entre a prevalência no cluster e no fundo.
+    ``min_support``    fração mínima do cluster que o fingerprint deve cobrir,
+                       para não catar ruído de cauda. 0.01 é o ponto de operação
+                       medido: com 0.02 uma botnet de 25 stacks cai para 33% de
+                       cobertura só porque cada stack fica abaixo do piso; com
+                       0.01 recupera ~90% sem custo de colateral (0.00%).
+    ``max_values``     teto de valores no filtro resultante (disjunção).
+
+    Retorna um escopo em que ``tlsJa4`` pode ser um CONJUNTO de fingerprints — é
+    o que permite cobrir uma botnet fragmentada em vários stacks.
+    """
+    cluster = cluster.copy()
+    cluster["endpoint"] = (cluster["dst_ip_first"].astype(str) + ":"
+                           + cluster["dst_port_first"].astype(str))
+    cluster["net24"] = cluster["src_ip_first"].map(_net24)
+    n = len(cluster)
+    scope = {}
+
+    if cluster["ja4"].notna().any() and len(background):
+        c_freq = cluster["ja4"].value_counts(normalize=True)
+        if isinstance(background, pd.Series):
+            b_freq, n_bg = background, int(background.attrs.get("n", 1000))
+        else:
+            b_freq, n_bg = background["ja4"].value_counts(normalize=True), len(background)
+        # prior fraco no fundo: um fingerprint ausente do perfil não vira
+        # enriquecimento infinito por conta de uma única observação.
+        eps = 1.0 / max(n_bg, 1)
+        picked = []
+        for ja4, cf in c_freq.items():
+            if cf < min_support:
+                continue
+            bf = float(b_freq.get(ja4, 0.0)) + eps
+            if cf / bf >= min_enrichment:
+                picked.append((ja4, cf, cf / bf))
+            if len(picked) >= max_values:
+                break
+        if picked:
+            scope["tlsJa4"] = {p[0] for p in picked}
+            scope["_ja4_detail"] = [
+                {"ja4": p[0], "cluster_share": round(p[1], 4),
+                 "enrichment": round(p[2], 1)} for p in picked
+            ]
+
+    top_ep = cluster["endpoint"].value_counts()
+    if len(top_ep) and top_ep.iloc[0] / n >= 0.5:
+        scope["endpoint"] = top_ep.index[0]
+    top_net = cluster["net24"].value_counts()
+    if len(top_net) and top_net.iloc[0] / n >= 0.5:
+        scope["srcNet24"] = str(top_net.index[0]) + ".0/24"
+    return scope
+
+
+def matches_scope_multi(df: pd.DataFrame, scope: dict) -> pd.Series:
+    """Como ``matches_scope``, mas ``tlsJa4`` pode ser um conjunto (disjunção)."""
+    df = df.copy()
+    df["endpoint"] = df["dst_ip_first"].astype(str) + ":" + df["dst_port_first"].astype(str)
+    df["net24"] = df["src_ip_first"].map(_net24).astype(str) + ".0/24"
+    m = pd.Series(True, index=df.index)
+    if "tlsJa4" in scope:
+        want = scope["tlsJa4"]
+        want = want if isinstance(want, (set, list, tuple)) else {want}
+        m &= df["ja4"].isin(list(want))
+    if "endpoint" in scope:
+        m &= (df["endpoint"] == scope["endpoint"])
+    if "srcNet24" in scope:
+        m &= (df["net24"] == scope["srcNet24"])
+    return m

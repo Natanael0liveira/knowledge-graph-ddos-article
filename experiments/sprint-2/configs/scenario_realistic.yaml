@@ -1,0 +1,40 @@
+# Cenário FURTIVO em condições de PRODUÇÃO (canônico a partir do Sprint 6).
+#
+# Substitui scenario_stealth.yaml como cenário de referência. O stealth original
+# continua válido e reproduz os números históricos, mas tinha três defeitos de
+# realismo — todos favoráveis ao arcabouço — corrigidos aqui:
+#
+#   1. JA4 benigno UNIFORME sobre um pool sintético (792 distintos em 1.000 sessões,
+#      modal 0,4%). A distribuição real calibrada sobre ~322 mil sessões benignas é
+#      o oposto: 39 distintos, top-1 52,7%, top-10 98,4%. E a literatura confirma a
+#      forma: JA4 é estável por navegador+plataforma, então o benigno real é
+#      concentrado. Corrigido por benign_ja4_zipf_alpha.
+#   2. Botnet MONOLÍTICA (um JA4 para 88% dos atacantes). Botnets reais abrangem
+#      classes de dispositivo distintas — roteadores, câmeras IP, DVRs, impressoras
+#      (Antonakakis et al., USENIX Security 2017). Corrigido por botnet_ja4_stacks.
+#   3. Namespace do atacante DISJUNTO do benigno: colisão impossível por construção.
+#      Corrigido por botnet_ja4_adversarial (ver scenario_adversarial.yaml).
+
+K: 1000
+legitimate_sessions: 1000
+attack_variant: slowloris
+window_s: 300
+stealth: true
+
+benign_ja4_pool: 2000
+# alpha=1.5 -> cabeça de ~39% do tráfego benigno. A distribuição medida em lab tem
+# 52,7%, aproximada por alpha~1.8-2.0; varremos o eixo em vez de fixar um ponto,
+# porque não há medição pública de concentração de JA4 em escala de internet.
+benign_ja4_zipf_alpha: 1.5
+
+# 25 stacks TLS distintos na botnet. Distribuição uniforme entre stacks é a escolha
+# conservadora: fragmenta o sinal ao máximo para um dado número de stacks.
+botnet_ja4_stacks: 25
+botnet_ja4_adversarial: false
+
+benign_same_service: true
+coordination_ja4_share: 0.9
+coordination_identity_reuse: 0.2
+coordination_temporal_jitter: 0.3
+asn_dispersion: 2000
+prefix_dispersion: 2000

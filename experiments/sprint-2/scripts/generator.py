@@ -94,9 +94,29 @@ def sample_flow_per_request(rng: random.Random, dists: dict) -> dict:
     }
 
 
+def build_benign_ja4_vocab(pool: int, alpha: float) -> tuple[list[str], list[float]]:
+    """Benign JA4 vocabulary with a Zipf-shaped popularity curve.
+
+    ``alpha = 0`` reproduces the historical uniform draw (every fingerprint equally
+    likely), which is unrealistically flat: real browser populations are heavily
+    concentrated, and the calibrated distribution measured over ~322k real benign
+    sessions has its most common fingerprint at 52.7%. ``alpha > 0`` tilts the
+    vocabulary towards that shape; the realised head share is reported by the caller.
+    """
+    if pool <= 0:
+        return [], []
+    names = [f"benign_ja4_{i}" for i in range(pool)]
+    if alpha <= 0:
+        w = [1.0] * pool
+    else:
+        w = [1.0 / ((i + 1) ** alpha) for i in range(pool)]
+    tot = sum(w)
+    return names, [x / tot for x in w]
+
+
 def generate_legitimate_session(
     sid: str, t0: datetime, rng: random.Random, dists: dict, benign_ja4_pool: int = 0,
-    benign_same_service: bool = False
+    benign_same_service: bool = False, benign_ja4_vocab: tuple | None = None
 ) -> list[dict]:
     """Gera uma sessão legítima como lista de requisições HTTP.
 
@@ -110,7 +130,10 @@ def generate_legitimate_session(
     # forçar mínimos quebraria o casamento de distribuição (gate KS).
     duration = max(0.0, sample_numeric(dists.get("session_duration", {}), rng, 10.0))
     n_req = max(1, round(sample_numeric(dists.get("session_requests", {}), rng, 5)))
-    if benign_ja4_pool and benign_ja4_pool > 0:
+    if benign_ja4_vocab and benign_ja4_vocab[0]:
+        names, weights = benign_ja4_vocab
+        ja4 = rng.choices(names, weights=weights, k=1)[0]
+    elif benign_ja4_pool and benign_ja4_pool > 0:
         ja4 = f"benign_ja4_{rng.randint(0, benign_ja4_pool - 1)}"
     else:
         ja4 = sample_categorical(dists.get("ja4_users", {}), rng) or "t13d1516h2_default"
@@ -175,7 +198,7 @@ def generate_attack_session(
     coordination_ja4_share: float,
     coordination_identity_reuse: float,
     coordination_temporal_jitter: float,
-    shared_ja4: str,
+    shared_ja4: str | list[str],
     shared_token: str,
     target_endpoint: dict,
     asn_pool: list[int],
@@ -193,9 +216,12 @@ def generate_attack_session(
     ESTRUTURA cross-session (JA4/alvo/prefixo/identidade compartilhados). É o caso
     que separa a tese do estado-da-arte: detecção por-sessão falha, cross-session acerta.
     """
-    # JA4 compartilhado ou independente
+    # JA4 compartilhado ou independente. ``shared_ja4`` pode ser uma LISTA de stacks:
+    # botnets reais são heterogêneas (vários tipos de dispositivo / bibliotecas TLS),
+    # e a campanha se fragmenta entre eles. Distribuição uniforme entre stacks é a
+    # escolha conservadora: fragmenta o sinal ao máximo para um dado número de stacks.
     if rng.random() < coordination_ja4_share:
-        ja4 = shared_ja4
+        ja4 = rng.choice(shared_ja4) if isinstance(shared_ja4, list) else shared_ja4
     else:
         ja4 = f"t13d1516h2_unique_{rng.randint(0, 1<<16):04x}"
 
@@ -346,7 +372,27 @@ def main():
     # paper assume (w_net=0.3) — e o JA4 compartilhado é que carrega a detecção.
     prefix_pool = [f"10.{(i // 256) % 256}.{i % 256}." for i in range(prefix_dispersion)]
 
-    shared_ja4 = f"t13d1516h2_synth_{args.seed:04x}"
+    # ---- vocabulário de JA4 benigno (forma Zipf; alpha=0 == uniforme histórico) ----
+    benign_pool = int(cfg.get("benign_ja4_pool", 0))
+    benign_alpha = float(cfg.get("benign_ja4_zipf_alpha", 0.0))
+    benign_vocab = build_benign_ja4_vocab(benign_pool, benign_alpha)
+    if benign_vocab[0]:
+        log.info("JA4 benigno: %d distintos, alpha=%.2f, head share=%.3f",
+                 benign_pool, benign_alpha, benign_vocab[1][0])
+
+    # ---- stacks da botnet (heterogeneidade + escolha adversarial) ----
+    n_stacks = max(1, int(cfg.get("botnet_ja4_stacks", 1)))
+    # --param chega como string; bool("false") seria True.
+    adversarial = str(cfg.get("botnet_ja4_adversarial", False)).strip().lower() \
+        in ("1", "true", "yes", "on")
+    if adversarial and benign_vocab[0]:
+        # adversário competente se esconde nos fingerprints benignos MAIS COMUNS
+        shared_ja4 = benign_vocab[0][:n_stacks]
+    else:
+        shared_ja4 = [f"t13d1516h2_synth_{args.seed:04x}_{k:02d}" for k in range(n_stacks)]
+    if n_stacks == 1 and not adversarial:
+        shared_ja4 = f"t13d1516h2_synth_{args.seed:04x}"  # compat: nome histórico
+    log.info("Botnet: %d stack(s), adversarial=%s", n_stacks, adversarial)
     shared_token = f"synth_token_{args.seed:08x}"
     target_endpoint = {"path": "/api/checkout/payment"}
     campaign_id = f"synth_{args.config.stem}_seed{args.seed}"
@@ -367,8 +413,11 @@ def main():
             iat = max(0.01, sample_numeric(dists.get("arrival", {}), rng, 0.5))
             t0 = t_start + timedelta(seconds=i * iat)
             for ev in generate_legitimate_session(sid, t0, rng, dists,
-                                                   benign_ja4_pool=int(cfg.get("benign_ja4_pool", 0)),
-                                                   benign_same_service=bool(cfg.get("benign_same_service", False))):
+                                                   benign_ja4_pool=benign_pool,
+                                                   benign_same_service=str(
+                                                       cfg.get("benign_same_service", False)
+                                                   ).strip().lower() in ("1", "true", "yes", "on"),
+                                                   benign_ja4_vocab=benign_vocab):
                 fout.write(json.dumps(ev) + "\n")
                 n_events += 1
                 n_legit += 1

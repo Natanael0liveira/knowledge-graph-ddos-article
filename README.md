@@ -127,6 +127,14 @@ knowledge-graph-ddos-article/
 
 ## Estado atual
 
+**Sprint 6 (2026-08-22) — submissão NOMS.** Versão em inglês / IEEE 2-colunas em
+[`papers/http-session-noms/`](papers/http-session-noms/). No caminho, o endurecimento
+encontrou **três defeitos de realismo no gerador** e um **erro conceitual na derivação de
+escopo de mitigação** (escolha por frequência modal seleciona o fingerprint *legítimo*
+contra botnets heterogêneas: 0% dos atacantes, 39–61% dos usuários). Corrigidos; o
+critério passou a ser **enriquecimento** sobre perfil histórico. Detalhes, tabelas e
+fronteiras medidas em [`experiments/sprint-6-noms/`](experiments/sprint-6-noms/).
+
 **Fase B (Sprints 1–5) + os 4 pilares + endurecimento em dados reais + consolidação do
 paper concluídos (2026-06).** Raciocínio das decisões e significado dos cálculos por
 etapa: [`experiments/METODOLOGIA-DECISOES-RESULTADOS.md`](experiments/METODOLOGIA-DECISOES-RESULTADOS.md);

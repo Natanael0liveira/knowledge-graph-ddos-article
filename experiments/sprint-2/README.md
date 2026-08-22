@@ -46,7 +46,10 @@ A geração de tráfego legítimo amostra dessas distribuições; ataque é inje
 | `asn_dispersion` | int | 1 | Número de ASNs distintos pelos quais as $K$ origens se espalham |
 | `prefix_dispersion` | int | 1 | Número de prefixos /24 distintos |
 | `benign_same_service` | bool | false | Se `true`, os legítimos acessam o **mesmo** serviço/porta sob ataque (`:443`) — **cenário realista canônico**; remove o artefato de porta que inflava a config (b) |
-| `benign_ja4_pool` | int | (herda do real) | Nº de JA4 distintos no tráfego legítimo (diversidade ~internet; 2000 no cenário realista) |
+| `benign_ja4_pool` | int | (herda do real) | Nº de JA4 distintos no tráfego legítimo (2000 no cenário realista) |
+| `benign_ja4_zipf_alpha` | float | 0 (uniforme) | **Sprint 6.** Forma da curva de popularidade do JA4 benigno. O sorteio uniforme (α=0) é irrealista: a distribuição medida em produção tem cabeça de 38,4%. Canônico: α=1,5 |
+| `botnet_ja4_stacks` | int | 1 | **Sprint 6.** Nº de stacks TLS distintos na botnet. 1 = monolítico (irrealista); canônico: 25 |
+| `botnet_ja4_adversarial` | bool | false | **Sprint 6.** Se verdadeiro, a botnet adota os fingerprints benignos **mais comuns**, em vez de um namespace próprio |
 | `window_s` | int | 300 | Janela temporal da campanha (s) |
 | `seed` | int | 42 | Reprodutibilidade |
 

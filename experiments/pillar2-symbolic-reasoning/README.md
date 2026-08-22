@@ -35,6 +35,31 @@ Arestas materializadas: relatedByTLSFingerprint=10, relatedByEndpointConvergence
   veredicto = a derivação acima (não um score)
 ```
 
+## A regra avaliada COMO detector (Sprint 6)
+
+Todo número de detecção do paper vinha de um classificador sobre features, o que mede
+a **representação** e não diz nada sobre esta camada. O Sprint 6 avaliou a regra ponta
+a ponta: as sessões que casam com o escopo derivado **são** o conjunto marcado, sem
+treino e sem limiar. E, para ser justo, o classificador foi forçado ao **mesmo ponto de
+operação**:
+
+| cenário | regra: recall / FPR / F1 | RF AUC | RF recall @ FPR=0 |
+|---|---|---|---|
+| monolítico (M=1) | 84,0% / 0,00% / 0,885 | 0,997 | **91,7%** |
+| M=5 | 90,0% / 0,00% / 0,948 | 0,996 | 88,6% |
+| M=25 | 90,3% / 0,00% / **0,949** | 0,979 | **36,4%** |
+| M=100 | 85,0% / 0,00% / 0,919 | 0,961 | **17,6%** |
+| M=25, adversarial | 30,4% / 3,78% / 0,452 | 0,862 | **7,8%** |
+
+**Não é vitória uniforme.** No regime monolítico o RF empata ou ganha — não há vantagem
+simbólica ali. A partir de 25 stacks a ordem inverte de forma acentuada. O que a AUC
+esconde é isso: 0,979 corresponde a recuperar **um terço** do ataque a falso positivo
+zero, porque a distribuição de escores se sobrepõe ao benigno na cauda. A regra não
+produz escore para limiarizar — produz um conjunto definido por teste de enriquecimento
+contra fundo explícito, e por isso o FPR é 0,00% **por construção, não por ajuste**.
+
+Ver [`../sprint-6-noms/scripts/symbolic_detector.py`](../sprint-6-noms/scripts/symbolic_detector.py).
+
 ## Como compõe com o Pilar 4
 
 O cluster (sessões no mesmo endpoint) inclui benignos — a convergência de endpoint

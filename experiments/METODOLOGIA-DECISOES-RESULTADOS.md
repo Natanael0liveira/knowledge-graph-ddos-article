@@ -11,6 +11,18 @@ para a consolidação do paper.
 > convergência de endpoint). Modelamos isso como objeto raciocinável numa ontologia e
 > mostramos que a detecção **por sessão falha onde o raciocínio entre sessões acerta** — no regime furtivo-distribuído.
 
+> **⚠️ Sprint 6 (2026-08-22) revisou o cenário canônico e corrigiu um mecanismo.**
+> Este documento descreve as decisões dos Sprints 1–5 e continua sendo o registro delas.
+> Três decisões foram **revertidas ou corrigidas** depois:
+>
+> | decisão original | o que mudou |
+> |---|---|
+> | JA4 benigno sorteado uniformemente de um pool (`benign_ja4_pool`), justificado como "diversidade de internet" | Errado na forma: diversidade real é cauda pesada, não uniforme. Substituído por curva Zipf (`benign_ja4_zipf_alpha`), calibrada contra medição em produção: 495 distintos, top-1 38,4%, top-10 93,8% |
+> | Botnet com um único JA4 compartilhado | Botnets reais abrangem classes de dispositivo; agora M stacks (`botnet_ja4_stacks`), com modo adversarial em que a botnet adota os fingerprints benignos mais comuns |
+> | Escopo de mitigação pelo conjunto de propriedades que o cluster mais compartilha | Errado por construção — frequência premia o legítimo. Substituído por enriquecimento sobre perfil histórico |
+>
+> Metodologia e resultados novos em [`sprint-6-noms/`](sprint-6-noms/).
+
 > **Como ler as métricas (glossário rápido).**
 > - **ROC AUC** — probabilidade de o detector dar nota maior a um ataque que a um
 >   benigno. **0,5 = chute; 1,0 = perfeito.** Independe do limiar de corte.

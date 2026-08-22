@@ -16,6 +16,15 @@ Para a visão de projeto, ver [`README.md`](README.md). Para a fundamentação, 
 > [`experiments/DEEP-DIVE-FINDINGS.md`](experiments/DEEP-DIVE-FINDINGS.md); metodologia
 > e decisões por etapa: [`experiments/METODOLOGIA-DECISOES-RESULTADOS.md`](experiments/METODOLOGIA-DECISOES-RESULTADOS.md).
 
+> **⚠️ SUPERSEDIDO EM PARTE PELO SPRINT 6 (2026-08-22).** O cenário canônico deixou de
+> ser o sintético plano/monolítico e passou a ser o **realista de produção** (JA4 benigno
+> em curva Zipf calibrada contra medição real, botnet em 25 stacks TLS). Os números acima
+> continuam válidos *para o cenário em que foram medidos*, mas as tabelas do paper agora
+> vêm do cenário novo: (a) 0,498/0,503, (b) 0,500/0,502, (c) 0,499/0,659,
+> **(d) 0,927/0,982**, com o colapso por-sessão confirmado em **quatro famílias de
+> modelo**. Além disso, a derivação de escopo de mitigação estava **conceitualmente
+> errada** e foi corrigida. Ver [`experiments/sprint-6-noms/`](experiments/sprint-6-noms/).
+
 ---
 
 ## Por que a família Slow HTTP DDoS
@@ -189,6 +198,16 @@ Fração do tráfego legítimo que seria afetada pela mitigação resultante de 
 - Nosso arcabouço aplica mitigação com **escopo derivado do discriminador do *cluster*** — JA4, ou par (JA4, endpoint), ou prefixo + JA4 — preservando o resto.
 
 Essa métrica é o que produtos comerciais auto-reportam (DataDome: FPR < 0.01% em CAPTCHAs servidos), mas que a literatura acadêmica de L7 DDoS não usa sistematicamente. Reportá-la é parte da contribuição metodológica do paper.
+
+> **Correção do Sprint 6.** A frase acima — "escopo derivado do discriminador do
+> cluster" — descreve a intenção, mas a implementação original escolhia o discriminador
+> pelo valor **modal**, e isso está errado por construção: frequência premia o que é
+> comum, e num serviço sob ataque o que é comum é o tráfego legítimo. Contra botnet com
+> 5 ou mais stacks TLS, o escopo derivado bloqueava **0% dos atacantes e 39–61% dos
+> usuários**. A correção escolhe por **enriquecimento** sobre um perfil histórico de
+> tráfego normal, e recupera 85–90% do ataque a 0,00% de colateral. Métrica revista:
+> reportar sempre o **par** (fração do ataque bloqueada, fração de legítimos atingida) —
+> um escopo com colateral zero que para 10% do ataque não vale nada.
 
 ---
 

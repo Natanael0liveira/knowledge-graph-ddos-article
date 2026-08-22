@@ -289,7 +289,18 @@ Quando uma regra dispara, o motor emite um veredicto acompanhado de uma **cadeia
 - **Qual regra** disparou (`CoordinatedHTTPFlood` / `CredentialStuffing` / `CoordinatedAPIAbuse`).
 - **Quais instâncias ontológicas** estão envolvidas — sessões, identidades, endpoints.
 - **Quais valores observados** satisfizeram as condições.
-- **Qual política de mitigação** é sugerida.
+- **Qual política de mitigação** é sugerida, e **em qual escopo**.
+
+> **Como o escopo é escolhido — e por que o jeito óbvio está errado.** A escolha
+> natural é filtrar pela propriedade que a *maioria* do cluster compartilha. Isso é
+> errado por construção: frequência premia o que é **comum**, e num serviço sob ataque
+> o que é comum é o tráfego **legítimo**. Contra uma botnet espalhada por vários stacks
+> TLS, cada grupo de atacantes fica menor que a cabeça da distribuição benigna, o valor
+> modal passa a ser um fingerprint legítimo, e o filtro resultante bloqueia usuários e
+> nenhum atacante. O critério correto é **enriquecimento**: quanto um valor está
+> super-representado no cluster detectado em relação a um perfil de tráfego normal. É
+> informação que o grafo já tem e que a contagem de frequência descarta. Medições em
+> [`experiments/sprint-6-noms/`](experiments/sprint-6-noms/).
 
 ### Exemplo de cadeia (esquemático)
 

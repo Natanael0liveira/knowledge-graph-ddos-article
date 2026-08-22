@@ -1,0 +1,77 @@
+{
+  "config": {
+    "sizes": [
+      100,
+      250,
+      500,
+      1000,
+      2500,
+      5000,
+      10000
+    ],
+    "repeats": 3,
+    "coord_frac": 0.3,
+    "endpoints": 8,
+    "ja4_pool": 2000,
+    "probes": 200,
+    "tau": 5.0,
+    "pair_cap": 400000,
+    "out": "experiments/sprint-6-noms/results"
+  },
+  "by_window_size": {
+    "100": {
+      "admission_p50_us": 2.125045284628868,
+      "admission_p95_us": 4.125060513615608,
+      "admission_mean_edges": 148.10333333333332,
+      "symbolic_total_s": 0.5628728750161827,
+      "symbolic_materialise_s": 0.5258333750534803,
+      "symbolic_omega_s": 0.035915917018428445,
+      "symbolic_edges": 2703.0
+    },
+    "250": {
+      "admission_p50_us": 3.270513843744993,
+      "admission_p95_us": 5.792011506855488,
+      "admission_mean_edges": 239.12666666666667,
+      "symbolic_total_s": 3.0952541248407215,
+      "symbolic_materialise_s": 2.957002207986079,
+      "symbolic_omega_s": 0.13090899994131178,
+      "symbolic_edges": 17221.0
+    },
+    "500": {
+      "admission_p50_us": 6.062444299459457,
+      "admission_p95_us": 8.999952115118504,
+      "admission_mean_edges": 396.2133333333333,
+      "symbolic_total_s": 12.091143166995607,
+      "symbolic_materialise_s": 11.632860917015933,
+      "symbolic_omega_s": 0.43871037499047816,
+      "symbolic_edges": 65115.0
+    },
+    "1000": {
+      "admission_p50_us": 11.875468771904707,
+      "admission_p95_us": 16.125035472214222,
+      "admission_mean_edges": 740.71,
+      "symbolic_total_s": 49.693411792162806,
+      "symbolic_materialise_s": 47.8440317499917,
+      "symbolic_omega_s": 1.7540335420053452,
+      "symbolic_edges": 265328.0
+    },
+    "2500": {
+      "admission_p50_us": 32.54145849496126,
+      "admission_p95_us": 36.29201091825962,
+      "admission_mean_edges": 1660.2283333333335,
+      "symbolic_skipped_estimated_pairs": 1641169.0
+    },
+    "5000": {
+      "admission_p50_us": 61.70803681015968,
+      "admission_p95_us": 71.29204459488392,
+      "admission_mean_edges": 3372.7883333333334,
+      "symbolic_skipped_estimated_pairs": 6683340.0
+    },
+    "10000": {
+      "admission_p50_us": 122.12502770125866,
+      "admission_p95_us": 144.41600069403648,
+      "admission_mean_edges": 6494.900000000001,
+      "symbolic_skipped_estimated_pairs": 26597655.0
+    }
+  }
+}

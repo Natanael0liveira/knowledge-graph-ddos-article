@@ -3,6 +3,22 @@
 Execução da bateria de hardening + pilares sobre os dados reais (HD reconectado).
 Tom: honesto, incluindo os resultados que NÃO favorecem a tese.
 
+> **➡️ Continuação em 2026-08-22 ([Sprint 6](sprint-6-noms/)).** Esta rodada foi honesta
+> sobre os dados reais, mas não questionou o **gerador sintético**. O Sprint 6 fez isso e
+> encontrou três defeitos de realismo, todos favoráveis ao arcabouço, mais um erro
+> conceitual na derivação de escopo de mitigação. Resumo do que mudou:
+>
+> - **JA4 benigno era sorteado uniformemente.** A distribuição real, medida em edge de
+>   CDN em produção (6,3M requisições), é concentrada: 495 distintos, top-1 38,4%.
+> - **Botnet era monolítica** e o namespace do atacante era disjunto do benigno.
+> - **A derivação de escopo escolhia o valor modal**, e contra botnet heterogênea isso
+>   seleciona um fingerprint *legítimo*: 0% do ataque bloqueado, 39–61% dos usuários.
+>   Corrigido por enriquecimento sobre perfil histórico (85–90% a 0,00%).
+> - **A detecção sobreviveu ao realismo** — (d) em 0,96–0,997 — e o colapso por-sessão
+>   foi confirmado em quatro famílias de modelo.
+> - **A regra simbólica foi avaliada como detector** pela primeira vez, e a partir de 25
+>   stacks recupera 90% do ataque contra 36% do classificador no mesmo FPR zero.
+
 ## Passo A — Generalização multi-ataque (DETECÇÃO) — ✅ detecção, mas ganho entre sessões ≈ 0
 
 `make -C sprint-3 multiattack`. Detecção ataque-vs-BENIGN, (a) por-sessão × (d) entre sessões.

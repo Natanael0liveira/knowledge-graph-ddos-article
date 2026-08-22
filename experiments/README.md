@@ -79,6 +79,7 @@ experiments/
 ├── sprint-3/                       # Baselines + ablação a/b/c/d (✅)
 ├── sprint-4/                       # Execução estatística n=30 + figura (✅)
 ├── sprint-5/                       # Comparação com KLAGE (✅ CIC-IoT2023)
+├── sprint-6-noms/                  # Cenário realista + correções + submissão NOMS (✅)
 ├── pillar2-symbolic-reasoning/     # Pilar 2: SWRL+SPARQL, veredicto-como-derivação (✅)
 ├── pillar4-evidence-mitigation/    # Pilar 4: cadeia JSON-LD/STIX + mitigação cirúrgica (✅)
 ├── figures-candidatas/             # Figuras candidatas ao artigo (fora do .tex, p/ revisão)

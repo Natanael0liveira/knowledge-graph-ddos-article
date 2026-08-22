@@ -6,6 +6,13 @@
 > **Formato:** preprint, 12pt — alvo de 8–10 páginas
 > **Fonte LaTeX:** [`../papers/http-session/article.tex`](../papers/http-session/article.tex)
 
+> **Existe uma segunda versão (2026-08-22):** [`../papers/http-session-noms/`](../papers/http-session-noms/)
+> — em inglês, formato IEEE de duas colunas, para o IEEE/IFIP NOMS. Ela **não** é
+> tradução: o cenário canônico é outro (realista de produção), há resultados que esta
+> versão não tem (regra simbólica avaliada como detector, correção da derivação de
+> escopo, distribuição de JA4 medida em produção) e a estrutura segue o padrão do venue.
+> Este mapa descreve a versão **portuguesa**, que segue válida e não foi alterada.
+
 Este documento é o **mapa seção-a-seção** do paper. Para cada seção indica: (i) o estado atual no `.tex`, (ii) o que ainda precisa ser produzido, (iii) as referências que sustentam o argumento. Para a visão de projeto, ver [`../README.md`](../README.md). Para fundamentação conceitual, ver [`../CONCEITOS.md`](../CONCEITOS.md). Para o plano experimental, ver [`../TESTAGEM.md`](../TESTAGEM.md).
 
 ---

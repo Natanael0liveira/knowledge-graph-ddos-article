@@ -4,7 +4,38 @@
 
 Este arquivo documenta exatamente onde paramos para que a próxima sessão retome sem reler todo o histórico.
 
-> **➡️ ESTADO (2026-06-08):** revisão final do paper + reconciliação de dados/figuras.
+> **➡️ ESTADO (2026-08-22): Sprint 6 — submissão NOMS + correção de realismo.**
+>
+> **O achado que reorganiza o projeto.** O gerador tinha **três defeitos de realismo**,
+> todos favoráveis ao arcabouço, e a heurística de escopo estava **conceitualmente errada**:
+> - JA4 benigno era **uniforme** sobre um pool sintético (792 distintos em 1.000 sessões,
+>   modal 0,4%). A distribuição real calibrada é o oposto — 39 distintos, top-1 **52,7%**.
+>   O comentário do `scenario_stealth.yaml` admitia o porquê: o pool plano era necessário
+>   "para que o JA4 do atacante seja discriminativo".
+> - Botnet **monolítica**; namespace do atacante **disjunto** do benigno.
+> - `derive_scope` escolhia o JA4 **modal** — contra botnet heterogênea isso seleciona um
+>   fingerprint **legítimo**: **0% dos atacantes, 39–61% dos usuários bloqueados**.
+>   O "0% de colateral" do paper valia só para botnet monolítica.
+>
+> **Corrigido.** Gerador retrocompatível (`benign_ja4_zipf_alpha`, `botnet_ja4_stacks`,
+> `botnet_ja4_adversarial`; cenário canônico novo em `configs/scenario_realistic.yaml`) e
+> `derive_scope_enriched` — discriminador por **enriquecimento** sobre perfil histórico
+> benigno, devolvendo um **conjunto** de fingerprints. Resultado: 84–90% de cobertura do
+> ataque a **0,00% de colateral**, invariante à fragmentação (M de 1 a 100).
+>
+> **Detecção sobreviveu ao realismo**: (d) em 0,96–0,997 contra ~0,50 de (a)/(b), e
+> 0,81–0,92 sob adversário que adota a cabeça benigna. Também confirmada em **4 famílias
+> de modelo** — o colapso por-sessão é da representação, não do aprendiz.
+>
+> **Fronteiras medidas** (nenhuma escondida): `min_support` precisa ficar abaixo de 1/M;
+> o perfil histórico tolera desvio moderado (0,45% de colateral) mas quebra se for
+> grosseiramente errado ou ausente (81–84%); a ablação de detecção **não** evidencia a
+> camada simbólica (logreg com 3 features cross-session dá 0,961).
+>
+> Tudo em `experiments/sprint-6-noms/` (README com as tabelas) e no paper NOMS em
+> `papers/http-session-noms/`. Sprints 1–5 intactos e ainda reproduzindo.
+
+> **ESTADO ANTERIOR (2026-06-08):** revisão final do paper + reconciliação de dados/figuras.
 > - **Dados endurecidos e reproduzíveis:** calibração de pesos por sessão (cenário realista)
 >   dá paper = ótimo = **AUC 0,943** (TLS único sinal discriminativo isolado) — substitui o
 >   número órfão 0,879/0,885; artefato `sprint-4/results/weights_session_realistic.json`.

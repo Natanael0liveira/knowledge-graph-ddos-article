@@ -683,7 +683,8 @@ filter (Listing~\ref{lst:chain}, Appendix~\ref{app:cost}). A human-analyst study
 \caption{The SPARQL/enrichment path evaluated end to end as a detector, where the
 sessions matching the derived scope \emph{are} the flagged sessions, with no
 classifier, no training and no threshold, against the learned model forced onto
-the same operating point. $K = 1000$, $n = 15$ seeds.}
+the same operating point --- with the exception of the adversarial row, discussed
+in the text. $K = 1000$, $n = 15$ seeds.}
 \label{tab:symbolic}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -715,15 +716,19 @@ lightly fragmented botnet the learned model is competitive at zero
 false positives ($91.7\%$ and $88.6\%$ recall against $84.0\%$ and $90.0\%$):
 there is no symbolic advantage in the easy regime. From 25 stacks on the ordering
 reverses sharply: $90.3\%$ against $36.4\%$, and $85.0\%$ against $17.6\%$ at one
-hundred stacks. Under adversarial fingerprint adoption the rule recovers four
-times as much of the campaign ($30.4\%$ against $7.8\%$).
+hundred stacks, and the rule holds that lead even against a model allowed to
+spend false positives: at $1\%$ FPR the model reaches only $66.8\%$ and $44.5\%$.
+The adversarial row is \emph{not} a like-for-like comparison and we make no claim
+from it --- there the rule itself leaks $3.78\%$, and the model reaches $23.4\%$
+once allowed $1\%$, so the ordering at a matched operating point is unresolved.
 
 What the AUC column hides is exactly this. The classifier still scores $0.979$
 and $0.961$ where it recovers a third and a sixth of the attack: its ranking is
 good, but its scores overlap benign traffic in the tail, so no threshold yields
 automatic action without collateral. The rule produces no score to threshold; it
 produces a set defined by an enrichment test against an explicit background,
-which is why its false-positive rate is $0.00\%$ by construction, not by tuning.
+which is why its false-positive rate is zero wherever an enriched discriminator
+exists --- zero by construction rather than by tuning, but not unconditionally.
 
 \subsection{Real Traffic and Comparison with KLAGE}
 

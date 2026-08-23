@@ -706,7 +706,8 @@ com analistas humanos fica como trabalho futuro.
 \caption{O caminho SPARQL/enriquecimento avaliado ponta a ponta como detector, em
 que as sessões que casam com o escopo derivado \emph{são} as sessões marcadas, sem
 classificador, sem treino e sem limiar, contra o modelo aprendido forçado ao mesmo
-ponto de operação. $K = 1000$, $n = 15$ sementes.}
+ponto de operação --- com exceção da linha adversarial, discutida no texto.
+$K = 1000$, $n = 15$ sementes.}
 \label{tab:symbolic}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -738,17 +739,21 @@ monolítica ou pouco fragmentada, o modelo aprendido é competitivo a
 falso positivo zero ($91{,}7\%$ e $88{,}6\%$ de \emph{recall} contra $84{,}0\%$ e
 $90{,}0\%$): não há vantagem simbólica no regime fácil. A partir de 25
 \emph{stacks} a ordem se inverte acentuadamente: $90{,}3\%$ contra $36{,}4\%$, e
-$85{,}0\%$ contra $17{,}6\%$ em cem \emph{stacks}. Sob adoção adversarial de
-\emph{fingerprint}, a regra recupera quatro vezes mais da campanha ($30{,}4\%$
-contra $7{,}8\%$).
+$85{,}0\%$ contra $17{,}6\%$ em cem \emph{stacks}, e a regra mantém a vantagem
+mesmo contra um modelo autorizado a gastar falsos positivos: a $1\%$ de FPR ele
+chega a apenas $66{,}8\%$ e $44{,}5\%$. A linha adversarial \emph{não} é
+comparação equivalente e não afirmamos nada a partir dela --- ali a própria regra
+vaza $3{,}78\%$, e o modelo chega a $23{,}4\%$ quando lhe permitem $1\%$, de modo
+que a ordem num ponto de operação equiparado fica em aberto.
 
 O que a coluna de AUC esconde é exatamente isto. O classificador ainda marca
 $0{,}979$ e $0{,}961$ onde recupera um terço e um sexto do ataque: sua ordenação é
 boa, mas seus escores se sobrepõem ao tráfego benigno na cauda, de modo que nenhum
 limiar produz ação automática sem colateral. A regra não produz escore para
 limiarizar; produz um conjunto definido por um teste de enriquecimento contra um
-fundo explícito, e é por isso que sua taxa de falso positivo é $0{,}00\%$ por
-construção, não por ajuste.
+fundo explícito, e é por isso que sua taxa de falso positivo é nula onde exista
+discriminador enriquecido --- nula por construção e não por ajuste, mas não
+incondicionalmente.
 
 \subsection{Tráfego Real e Comparação com o KLAGE}
 

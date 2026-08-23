@@ -85,7 +85,7 @@ because modern botnets distribute aggressively across ASNs and prefixes. A
 SPARQL/SWRL rule fires on their weighted mass, and its derivation \emph{is} the
 verdict, exported as a JSON-LD and STIX~2.1 evidence chain whose discriminator
 scopes the mitigation. Against stealthy distributed campaigns, per-session
-detection stays at chance across four model families given the full flow-feature
+detection stays at chance across four classifier families given the full flow-feature
 set, while cross-session representation separates them consistently (ROC AUC $0.50$
 vs.\ $0.98$; $d = 22.4$); on public datasets, whose attacks carry an obvious flow
 signature, a strong per-session baseline already suffices --- a boundary we report
@@ -229,7 +229,7 @@ learned embeddings; and our output includes the scope of the mitigation.
 
 \subsection{Layer-7 HTTP DDoS Detection}
 
-Detection work falls historically into two families, over a body of surveys that
+Detection work falls historically into two strands, over a body of surveys that
 consolidate the domain~\cite{tripathi2021application,cambiaso2013slowdos}.
 Statistical profiling builds baselines from aggregated flow or session
 statistics: Fernandes et al.~\cite{fernandes2015autonomous} apply PCA to flow
@@ -616,7 +616,7 @@ Configuration & $K = 50$ & $K = 1000$ \\
 (c) \texttt{NetworkProximity} only  & 0.499 [.46--.53] & 0.659 [.65--.67] \\
 \textbf{(d) complete framework}     & \textbf{0.927 [.92--.93]} & \textbf{0.982 [.98--.98]} \\
 \midrule
-\multicolumn{3}{@{}l}{\emph{(a) and (d) across model families (point estimates)}} \\
+\multicolumn{3}{@{}l}{\emph{(a) and (d) across classifier families (point estimates)}} \\
 \quad hist.\ gradient boosting & 0.502 \,/\, 0.921 & 0.501 \,/\, 0.990 \\
 \quad multilayer perceptron    & 0.471 \,/\, 0.235$^{\dagger}$ & 0.500 \,/\, 0.803 \\
 \quad logistic regression      & 0.488 \,/\, 0.873 & 0.495 \,/\, 0.799 \\
@@ -883,7 +883,7 @@ performance.} In the synthetic setting the coordination signals present in the
 campaign are exactly those measured by configuration (d), and attacker sessions
 draw their per-session attributes from real benign distributions. The
 per-session non-separability in Table~\ref{tab:ablation} is therefore not an
-artifact of a weakened baseline, since four model families with all flow
+artifact of a weakened baseline, since four classifier families with all flow
 attributes stay at chance. The mimicry is imposed by construction, so the result
 shows the mechanism under an assumption of perfect per-session indistinguishability,
 rather than proving performance on a real capture of that regime.
@@ -967,7 +967,7 @@ weighted mass, so that one derivation serves at once as the verdict, the evidenc
 chain and the scope of the mitigation.
 
 Against stealthy distributed campaigns, per-session detection sits at chance
-across four model families given the full flow-feature set, while a model given
+across four classifier families given the full flow-feature set, while a model given
 the framework's cross-session representation reaches $0.98$ ROC AUC against
 $0.50$ ($d = 22.4$, all 30 paired runs in the same direction); on conventional
 real attacks the gain is marginal, because a strong per-session classifier already
@@ -1249,7 +1249,7 @@ pipeline
 the calibrated synthetic generator, with the three realism parameters of
 Section~\ref{sec:method} and the canonical and adversarial scenario
 configurations; the
-ablation, the academic baselines, the four model families, the statistical runner
+ablation, the academic baselines, the four classifier families, the statistical runner
 and the comparison against published state of the art; the symbolic layer
 (SWRL rules plus the SPARQL aggregation, with weights read from the ontology);
 and the evidence and mitigation modules.

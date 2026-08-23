@@ -85,7 +85,7 @@ dispara sobre a massa ponderada dessas sub-relações, e sua derivação \emph{�
 veredicto, exportado como cadeia de evidência em JSON-LD e STIX~2.1 cujo
 discriminador define o escopo da mitigação. Contra campanhas furtivas
 distribuídas, a detecção por sessão permanece no acaso em quatro famílias de
-modelo, mesmo com o conjunto completo de atributos de fluxo, enquanto a
+classificador, mesmo com o conjunto completo de atributos de fluxo, enquanto a
 representação entre sessões as separa de forma consistente (ROC AUC $0{,}50$
 \emph{vs.}\ $0{,}98$; $d = 22{,}4$). Em \emph{datasets} públicos, cujos ataques carregam
 assinatura de fluxo evidente, um \emph{baseline} por sessão forte já basta, e
@@ -237,7 +237,7 @@ aplicação; nosso formalismo são relações simbólicas nomeadas, e não
 
 \subsection{Detecção de DDoS de Camada 7 sobre HTTP}
 
-A detecção se organiza historicamente em duas famílias, sobre um corpo de
+A detecção se organiza historicamente em duas vertentes, sobre um corpo de
 levantamentos que consolidam o domínio~\cite{tripathi2021application,cambiaso2013slowdos}. O perfilamento estatístico
 constrói linhas de base a partir de estatísticas agregadas de fluxo ou sessão:
 Fernandes et al.~\cite{fernandes2015autonomous} com PCA sobre estatísticas de
@@ -638,7 +638,7 @@ Configuração & $K = 50$ & $K = 1000$ \\
 (c) só \texttt{NetworkProximity}      & 0,499 [,46--,53] & 0,659 [,65--,67] \\
 \textbf{(d) arcabouço completo}       & \textbf{0,927 [,92--,93]} & \textbf{0,982 [,98--,98]} \\
 \midrule
-\multicolumn{3}{@{}l}{\emph{(a) e (d) por família de modelo (estimativa pontual)}} \\
+\multicolumn{3}{@{}l}{\emph{(a) e (d) por família de classificador (estimativa pontual)}} \\
 \quad hist.\ gradient boosting & 0,502 \,/\, 0,921 & 0,501 \,/\, 0,990 \\
 \quad \emph{perceptron} multicamadas & 0,471 \,/\, 0,235$^{\dagger}$ & 0,500 \,/\, 0,803 \\
 \quad regressão logística      & 0,488 \,/\, 0,873 & 0,495 \,/\, 0,799 \\
@@ -916,7 +916,7 @@ cenário sintético, os sinais de coordenação presentes na campanha são exata
 aqueles medidos pela configuração (d), e as sessões atacantes tomam seus atributos
 por sessão de distribuições benignas reais. A não-separabilidade por sessão da
 Tabela~\ref{tab:ablation} não é, portanto, artefato de um \emph{baseline}
-enfraquecido, já que quatro famílias de modelo com todos os atributos de fluxo
+enfraquecido, já que quatro famílias de classificador com todos os atributos de fluxo
 permanecem no acaso. O mimetismo é imposto por construção, de modo que o resultado
 mostra o mecanismo sob a hipótese de indistinguibilidade por sessão perfeita, e não prova
 desempenho sobre uma captura real desse regime.
@@ -1005,7 +1005,8 @@ sobre a massa ponderada dessas sub-relações, de modo que uma única derivaçã
 ao mesmo tempo como veredicto, cadeia de evidência e escopo da mitigação.
 
 Contra campanhas furtivas distribuídas, a detecção por sessão fica no acaso em
-quatro famílias de modelo, mesmo com o conjunto completo de atributos de fluxo,
+quatro famílias de classificador, mesmo com o conjunto completo de atributos de
+fluxo,
 enquanto o arcabouço detecta de forma consistente ($0{,}50$ \emph{vs.}\ $0{,}98$ de
 ROC AUC; $d = 22{,}4$); em ataques reais convencionais o ganho é marginal, porque
 um classificador por sessão forte já basta. Do lado da mitigação, o estudo também
@@ -1293,7 +1294,7 @@ permissiva, organizada por etapa experimental: o \emph{pipeline} de extração
 (PCAP $\rightarrow$ JA4 e fluxos $\rightarrow$ sessões $\rightarrow$ grafo); o
 gerador sintético calibrado, com os três parâmetros de realismo da
 Seção~\ref{sec:method} e as configurações de cenário canônico e adversarial; a ablação, os \emph{baselines} acadêmicos e as quatro
-famílias de modelo; o executor estatístico; a comparação contra o estado da arte
+famílias de classificador; o executor estatístico; a comparação contra o estado da arte
 publicado; a camada simbólica (regras SWRL mais a agregação SPARQL, com pesos lidos
 da ontologia); e os módulos de evidência e mitigação.
 

@@ -273,7 +273,7 @@ Está no artigo em §V-B + Tabela II.
 O parâmetro que mais influenciava os resultados — a concentração da popularidade de
 JA4 benigno — **deixou de ser chute e passou a ser medição**. Ver
 [`results/ja4_production_measurement.md`](results/ja4_production_measurement.md):
-6.329.649 requisições num edge de CDN em produção, 495 fingerprints distintos,
+~6,33 M de requisições num edge de CDN em produção, 495 fingerprints distintos,
 top-1 = 38,37%, top-10 = 93,82%.
 
 O canônico do gerador (alpha=1,5, cabeça de 38,95%) acerta a cabeça medida quase na

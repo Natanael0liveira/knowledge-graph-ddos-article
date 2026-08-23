@@ -31,10 +31,11 @@
 \setlength{\intextsep}{8pt plus 2pt minus 2pt}
 \setlength{\dbltextfloatsep}{10pt plus 2pt minus 2pt}
 
-%% O IEEEtran usa URW Courier (pcr) para \texttt. Cai para Computer Modern
-%% typewriter quando essas métricas não existem localmente; no Overleaf e em
-%% instalações completas a fonte padrão do IEEE é mantida.
-\IfFileExists{pcrr8t.tfm}{}{\renewcommand{\ttdefault}{cmtt}}
+%% O IEEEtran usa URW Courier (pcr) para \texttt. Onde essas metricas nao
+%% existem, cai para Latin Modern Mono -- e NAO para cmtt: sem o cm-super
+%% instalado, cmtt em T1 gera bitmaps Type 3, que o IEEE PDF eXpress sinaliza
+%% e que ficam serrilhados na tela. lmtt e Type 1 e ja vem no TeX Live.
+\IfFileExists{pcrr8t.tfm}{}{\renewcommand{\ttdefault}{lmtt}}
 
 \begin{document}
 

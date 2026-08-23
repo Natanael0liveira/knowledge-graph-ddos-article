@@ -967,8 +967,8 @@ of Section~\ref{sec:method}.
 \section{Instantiation of the \texttt{relatedBy} Sub-Relations}
 \label{app:algorithms}
 
-For each pair $(s_a,s_b)$ of sessions active in $W$, the following decision
-procedures determine whether the corresponding edge is instantiated.
+For each pair $(s_a,s_b)$ active in $W$, the following procedures decide whether
+the edge is instantiated.
 
 \textbf{\texttt{TLSFingerprint}.} Two-stage match: exact equality of the full
 JA4, or --- failing that --- near variants (same transport/TLS-version/ALPN
@@ -1073,10 +1073,9 @@ identities and TLS fingerprints can be extracted from traffic events; where that
 instrumentation is partial or noisy, performance degrades.
 
 \textbf{Graph maintenance cost.} The symbolic figures of
-Appendix~\ref{app:cost} come from an in-memory \texttt{rdflib} reference
-implementation rather than the Jena/TDB2 backend, so they are an upper bound,
-and scaling to CDN-scale traffic requires the horizontal partitioning discussed
-in Section~\ref{sec:discussion}, which we did not implement.
+Appendix~\ref{app:cost} are an upper bound, for the reason given there; and
+scaling to CDN-scale traffic requires the horizontal partitioning of
+Section~\ref{sec:discussion}, which we did not implement.
 
 \textbf{Protocol coverage.} The current ontology covers the Slow HTTP DoS family
 over HTTP/1.1. HTTP/2 attacks and other application
@@ -1089,7 +1088,7 @@ production traffic remain future work.
 
 \textbf{Explanation validation.} Evidence chains were assessed for structural
 completeness and actionability ($7/7$), but \emph{perceived} actionability --- a
-human-analyst study of time-to-decision and comprehension --- was not conducted.
+human-analyst study of time-to-decision and comprehension --- was not.
 
 \begin{figure}[tb]
 \centering
@@ -1120,10 +1119,10 @@ them separately, on a synthetic window in the realistic same-service mix (30\% o
 sessions in one campaign sharing a botnet JA4, benign JA4 from a pool of 2\,000,
 eight endpoints, dispersed /24s); medians over three repeats on one core. This
 is a cost model of the algorithm as specified, not a system benchmark: the
-admission path is a direct implementation of the inverted-index scheme of
-Section~\ref{sec:pipeline}, and the symbolic layer runs on an in-memory
-\texttt{rdflib} reference implementation rather than the Jena/TDB2 backend used
-for the dataset pipeline, so its figures are an upper bound.
+admission path implements the inverted-index scheme of
+Section~\ref{sec:pipeline}, and the symbolic layer runs on in-memory
+\texttt{rdflib} rather than the Jena/TDB2 backend used for the dataset pipeline,
+so its figures are an upper bound.
 
 Admission behaves as the bound predicts (Fig.~\ref{fig:latency}): median latency
 grows from $2.1\,\mu$s at $|S_W| = 100$ to $122\,\mu$s at $|S_W| = 10\,000$,

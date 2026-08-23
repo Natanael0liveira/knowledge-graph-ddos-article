@@ -26,6 +26,13 @@
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
 
+%% Separacao de floats. Sem isto, a cola entre o float e o texto seguinte é
+%% muito esticavel e a justificacao vertical de coluna do IEEEtran despeja a
+%% sobra ali: a equacao (1) ficava com um vao enorme sob o Algoritmo 1.
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{10pt plus 2pt minus 2pt}
+
 %% IEEEtran uses URW Courier (pcr) for \texttt. Fall back to Computer Modern
 %% typewriter when those metrics are absent locally; Overleaf and full TeX Live
 %% installations keep the IEEE-standard font.
@@ -381,7 +388,8 @@ Pair-wise instantiation of the \texttt{relatedBy} family is pure Horn logic and
 is expressed as SWRL rules; aggregation is not, because SWRL cannot sum, so
 $\Omega(S)$ is computed by a SPARQL query whose weights are read from the
 \texttt{coordinationWeight} annotations in the ontology rather than hard-coded.
-Fig.~\ref{fig:rules} shows one rule of each kind.
+Fig.~\ref{fig:rules} in Appendix~\ref{app:algorithms} shows one rule of each
+kind.
 
 
 \subsection{Evidence Chain and Derived Mitigation Scope}
@@ -631,7 +639,7 @@ The mass of $\Omega(S)$ that fires the rule is dominated by
 also assessed evidence-chain quality over seven real attack clusters: all seven
 enumerate the satisfied rule, the activated sub-relations with weights, the
 $\Omega(S)$ score and the derived scope, and all yield a directly applicable
-filter (Fig.~\ref{fig:chain}). A human-analyst study remains future work.
+filter (Fig.~\ref{fig:chain}, Appendix~\ref{app:cost}). A human-analyst study remains future work.
 
 \subsection{The Rule Itself as a Detector}
 \label{sec:symbolic-detector}
@@ -724,7 +732,7 @@ whose construction from the raw dataset is unpublished and ships no weights, so
 any rerun would rest on our own reconstruction of it. Third, the necessity of cross-session
 reasoning appears in the stealthy distributed regime, which public DDoS datasets,
 restricted to attacks with obvious flow signatures, simply do not contain
-(Fig.~\ref{fig:regime}, Appendix~\ref{app:cost}). What the session-level approach
+(Fig.~\ref{fig:regime}, Appendix~\ref{app:limitations}). What the session-level approach
 adds \emph{unconditionally} over node-level state of the art is the auditable
 symbolic verdict and a measurable collateral-damage figure.
 

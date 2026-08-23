@@ -26,6 +26,11 @@
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
 
+%% Ver comentario equivalente na versao em ingles.
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{10pt plus 2pt minus 2pt}
+
 %% O IEEEtran usa URW Courier (pcr) para \texttt. Cai para Computer Modern
 %% typewriter quando essas métricas não existem localmente; no Overleaf e em
 %% instalações completas a fonte padrão do IEEE é mantida.
@@ -396,7 +401,8 @@ instanciação par a par da família \texttt{relatedBy} é lógica de Horn pura 
 expressa como regras SWRL; a agregação não é, porque SWRL não soma, então
 $\Omega(S)$ é computada por uma consulta SPARQL cujos pesos são lidos das
 anotações \texttt{coordinationWeight} da ontologia, e não codificados no programa.
-A Fig.~\ref{fig:rules} mostra uma regra de cada tipo.
+A A Fig.~\ref{fig:rules}, no Apêndice~\ref{app:algorithms}, mostra uma regra de
+cada tipo.
 
 \subsection{Cadeia de Evidência e Escopo de Mitigação Derivado}
 \label{sec:evidence}
@@ -655,7 +661,7 @@ A massa de $\Omega(S)$ que dispara a regra é dominada por
 dispersas. Avaliamos também a qualidade das cadeias de evidência sobre sete
 \emph{clusters} de ataque reais: todas as sete enumeram a regra satisfeita, as
 sub-relações ativadas com seus pesos, o escore $\Omega(S)$ e o escopo derivado, e
-todas produzem um filtro diretamente aplicável (Fig.~\ref{fig:chain}). Um estudo
+todas produzem um filtro diretamente aplicável (Fig.~\ref{fig:chain}, Apêndice~\ref{app:cost}). Um estudo
 com analistas humanos fica como trabalho futuro.
 
 \subsection{A Própria Regra como Detector}
@@ -753,7 +759,7 @@ modo que qualquer reexecução repousaria sobre nossa própria reconstrução de
 Terceiro, a necessidade do raciocínio entre sessões aparece no regime furtivo
 distribuído, que os \emph{datasets} públicos de DDoS, restritos a ataques com
 assinatura de fluxo evidente, simplesmente não contêm (Fig.~\ref{fig:regime},
-Apêndice~\ref{app:cost}). O que a abordagem em nível de sessão acrescenta
+Apêndice~\ref{app:limitations}). O que a abordagem em nível de sessão acrescenta
 \emph{incondicionalmente} sobre o estado da arte em nível de nó é o veredicto
 simbólico auditável e uma medida de dano colateral.
 

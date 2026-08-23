@@ -7,7 +7,7 @@ aditivos e os sprints 1–5 ficam intactos.
 | Script | Lacuna que fecha | Precisa do HD? |
 |---|---|---|
 | `scripts/bench_latency.py` | O artigo afirma custo O(\|S_W\|·c) e escalabilidade quase-linear do OWL 2 RL, mas **não media nada**. | **Não** |
-| `scripts/run_ml_families.py` | A tese "nenhum detector por sessão funciona" era sustentada por **um único** Random Forest. | Sim ✅ |
+| `scripts/run_ml_families.py` | A tese "nenhum detector por sessão funciona" era sustentada por **um único** Random Forest. | Sim ✅ (cenário superado — ver §2) |
 | `scripts/window_sweep.py` | O Apêndice C declarava que a sensibilidade a *W* não foi caracterizada. | Sim ✅ |
 
 ## Cache de cenários — atenção
@@ -74,6 +74,31 @@ sem dependência nova.
 
 Reaproveita o cache de cenários do sprint-4: se os parquets `(K, seed)` já
 existem em `--work`, nada é regerado.
+
+> ⚠️ **`ml_families.json` está sobre o cenário SUPERADO e não é a fonte da
+> Tabela I do artigo.** Este script foi rodado antes da correção de realismo,
+> sobre o cache do sprint-4 (pool benigno plano, `alpha=0`; botnet monolítica).
+> A fonte da Tabela I é `run_canonical_realistic.py` →
+> `canonical_realistic.json` (`alpha=1.5`, 25 stacks TLS).
+>
+> A diferença não é cosmética. Na configuração (d) em `K=1000`:
+>
+> | família | superado (`ml_families`) | canônico (`canonical_realistic`) |
+> |---|---|---|
+> | `rf`     | 0,976 | 0,982 |
+> | `hgb`    | 0,979 | 0,990 |
+> | `mlp`    | 0,956 | **0,803** |
+> | `logreg` | 0,961 | **0,799** |
+>
+> O colapso de `mlp` e `logreg` no cenário canônico **é um achado, não um bug**:
+> fragmentar a botnet em 25 stacks torna a evidência entre sessões
+> não-monotônica no rótulo, e modelos de resposta monotônica não conseguem
+> recortar a faixa intermediária. É o que o artigo discute em §V-A, e é o
+> argumento a favor do caminho simbólico. No cenário superado, com botnet
+> monolítica, esse efeito simplesmente não existe.
+>
+> Rode `run_ml_families.py` para reproduzir o passo histórico; para reproduzir o
+> artigo, rode `run_canonical_realistic.py`.
 
 ## 3. Sweep da janela (`window_sweep.py`)
 
@@ -291,7 +316,8 @@ em vez de dizer apenas "comparação não controlada".
 Gravados em `results/`:
 
 - `latency_raw.csv`, `latency_summary.json` ✅
-- `ml_families_runs.csv`, `ml_families.json` ✅
+- `ml_families_runs.csv`, `ml_families.json` ⚠️ **cenário superado — não é a fonte da Tabela I** (ver §2)
+- `canonical_realistic_runs.csv`, `canonical_realistic.json` ✅ **fonte da Tabela I do artigo**
 - `window_sweep_runs.csv`, `window_sweep.json` ✅
 - `collateral_purity_runs.csv`, `collateral_purity.json` ✅
 - `realistic_final_runs.csv`, `realistic_consolidated.csv` ✅

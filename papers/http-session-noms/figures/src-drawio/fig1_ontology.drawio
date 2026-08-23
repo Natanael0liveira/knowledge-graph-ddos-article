@@ -184,7 +184,7 @@
           <mxGeometry height="58" width="236" x="780" y="48" as="geometry" />
         </mxCell>
         <mxCell id="vC" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;" value="evidence chain&lt;br&gt;JSON-LD / STIX 2.1" vertex="1">
-          <mxGeometry height="56" width="236" x="780" y="158" as="geometry" />
+          <mxGeometry height="56" width="236" x="780" y="165" as="geometry" />
         </mxCell>
         <mxCell id="vA" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;" value="CourseOfAction" vertex="1">
           <mxGeometry height="50" width="236" x="780" y="280" as="geometry" />

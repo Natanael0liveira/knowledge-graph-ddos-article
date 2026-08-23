@@ -1005,8 +1005,8 @@ Agradecemos à Azion Technologies por autorizar a medição agregada de
 \section{Instanciação das Sub-Relações \texttt{relatedBy}}
 \label{app:algorithms}
 
-Para cada par $(s_a,s_b)$ de sessões ativas em $W$, os procedimentos de decisão a
-seguir determinam se a aresta correspondente é instanciada.
+Para cada par $(s_a,s_b)$ ativo em $W$, os procedimentos a seguir decidem se a
+aresta é instanciada.
 
 \textbf{\texttt{TLSFingerprint}.} Casamento em duas etapas: igualdade exata do JA4
 completo ou, na falta dela, variantes próximas (mesmo prefixo de
@@ -1115,10 +1115,9 @@ identidades e \emph{fingerprints} TLS podem ser extraídos dos eventos de tráfe
 onde essa instrumentação for parcial ou ruidosa, o desempenho degrada.
 
 \textbf{Custo de manutenção do grafo.} Os números da camada simbólica do
-Apêndice~\ref{app:cost} vêm de uma implementação de referência em memória com
-\texttt{rdflib}, e não do \emph{backend} Jena/TDB2, de modo que são um limite
-superior; e escalar para tráfego em escala de CDN requer o particionamento
-horizontal discutido na Seção~\ref{sec:discussion}, que não implementamos.
+Apêndice~\ref{app:cost} são um limite superior, pela razão dada lá; e escalar
+para tráfego em escala de CDN requer o particionamento horizontal da
+Seção~\ref{sec:discussion}, que não implementamos.
 
 \textbf{Cobertura de protocolo.} A ontologia atual cobre a família Slow HTTP DoS
 sobre HTTP/1.1. Ataques sobre HTTP/2 e outros protocolos de
@@ -1131,8 +1130,8 @@ tráfego de produção anonimizado ficam como trabalho futuro.
 
 \textbf{Validação da explicação.} As cadeias de evidência foram avaliadas quanto a
 completude estrutural e acionabilidade ($7/7$), mas a acionabilidade
-\emph{percebida}, isto é, um estudo com analistas humanos medindo tempo até a
-decisão e compreensão, não foi conduzida.
+\emph{percebida} --- um estudo com analistas medindo tempo até a decisão e
+compreensão --- não foi conduzida.
 
 \begin{figure}[tb]
 \centering
@@ -1165,10 +1164,10 @@ realista de mesmo serviço (30\% das sessões numa campanha compartilhando um JA
 \emph{botnet}, JA4 benigno de um \emph{pool} de 2\,000, oito \emph{endpoints}, /24s
 dispersos); medianas sobre três repetições em um núcleo. Este é um modelo de custo
 do algoritmo como especificado, e não um \emph{benchmark} de sistema: o caminho de
-admissão é implementação direta do esquema de índices invertidos da
-Seção~\ref{sec:pipeline}, e a camada simbólica roda sobre uma implementação de
-referência em memória com \texttt{rdflib}, e não sobre o \emph{backend} Jena/TDB2
-usado no \emph{pipeline} de \emph{datasets}, de modo que seus números são um limite
+admissão implementa o esquema de índices invertidos da
+Seção~\ref{sec:pipeline}, e a camada simbólica roda sobre \texttt{rdflib} em
+memória, e não sobre o \emph{backend} Jena/TDB2 usado no \emph{pipeline} de
+\emph{datasets}, de modo que seus números são um limite
 superior.
 
 A admissão se comporta como o limite prevê (Fig.~\ref{fig:latency}): a latência

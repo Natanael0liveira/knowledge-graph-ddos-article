@@ -144,7 +144,8 @@ A literatura reconhece a primeira metade e ignora largamente a segunda. A
 meta-análise de Odusami et al.~\cite{odusami2020survey}, sobre setenta e cinco
 estudos, mostra que 47\% dos métodos de DDoS de camada de aplicação derivam
 atributos de sessões, como taxa de requisições por usuário, duração média e
-operações por identidade. Em todos eles a sessão é achatada num vetor numérico
+operações por identidade. Na nossa inspeção desses estudos, a sessão é
+consistentemente achatada num vetor numérico
 antes de chegar ao classificador. O detector vê estatísticas, não sessões, e por
 isso não consegue raciocinar sobre identidades reaproveitadas, sobre
 \emph{fingerprints} convergindo num \emph{endpoint}, ou sobre padrões que só
@@ -194,7 +195,7 @@ baseado em enriquecimento sobre um perfil de tráfego normal.
 
 \item \textbf{Uma avaliação parametrizada pelo grau de distribuição, com métrica
 de dano colateral.} Contra um \emph{baseline} por sessão deliberadamente
-\emph{forte}, a ablação isola o ganho do raciocínio entre sessões e o ganho
+\emph{forte}, a ablação isola o ganho da representação entre sessões e o ganho
 específico dos sinais de peso alto sobre a proximidade de rede. Reportamos também
 a fração de tráfego legítimo atingida pela mitigação resultante, métrica
 auto-reportada por produtos comerciais de \emph{bot management} mas, até onde
@@ -767,7 +768,7 @@ incondicionalmente.
 \centering
 \caption{\texttt{DDoS Slowloris} no CIC-IoT2023 (\emph{dados reais}, 143 prefixos
 /24 distintos). O \emph{baseline} por sessão \emph{forte} não colapsa; o ganho do
-raciocínio entre sessões sobre ele é marginal neste ataque convencional.}
+representação entre sessões sobre ele é marginal neste ataque convencional.}
 \label{tab:real}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -795,13 +796,13 @@ coordenação entre sessões não é necessária}: um classificador por sessão 
 o separa, porque o ataque nunca foi calibrado para mimetizar o fluxo benigno.
 Segundo, a comparação com o KLAGE é favorável mas \emph{não controlada}: nosso
 $0{,}911$ supera o $0{,}841$ publicado, mas nosso próprio \emph{baseline} forte
-também o supera com $0{,}900$, de modo que a margem \emph{não} é atribuível ao
-raciocínio entre sessões. O KLAGE também classifica nós de rede em tipos de ataque
+também o supera com $0{,}900$, de modo que a margem não pode ser atribuída
+especificamente à representação entre sessões. O KLAGE também classifica nós de rede em tipos de ataque
 enquanto nós classificamos sessões de forma binária. Uma reexecução controlada não
 é possível no momento: o código publicado parte de um grafo já construído cuja
 construção a partir do conjunto bruto não é publicada, e não distribui pesos, de
 modo que qualquer reexecução repousaria sobre nossa própria reconstrução dele.
-Terceiro, a necessidade do raciocínio entre sessões aparece no regime furtivo
+Terceiro, a necessidade da evidência entre sessões aparece no regime furtivo
 distribuído, que os \emph{datasets} públicos de DDoS, restritos a ataques com
 assinatura de fluxo evidente, simplesmente não contêm (Fig.~\ref{fig:regime},
 Apêndice~\ref{app:limitations}). O que a abordagem em nível de sessão acrescenta
@@ -893,13 +894,13 @@ expectativa de desempenho em campo.
 
 Cinco limitações delimitam a afirmação, intercaladas abaixo com dois parágrafos
 que posicionam o arcabouço operacionalmente; outras estão no
-Apêndice~\ref{app:limitations}.
+Apêndice~\ref{app:limitations}).
 
 \textbf{O ganho é específico de regime.} Contra ataques de origem única e alto
 volume, limiares por IP ou por sessão têm desempenho comparável, e nos ataques
 reais convencionais disponíveis em \emph{datasets} públicos um classificador por
-sessão forte já alcança $\mathrm{AUC} \geq 0{,}98$, deixando ao raciocínio entre
-sessões apenas um ganho marginal. A vantagem é decisiva apenas quando a campanha é
+sessão forte já alcança $\mathrm{AUC} \geq 0{,}98$, deixando à representação
+entre sessões apenas um ganho marginal. A vantagem é decisiva apenas quando a campanha é
 distribuída \emph{e} furtiva. Este trabalho não substitui defesas volumétricas; as
 complementa. Validar a abordagem sobre tráfego furtivo distribuído
 \emph{capturado}, que nenhum \emph{benchmark} público oferece, é a direção
@@ -1166,10 +1167,10 @@ compreensão --- não foi conduzida.
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig4_regime.png}
-\caption{Onde o raciocínio entre sessões é \emph{necessário}. Em ataques reais
+\caption{Onde a evidência entre sessões é \emph{necessária}. Em ataques reais
 convencionais um classificador por sessão forte já satura; só no regime furtivo
-distribuído a detecção por sessão colapsa para o acaso enquanto o raciocínio entre
-sessões se sustenta.}
+distribuído a detecção por sessão colapsa para o acaso enquanto a representação
+entre sessões segue discriminativa.}
 \label{fig:regime}
 \end{figure}
 

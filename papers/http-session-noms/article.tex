@@ -140,8 +140,8 @@ The literature acknowledges the first half and largely ignores the second. The
 meta-analysis of Odusami et al.~\cite{odusami2020survey} over seventy-five
 studies finds that 47\% of application-layer DDoS methods derive features from
 sessions, such as request rate per user, mean duration and operations per
-identity. In all of them the session is flattened into a numeric vector before it
-reaches the classifier. The detector sees statistics, not sessions, and
+identity. In our inspection of those studies, the session is consistently
+flattened into a numeric vector before it reaches the classifier. The detector sees statistics, not sessions, and
 therefore cannot reason about reused identities, about fingerprints converging
 on an endpoint, or about patterns that only exist between two individually
 normal sessions.
@@ -188,7 +188,8 @@ profile of normal traffic.
 
 \item \textbf{An evaluation parameterized by the degree of distribution, with a
 collateral-damage metric.} Against a deliberately \emph{strong} per-session baseline, ablation isolates the
-gain of cross-session reasoning and the specific gain of high-weight signals over
+gain of cross-session representation and the specific gain of high-weight signals
+over
 network proximity. We also report the fraction of legitimate traffic hit by the
 resulting mitigation, a metric self-reported by commercial bot-management products
 but, to our knowledge, not used systematically in the academic Layer-7
@@ -738,7 +739,7 @@ exists --- zero by construction rather than by tuning, but not unconditionally.
 \centering
 \caption{\texttt{DDoS Slowloris} on CIC-IoT2023 (\emph{real data}, 143 distinct
 /24 prefixes). The \emph{strong} per-session baseline does not collapse; the gain
-of cross-session reasoning over it is marginal on this conventional attack.}
+of cross-session representation over it is marginal on this conventional attack.}
 \label{tab:real}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -766,7 +767,8 @@ coordination is not necessary}: a competent per-session classifier separates it,
 because the attack was never calibrated to mimic benign flow. Second, the
 comparison with KLAGE is favorable but \emph{uncontrolled}: our $0.911$ beats the
 published $0.841$, yet so does our own strong baseline at $0.900$, so the margin
-is \emph{not} attributable to cross-session reasoning. KLAGE also classifies
+cannot be attributed specifically to the cross-session representation. KLAGE also
+classifies
 network nodes into attack types while we make a binary decision per session. A controlled
 rerun is not currently possible: the released code starts from a pre-built graph
 whose construction from the raw dataset is unpublished and ships no weights, so
@@ -862,8 +864,8 @@ Appendix~\ref{app:limitations}.
 \textbf{The gain is regime-specific.} Against single-source high-volume attacks,
 per-IP or per-session thresholds perform comparably, and on the conventional
 real attacks available in public datasets a strong per-session classifier
-already reaches $\mathrm{AUC} \geq 0.98$, leaving cross-session reasoning only a
-marginal gain. The advantage is decisive only when the campaign is distributed
+already reaches $\mathrm{AUC} \geq 0.98$, leaving cross-session representation only
+a marginal gain. The advantage is decisive only when the campaign is distributed
 \emph{and} stealthy. This work does not replace volumetric defenses; it
 complements them. Validating the approach on \emph{captured} stealthy
 distributed traffic, which no public benchmark provides, is the single most
@@ -1120,10 +1122,10 @@ human-analyst study of time-to-decision and comprehension --- was not.
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig4_regime.png}
-\caption{Where cross-session reasoning is \emph{needed}. On conventional real
+\caption{Where cross-session evidence is \emph{needed}. On conventional real
 attacks a strong per-session classifier already saturates; only in the stealthy
 distributed regime does per-session detection collapse to chance while
-cross-session reasoning holds.}
+cross-session representation remains discriminative.}
 \label{fig:regime}
 \end{figure}
 

@@ -1157,7 +1157,12 @@ Fig.~\ref{fig:ontology} só estão validados para essas três.
 \textbf{Amplitude de \emph{datasets}.} A validação em dados reais cobre um
 \emph{dataset} e um ataque para a comparação direta, mais seis ataques entre
 CICIDS2017 e CIC-IoT2023 para a análise de regime. RT-IoT2022, CIC-DDoS2019 e
-tráfego de produção anonimizado ficam como trabalho futuro.
+tráfego de produção anonimizado ficam como trabalho futuro. A lacuna persiste em
+\emph{benchmarks} recentes: o BCCC-cPacket-Cloud-DDoS-2024~\cite{shafi2024bccc}
+aponta a representação insuficiente de ataques de camada de aplicação como
+deficiência de \emph{dataset}, mas seus 17 cenários de DDoS são todos baseados em
+TCP. Entre os \emph{benchmarks} examinados não encontramos, portanto, captura
+independente do regime furtivo de Camada 7 estudado aqui.
 
 \textbf{Validação da explicação.} As cadeias de evidência foram avaliadas quanto a
 completude estrutural e acionabilidade ($7/7$), mas a acionabilidade

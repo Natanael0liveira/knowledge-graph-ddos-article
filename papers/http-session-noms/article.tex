@@ -1113,7 +1113,11 @@ those three.
 \textbf{Dataset breadth.} Real-data validation covers one dataset and one attack
 for the head-to-head comparison, plus six attacks across CICIDS2017 and
 CIC-IoT2023 for the regime analysis. RT-IoT2022, CIC-DDoS2019 and anonymized
-production traffic remain future work.
+production traffic remain future work. The gap persists in newer benchmarks:
+BCCC-cPacket-Cloud-DDoS-2024~\cite{shafi2024bccc} identifies inadequate
+application-layer attack representation as a dataset deficiency, yet its 17 DDoS
+scenarios are all TCP-based. Among the benchmarks examined we therefore found no
+independent capture of the stealthy Layer-7 regime studied here.
 
 \textbf{Explanation validation.} Evidence chains were assessed for structural
 completeness and actionability ($7/7$), but \emph{perceived} actionability (a

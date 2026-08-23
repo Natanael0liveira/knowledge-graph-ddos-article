@@ -352,7 +352,8 @@ processamento de fluxos RDF. Adotamos o perfil OWL~2~RL~\cite{w3c2012owl2profile
 que admite materialização por encadeamento progressivo com comportamento
 quase-linear em consultas SPARQL indexadas, sobre Apache Jena Fuseki com
 armazenamento TDB2; \emph{reasoners} OWL~2~DL completos não escalam para grafos
-desse tamanho. O Algoritmo~\ref{alg:kg} esboça a construção; o procedimento de
+desse tamanho. A Fig.~\ref{fig:pipeline} dispõe as duas camadas e as taxas em
+que operam; o Algoritmo~\ref{alg:kg} esboça a construção; o procedimento de
 decisão par a par de cada sub-relação \texttt{relatedBy} está no
 Apêndice~\ref{app:algorithms}. Admitir uma sessão nova numa janela com $|S_W|$
 sessões ativas custa $O(|S_W|\cdot c)$, com $c$ amortizado $O(1)$ para todas as
@@ -1133,7 +1134,7 @@ completude estrutural e acionabilidade ($7/7$), mas a acionabilidade
 \emph{percebida}, isto é, um estudo com analistas humanos medindo tempo até a
 decisão e compreensão, não foi conduzida.
 
-\begin{figure}[h]
+\begin{figure}[tb]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig4_regime.png}
 \caption{Onde o raciocínio entre sessões é \emph{necessário}. Em ataques reais
@@ -1146,7 +1147,7 @@ sessões se sustenta.}
 \section{Modelo de Custo e Sensibilidade à Janela}
 \label{app:cost}
 
-\begin{figure}[h]
+\begin{figure}[tb]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig5_latency.png}
 \caption{Custo das duas camadas em função da ocupação da janela. A admissão por
@@ -1185,7 +1186,7 @@ para a divisão de implantação que a arquitetura já sugere: detectar pelo cam
 indexado de admissão, e materializar RDF apenas para os \emph{clusters} que
 disparam, isto é, o subconjunto da cadeia de evidência e não a janela inteira.
 
-\begin{table}[h]
+\begin{table}[tb]
 \centering
 \caption{Varredura da janela, $K = 1000$, $n = 10$ sementes. A detecção é plana
 numa faixa de $30\times$ em $W$, enquanto a ocupação do \emph{cluster}, e portanto
@@ -1209,14 +1210,13 @@ $W$ (s) & \emph{clusters} & $|S|$ médio & (a) & (b) & (c) & (d) \\
 $W$ entra apenas na atribuição de \emph{clusters} de detecção, então a varredura
 recomputa os atributos entre sessões sobre os mesmos cenários em cache. A
 Tabela~\ref{tab:window} mostra que a detecção é insensível a ele entre $60$ e
-$1800$~s: o atributo discriminativo é a fração de um \emph{cluster} que compartilha
-um mesmo JA4, uma razão que não muda conforme o \emph{cluster} cresce, ao passo que
-o tamanho do \emph{cluster} sozinho carrega pouco, e é por isso que (c) fica em
-$0{,}664$ o tempo todo. Dois limites desse resultado: os cenários têm um único
-\emph{endpoint} alvo, então $W$ é o único botão de agrupamento e uma implantação
-multi-\emph{endpoint} com campanhas interleaved pode se comportar de outra forma; e
-$W$ ainda precisa ser longo o bastante para que um \emph{cluster} se forme, o que
-em $W = 60$~s já significa $\approx 132$ sessões aqui.
+$1800$~s: o atributo discriminativo é a \emph{fração} de um \emph{cluster} que
+compartilha um mesmo JA4, que não muda conforme o \emph{cluster} cresce, ao passo
+que o tamanho sozinho carrega pouco --- daí (c) em $0{,}664$ o tempo todo. Dois
+limites: os cenários têm um único \emph{endpoint} alvo, então $W$ é o único botão
+de agrupamento e uma implantação multi-\emph{endpoint} pode se comportar de outra
+forma; e $W$ precisa ser longo o bastante para um \emph{cluster} se formar, o que
+em $W = 60$~s já significa $\approx 132$ sessões.
 
 \begin{listing}[t]
 \footnotesize
@@ -1251,19 +1251,15 @@ A implementação de referência está disponível em
 \url{https://github.com/Natanael0liveira/knowledge-graph-ddos-article} sob licença
 permissiva, organizada por etapa experimental: o \emph{pipeline} de extração
 (PCAP $\rightarrow$ JA4 e fluxos $\rightarrow$ sessões $\rightarrow$ grafo); o
-gerador sintético calibrado, incluindo os três parâmetros de realismo da
-Seção~\ref{sec:method}, isto é, expoente de Zipf da popularidade de
-\emph{fingerprints} benignos, número de \emph{stacks} TLS da \emph{botnet} e adoção
-adversarial de \emph{fingerprints} benignos comuns, com as configurações de cenário
-canônico e adversarial; a ablação, os \emph{baselines} acadêmicos e as quatro
+gerador sintético calibrado, com os três parâmetros de realismo da
+Seção~\ref{sec:method} e as configurações de cenário canônico e adversarial; a ablação, os \emph{baselines} acadêmicos e as quatro
 famílias de modelo; o executor estatístico; a comparação contra o estado da arte
 publicado; a camada simbólica (regras SWRL mais a agregação SPARQL, com pesos lidos
 da ontologia); e os módulos de evidência e mitigação.
 
-As duas derivações de escopo são distribuídas lado a lado, deliberadamente: a regra
-por frequência que falha e a regra por enriquecimento que a substitui, de modo que
-o resultado negativo da Seção~\ref{sec:collateral} seja reprodutível e não apenas
-afirmado. O perfil de fundo de que o teste de enriquecimento precisa é produzido
+As duas derivações de escopo são distribuídas lado a lado: a regra por frequência
+que falha e a regra por enriquecimento que a substitui, de modo que o resultado
+negativo da Seção~\ref{sec:collateral} seja reprodutível, e não apenas afirmado. O perfil de fundo de que o teste de enriquecimento precisa é produzido
 por uma execução do gerador sem ataque, então nenhum rótulo entra no caminho de
 decisão em momento algum. O modelo de custo do Apêndice~\ref{app:cost} não requer
 \emph{dataset} algum e roda em qualquer lugar.

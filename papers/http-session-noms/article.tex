@@ -993,7 +993,7 @@ For each pair $(s_a,s_b)$ active in $W$, the following procedures decide whether
 the edge is instantiated.
 
 \textbf{\texttt{TLSFingerprint}.} Two-stage match: exact equality of the full
-JA4, or --- failing that --- near variants (same transport/TLS-version/ALPN
+JA4 or, failing that, near variants (same transport/TLS-version/ALPN
 prefix, at most one symbol of difference in the ordered cipher or extension
 blocks), instantiated with a \emph{ja4\_distance = 1} annotation. This absorbs
 version drift within one client library without admitting spurious matches
@@ -1064,7 +1064,7 @@ The bindings that satisfy the query \emph{are} the evidence chain.}
 \label{app:calibration}
 
 Empirical calibration depends critically on the realism of the traffic. On
-laboratory datasets --- a few dozen distinct JA4 fingerprints --- optimization
+laboratory datasets, with a few dozen distinct JA4 fingerprints, optimization
 even inverts the sign of the TLS signal, because benign sessions share
 fingerprints more than partially coordinated campaigns do; this is a testbed
 artifact of low JA4 diversity, absent from the real internet.
@@ -1116,8 +1116,8 @@ CIC-IoT2023 for the regime analysis. RT-IoT2022, CIC-DDoS2019 and anonymized
 production traffic remain future work.
 
 \textbf{Explanation validation.} Evidence chains were assessed for structural
-completeness and actionability ($7/7$), but \emph{perceived} actionability --- a
-human-analyst study of time-to-decision and comprehension --- was not.
+completeness and actionability ($7/7$), but \emph{perceived} actionability (a
+human-analyst study of time-to-decision and comprehension) was not.
 
 \begin{figure}[tb]
 \centering
@@ -1142,11 +1142,12 @@ in $|S_W|$. Reference slopes anchored on the first point of each series.}
 \label{fig:latency}
 \end{figure}
 
-The two layers run at different rates --- admission happens per request,
-symbolic materialization and the $\Omega$ aggregation per window --- so we time
-them separately, on a synthetic window in the realistic same-service mix (30\% of
-sessions in one campaign sharing a botnet JA4, benign JA4 from a pool of 2\,000,
-eight endpoints, dispersed /24s); medians over three repeats on one core. This
+The two layers run at different rates: admission happens per request, while
+symbolic materialization and the $\Omega$ aggregation run once per window. We
+therefore time them separately, on a synthetic window in the realistic
+same-service mix (30\% of sessions in one campaign sharing a botnet JA4, benign
+JA4 from a pool of 2\,000, eight endpoints, dispersed /24s), reporting medians
+over three repeats on one core. This
 is a cost model of the algorithm as specified, not a system benchmark: the
 admission path implements the inverted-index scheme of
 Section~\ref{sec:pipeline}, and the symbolic layer runs on in-memory
@@ -1165,8 +1166,8 @@ all sizes, so the layer is \emph{linear in edges}; it is the edge count
 that grows quadratically, because $\Omega(S)$ is defined over pairs. The
 quadratic term is thus a property of the rule rather than of the backend, and it
 points at the deployment split the architecture already implies: detect on the
-indexed admission path, and materialize RDF only for the clusters that fire ---
-the evidence-chain subset, not the whole window.
+indexed admission path, and materialize RDF only for the clusters that fire,
+the evidence-chain subset rather than the whole window.
 
 \begin{table}[tb]
 \centering
@@ -1193,7 +1194,7 @@ $W$ enters only through detection-cluster assignment, so the sweep recomputes
 the cross-session features on the same cached scenarios. Table~\ref{tab:window}
 shows detection is insensitive to it over $60$--$1800$~s: the discriminative
 feature is the \emph{fraction} of a cluster sharing one JA4, which does not change
-as the cluster grows, whereas cluster size alone carries little --- hence (c) at
+as the cluster grows, whereas cluster size alone carries little; hence (c) at
 $0.664$ throughout. Two bounds: the scenarios target a single endpoint, so $W$ is
 the only clustering knob and a multi-endpoint deployment may behave differently;
 and $W$ must be long enough for a cluster to form, which at $W = 60$~s already
@@ -1230,7 +1231,8 @@ plus a \emph{course-of-action} linked by \emph{mitigates}.}
 
 The reference implementation is available at
 \url{https://github.com/Natanael0liveira/knowledge-graph-ddos-article} under a
-permissive license, organized by experimental stage: the extraction pipeline
+permissive license. It is organized by experimental stage: the extraction
+pipeline
 (PCAP $\rightarrow$ JA4 and flows $\rightarrow$ sessions $\rightarrow$ graph);
 the calibrated synthetic generator, with the three realism parameters of
 Section~\ref{sec:method} and the canonical and adversarial scenario

@@ -1120,20 +1120,6 @@ $W$ (s) & clusters & mean $|S|$ & (a) & (b) & (c) & (d) \\
 \end{tabular}
 \end{table}
 
-Appendix~\ref{app:cost} measures the two layers of the pipeline --- per-request
-admission and per-window symbolic materialisation --- against window occupancy.
-Two consequences belong here. The per-request path is not the bottleneck:
-admission costs a constant $14$--$19$~ns per candidate pair, so median latency
-stays in the microsecond range and grows linearly in $|S_W|$, sustaining roughly
-$84\,000$ session admissions per second on one core at $|S_W| = 1\,000$. And that
-cost profile settles how to pick $W$: over a $30\times$ range detection does not
-move --- (d) goes from $0.976$ to $0.978$ between $60$~s and $1800$~s, (a) and (c)
-not at all --- while mean cluster occupancy grows $6.6\times$, and with it the
-quadratic pair term that $\Omega(S)$ implies. The invariance follows from the
-discriminative feature being a share, which is scale-free. Keep $W$ as small as
-the traffic allows: a larger window buys no detection and costs roughly its
-square.
-
 $W$ enters only through detection-cluster assignment, so the sweep recomputes
 the cross-session features on the same cached scenarios. Table~\ref{tab:window}
 shows detection is insensitive to it over $60$--$1800$~s: the discriminative

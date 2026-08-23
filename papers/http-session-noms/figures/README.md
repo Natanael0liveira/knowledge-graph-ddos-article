@@ -84,16 +84,22 @@ de matiz, então sobrevive a impressão em escala de cinza e a leitores daltôni
 No `make_figures_en.py` as constantes mantêm os nomes históricos (`NAVY`,
 `BAR_GRAY`, `CHANCE`) para não tocar o corpo das funções — só os valores mudaram.
 
-### Numeração: os nomes de arquivo NÃO batem com os números impressos
+### Numeração: nome de arquivo = número impresso
 
-| impressa | arquivo |
+| impressa | fonte |
 |---|---|
-| Fig. 1 | `fig1_ontology.png` |
-| Fig. 2 | **`fig3_collateral.png`** |
-| Fig. 3 | bloco `verbatim` (regras SWRL/SPARQL, Apêndice A) |
-| Fig. 4 | **`fig2_regime.png`** |
-| Fig. 5 | **`fig4_latency.png`** |
-| Fig. 6 | bloco `verbatim` (cadeia de evidência, Apêndice D) |
+| Fig. 1 | `fig1_ontology.png` (draw.io) |
+| Fig. 2 | `fig2_collateral.png` |
+| Fig. 3 | `fig3_regime.png` |
+| Fig. 4 | `fig4_latency.png` |
+| Listing 1 | bloco `verbatim`, Apêndice A (regras SWRL/SPARQL) |
+| Listing 2 | bloco `verbatim`, Apêndice D (cadeia de evidência) |
 
-Os números impressos seguem a ordem de aparição no texto, que não é a ordem em
-que os arquivos foram criados. Confira sempre no PDF antes de discutir "a Fig. N".
+Os dois blocos de código eram floats `figure`, o que abria buracos na sequência
+das figuras-imagem (1, 2, 4, 5). Agora têm contador próprio via `float.sty`, com
+um estilo de legenda (`ieeelst`, definido no preâmbulo) que reproduz o
+`Fig. 1. Texto` do IEEEtran.
+
+**Se acrescentar ou remover um float, confira a numeração no PDF e renomeie os
+arquivos.** Foi exatamente por não fazer isso que a sequência desandou duas
+vezes.

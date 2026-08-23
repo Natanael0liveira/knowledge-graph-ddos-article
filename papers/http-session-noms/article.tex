@@ -423,8 +423,12 @@ protection against a well-known false-positive mode.
 \label{sec:symbolic}
 
 Reasoning is symbolic in two stages, and the split is deliberate.
-Pair-wise instantiation of the \texttt{relatedBy} family is pure Horn logic and
-is expressed as SWRL rules; aggregation is not, because SWRL cannot sum, so
+Pair-wise materialization of the \texttt{relatedBy} family is expressed as SWRL
+rules over predicates the evidence extractors produce: the equality-based
+relations are pure Horn, while numeric ones such as DTW distance and payload
+cosine similarity are evaluated beforehand and enter the rule as a built-in
+comparison against their threshold. Aggregation is not Horn at all, because
+SWRL cannot sum, so
 $\Omega(S)$ is computed by a SPARQL query whose weights are read from the
 \texttt{coordinationWeight} annotations in the ontology rather than hard-coded.
 Listing~\ref{lst:rules} in Appendix~\ref{app:algorithms} shows one rule of each
@@ -464,7 +468,7 @@ The background must come from outside the attack episode. Using the window itsel
 does not work: the campaign spans the whole window, so cluster and background
 prevalences coincide and every candidate scores an enrichment of one. No labels
 are involved, since the profile is what a defender observes in normal operation.
-A useful property follows for free: when the adversary hides inside a popular
+An operationally useful property follows: when the adversary hides inside a popular
 benign fingerprint, that fingerprint is by definition not enriched, so it is
 refused and the framework reports that no discriminator exists instead of
 emitting a filter that only harms users.
@@ -509,7 +513,7 @@ Technologies\footnote{Measured 22 August 2026 from an access log the platform
 already collects; the extract holds only client-software fingerprints and their
 frequencies, with no address, host, URI, header or locale.}: $495$ distinct JA4
 fingerprints, the most common accounting for $38.4\%$ of requests and the top ten
-for $93.8\%$. Two caveats attach: the log carries no connection identifier, so
+for $93.8\%$. Two caveats apply: the log carries no connection identifier, so
 weighting is per request rather than per session, which overweights heavy clients
 and if anything \emph{overstates} concentration; and the sample is one point of
 presence over one window. The CICIDS2017
@@ -525,7 +529,7 @@ since real botnets span device classes such as routers, IP cameras, DVRs and
 printers~\cite{antonakakis2017mirai}, and therefore TLS stacks. We distribute
 the campaign over $M$ stacks, uniformly, which is the conservative choice for a
 given $M$, and take $M = 25$ as canonical. No published measurement fixes $M$, so
-we sweep it rather than choose. Finally, an \emph{adversarial} mode lets the
+we sweep it rather than choose a single value. Finally, an \emph{adversarial} mode lets the
 botnet adopt the most common benign fingerprints instead of its own; this is
 operationally feasible rather than hypothetical: browser-impersonation tooling
 ships ready ClientHello templates for specific Chrome and Safari versions.
@@ -724,7 +728,7 @@ reverses sharply: $90.3\%$ against $36.4\%$, and $85.0\%$ against $17.6\%$ at on
 hundred stacks, and the rule holds that lead even against a model allowed to
 spend false positives: at $1\%$ FPR the model reaches only $66.8\%$ and $44.5\%$.
 The adversarial row is \emph{not} a like-for-like comparison and we make no claim
-from it --- there the rule itself leaks $3.78\%$, and the model reaches $23.4\%$
+from it --- there the rule itself incurs a $3.78\%$ false-positive rate, and the model reaches $23.4\%$
 once allowed $1\%$, so the ordering at a matched operating point is unresolved.
 
 What the AUC column hides is exactly this. The classifier still scores $0.979$
@@ -732,8 +736,9 @@ and $0.961$ where it recovers a third and a sixth of the attack: its ranking is
 good, but its scores overlap benign traffic in the tail, so no threshold yields
 automatic action without collateral. The rule produces no score to threshold; it
 produces a set defined by an enrichment test against an explicit background,
-which is why its false-positive rate is zero wherever an enriched discriminator
-exists --- zero by construction rather than by tuning, but not unconditionally.
+which is why its false-positive rate is zero in these scenarios as a consequence
+of the enrichment criterion rather than of a tuned score threshold. That is not
+an unconditional guarantee.
 
 \subsection{Real Traffic and Comparison with KLAGE}
 
@@ -860,9 +865,8 @@ expectation of field performance.
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
-Five limitations bound the claim, interleaved below with two paragraphs that
-place the framework operationally; further ones are listed in
-Appendix~\ref{app:limitations}.
+Five principal limitations bound our claims; Appendix~\ref{app:limitations} lists
+additional ones.
 
 \textbf{The gain is regime-specific.} Against single-source high-volume attacks,
 per-IP or per-session thresholds perform comparably, and on the conventional

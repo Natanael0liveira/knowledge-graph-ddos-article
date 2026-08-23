@@ -438,11 +438,15 @@ modo de falso positivo bem conhecido.
 \label{sec:symbolic}
 
 O raciocínio é simbólico em dois estágios, e a divisão é deliberada. A
-instanciação par a par da família \texttt{relatedBy} é lógica de Horn pura e é
-expressa como regras SWRL; a agregação não é, porque SWRL não soma, então
+materialização par a par da família \texttt{relatedBy} é expressa como regras SWRL
+sobre predicados que os extratores de evidência produzem: as relações baseadas em
+igualdade são Horn puras, enquanto as numéricas, como distância DTW e similaridade
+de cosseno de \emph{payload}, são avaliadas antes e entram na regra como
+comparação por \emph{built-in} contra seu limiar. A agregação não é Horn de modo
+algum, porque SWRL não soma, então
 $\Omega(S)$ é computada por uma consulta SPARQL cujos pesos são lidos das
 anotações \texttt{coordinationWeight} da ontologia, e não codificados no programa.
-A A Listagem~\ref{lst:rules}, no Apêndice~\ref{app:algorithms}, mostra uma regra de
+A Listagem~\ref{lst:rules}, no Apêndice~\ref{app:algorithms}, mostra uma regra de
 cada tipo.
 
 \subsection{Cadeia de Evidência e Escopo de Mitigação Derivado}
@@ -479,7 +483,7 @@ O fundo precisa vir de fora do episódio de ataque. Usar a própria janela não
 funciona: a campanha atravessa a janela inteira, então as prevalências no
 \emph{cluster} e no fundo coincidem e todo candidato marca enriquecimento igual a
 um. Nenhum rótulo está envolvido, já que o perfil é o que um defensor observa em
-operação normal. Uma propriedade útil vem de graça: quando o adversário se esconde
+operação normal. Uma propriedade operacionalmente útil decorre disso: quando o adversário se esconde
 dentro de um \emph{fingerprint} benigno popular, esse \emph{fingerprint} por
 definição não está enriquecido, é recusado, e o arcabouço reporta que não há
 discriminador em vez de emitir um filtro que só machuca usuários.
@@ -544,7 +548,7 @@ que \emph{botnets} reais abrangem classes de dispositivo como roteadores, câmer
 IP, DVRs e impressoras~\cite{antonakakis2017mirai}, e portanto \emph{stacks} TLS.
 Distribuímos a campanha por $M$ \emph{stacks}, uniformemente, que é a escolha
 conservadora para um dado $M$, e adotamos $M = 25$ como canônico. Nenhuma medição
-publicada fixa $M$, então o varremos em vez de escolher. Por fim, um modo
+publicada fixa $M$, então o varremos em vez de escolher um valor único. Por fim, um modo
 \emph{adversarial} faz a \emph{botnet} adotar os \emph{fingerprints} benignos mais
 comuns em vez dos próprios; isso é operacionalmente viável, e não hipotético: as
 ferramentas de personificação de navegador distribuem modelos prontos de
@@ -752,7 +756,7 @@ $85{,}0\%$ contra $17{,}6\%$ em cem \emph{stacks}, e a regra mantém a vantagem
 mesmo contra um modelo autorizado a gastar falsos positivos: a $1\%$ de FPR ele
 chega a apenas $66{,}8\%$ e $44{,}5\%$. A linha adversarial \emph{não} é
 comparação equivalente e não afirmamos nada a partir dela --- ali a própria regra
-vaza $3{,}78\%$, e o modelo chega a $23{,}4\%$ quando lhe permitem $1\%$, de modo
+incorre em $3{,}78\%$ de falso positivo, e o modelo chega a $23{,}4\%$ quando lhe permitem $1\%$, de modo
 que a ordem num ponto de operação equiparado fica em aberto.
 
 O que a coluna de AUC esconde é exatamente isto. O classificador ainda marca
@@ -760,9 +764,9 @@ $0{,}979$ e $0{,}961$ onde recupera um terço e um sexto do ataque: sua ordenaç
 boa, mas seus escores se sobrepõem ao tráfego benigno na cauda, de modo que nenhum
 limiar produz ação automática sem colateral. A regra não produz escore para
 limiarizar; produz um conjunto definido por um teste de enriquecimento contra um
-fundo explícito, e é por isso que sua taxa de falso positivo é nula onde exista
-discriminador enriquecido --- nula por construção e não por ajuste, mas não
-incondicionalmente.
+fundo explícito, e é por isso que sua taxa de falso positivo é nula nesses
+cenários como consequência do critério de enriquecimento, e não de um limiar de
+escore ajustado. Isso não é garantia incondicional.
 
 \subsection{Tráfego Real e Comparação com o KLAGE}
 
@@ -894,9 +898,8 @@ expectativa de desempenho em campo.
 \section{Discussão e Limitações}
 \label{sec:discussion}
 
-Cinco limitações delimitam a afirmação, intercaladas abaixo com dois parágrafos
-que posicionam o arcabouço operacionalmente; outras estão no
-Apêndice~\ref{app:limitations}).
+Cinco limitações principais delimitam nossas afirmações; o
+Apêndice~\ref{app:limitations} lista outras.
 
 \textbf{O ganho é específico de regime.} Contra ataques de origem única e alto
 volume, limiares por IP ou por sessão têm desempenho comparável, e nos ataques

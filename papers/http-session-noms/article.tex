@@ -409,8 +409,10 @@ Condition (iii) is the contribution. $\Omega(S)$ can clear the threshold with
 \texttt{relatedByNetworkProximity} at zero, which is the distributed-botnet case,
 provided some combination of high-weight signals is observed. Conversely, a set
 held together \emph{only} by network proximity, such as legitimate mobile users
-behind one CGN /24, cannot reach $\tau_{\mathrm{cluster}}$ on $w = 0.3$ alone.
-This is explicit protection against a well-known false-positive mode.
+behind one CGN /24, needs over three times as many linked pairs to reach the same
+$\Omega$ as a TLS-linked set, and $\tau_{\mathrm{cluster}}$ is calibrated on
+legitimate clusters, so ordinary CGN aggregation stays below it. This is explicit
+protection against a well-known false-positive mode.
 
 \subsection{Symbolic Formulation}
 \label{sec:symbolic}
@@ -821,7 +823,7 @@ so maintaining it is a deployment requirement and not an optimization.
 \label{sec:latency}
 
 Appendix~\ref{app:cost} measures both layers of the pipeline against window
-occupancy. Two results carry: admission costs a constant $14$--$19$~ns per
+occupancy. Two results carry: admission costs a constant $14$--$20$~ns per
 candidate pair, sustaining some $84\,000$ session admissions per second on one
 core at $|S_W| = 1\,000$; and detection is flat over a $30\times$ range of $W$
 while cluster occupancy, and with it the quadratic pair term that $\Omega(S)$
@@ -1081,6 +1083,13 @@ Section~\ref{sec:discussion}, which we did not implement.
 over HTTP/1.1. HTTP/2 attacks and other application
 protocols (DNS, gRPC) need additional sub-relations.
 
+\textbf{Sub-relation coverage.} The evaluated $\Omega(S)$ instantiates three of the
+six sub-relations --- TLS fingerprint, endpoint convergence, network proximity ---
+the ones the generator and the public captures expose. Identity reuse, temporal
+pattern and payload signature are specified in Appendix~\ref{app:algorithms} but
+not exercised, so the weights of Fig.~\ref{fig:ontology} are validated only for
+those three.
+
 \textbf{Dataset breadth.} Real-data validation covers one dataset and one attack
 for the head-to-head comparison, plus six attacks across CICIDS2017 and
 CIC-IoT2023 for the regime analysis. RT-IoT2022, CIC-DDoS2019 and anonymized
@@ -1127,12 +1136,12 @@ so its figures are an upper bound.
 Admission behaves as the bound predicts (Fig.~\ref{fig:latency}): median latency
 grows from $2.1\,\mu$s at $|S_W| = 100$ to $122\,\mu$s at $|S_W| = 10\,000$,
 tracking the candidate-pair count (148 to 6\,495 edges per admission) at a
-constant $14$--$19$~ns per pair.
+constant $14$--$20$~ns per pair.
 
 The symbolic layer is orders of magnitude more expensive: $0.56$~s at
 $|S_W| = 100$ rising to $49.7$~s at $|S_W| = 1\,000$. Read per unit of work,
-however, cost stays constant at $\approx 187\,\mu$s per materialized RDF edge
-across all sizes, so the layer is \emph{linear in edges}; it is the edge count
+however, cost stays within $180$--$210\,\mu$s per materialized RDF edge across
+all sizes, so the layer is \emph{linear in edges}; it is the edge count
 that grows quadratically, because $\Omega(S)$ is defined over pairs. The
 quadratic term is thus a property of the rule rather than of the backend, and it
 points at the deployment split the architecture already implies: detect on the

@@ -421,8 +421,10 @@ A condição (iii) é a contribuição. $\Omega(S)$ pode ultrapassar o limiar co
 \texttt{relatedByNetworkProximity} em zero, que é o caso da \emph{botnet}
 distribuída, desde que alguma combinação de sinais de peso alto seja observada.
 Inversamente, um conjunto sustentado \emph{apenas} por proximidade de rede, como
-usuários móveis legítimos atrás de um /24 de CGN, não alcança
-$\tau_{\mathrm{cluster}}$ só com $w = 0{,}3$. Isso é proteção explícita contra um
+usuários móveis legítimos atrás de um /24 de CGN, precisa de mais de três vezes
+mais pares ligados para atingir o mesmo $\Omega$ que um conjunto ligado por TLS, e
+$\tau_{\mathrm{cluster}}$ é calibrado sobre \emph{clusters} legítimos, de modo que
+a agregação usual de CGN fica abaixo dele. Isso é proteção explícita contra um
 modo de falso positivo bem conhecido.
 
 \subsection{Formulação Simbólica}
@@ -853,7 +855,7 @@ otimização.
 
 O Apêndice~\ref{app:cost} mede as duas camadas do \emph{pipeline} em função da
 ocupação da janela. Dois resultados importam: a admissão custa constantes
-$14$--$19$~ns por par candidato, sustentando cerca de $84\,000$ admissões de sessão
+$14$--$20$~ns por par candidato, sustentando cerca de $84\,000$ admissões de sessão
 por segundo em um núcleo com $|S_W| = 1\,000$; e a detecção é plana numa faixa de
 $30\times$ em $W$, enquanto a ocupação do \emph{cluster}, e com ela o termo
 quadrático de pares que $\Omega(S)$ implica, cresce $6{,}6\times$. Mantenha $W$ tão
@@ -1123,6 +1125,13 @@ Seção~\ref{sec:discussion}, que não implementamos.
 sobre HTTP/1.1. Ataques sobre HTTP/2 e outros protocolos de
 aplicação (DNS, gRPC) exigem sub-relações adicionais.
 
+\textbf{Cobertura de sub-relações.} O $\Omega(S)$ avaliado instancia três das seis
+sub-relações --- \emph{fingerprint} TLS, convergência de \emph{endpoint},
+proximidade de rede ---, as que o gerador e as capturas públicas expõem.
+Reaproveitamento de identidade, padrão temporal e assinatura de \emph{payload}
+estão no Apêndice~\ref{app:algorithms} mas não são exercitados, então os pesos da
+Fig.~\ref{fig:ontology} só estão validados para essas três.
+
 \textbf{Amplitude de \emph{datasets}.} A validação em dados reais cobre um
 \emph{dataset} e um ataque para a comparação direta, mais seis ataques entre
 CICIDS2017 e CIC-IoT2023 para a análise de regime. RT-IoT2022, CIC-DDoS2019 e
@@ -1173,11 +1182,11 @@ superior.
 A admissão se comporta como o limite prevê (Fig.~\ref{fig:latency}): a latência
 mediana cresce de $2{,}1\,\mu$s em $|S_W| = 100$ para $122\,\mu$s em
 $|S_W| = 10\,000$, acompanhando a contagem de pares candidatos (148 a 6\,495
-arestas por admissão) a constantes $14$--$19$~ns por par.
+arestas por admissão) a constantes $14$--$20$~ns por par.
 
 A camada simbólica é ordens de magnitude mais cara: $0{,}56$~s em $|S_W| = 100$,
 subindo para $49{,}7$~s em $|S_W| = 1\,000$. Lida por unidade de trabalho, contudo,
-o custo permanece constante em $\approx 187\,\mu$s por aresta RDF materializada em
+o custo permanece entre $180$ e $210\,\mu$s por aresta RDF materializada em
 todos os tamanhos, de modo que a camada é \emph{linear em arestas}; é a contagem de
 arestas que cresce quadraticamente, porque $\Omega(S)$ é definida sobre pares. O
 termo quadrático é portanto propriedade da regra, e não do \emph{backend}, e aponta

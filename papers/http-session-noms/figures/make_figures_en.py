@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """English figures for the NOMS submission (papers/http-session-noms).
 
-Generates three figures:
-  fig1_ontology.png   -- double-column banner: session-centric ontology, weighted
-                         relatedTo family, and the rule -> verdict -> mitigation coupling.
+Generates the three DATA figures. fig1_ontology is a draw.io schematic and is NOT
+produced here -- see figures/README.md and figures/src-drawio/.
   fig2_regime.png     -- single column: strong per-session ML already solves conventional
                          real attacks; only the stealthy-distributed regime needs
                          cross-session reasoning.
@@ -305,7 +304,10 @@ def fig_latency(root):
 
 if __name__ == "__main__":
     root = os.path.abspath(os.path.join(OUT, "..", "..", ".."))
-    fig_ontology()
+    # fig1_ontology is NOT generated here anymore: it is a draw.io schematic,
+    # source in figures/src-drawio/fig1_ontology.drawio (see figures/README.md).
+    # fig_ontology() below is kept only as the historical matplotlib version and
+    # must not run, or it would overwrite the draw.io export.
     fig_regime(root)
     fig_collateral(root)
     fig_latency(root)

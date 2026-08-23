@@ -9,21 +9,27 @@ revisão interna e discussão com quem prefira português.
 
 ## O que difere da versão em inglês
 
+Nada de conteúdo: todas as correções da versão em inglês foram portadas, incluindo
+as de fato (o *d* de Cohen na conclusão, a comparação regra × modelo em M=5, os
+ponteiros de apêndice, a promessa de regeneração no Apêndice E) e a numeração
+contígua com `Listagem 1-2`.
+
 | | inglês (submissão) | português (esta) |
 |---|---|---|
-| páginas | 11 (corpo 8, refs 9, apêndices 9–11) | 12 (corpo ~9, refs 9–10, apêndices 10–12) |
-| babel | — | `\usepackage[brazilian]{babel}` |
+| páginas | 11 (corpo 8, refs 9, apêndices 9–11) | 12 |
+| babel | — | `[brazilian]`, com `\figurename` fixado em `Fig.` |
 | decimais | ponto (`0.982`) | vírgula (`0{,}982`) |
+| blocos de código | `Listing 1-2` | `Listagem 1-2` |
 | figuras | rótulos em inglês | **mesmas figuras, rótulos em inglês** |
 
-O texto em português corre 15–20% mais longo, então o limite de 8 páginas de corpo
-do NOMS não se aplica aqui e não foi perseguido — comprimir custaria conteúdo sem
-ganho nenhum, já que esta cópia não vai para a submissão. Ainda assim cabe nas 12
-páginas totais.
+**Esta não é a versão de submissão.** O NOMS exige inglês e limita o texto
+principal a 8 páginas; o português corre 15–20% mais longo e essa restrição não
+foi perseguida aqui. Use `../http-session-noms/article.pdf` para submeter.
 
-As figuras são cópias binárias das da versão em inglês e portanto mantêm rótulos
-em inglês. Para gerá-las em português, adapte as *strings* de
-`../http-session-noms/figures/make_figures_en.py`.
+As figuras são cópias binárias das da versão em inglês e mantêm rótulos em
+inglês. Para gerá-las em português, adapte as *strings* de
+`../http-session-noms/figures/make_figures_en.py` e o
+`src-drawio/fig1_ontology.drawio`.
 
 ## Compilar
 

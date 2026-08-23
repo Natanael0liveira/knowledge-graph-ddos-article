@@ -17,6 +17,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[brazilian]{babel}
+%% O babel troca \figurename para "Figura", mas as chamadas no texto usam
+%% "Fig." como no original. Fixa os dois no formato do IEEEtran.
+\addto\captionsbrazilian{\renewcommand{\figurename}{Fig.}}
 \usepackage{cite}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
@@ -31,6 +34,22 @@
 \setlength{\intextsep}{8pt plus 2pt minus 2pt}
 \setlength{\dbltextfloatsep}{10pt plus 2pt minus 2pt}
 
+%% Contador proprio para os blocos de codigo: como floats \begin{figure} eles
+%% abriam buracos na numeracao das figuras-imagem. O estilo ieeelst reproduz a
+%% legenda "Fig. N. Texto" do IEEEtran.
+\usepackage{float}
+\makeatletter
+\newcommand\floatc@ieeelst[2]{\setbox\@tempboxa\hbox{\footnotesize #1.\enskip #2}%
+  \ifdim\wd\@tempboxa>\hsize \footnotesize #1.\enskip #2\par
+  \else \hbox to\hsize{\hfil\box\@tempboxa\hfil}\fi}
+\newcommand\fs@ieeelst{\def\@fs@cfont{\footnotesize}\let\@fs@capt\floatc@ieeelst
+  \def\@fs@pre{}\def\@fs@mid{\vspace\abovecaptionskip}\def\@fs@post{}%
+  \let\@fs@iftopcapt\iffalse}
+\makeatother
+\floatstyle{ieeelst}
+\newfloat{listing}{tbp}{lol}
+\floatname{listing}{Listagem}
+
 %% O IEEEtran usa URW Courier (pcr) para \texttt. Onde essas metricas nao
 %% existem, cai para Latin Modern Mono -- e NAO para cmtt: sem o cm-super
 %% instalado, cmtt em T1 gera bitmaps Type 3, que o IEEE PDF eXpress sinaliza
@@ -39,7 +58,7 @@
 
 \begin{document}
 
-\title{Grafos de Conhecimento Centrados na Sessão HTTP para Detecção\\Explicável
+\title{Grafos de Conhecimento Centrados na Sessão HTTP para Detecção Explicável\\
 e Mitigação de Escopo Derivado de DDoS de Camada de Aplicação}
 
 \author{\IEEEauthorblockN{Natanael Oliveira, Arthur Kobielski e Marcos Luna}
@@ -72,7 +91,7 @@ de derivar o escopo da mitigação é nociva: a propriedade que a maioria do
 \emph{cluster} compartilha é um \emph{fingerprint} \emph{legítimo} assim que a
 \emph{botnet} abrange vários \emph{stacks} TLS, bloqueando $0\%$ do ataque e
 $39\%$ dos usuários. Escolher o discriminador por enriquecimento sobre um perfil
-de tráfego normal bloqueia $85$--$90\%$ a $0{,}00\%$ de colateral, e, avaliado
+de tráfego normal bloqueia $85$--$90\%$ a $0{,}00\%$ de colateral. E, avaliado
 como detector, esse caminho simbólico dispensa treino e limiar, recuperando de
 duas a cinco vezes mais de uma campanha fragmentada do que o modelo aprendido
 consegue no mesmo ponto de operação de falso positivo zero.
@@ -133,7 +152,7 @@ conhecimento a partir de \emph{logs} de rede, classifica nós com Graph-BERT e
 produz relatórios em linguagem natural via LIME e modelos de linguagem grandes,
 atingindo $F_1 = 84{,}1\%$ em \emph{benchmarks} IoT que incluem DDoS Slowloris. É
 evidência sólida de que grafos de conhecimento são substrato viável de detecção
-em tempo de execução. Três propriedades, contudo, permanecem em aberto. Sua
+em tempo de execução. Três lacunas, contudo, permanecem. Sua
 unidade de raciocínio é o \emph{nó de rede} (porta, IP, fluxo), e não a sessão de
 aplicação. A coordenação é capturada implicitamente em \emph{embeddings}
 aprendidos, e não em relações simbólicas nomeadas. E o \emph{pipeline} termina num
@@ -211,7 +230,8 @@ aplicação; nosso formalismo são relações simbólicas nomeadas, e não
 
 \subsection{Detecção de DDoS de Camada 7 sobre HTTP}
 
-A detecção se organiza historicamente em três famílias. O perfilamento estatístico
+A detecção se organiza historicamente em duas famílias, sobre um corpo de
+levantamentos que consolidam o domínio~\cite{tripathi2021application,cambiaso2013slowdos}. O perfilamento estatístico
 constrói linhas de base a partir de estatísticas agregadas de fluxo ou sessão:
 Fernandes et al.~\cite{fernandes2015autonomous} com PCA sobre estatísticas de
 fluxo, e Bharathi e Sukanesh~\cite{bharathi2012pca} com PCA sobre uma matriz
@@ -219,9 +239,7 @@ comportamental por sessão, que é uma das primeiras formulações a colocar a s
 no centro, ainda que como vetor de atributos. O aprendizado supervisionado sobre
 atributos de sessão é a segunda família, com Kemp et al.~\cite{kemp2023approach}
 como representante mais recente; seus autores registram que o método não foi
-validado em tempo real e que a saída é binária, sem explicação ontológica. A
-terceira família consolida o domínio em
-levantamentos~\cite{tripathi2021application,cambiaso2013slowdos}. O denominador
+validado em tempo real e que a saída é binária, sem explicação ontológica. O denominador
 comum é que a sessão é tratada como agregado de atributos, nunca como entidade
 sobre a qual se possa raciocinar.
 
@@ -377,7 +395,6 @@ $S \subseteq V_{\mathrm{sess}}$ e um \emph{endpoint} candidato $e$, defina a
 \Omega(S) \;=\; \sum_{i \in \mathcal{R}_{\mathrm{rel}}} w_i \,\big|E_i(S)\big| ,
 \label{eq:omega}
 \end{equation}
-
 com $E_i(S) = \{\{s_a,s_b\} \subseteq S : (s_a,\texttt{relatedBy}_i,s_b) \in E\}$
 o conjunto de pares de sessões ligados pela sub-relação $i$. As sub-relações são
 simétricas, então cada par não-ordenado conta uma vez. A regra
@@ -402,7 +419,7 @@ instanciação par a par da família \texttt{relatedBy} é lógica de Horn pura 
 expressa como regras SWRL; a agregação não é, porque SWRL não soma, então
 $\Omega(S)$ é computada por uma consulta SPARQL cujos pesos são lidos das
 anotações \texttt{coordinationWeight} da ontologia, e não codificados no programa.
-A A Fig.~\ref{fig:rules}, no Apêndice~\ref{app:algorithms}, mostra uma regra de
+A A Listagem~\ref{lst:rules}, no Apêndice~\ref{app:algorithms}, mostra uma regra de
 cada tipo.
 
 \subsection{Cadeia de Evidência e Escopo de Mitigação Derivado}
@@ -455,7 +472,7 @@ sobre a detecção por sessão em proporção ao \emph{grau de distribuição} $
 campanha, de modo que a avaliação é parametrizada por $K$ e não por nome de
 ataque. O \textbf{Cenário~A (concentrado, $K=1$)} é o ataque clássico de alto
 volume e origem única: nenhuma aresta entre sessões é necessária para detectar, e
-espera-se que detectores volumétricos clássicos bastem; ele é degenerado para AUC
+espera-se que detectores volumétricos convencionais bastem; ele é degenerado para AUC
 por sessão e o discutimos à parte. O \textbf{Cenário~B (moderadamente
 distribuído, $10 \leq K \leq 100$)} modela \emph{botnets} pequenas ou operações
 limitadas por \emph{proxies}, cada origem permanecendo dentro do próprio limite de
@@ -662,7 +679,7 @@ A massa de $\Omega(S)$ que dispara a regra é dominada por
 dispersas. Avaliamos também a qualidade das cadeias de evidência sobre sete
 \emph{clusters} de ataque reais: todas as sete enumeram a regra satisfeita, as
 sub-relações ativadas com seus pesos, o escore $\Omega(S)$ e o escopo derivado, e
-todas produzem um filtro diretamente aplicável (Fig.~\ref{fig:chain}, Apêndice~\ref{app:cost}). Um estudo
+todas produzem um filtro diretamente aplicável (Listagem~\ref{lst:chain}, Apêndice~\ref{app:cost}). Um estudo
 com analistas humanos fica como trabalho futuro.
 
 \subsection{A Própria Regra como Detector}
@@ -701,7 +718,7 @@ ordenação e a regra emite decisão dura, forçamos também o classificador ao 
 de operação da própria regra (Tabela~\ref{tab:symbolic}).
 
 O resultado não é uniforme, e sua forma é o ponto. Contra uma \emph{botnet}
-monolítica ou pouco fragmentada, o modelo aprendido empata ou supera a regra a
+monolítica ou pouco fragmentada, o modelo aprendido é competitivo a
 falso positivo zero ($91{,}7\%$ e $88{,}6\%$ de \emph{recall} contra $84{,}0\%$ e
 $90{,}0\%$): não há vantagem simbólica no regime fácil. A partir de 25
 \emph{stacks} a ordem se inverte acentuadamente: $90{,}3\%$ contra $36{,}4\%$, e
@@ -830,8 +847,8 @@ pequeno quanto o tráfego permitir.
 
 \subsection{Significância Estatística}
 
-Testes pareados de Wilcoxon sobre as $n = 30$ execuções, com correção de Bonferroni
-e $d$ de Cohen. No regime distribuído ($K = 1000$), \textbf{(d)$-$(c)} é
+Aplicamos testes pareados de Wilcoxon sobre as $n = 30$ execuções, com correção de
+Bonferroni e $d$ de Cohen. No regime distribuído ($K = 1000$), \textbf{(d)$-$(c)} é
 significativa com $p_{\mathrm{Bonf}} = 7{,}5\times 10^{-9}$ e $d = 13{,}5$, e
 \textbf{(d)$-$(a)} com $p_{\mathrm{Bonf}} = 7{,}5\times 10^{-9}$ e $d = 22{,}4$.
 Tamanhos de efeito dessa magnitude refletem a natureza controlada do tráfego
@@ -842,14 +859,15 @@ expectativa de desempenho em campo.
 \section{Discussão e Limitações}
 \label{sec:discussion}
 
-Cinco limitações delimitam a afirmação; outras estão no
+Cinco limitações delimitam a afirmação, intercaladas abaixo com dois parágrafos
+que posicionam o arcabouço operacionalmente; outras estão no
 Apêndice~\ref{app:limitations}.
 
 \textbf{O ganho é específico de regime.} Contra ataques de origem única e alto
 volume, limiares por IP ou por sessão têm desempenho comparável, e nos ataques
 reais convencionais disponíveis em \emph{datasets} públicos um classificador por
 sessão forte já alcança $\mathrm{AUC} \geq 0{,}98$, deixando ao raciocínio entre
-sessões uma margem marginal. A vantagem é decisiva apenas quando a campanha é
+sessões apenas um ganho marginal. A vantagem é decisiva apenas quando a campanha é
 distribuída \emph{e} furtiva. Este trabalho não substitui defesas volumétricas; as
 complementa. Validar a abordagem sobre tráfego furtivo distribuído
 \emph{capturado}, que nenhum \emph{benchmark} público oferece, é a direção
@@ -862,7 +880,7 @@ por sessão de distribuições benignas reais. A não-separabilidade por sessão
 Tabela~\ref{tab:ablation} não é, portanto, artefato de um \emph{baseline}
 enfraquecido, já que quatro famílias de modelo com todos os atributos de fluxo
 permanecem no acaso. O mimetismo é imposto por construção, de modo que o resultado
-mostra o mecanismo sob a hipótese de mimetismo por sessão perfeito, e não prova
+mostra o mecanismo sob a hipótese de indistinguibilidade por sessão perfeita, e não prova
 desempenho sobre uma captura real desse regime.
 
 \textbf{Detecção e derivação de escopo dependem ambas de um discriminador de peso
@@ -906,7 +924,7 @@ particionados por \emph{endpoint} mais um \emph{sketch} global sobre
 identificadores de peso alto para recuperar campanhas entre \emph{endpoints};
 quantificar o \emph{recall} perdido pelo primeiro nível e recuperado pelo segundo é
 pré-requisito para implantação em escala de CDN. Tomadas em conjunto com a
-Seção~\ref{sec:latency}, as três medições compõem um único argumento de
+Seção~\ref{sec:latency}, essas observações compõem um único argumento de
 escalabilidade: o particionamento por \emph{endpoint} é exato e dispensa
 coordenação, um $W$ pequeno não custa detecção enquanto corta o termo quadrático de
 pares, e a admissão custa microssegundos. Numa implantação corretamente
@@ -946,7 +964,7 @@ ao mesmo tempo como veredicto, cadeia de evidência e escopo da mitigação.
 Contra campanhas furtivas distribuídas, a detecção por sessão fica no acaso em
 quatro famílias de modelo, mesmo com o conjunto completo de atributos de fluxo,
 enquanto o arcabouço detecta de forma consistente ($0{,}50$ \emph{vs.}\ $0{,}98$ de
-ROC AUC; $d = 13{,}5$); em ataques reais convencionais o ganho é marginal, porque
+ROC AUC; $d = 22{,}4$); em ataques reais convencionais o ganho é marginal, porque
 um classificador por sessão forte já basta. Do lado da mitigação, o estudo produziu
 um resultado negativo que vale tanto quanto o positivo: derivar o escopo pela
 propriedade que a maioria do \emph{cluster} compartilha seleciona um
@@ -1020,7 +1038,7 @@ compartilhado, ou num ASN compartilhado, ou em ambos; quando ambos valem, a ares
 é anotada com \emph{strong = true}. A resolução de ASN usa tabelas BGP atuais.
 Custo $O(1)$ com índice invertido de prefixo.
 
-\begin{figure}[t]
+\begin{listing}[t]
 \footnotesize
 \hrule\vspace{2pt}
 \begin{verbatim}
@@ -1044,8 +1062,8 @@ GROUP BY ?e HAVING (SUM(?w) >= ?tau)
 entre sessões; uma agregação SPARQL aplica os pesos declarados na ontologia e
 dispara a regra. Os \emph{bindings} que satisfazem a consulta \emph{são} a cadeia
 de evidência.}
-\label{fig:rules}
-\end{figure}
+\label{lst:rules}
+\end{listing}
 
 \section{Calibração dos Pesos}
 \label{app:calibration}
@@ -1082,14 +1100,14 @@ aberto até que haja tráfego de produção com sinais parciais e conflitantes.
 identidades e \emph{fingerprints} TLS podem ser extraídos dos eventos de tráfego;
 onde essa instrumentação for parcial ou ruidosa, o desempenho degrada.
 
-\textbf{Custo de manutenção do grafo.} Os números da camada simbólica da
-Seção~\ref{sec:latency} vêm de uma implementação de referência em memória com
+\textbf{Custo de manutenção do grafo.} Os números da camada simbólica do
+Apêndice~\ref{app:cost} vêm de uma implementação de referência em memória com
 \texttt{rdflib}, e não do \emph{backend} Jena/TDB2, de modo que são um limite
 superior; e escalar para tráfego em escala de CDN requer o particionamento
 horizontal discutido na Seção~\ref{sec:discussion}, que não implementamos.
 
-\textbf{Cobertura de protocolo.} A ontologia atual cobre a família Slowloris e seus
-descendentes diretos sobre HTTP/1.1. Ataques sobre HTTP/2 e outros protocolos de
+\textbf{Cobertura de protocolo.} A ontologia atual cobre a família Slow HTTP DoS
+sobre HTTP/1.1. Ataques sobre HTTP/2 e outros protocolos de
 aplicação (DNS, gRPC) exigem sub-relações adicionais.
 
 \textbf{Amplitude de \emph{datasets}.} A validação em dados reais cobre um
@@ -1187,7 +1205,7 @@ multi-\emph{endpoint} com campanhas interleaved pode se comportar de outra forma
 $W$ ainda precisa ser longo o bastante para que um \emph{cluster} se forme, o que
 em $W = 60$~s já significa $\approx 132$ sessões aqui.
 
-\begin{figure}[t]
+\begin{listing}[t]
 \footnotesize
 \hrule\vspace{2pt}
 \begin{verbatim}
@@ -1210,8 +1228,8 @@ em $W = 60$~s já significa $\approx 132$ sessões aqui.
 sub-relação, uma contagem de pares e um peso, e o último campo é o filtro
 efetivamente aplicado. A exportação STIX~2.1 carrega o mesmo conteúdo como padrão
 de \emph{indicator} mais um \emph{course-of-action} ligado por \emph{mitigates}.}
-\label{fig:chain}
-\end{figure}
+\label{lst:chain}
+\end{listing}
 
 \section{Reprodutibilidade}
 \label{app:repro}
@@ -1239,7 +1257,9 @@ decisão em momento algum. O modelo de custo do Apêndice~\ref{app:cost} não re
 
 As sementes são fixas, a orquestração é feita por Makefiles, e os artefatos, isto é
 figuras, distribuições calibradas e resultados agregados, são versionados; cada
-tabela e figura deste artigo é regenerada por um único comando por etapa. A
+tabela e cada figura de dados deste artigo é regenerada por um único comando por
+etapa. A Fig.~\ref{fig:ontology} é um esquema desenhado à mão, cuja fonte editável
+acompanha o artefato. A
 ontologia OWL é fornecida em RDF/XML, com cada sub-propriedade \texttt{relatedBy}
 anotada com seu \texttt{coordinationWeight}. Pretendemos submeter esses artefatos à
 trilha de Artifact Evaluation.

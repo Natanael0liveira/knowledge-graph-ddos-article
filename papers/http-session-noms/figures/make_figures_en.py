@@ -23,12 +23,18 @@ import numpy as np
 import pandas as pd
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Patch
 
-NAVY = "#1f3a5f"
-NAVY2 = "#34618c"
+# Paleta monocromatica, casada com a Fig.1 (esquema draw.io):
+#   INK   -- serie principal / "ours"      (preto do diagrama)
+#   MUTED -- serie de comparacao / baseline
+#   NOTE  -- anotacoes e linhas de referencia (mesmo cinza das notas da Fig.1)
+# Sem cor: o contraste vem de tom e de marcador, entao sobrevive a impressao em
+# escala de cinza e a leitores daltonicos.
+NAVY = "#1a1a1a"      # INK   (nome mantido para nao tocar o corpo das funcoes)
+NAVY2 = "#4d4d4d"
 GRAY = "#ececec"
 GRAYB = "#9a9a9a"
-BAR_GRAY = "#b0b0b0"
-CHANCE = "#6e6e6e"
+BAR_GRAY = "#bdbdbd"  # MUTED
+CHANCE = "#595959"    # NOTE
 TXT = "#222222"
 
 OUT = os.path.dirname(os.path.abspath(__file__))
@@ -176,7 +182,10 @@ def fig_regime(root):
         ax.text(min(vc + .008, 1.0), yi - h / 2, f"{vc:.2f}", va="center", fontsize=9,
                 fontweight="bold", color=NAVY)
     ax.axvline(0.5, color=CHANCE, ls="--", lw=1.2)
-    ax.text(0.5, y.max() + 0.44, "chance", color=CHANCE, fontsize=8, ha="center")
+    # rotulo deslocado para a DIREITA da linha: centrado sobre ela, o texto
+    # partia a tracejada ao meio e a figura lia como quebrada.
+    ax.text(0.512, y.max() + 0.46, "chance", color=CHANCE, fontsize=8,
+            ha="left", va="center")
     ax.axhspan(y.min() - 0.5, y.min() + 0.5, color=NAVY, alpha=0.06, zorder=0)
     ax.set_yticks(y)
     ax.set_yticklabels([g[0] for g in groups], fontsize=8.5)
@@ -293,7 +302,10 @@ def fig_latency(root):
     ax.set_xlabel("active sessions in the window, $|S_W|$", fontsize=9)
     ax.set_ylabel("latency (s)", fontsize=9)
     ax.grid(True, which="both", alpha=.25)
-    ax.legend(loc="center left", fontsize=8.2, frameon=False)
+    # legenda abaixo dos eixos: dentro do grafico ela ocupava a faixa vazia
+    # entre as duas series e competia com os dados.
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=1,
+              fontsize=8.2, frameon=False)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
     out = os.path.join(OUT, "fig4_latency.png")

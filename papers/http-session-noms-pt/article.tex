@@ -85,9 +85,9 @@ dispara sobre a massa ponderada dessas sub-relações, e sua derivação \emph{�
 veredicto, exportado como cadeia de evidência em JSON-LD e STIX~2.1 cujo
 discriminador define o escopo da mitigação. Contra campanhas furtivas
 distribuídas, a detecção por sessão permanece no acaso em quatro famílias de
-modelo, mesmo com o conjunto completo de atributos de fluxo, enquanto o raciocínio
-entre sessões as detecta de forma consistente (ROC AUC $0{,}50$ \emph{vs.}\
-$0{,}98$; $d = 22{,}4$). Em \emph{datasets} públicos, cujos ataques carregam
+modelo, mesmo com o conjunto completo de atributos de fluxo, enquanto a
+representação entre sessões as separa de forma consistente (ROC AUC $0{,}50$
+\emph{vs.}\ $0{,}98$; $d = 22{,}4$). Em \emph{datasets} públicos, cujos ataques carregam
 assinatura de fluxo evidente, um \emph{baseline} por sessão forte já basta, e
 reportamos essa delimitação explicitamente. Mostramos ainda que a maneira óbvia
 de derivar o escopo da mitigação é nociva: a propriedade que a maioria do
@@ -252,9 +252,9 @@ sobre a qual se possa raciocinar.
 
 A meta-análise de Odusami et al.~\cite{odusami2020survey} fornece a evidência
 quantitativa mais clara sobre como a sessão é tratada: em 47\% dos métodos
-catalogados, atributos derivados de sessão alimentam o classificador, mas em
-nenhum dos setenta e cinco estudos a sessão é mantida como objeto com identidade,
-alvo, comportamento e relações tipadas. A redução é uniforme, e é ela que coloca
+catalogados, atributos derivados de sessão alimentam o classificador; entre os
+setenta e cinco estudos não encontramos nenhum em que a sessão seja mantida como
+objeto com identidade, alvo, comportamento e relações tipadas. A redução é uniforme, e é ela que coloca
 fora do alcance do detector o raciocínio sobre identidades reaproveitadas, sobre
 \emph{fingerprints} convergindo num \emph{endpoint}, ou sobre padrões visíveis
 apenas entre sessões.
@@ -543,7 +543,7 @@ Distribuímos a campanha por $M$ \emph{stacks}, uniformemente, que é a escolha
 conservadora para um dado $M$, e adotamos $M = 25$ como canônico. Nenhuma medição
 publicada fixa $M$, então o varremos em vez de escolher. Por fim, um modo
 \emph{adversarial} faz a \emph{botnet} adotar os \emph{fingerprints} benignos mais
-comuns em vez dos próprios; isto é prática corrente, e não hipótese, já que as
+comuns em vez dos próprios; isso é operacionalmente viável, e não hipotético: as
 ferramentas de personificação de navegador distribuem modelos prontos de
 \emph{ClientHello} para versões específicas de Chrome e Safari. As distribuições
 legítimas são calibradas contra as $\sim$322 mil sessões benignas do CICIDS2017 e
@@ -585,7 +585,8 @@ de ablação são: \textbf{(a)} \emph{baseline} de ML sem ontologia; \textbf{(b)
 ontologia \emph{sem nenhuma} sub-relação \texttt{relatedBy}, sessões como nós
 isolados; \textbf{(c)} ontologia com \emph{apenas}
 \texttt{relatedByNetworkProximity}, emulando um detector ingênuo por ASN/prefixo;
-e \textbf{(d)} o arcabouço completo com as seis sub-relações ponderadas. Assim,
+e \textbf{(d)} o arcabouço completo sobre as três sub-relações observáveis no
+tráfego avaliado. Assim,
 (d)$-$(a) é a contribuição total, (d)$-$(b) o ganho de representar estrutura entre
 sessões, e (d)$-$(c) o ganho dos sinais de peso alto sobre a proximidade de rede.
 
@@ -859,7 +860,10 @@ plano ou ausente não é, pois então todo \emph{fingerprint} parece raro, a cab
 benigna marca como enriquecida, e o colateral salta para $81{,}2\%$. A cobertura
 não é afetada em nenhum dos casos, já que a qualidade do perfil governa a precisão
 e não o \emph{recall}, de modo que mantê-lo é requisito de implantação e não
-otimização.
+otimização. Isso implica também um \emph{fail-safe}. Quando o perfil falha numa
+verificação de frescor ou de desvio, a mitigação de escopo derivado deve ser
+suprimida e o veredicto emitido apenas como evidência --- a mesma abstenção que o
+teste de enriquecimento já pratica quando nada está enriquecido.
 
 \subsection{Custo e a Escolha de $W$}
 \label{sec:latency}
@@ -877,8 +881,9 @@ pequeno quanto o tráfego permitir.
 Aplicamos testes pareados de Wilcoxon sobre as $n = 30$ execuções, com correção de
 Bonferroni e $d$ de Cohen. No regime distribuído ($K = 1000$), \textbf{(d)$-$(c)} é
 significativa com $p_{\mathrm{Bonf}} = 7{,}5\times 10^{-9}$ e $d = 13{,}5$, e
-\textbf{(d)$-$(a)} com $p_{\mathrm{Bonf}} = 7{,}5\times 10^{-9}$ e $d = 22{,}4$.
-Tamanhos de efeito dessa magnitude refletem a natureza controlada do tráfego
+\textbf{(d)$-$(a)} com $p_{\mathrm{Bonf}} = 7{,}5\times 10^{-9}$ e $d = 22{,}4$. A
+correlação rank-biserial pareada é $+1{,}00$ nos dois contrastes: (d) vence nas 30
+execuções pareadas. Tamanhos de efeito dessa magnitude refletem a natureza controlada do tráfego
 sintético, que produz separação quase perfeita, e não devem ser lidos como
 expectativa de desempenho em campo.
 
@@ -997,8 +1002,8 @@ Contra campanhas furtivas distribuídas, a detecção por sessão fica no acaso 
 quatro famílias de modelo, mesmo com o conjunto completo de atributos de fluxo,
 enquanto o arcabouço detecta de forma consistente ($0{,}50$ \emph{vs.}\ $0{,}98$ de
 ROC AUC; $d = 22{,}4$); em ataques reais convencionais o ganho é marginal, porque
-um classificador por sessão forte já basta. Do lado da mitigação, o estudo produziu
-um resultado negativo que vale tanto quanto o positivo: derivar o escopo pela
+um classificador por sessão forte já basta. Do lado da mitigação, o estudo também
+expõe um resultado negativo operacionalmente importante: derivar o escopo pela
 propriedade que a maioria do \emph{cluster} compartilha seleciona um
 \emph{fingerprint} legítimo assim que a \emph{botnet} abrange mais de um
 \emph{stack} TLS, bloqueando usuários em vez de atacantes. O enriquecimento sobre
@@ -1006,7 +1011,7 @@ um perfil de tráfego normal restaura $85$--$90\%$ de cobertura sem colateral
 observado. E, medido como detector, esse caminho simbólico recupera $90\%$ de uma
 campanha de 25 \emph{stacks} onde o modelo aprendido recupera $36\%$ no mesmo ponto
 de operação de falso positivo zero. Essa lacuna é escondida pela AUC, e é a
-evidência mais clara de que o grafo se paga. Direções imediatas são os ataques
+evidência mais clara que temos do valor operacional do caminho simbólico. Direções imediatas são os ataques
 sobre HTTP/2 e uma campanha furtiva capturada, que nenhum \emph{benchmark} ainda
 oferece.
 

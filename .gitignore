@@ -70,3 +70,4 @@ dist/
 # Claude Code local session data
 .claude/
 papers/*/avaliacao_completa_NOMS.txt
+papers/*/revisao_forte_NOMS_atualizada.txt

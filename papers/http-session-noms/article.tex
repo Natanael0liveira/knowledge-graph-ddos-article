@@ -86,7 +86,7 @@ SPARQL/SWRL rule fires on their weighted mass, and its derivation \emph{is} the
 verdict, exported as a JSON-LD and STIX~2.1 evidence chain whose discriminator
 scopes the mitigation. Against stealthy distributed campaigns, per-session
 detection stays at chance across four model families given the full flow-feature
-set, while cross-session reasoning detects them consistently (ROC AUC $0.50$
+set, while cross-session representation separates them consistently (ROC AUC $0.50$
 vs.\ $0.98$; $d = 22.4$); on public datasets, whose attacks carry an obvious flow
 signature, a strong per-session baseline already suffices --- a boundary we report
 explicitly. We further show that the obvious way to scope the mitigation is
@@ -245,9 +245,9 @@ as an entity one can reason about.
 
 The meta-analysis of Odusami et al.~\cite{odusami2020survey} gives the clearest
 quantitative evidence of how the session is handled: in 47\% of the cataloged
-methods, session-derived features feed the classifier, yet in none of the
-seventy-five studies is the session kept as an object with identity, target,
-behavior and typed relations. The reduction is uniform, and it is precisely what places cross-session
+methods, session-derived features feed the classifier; across the seventy-five
+studies we found none in which the session is kept as an object with identity,
+target, behavior and typed relations. The reduction is uniform, and it is precisely what places cross-session
 reasoning beyond the detector's reach.
 
 Industrial bot-management platforms do exploit cross-session structure, grouping
@@ -524,7 +524,7 @@ the campaign over $M$ stacks, uniformly, which is the conservative choice for a
 given $M$, and take $M = 25$ as canonical. No published measurement fixes $M$, so
 we sweep it rather than choose. Finally, an \emph{adversarial} mode lets the
 botnet adopt the most common benign fingerprints instead of its own; this is
-current practice rather than a hypothetical, as browser-impersonation tooling
+operationally feasible rather than hypothetical: browser-impersonation tooling
 ships ready ClientHello templates for specific Chrome and Safari versions.
 Legitimate distributions are calibrated against the $\sim$322k benign sessions of
 CICIDS2017 and verified by Kolmogorov--Smirnov
@@ -563,8 +563,8 @@ numbers on the same dataset and attack. The four ablation configurations are:
 \textbf{(a)} ML baseline without ontology; \textbf{(b)} ontology with \emph{no}
 \texttt{relatedBy} sub-relation, sessions as isolated nodes; \textbf{(c)}
 ontology with \emph{only} \texttt{relatedByNetworkProximity}, emulating a naive
-ASN/prefix detector; and \textbf{(d)} the complete framework with all six
-weighted sub-relations. Thus (d)$-$(a) is the total contribution, (d)$-$(b) the
+ASN/prefix detector; and \textbf{(d)} the complete framework over the three
+sub-relations observable in the evaluated traffic. Thus (d)$-$(a) is the total contribution, (d)$-$(b) the
 gain of representing cross-session structure at all, and (d)$-$(c) the gain of
 high-weight signals over network proximity.
 
@@ -825,7 +825,10 @@ profile against an $\alpha = 1.5$ episode: $90.3\%$ coverage, $0.45\%$ collatera
 a flat or missing profile is not, since every fingerprint then looks rare, the
 benign head scores as enriched, and collateral jumps to $81.2\%$. Coverage is
 unaffected throughout, since profile quality governs precision rather than recall,
-so maintaining it is a deployment requirement and not an optimization.
+so maintaining it is a deployment requirement and not an optimization. It also
+implies a fail-safe. Where the profile fails a freshness or drift check, scoped
+mitigation should be suppressed and the verdict emitted as evidence only --- the
+same abstention the enrichment test already performs when nothing is enriched.
 
 \subsection{Cost and the Choice of $W$}
 \label{sec:latency}
@@ -842,8 +845,9 @@ implies, grows $6.6\times$. Keep $W$ as small as the traffic allows.
 We ran paired Wilcoxon tests over the $n = 30$ runs, with Bonferroni correction
 and Cohen's $d$. In the distributed regime ($K = 1000$), \textbf{(d)$-$(c)} is
 significant at $p_{\mathrm{Bonf}} = 7.5\times 10^{-9}$ with $d = 13.5$, and
-\textbf{(d)$-$(a)} at $p_{\mathrm{Bonf}} = 7.5\times 10^{-9}$ with $d = 22.4$.
-Effect sizes of this magnitude reflect the controlled nature of synthetic
+\textbf{(d)$-$(a)} at $p_{\mathrm{Bonf}} = 7.5\times 10^{-9}$ with $d = 22.4$. The
+matched-pairs rank-biserial correlation is $+1.00$ for both contrasts: (d) wins
+in all 30 paired runs. Effect sizes of this magnitude reflect the controlled nature of synthetic
 traffic, which gives near-perfect separation, and should not be read as an
 expectation of field performance.
 
@@ -953,19 +957,20 @@ weighted mass, so that one derivation serves at once as the verdict, the evidenc
 chain and the scope of the mitigation.
 
 Against stealthy distributed campaigns, per-session detection sits at chance
-across four model families given the full flow-feature set, while the framework
-detects consistently ($0.50$ vs.\ $0.98$ ROC AUC; $d = 22.4$); on conventional
+across four model families given the full flow-feature set, while a model given
+the framework's cross-session representation reaches $0.98$ ROC AUC against
+$0.50$ ($d = 22.4$, all 30 paired runs in the same direction); on conventional
 real attacks the gain is marginal, because a strong per-session classifier already
-suffices. On the mitigation side the study produced a negative result worth as
-much as the positive one: scoping by the property most of the cluster shares
+suffices. On the mitigation side the study also exposes an operationally
+important negative result: scoping by the property most of the cluster shares
 selects a legitimate fingerprint once the botnet spans more than one TLS stack,
 blocking users instead of attackers. Enrichment over a profile of normal traffic
 restores $85$--$90\%$ coverage with no observed collateral. And measured as a
 detector,
 that symbolic path recovers $90\%$ of a 25-stack campaign where the learned model
 recovers $36\%$ at the same zero-false-positive operating point. That gap is
-hidden by the AUC, and it is our clearest evidence that the graph earns its
-place. Immediate
+hidden by the AUC, and it is the clearest evidence we have for the operational
+value of the symbolic path. Immediate
 directions are HTTP/2 attacks and a captured stealthy campaign, which no
 benchmark yet provides.
 

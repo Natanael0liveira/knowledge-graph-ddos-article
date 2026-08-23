@@ -93,7 +93,8 @@ reportamos essa delimitação explicitamente. Mostramos ainda que a maneira óbv
 de derivar o escopo da mitigação é nociva: a propriedade que a maioria do
 \emph{cluster} compartilha é um \emph{fingerprint} \emph{legítimo} assim que a
 \emph{botnet} abrange vários \emph{stacks} TLS, bloqueando $0\%$ do ataque e
-$39\%$ dos usuários. Escolher o discriminador por enriquecimento sobre um perfil
+$39\%$ do tráfego legítimo. Escolher o discriminador por enriquecimento sobre um
+perfil
 de tráfego normal bloqueia $85$--$90\%$ sem colateral observado. E, avaliado
 como detector, esse caminho simbólico dispensa treino de modelo e limiar de escore
 aprendido, recuperando de
@@ -489,9 +490,10 @@ discriminador em vez de emitir um filtro que só machuca usuários.
 
 \subsection{Cenários e Conjuntos de Dados}
 
-A hipótese central é que o raciocínio simbólico ponderado entre sessões ganha
-sobre a detecção por sessão em proporção ao \emph{grau de distribuição} $K$ da
-campanha, de modo que a avaliação é parametrizada por $K$ e não por nome de
+A hipótese central tem duas partes: a representação entre sessões ganha sobre a
+detecção por sessão à medida que o \emph{grau de distribuição} $K$ da campanha
+cresce, e o caminho simbólico converte essa estrutura numa decisão auditável e de
+baixo colateral. A avaliação é, portanto, parametrizada por $K$ e não por nome de
 ataque. O \textbf{Cenário~A (concentrado, $K=1$)} é o ataque clássico de alto
 volume e origem única: nenhuma aresta entre sessões é necessária para detectar, e
 espera-se que detectores volumétricos convencionais bastem; ele é degenerado para AUC
@@ -791,7 +793,7 @@ $F_1 = 0{,}900$, porque o Slowloris real do CIC-IoT2023, ao contrário das nossa
 campanhas furtivas sintéticas, deixa assinatura de fluxo por sessão. O arcabouço
 entre sessões alcança $F_1 = 0{,}911$, à frente por apenas $+0{,}011$.
 
-Três leituras honestas decorrem daí. Primeiro, \emph{neste ataque real a
+Três observações decorrem daí. Primeiro, \emph{neste ataque real a
 coordenação entre sessões não é necessária}: um classificador por sessão competente
 o separa, porque o ataque nunca foi calibrado para mimetizar o fluxo benigno.
 Segundo, a comparação com o KLAGE é favorável mas \emph{não controlada}: nosso
@@ -818,8 +820,8 @@ simbólico auditável e uma medida de dano colateral.
 \caption{Escolher o discriminador por frequência \emph{versus} por enriquecimento,
 sob concentração realista de \emph{fingerprints} benignos ($\alpha = 1{,}5$). A
 regra modal só se sustenta para \emph{botnet} monolítica; a partir de cinco
-\emph{stacks} ela não bloqueia atacante algum e atinge $39\%$ dos usuários
-legítimos. O enriquecimento é invariante à fragmentação e, sob adoção adversarial
+\emph{stacks} ela não bloqueia atacante algum e atinge $39\%$ do tráfego
+legítimo. O enriquecimento é invariante à fragmentação e, sob adoção adversarial
 de \emph{fingerprint}, recusa em vez de causar dano. $n = 15$ sementes.}
 \label{fig:collateral}
 \end{figure}
@@ -851,7 +853,7 @@ precisão.
 \textbf{Duas condições delimitam o resultado.} A primeira é adversarial: quando a
 \emph{botnet} adota \emph{fingerprints} benignos comuns, pouco fica enriquecido e a
 regra bloqueia $30{,}4\%$ do ataque a $3{,}78\%$ de colateral, contra $3{,}6\%$ e
-$39{,}0\%$ da regra por frequência. A vantagem cirúrgica é em larga medida
+$39{,}0\%$ da regra por frequência. A vantagem de seletividade é em larga medida
 perdida, mas é perdida \emph{com segurança}: com um $\rho$ mais estrito o escopo
 recusa nomear um \emph{fingerprint} e degenera para o controle global, que é o
 relato correto quando não existe discriminador. A segunda é o perfil de fundo. Um
@@ -870,12 +872,12 @@ teste de enriquecimento já pratica quando nada está enriquecido.
 \label{sec:latency}
 
 O Apêndice~\ref{app:cost} mede as duas camadas do \emph{pipeline} em função da
-ocupação da janela. Dois resultados importam: a admissão custa constantes
-$14$--$20$~ns por par candidato, sustentando cerca de $84\,000$ admissões de sessão
-por segundo em um núcleo com $|S_W| = 1\,000$; e a detecção é plana numa faixa de
-$30\times$ em $W$, enquanto a ocupação do \emph{cluster}, e com ela o termo
-quadrático de pares que $\Omega(S)$ implica, cresce $6{,}6\times$. Mantenha $W$ tão
-pequeno quanto o tráfego permitir.
+ocupação da janela. Dois resultados são operacionalmente relevantes: a admissão
+custa constantes $14$--$20$~ns por par candidato, sustentando cerca de $84\,000$
+admissões de sessão por segundo em um núcleo com $|S_W| = 1\,000$; e a detecção é
+plana numa faixa de $30\times$ em $W$, enquanto a ocupação do \emph{cluster}, e com
+ela o termo quadrático de pares que $\Omega(S)$ implica, cresce $6{,}6\times$. Isso
+favorece escolher $W$ tão pequeno quanto o tráfego permitir.
 
 \subsection{Significância Estatística}
 
@@ -970,14 +972,14 @@ evidência do grafo por atributos e não por SPARQL: um modelo linear sobre os m
 três atributos entre sessões ainda alcança $0{,}799$ contra $0{,}495$ do conjunto
 por sessão, de modo que o ganho de AUC na Tabela~\ref{tab:ablation} é atribuível a
 representar estrutura entre sessões, e não a expressá-la em OWL. O formalismo não
-está ali para elevar a AUC: ele compra um vocabulário tipado e inspecionável em
-que veredicto, evidência e escopo de mitigação são uma só derivação, exportável
-para STIX sem etapa de tradução. A camada simbólica
+tem por objetivo elevar a AUC; ele fornece um vocabulário tipado e inspecionável
+em que veredicto, evidência e escopo de mitigação formam uma única derivação,
+exportável para STIX sem etapa de tradução. A camada simbólica
 é evidenciada à parte, pela Tabela~\ref{tab:symbolic}, e apenas em parte: ela não
 supera o modelo aprendido contra \emph{botnet} monolítica, e sua vantagem aparece
 quando a fragmentação ou a adoção adversarial de \emph{fingerprint} tornam a
 distribuição de escores inutilizável para um limiar de falso positivo zero. As duas
-afirmações devem ser lidas separadamente.
+afirmações devem, portanto, ser interpretadas separadamente.
 
 \textbf{Cobertura de família de ataque, protocolo e \emph{dataset}.} A ontologia e
 a avaliação cobrem a família Slow HTTP DoS sobre HTTP/1.1; ataques sobre HTTP/2 e
@@ -1006,8 +1008,8 @@ ROC AUC; $d = 22{,}4$); em ataques reais convencionais o ganho é marginal, porq
 um classificador por sessão forte já basta. Do lado da mitigação, o estudo também
 expõe um resultado negativo operacionalmente importante: derivar o escopo pela
 propriedade que a maioria do \emph{cluster} compartilha seleciona um
-\emph{fingerprint} legítimo assim que a \emph{botnet} abrange mais de um
-\emph{stack} TLS, bloqueando usuários em vez de atacantes. O enriquecimento sobre
+\emph{fingerprint} legítimo assim que a \emph{botnet} abrange vários
+\emph{stacks} TLS, bloqueando usuários em vez de atacantes. O enriquecimento sobre
 um perfil de tráfego normal restaura $85$--$90\%$ de cobertura sem colateral
 observado. E, medido como detector, esse caminho simbólico recupera $90\%$ de uma
 campanha de 25 \emph{stacks} onde o modelo aprendido recupera $36\%$ no mesmo ponto

@@ -92,7 +92,8 @@ signature, a strong per-session baseline already suffices --- a boundary we repo
 explicitly. We further show that the obvious way to scope the mitigation is
 harmful: the property most of the cluster shares is a \emph{legitimate}
 fingerprint once the botnet spans several TLS stacks, blocking $0\%$ of the attack
-and $39\%$ of the users. Choosing the discriminator by enrichment over a profile
+and $39\%$ of legitimate traffic. Choosing the discriminator by enrichment over a
+profile
 of normal traffic blocks $85$--$90\%$ with no collateral observed instead. Measured as
 a detector, that symbolic path needs no model training and no learned score
 threshold, and recovers
@@ -474,10 +475,11 @@ emitting a filter that only harms users.
 
 \subsection{Scenarios and Datasets}
 
-The central hypothesis is that weighted symbolic cross-session reasoning gains
-over per-session detection in proportion to the \emph{degree of distribution}
-$K$ of the campaign, so the evaluation is parameterized by $K$ rather than by
-attack name. \textbf{Scenario~A (concentrated, $K=1$)} is the classic
+The central hypothesis has two parts: cross-session representation gains over
+per-session detection as the \emph{degree of distribution} $K$ of the campaign
+grows, and the symbolic path turns that structure into an auditable,
+low-collateral decision. The evaluation is therefore parameterized by $K$ rather
+than by attack name. \textbf{Scenario~A (concentrated, $K=1$)} is the classic
 single-source high-volume attack: no cross-session edge is needed for detection
 and conventional volumetric detectors are expected to suffice; it is degenerate for
 per-session AUC and we discuss it separately. \textbf{Scenario~B (moderately
@@ -762,7 +764,7 @@ real CIC-IoT2023 Slowloris, unlike our stealthy synthetic campaigns, leaves a
 per-session flow signature. The cross-session framework reaches $F_1 = 0.911$,
 ahead by only $+0.011$.
 
-Three honest readings follow. First, \emph{on this real attack cross-session
+Three observations follow. First, \emph{on this real attack cross-session
 coordination is not necessary}: a competent per-session classifier separates it,
 because the attack was never calibrated to mimic benign flow. Second, the
 comparison with KLAGE is favorable but \emph{uncontrolled}: our $0.911$ beats the
@@ -788,7 +790,7 @@ symbolic verdict and a measurable collateral-damage figure.
 \caption{Choosing the discriminator by frequency versus by enrichment, under
 realistic benign fingerprint concentration ($\alpha = 1.5$). The modal rule holds
 only for a monolithic botnet; from five stacks on it blocks no attacker and
-$39\%$ of legitimate users. Enrichment is invariant to fragmentation, and under
+$39\%$ of legitimate traffic. Enrichment is invariant to fragmentation, and under
 adversarial fingerprint adoption it declines rather than harms. $n = 15$ seeds.}
 \label{fig:collateral}
 \end{figure}
@@ -818,7 +820,7 @@ scoped mitigation trades completeness for precision.
 \textbf{Two conditions bound the result.} The first is adversarial: when the
 botnet adopts common benign fingerprints, little is enriched and the rule blocks
 $30.4\%$ of the attack at $3.78\%$ collateral, against $3.6\%$ and $39.0\%$ for the
-frequency rule. The surgical advantage is largely lost, but it is lost
+frequency rule. The selectivity advantage is largely lost, but it is lost
 \emph{safely}: with a stricter $\rho$ the scope declines to name a fingerprint and
 degenerates to the global control, the correct report when no discriminator
 exists. The
@@ -836,11 +838,12 @@ same abstention the enrichment test already performs when nothing is enriched.
 \label{sec:latency}
 
 Appendix~\ref{app:cost} measures both layers of the pipeline against window
-occupancy. Two results carry: admission costs a constant $14$--$20$~ns per
-candidate pair, sustaining some $84\,000$ session admissions per second on one
-core at $|S_W| = 1\,000$; and detection is flat over a $30\times$ range of $W$
-while cluster occupancy, and with it the quadratic pair term that $\Omega(S)$
-implies, grows $6.6\times$. Keep $W$ as small as the traffic allows.
+occupancy. Two results are operationally relevant: admission costs a constant
+$14$--$20$~ns per candidate pair, sustaining some $84\,000$ session admissions per
+second on one core at $|S_W| = 1\,000$; and detection is flat over a $30\times$
+range of $W$ while cluster occupancy, and with it the quadratic pair term that
+$\Omega(S)$ implies, grows $6.6\times$. These results favor choosing $W$ as small
+as the traffic permits.
 
 \subsection{Statistical Significance}
 
@@ -929,14 +932,15 @@ reaches the graph's evidence through features rather than through SPARQL: a
 linear model over the same three cross-session features still attains $0.799$
 against $0.495$ for the per-session set, so the AUC gain in
 Table~\ref{tab:ablation} is attributable to representing cross-session structure,
-not to expressing it in OWL. The formalism is not there to raise AUC: it buys a
-typed, inspectable vocabulary in which verdict, evidence and mitigation scope are
-one derivation, exportable to STIX without a translation step. The symbolic layer
+not to expressing it in OWL. The formalism is not intended to raise AUC; rather,
+it provides a typed, inspectable vocabulary in which verdict, evidence and
+mitigation scope form a single derivation, exportable to STIX without a
+translation step. The symbolic layer
 is evidenced separately, by
 Table~\ref{tab:symbolic}, and only in part: it does not beat the learned model
 against a monolithic botnet, and its advantage appears once fragmentation or
 adversarial fingerprint adoption make the score distribution unusable for a
-zero-false-positive threshold. Readers should keep the two claims apart.
+zero-false-positive threshold. These two claims should therefore be interpreted separately.
 
 \textbf{Attack-family, protocol and dataset coverage.} The ontology and the
 evaluation cover the Slow HTTP DoS family over HTTP/1.1; HTTP/2 attacks and
@@ -965,7 +969,7 @@ $0.50$ ($d = 22.4$, all 30 paired runs in the same direction); on conventional
 real attacks the gain is marginal, because a strong per-session classifier already
 suffices. On the mitigation side the study also exposes an operationally
 important negative result: scoping by the property most of the cluster shares
-selects a legitimate fingerprint once the botnet spans more than one TLS stack,
+selects a legitimate fingerprint once the botnet spans several TLS stacks,
 blocking users instead of attackers. Enrichment over a profile of normal traffic
 restores $85$--$90\%$ coverage with no observed collateral. And measured as a
 detector,

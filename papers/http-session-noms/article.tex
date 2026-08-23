@@ -340,7 +340,8 @@ default) and are purged incrementally, following an RDF stream-processing
 discipline. We adopt the OWL~2~RL profile~\cite{w3c2012owl2profiles}, which
 admits forward-chaining materialization with near-linear behavior on indexed
 SPARQL queries, over Apache Jena Fuseki with TDB2 storage; full OWL~2~DL
-reasoners do not scale to graphs of this size. Algorithm~\ref{alg:kg} sketches
+reasoners do not scale to graphs of this size. Fig.~\ref{fig:pipeline} lays out
+the two layers and the rates they run at; Algorithm~\ref{alg:kg} sketches
 construction; the per-pair decision procedure of each \texttt{relatedBy}
 sub-relation is given in Appendix~\ref{app:algorithms}. Admitting a new session
 into a window holding $|S_W|$ active sessions costs $O(|S_W|\cdot c)$, with $c$
@@ -1090,7 +1091,7 @@ production traffic remain future work.
 completeness and actionability ($7/7$), but \emph{perceived} actionability --- a
 human-analyst study of time-to-decision and comprehension --- was not conducted.
 
-\begin{figure}[h]
+\begin{figure}[tb]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig4_regime.png}
 \caption{Where cross-session reasoning is \emph{needed}. On conventional real
@@ -1103,7 +1104,7 @@ cross-session reasoning holds.}
 \section{Cost Model and Window Sensitivity}
 \label{app:cost}
 
-\begin{figure}[h]
+\begin{figure}[tb]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig5_latency.png}
 \caption{Cost of the two layers against window occupancy. Per-request admission
@@ -1139,7 +1140,7 @@ points at the deployment split the architecture already implies: detect on the
 indexed admission path, and materialize RDF only for the clusters that fire ---
 the evidence-chain subset, not the whole window.
 
-\begin{table}[h]
+\begin{table}[tb]
 \centering
 \caption{Window sweep, $K = 1000$, $n = 10$ seeds. Detection is flat across a
 $30\times$ range of $W$ while cluster occupancy --- and hence the quadratic pair
@@ -1163,13 +1164,12 @@ $W$ (s) & clusters & mean $|S|$ & (a) & (b) & (c) & (d) \\
 $W$ enters only through detection-cluster assignment, so the sweep recomputes
 the cross-session features on the same cached scenarios. Table~\ref{tab:window}
 shows detection is insensitive to it over $60$--$1800$~s: the discriminative
-feature is the fraction of a cluster sharing one JA4, a ratio that does not
-change as the cluster grows, whereas cluster size alone carries little --- which
-is why (c) sits at $0.664$ throughout. Two bounds on this result: the scenarios
-target a single endpoint, so $W$ is the only clustering knob and a multi-endpoint
-deployment with interleaved campaigns may behave differently; and $W$ must still
-be long enough for a cluster to form at all, which at $W = 60$~s already means
-$\approx 132$ sessions here.
+feature is the \emph{fraction} of a cluster sharing one JA4, which does not change
+as the cluster grows, whereas cluster size alone carries little --- hence (c) at
+$0.664$ throughout. Two bounds: the scenarios target a single endpoint, so $W$ is
+the only clustering knob and a multi-endpoint deployment may behave differently;
+and $W$ must be long enough for a cluster to form, which at $W = 60$~s already
+means $\approx 132$ sessions.
 
 \begin{listing}[t]
 \footnotesize
@@ -1204,18 +1204,17 @@ The reference implementation is available at
 \url{https://github.com/Natanael0liveira/knowledge-graph-ddos-article} under a
 permissive license, organized by experimental stage: the extraction pipeline
 (PCAP $\rightarrow$ JA4 and flows $\rightarrow$ sessions $\rightarrow$ graph);
-the calibrated synthetic generator, including the three realism parameters of
-Section~\ref{sec:method} --- Zipf exponent of benign fingerprint popularity,
-number of botnet TLS stacks, and adversarial adoption of common benign
-fingerprints --- with the canonical and adversarial scenario configurations; the
-ablation, the academic baselines and the four model families; the statistical
-runner; the comparison against published state of the art; the symbolic layer
+the calibrated synthetic generator, with the three realism parameters of
+Section~\ref{sec:method} and the canonical and adversarial scenario
+configurations; the
+ablation, the academic baselines, the four model families, the statistical runner
+and the comparison against published state of the art; the symbolic layer
 (SWRL rules plus the SPARQL aggregation, with weights read from the ontology);
 and the evidence and mitigation modules.
 
-Both scope derivations ship side by side, deliberately: the frequency rule that
-fails and the enrichment rule that replaces it, so that the negative result of
-Section~\ref{sec:collateral} is reproducible and not merely asserted. The
+Both scope derivations ship side by side: the frequency rule that fails and the
+enrichment rule that replaces it, so the negative result of
+Section~\ref{sec:collateral} is reproducible rather than asserted. The
 background profile the enrichment test needs is produced by an attack-free
 generator run, so no labels enter the decision path at any point. The cost model
 of Appendix~\ref{app:cost} requires no dataset and runs anywhere.
@@ -1223,9 +1222,9 @@ of Appendix~\ref{app:cost} requires no dataset and runs anywhere.
 Seeds are fixed, orchestration is driven by Makefiles, and artifacts --- figures,
 calibrated distributions and aggregated results --- are versioned; every table and
 every data figure in this paper regenerates from a single command per stage.
-Fig.~\ref{fig:ontology} is a hand-drawn schematic, and its editable source ships
-with the artifact. The OWL
-ontology is provided in RDF/XML, with every \texttt{relatedBy} sub-property
+Fig.~\ref{fig:ontology} is a schematic; its editable source ships with the
+artifact. The OWL ontology is provided in RDF/XML, with every \texttt{relatedBy}
+sub-property
 annotated with its \texttt{coordinationWeight}. We intend to submit these
 artifacts to the Artifact Evaluation track.
 

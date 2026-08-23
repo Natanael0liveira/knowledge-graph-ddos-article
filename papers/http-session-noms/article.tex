@@ -93,8 +93,9 @@ explicitly. We further show that the obvious way to scope the mitigation is
 harmful: the property most of the cluster shares is a \emph{legitimate}
 fingerprint once the botnet spans several TLS stacks, blocking $0\%$ of the attack
 and $39\%$ of the users. Choosing the discriminator by enrichment over a profile
-of normal traffic blocks $85$--$90\%$ at $0.00\%$ collateral instead. Measured as
-a detector, that symbolic path needs neither training nor threshold, and recovers
+of normal traffic blocks $85$--$90\%$ with no collateral observed instead. Measured as
+a detector, that symbolic path needs no model training and no learned score
+threshold, and recovers
 two to five times more of a fragmented campaign than the learned model does at
 the same zero-false-positive operating point.
 \end{abstract}
@@ -165,7 +166,8 @@ weighted \texttt{relatedTo} family.} An OWL ontology models
 \texttt{ApplicationSession} with typed relations to client identity, target
 endpoint, exhibited behavior and applicable mitigation, and replaces the flat
 \texttt{relatedTo} link with a family of \emph{six typed, weighted}
-sub-properties. The weights encode the attacker's cost of breaking each signal. Network
+sub-properties, of which the evaluation exercises the three that the available
+traffic exposes. The weights encode the attacker's cost of breaking each signal. Network
 proximity, trivially broken by modern botnets, therefore enters as auxiliary
 evidence and never as a prerequisite.
 
@@ -681,7 +683,8 @@ filter (Listing~\ref{lst:chain}, Appendix~\ref{app:cost}). A human-analyst study
 \centering
 \caption{The SPARQL/enrichment path evaluated end to end as a detector, where the
 sessions matching the derived scope \emph{are} the flagged sessions, with no
-classifier, no training and no threshold, against the learned model forced onto
+classifier, no training and no learned classification threshold, against the
+learned model forced onto
 the same operating point --- with the exception of the adversarial row, discussed
 in the text. $K = 1000$, $n = 15$ seeds.}
 \label{tab:symbolic}
@@ -705,8 +708,8 @@ $M{=}25$, adversarial & 30.4\% & 3.78\% & 0.452 & 0.862 & 7.8\% \\
 Every number so far came from a classifier over cross-session features, which
 measures the representation and says nothing about the symbolic layer. We
 therefore evaluate the rule directly: the sessions matching the scope derived in
-Section~\ref{sec:evidence} \emph{are} the flagged set, with no training and no
-threshold, and the decision arrives with its derivation. Since AUC is a ranking
+Section~\ref{sec:evidence} \emph{are} the flagged set, with no model training and
+no learned score threshold, and the decision arrives with its derivation. Since AUC is a ranking
 measure and the rule emits a hard decision, we also force the classifier onto the
 rule's own operating point (Table~\ref{tab:symbolic}).
 
@@ -793,8 +796,8 @@ it costs. We report both over $n = 15$ campaigns per configuration, comparing th
 frequency rule against the enrichment rule of Section~\ref{sec:evidence}
 (Fig.~\ref{fig:collateral}).
 
-For a monolithic botnet the two agree: $84.0\%$ of attacker sessions blocked at
-$0.00\%$ collateral, against $100\%$ for a global endpoint rate limit, which by
+For a monolithic botnet the two agree: $84.0\%$ of attacker sessions blocked with
+no collateral observed, against $100\%$ for a global endpoint rate limit, which by
 definition disconnects every legitimate user of the attacked service. That is the
 regime in which the frequency rule was validated, and it is not representative.
 From five stacks on, the modal fingerprint of the cluster becomes a
@@ -804,8 +807,9 @@ imposes the cost of mitigation and delivers none of the benefit. A more concentr
 benign population ($\alpha = 2.0$) raises that collateral to $61.1\%$.
 
 Enrichment removes the failure, blocking $90.0\%$, $90.3\%$ and $85.0\%$ of the
-attack at $M = 5$, $25$ and $100$ stacks, in every case at $\mathbf{0.00\%}$
-collateral, and reproducing the frequency rule where the latter worked. The
+attack at $M = 5$, $25$ and $100$ stacks, in every case with \textbf{no collateral
+observed} across the $n = 15$ campaigns, and reproducing the frequency rule where
+the latter worked. The
 surviving $10$--$15\%$ is the tail of attackers with one-off fingerprints:
 scoped mitigation trades completeness for precision.
 
@@ -910,15 +914,19 @@ recover cross-endpoint campaigns; quantifying the recall lost by the first tier
 and recovered by the second is a precondition for CDN-scale deployment. Taken together with Section~\ref{sec:latency}, these
 observations compose one scalability argument: endpoint sharding is exact and
 needs no coordination, a small $W$ costs no detection while cutting the
-quadratic pair term, and admission is microseconds. In a correctly configured
-deployment the quadratic term therefore never binds.
+quadratic pair term, and admission is microseconds. Endpoint partitioning and a
+bounded window should therefore keep the quadratic component off the per-request
+path, though confirming that at CDN scale remains future work.
 
 \textbf{The ablation measures representation, not formalism.} Configuration (d)
 reaches the graph's evidence through features rather than through SPARQL: a
 linear model over the same three cross-session features still attains $0.799$
 against $0.495$ for the per-session set, so the AUC gain in
 Table~\ref{tab:ablation} is attributable to representing cross-session structure,
-not to expressing it in OWL. The symbolic layer is evidenced separately, by
+not to expressing it in OWL. The formalism is not there to raise AUC: it buys a
+typed, inspectable vocabulary in which verdict, evidence and mitigation scope are
+one derivation, exportable to STIX without a translation step. The symbolic layer
+is evidenced separately, by
 Table~\ref{tab:symbolic}, and only in part: it does not beat the learned model
 against a monolithic botnet, and its advantage appears once fragmentation or
 adversarial fingerprint adoption make the score distribution unusable for a
@@ -952,7 +960,8 @@ suffices. On the mitigation side the study produced a negative result worth as
 much as the positive one: scoping by the property most of the cluster shares
 selects a legitimate fingerprint once the botnet spans more than one TLS stack,
 blocking users instead of attackers. Enrichment over a profile of normal traffic
-restores $85$--$90\%$ coverage at $0.00\%$ collateral. And measured as a detector,
+restores $85$--$90\%$ coverage with no observed collateral. And measured as a
+detector,
 that symbolic path recovers $90\%$ of a 25-stack campaign where the learned model
 recovers $36\%$ at the same zero-false-positive operating point. That gap is
 hidden by the AUC, and it is our clearest evidence that the graph earns its

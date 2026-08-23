@@ -94,8 +94,9 @@ de derivar o escopo da mitigação é nociva: a propriedade que a maioria do
 \emph{cluster} compartilha é um \emph{fingerprint} \emph{legítimo} assim que a
 \emph{botnet} abrange vários \emph{stacks} TLS, bloqueando $0\%$ do ataque e
 $39\%$ dos usuários. Escolher o discriminador por enriquecimento sobre um perfil
-de tráfego normal bloqueia $85$--$90\%$ a $0{,}00\%$ de colateral. E, avaliado
-como detector, esse caminho simbólico dispensa treino e limiar, recuperando de
+de tráfego normal bloqueia $85$--$90\%$ sem colateral observado. E, avaliado
+como detector, esse caminho simbólico dispensa treino de modelo e limiar de escore
+aprendido, recuperando de
 duas a cinco vezes mais de uma campanha fragmentada do que o modelo aprendido
 consegue no mesmo ponto de operação de falso positivo zero.
 \end{abstract}
@@ -170,7 +171,8 @@ família \texttt{relatedTo} ponderada.} Uma ontologia OWL modela
 \texttt{ApplicationSession} com relações tipadas para identidade do cliente,
 \emph{endpoint} alvo, comportamento exibido e mitigação aplicável, e substitui a
 relação plana \texttt{relatedTo} por uma família de \emph{seis sub-propriedades
-tipadas e ponderadas}. Os pesos codificam o custo que o atacante teria para
+tipadas e ponderadas}, das quais a avaliação exercita as três que o tráfego
+disponível expõe. Os pesos codificam o custo que o atacante teria para
 quebrar cada sinal. A proximidade de rede, trivialmente quebrada por
 \emph{botnets} modernas, entra portanto como evidência auxiliar e nunca como
 pré-requisito.
@@ -707,7 +709,8 @@ com analistas humanos fica como trabalho futuro.
 \centering
 \caption{O caminho SPARQL/enriquecimento avaliado ponta a ponta como detector, em
 que as sessões que casam com o escopo derivado \emph{são} as sessões marcadas, sem
-classificador, sem treino e sem limiar, contra o modelo aprendido forçado ao mesmo
+classificador, sem treino e sem limiar de classificação aprendido, contra o modelo
+aprendido forçado ao mesmo
 ponto de operação --- com exceção da linha adversarial, discutida no texto.
 $K = 1000$, $n = 15$ sementes.}
 \label{tab:symbolic}
@@ -825,7 +828,7 @@ comparando a regra por frequência contra a regra por enriquecimento da
 Seção~\ref{sec:evidence} (Fig.~\ref{fig:collateral}).
 
 Para uma \emph{botnet} monolítica as duas concordam: $84{,}0\%$ das sessões
-atacantes bloqueadas a $0{,}00\%$ de colateral, contra $100\%$ para um
+atacantes bloqueadas sem colateral observado, contra $100\%$ para um
 \emph{rate-limit} global no \emph{endpoint}, que por definição desconecta todo
 usuário legítimo do serviço atacado. Esse é o regime em que a regra por frequência
 foi validada, e ele não é representativo. A partir de cinco \emph{stacks}, o
@@ -837,7 +840,8 @@ nenhum de seus benefícios. Uma população benigna mais concentrada
 
 O enriquecimento elimina a falha, bloqueando $90{,}0\%$, $90{,}3\%$ e $85{,}0\%$ do
 ataque em $M = 5$, $25$ e $100$ \emph{stacks}, em todos os casos a
-$\mathbf{0{,}00\%}$ de colateral, e reproduzindo a regra por frequência onde esta
+\textbf{sem colateral observado} nas $n = 15$ campanhas, e reproduzindo a regra por
+frequência onde esta
 funcionava. Os $10$--$15\%$ que sobrevivem são a cauda de atacantes com
 \emph{fingerprints} avulsos: a mitigação de escopo derivado troca completude por
 precisão.
@@ -951,13 +955,18 @@ Seção~\ref{sec:latency}, essas observações compõem um único argumento de
 escalabilidade: o particionamento por \emph{endpoint} é exato e dispensa
 coordenação, um $W$ pequeno não custa detecção enquanto corta o termo quadrático de
 pares, e a admissão custa microssegundos. Numa implantação corretamente
-configurada, o termo quadrático portanto nunca morde.
+configurada, o particionamento por \emph{endpoint} e uma janela limitada devem
+portanto manter o termo quadrático fora do caminho por requisição, embora
+confirmar isso em escala de CDN siga como trabalho futuro.
 
 \textbf{A ablação mede representação, não formalismo.} A configuração (d) alcança a
 evidência do grafo por atributos e não por SPARQL: um modelo linear sobre os mesmos
 três atributos entre sessões ainda alcança $0{,}799$ contra $0{,}495$ do conjunto
 por sessão, de modo que o ganho de AUC na Tabela~\ref{tab:ablation} é atribuível a
-representar estrutura entre sessões, e não a expressá-la em OWL. A camada simbólica
+representar estrutura entre sessões, e não a expressá-la em OWL. O formalismo não
+está ali para elevar a AUC: ele compra um vocabulário tipado e inspecionável em
+que veredicto, evidência e escopo de mitigação são uma só derivação, exportável
+para STIX sem etapa de tradução. A camada simbólica
 é evidenciada à parte, pela Tabela~\ref{tab:symbolic}, e apenas em parte: ela não
 supera o modelo aprendido contra \emph{botnet} monolítica, e sua vantagem aparece
 quando a fragmentação ou a adoção adversarial de \emph{fingerprint} tornam a
@@ -993,8 +1002,8 @@ um resultado negativo que vale tanto quanto o positivo: derivar o escopo pela
 propriedade que a maioria do \emph{cluster} compartilha seleciona um
 \emph{fingerprint} legítimo assim que a \emph{botnet} abrange mais de um
 \emph{stack} TLS, bloqueando usuários em vez de atacantes. O enriquecimento sobre
-um perfil de tráfego normal restaura $85$--$90\%$ de cobertura a $0{,}00\%$ de
-colateral. E, medido como detector, esse caminho simbólico recupera $90\%$ de uma
+um perfil de tráfego normal restaura $85$--$90\%$ de cobertura sem colateral
+observado. E, medido como detector, esse caminho simbólico recupera $90\%$ de uma
 campanha de 25 \emph{stacks} onde o modelo aprendido recupera $36\%$ no mesmo ponto
 de operação de falso positivo zero. Essa lacuna é escondida pela AUC, e é a
 evidência mais clara de que o grafo se paga. Direções imediatas são os ataques

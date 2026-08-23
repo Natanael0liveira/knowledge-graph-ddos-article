@@ -373,6 +373,18 @@ occupancy.
 \end{algorithmic}
 \end{algorithm}
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig2_pipeline.png}
+\caption{Runtime pipeline, and the split that makes its cost bearable. The two
+layers run at different rates: admission is per request over inverted indexes,
+while RDF materialization and the $\Omega$ aggregation run once per window, three
+orders of magnitude apart per unit of work. The enrichment test reads a
+background profile built outside attack episodes, so no label enters the decision
+path at any point.}
+\label{fig:pipeline}
+\end{figure*}
+
 \subsection{Detection Rule}
 \label{sec:rule}
 
@@ -760,7 +772,7 @@ symbolic verdict and a measurable collateral-damage figure.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig2_collateral.png}
+\includegraphics[width=\columnwidth]{figures/fig3_collateral.png}
 \caption{Choosing the discriminator by frequency versus by enrichment, under
 realistic benign fingerprint concentration ($\alpha = 1.5$). The modal rule holds
 only for a monolithic botnet; from five stacks on it blocks no attacker and
@@ -1080,7 +1092,7 @@ human-analyst study of time-to-decision and comprehension --- was not conducted.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig3_regime.png}
+\includegraphics[width=\columnwidth]{figures/fig4_regime.png}
 \caption{Where cross-session reasoning is \emph{needed}. On conventional real
 attacks a strong per-session classifier already saturates; only in the stealthy
 distributed regime does per-session detection collapse to chance while
@@ -1093,7 +1105,7 @@ cross-session reasoning holds.}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig4_latency.png}
+\includegraphics[width=\columnwidth]{figures/fig5_latency.png}
 \caption{Cost of the two layers against window occupancy. Per-request admission
 is linear in $|S_W|$ and stays in the microsecond range; per-window symbolic
 materialization is linear in the number of RDF edges, which is itself quadratic

@@ -192,7 +192,7 @@
         <mxCell id="v1" edge="1" parent="1" source="vR" style="endArrow=block;endFill=1;endSize=6;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.6;fontFamily=Helvetica;fontSize=12;labelBackgroundColor=#FFFFFF;" target="vC" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="v2" edge="1" parent="1" source="vC" style="endArrow=block;endFill=1;endSize=6;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.6;fontFamily=Helvetica;fontSize=11;labelBackgroundColor=#FFFFFF;" target="vA" value="mitigatedBy">
+        <mxCell id="v2" edge="1" parent="1" source="vC" style="endArrow=block;endFill=1;endSize=6;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.6;fontFamily=Helvetica;fontSize=11;labelBackgroundColor=#FFFFFF;" target="vA" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="aC" parent="1" style="text;html=1;fontFamily=Helvetica;fontSize=13;fontColor=#4D4D4D;align=left;verticalAlign=top;" value="scope derived from the coordinated&lt;br&gt;subset, not from the whole endpoint" vertex="1">

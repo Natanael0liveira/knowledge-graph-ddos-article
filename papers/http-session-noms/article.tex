@@ -53,10 +53,9 @@
 \begin{abstract}
 Distributed Slow HTTP DoS campaigns keep every source below any reasonable
 per-session threshold, so the attack signal lives in the structure \emph{between}
-sessions rather than inside any one of them --- and detectors discard that
-structure by reducing the session to a numeric vector, while recent
-knowledge-graph detectors reason at the network-node level and stop at a textual
-report. We model the HTTP session as a first-class ontological entity in OWL and
+sessions rather than inside any one of them. Detectors discard that structure by
+reducing the session to a numeric vector, and recent knowledge-graph detectors
+reason at the network-node level and stop at a textual report. We model the HTTP session as a first-class ontological entity in OWL and
 replace the flat \texttt{relatedTo} link with six typed sub-properties weighted
 by the attacker's cost of breaking each signal, network proximity ranking lowest
 because modern botnets distribute aggressively across ASNs and prefixes. A
@@ -71,10 +70,10 @@ explicitly. We further show that the obvious way to scope the mitigation is
 harmful: the property most of the cluster shares is a \emph{legitimate}
 fingerprint once the botnet spans several TLS stacks, blocking $0\%$ of the attack
 and $39\%$ of the users. Choosing the discriminator by enrichment over a profile
-of normal traffic blocks $85$--$90\%$ at $0.00\%$ collateral instead, and as a
-detector that symbolic path needs no training or threshold, recovering two to five
-times more of a fragmented campaign than the learned model can at the same
-zero-false-positive operating point.
+of normal traffic blocks $85$--$90\%$ at $0.00\%$ collateral instead. Measured as
+a detector, that symbolic path needs neither training nor threshold, and recovers
+two to five times more of a fragmented campaign than the learned model does at
+the same zero-false-positive operating point.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -109,9 +108,9 @@ route entropy, client fingerprint consistency, and the convergence of many
 origins on one endpoint under one client signature~\cite{kemp2023approach}.
 
 This is a network and service management problem as much as a detection problem.
-An operator does not need a label; the operator needs to know \emph{which}
-clients to act on, on \emph{what} evidence, and with a filter narrow enough not
-to disconnect the legitimate users of the very service under attack.
+An operator does not need a label but a decision: \emph{which} clients to act
+on, on \emph{what} evidence, and with a filter narrow enough not to disconnect
+the legitimate users of the very service under attack.
 
 The literature acknowledges the first half and largely ignores the second. The
 meta-analysis of Odusami et al.~\cite{odusami2020survey} over seventy-five
@@ -128,7 +127,7 @@ Belcastro et al.~\cite{belcastro2025klage}, builds knowledge graphs from network
 logs, classifies nodes with Graph-BERT, and produces natural-language reports
 via LIME and large language models, reaching $F_1 = 84.1\%$ on IoT benchmarks
 that include DDoS Slowloris. It is solid evidence that knowledge graphs are a
-viable runtime detection substrate. Three properties, however, remain open. Its reasoning unit is the \emph{network
+viable runtime detection substrate. Three gaps, however, remain. Its reasoning unit is the \emph{network
 node} (port, IP, flow) rather than the application session. Coordination is
 captured implicitly in learned embeddings rather than in named symbolic relations.
 And the pipeline ends at a report, without a mitigation policy whose scope is
@@ -141,7 +140,7 @@ three gaps define the space this paper occupies.
 \item \textbf{The HTTP session as a first-class ontological entity, with a
 weighted \texttt{relatedTo} family.} An OWL ontology models
 \texttt{ApplicationSession} with typed relations to client identity, target
-endpoint, exhibited behavior and applicable mitigation, and replaces the flat
+endpoint, exhibited behaviour and applicable mitigation, and replaces the flat
 \texttt{relatedTo} link with a family of \emph{six typed, weighted}
 sub-properties. The weights encode the attacker's cost of breaking each signal. Network
 proximity, trivially broken by modern botnets, therefore enters as auxiliary
@@ -203,18 +202,18 @@ learned embeddings; and our output includes the scope of the mitigation.
 
 \subsection{Layer-7 HTTP DDoS Detection}
 
-Detection organises historically into three families. Statistical profiling
-builds baselines from aggregated flow or session statistics: Fernandes et
-al.~\cite{fernandes2015autonomous} with PCA over flow statistics, Bharathi and
-Sukanesh~\cite{bharathi2012pca} with PCA over a per-session behavioural matrix
-which is one of the first formulations to put the session at the centre, though
-still as a feature vector. Supervised learning over session features is the second
-family, with Kemp et al.~\cite{kemp2023approach} as the most recent
-representative; its authors note that the method was not validated in real time
-and that the output is binary, without ontological explanation. The third family
-consolidates the domain in surveys~\cite{tripathi2021application,cambiaso2013slowdos}.
-The common denominator is that the session is treated as a feature aggregate,
-never as an entity one can reason about.
+Detection work falls historically into two families, over a body of surveys that
+consolidate the domain~\cite{tripathi2021application,cambiaso2013slowdos}.
+Statistical profiling builds baselines from aggregated flow or session
+statistics: Fernandes et al.~\cite{fernandes2015autonomous} apply PCA to flow
+statistics, and Bharathi and Sukanesh~\cite{bharathi2012pca} to a per-session
+behavioural matrix. The latter is among the first formulations to put the session
+at the centre, though still as a feature vector. Supervised learning over session
+features is the second family, with Kemp et al.~\cite{kemp2023approach} as the
+most recent representative; its authors note that the method was not validated in
+real time and that the output is binary, without ontological explanation. The
+common denominator is that the session is treated as a feature aggregate, never
+as an entity one can reason about.
 
 
 \subsection{Session Modelling in Anomaly Detection}
@@ -223,9 +222,8 @@ The meta-analysis of Odusami et al.~\cite{odusami2020survey} gives the clearest
 quantitative evidence of how the session is handled: in 47\% of the catalogued
 methods, session-derived features feed the classifier, yet in none of the
 seventy-five studies is the session kept as an object with identity, target,
-behavior and typed relations. The reduction is uniform, and it is what puts
-reasoning about reused identities, about fingerprints converging on an endpoint,
-or about patterns visible only across sessions out of the detector's reach.
+behaviour and typed relations. The reduction is uniform, and it is precisely what places cross-session
+reasoning beyond the detector's reach.
 
 Industrial bot-management platforms do exploit cross-session structure, grouping
 apparently independent sessions by TLS stack similarity through JA4-family
@@ -242,7 +240,7 @@ an explicit ontological rule, is what remains open.
 \centering
 \includegraphics[width=\textwidth]{figures/fig1_ontology.png}
 \caption{Session-centric ontology. \texttt{ApplicationSession} is a first-class
-entity with typed primary relations to identity, origin, endpoint and behavior;
+entity with typed primary relations to identity, origin, endpoint and behaviour;
 the weighted \texttt{relatedTo} family links sessions to each other; and the
 detection rule couples the symbolic verdict to a course of action whose scope is
 derived from the coordinated subset.}
@@ -277,12 +275,12 @@ same machinery but are outside the experimental scope of this paper.
 The defender operates the attacked application and observes, per request, the TLS
 \emph{ClientHello} (hence a JA4 fingerprint), source address and prefix/ASN,
 target endpoint, arrival time, and whatever identity material the application
-exposes. It does not observe the botnet's control channel and has no ground truth
-about which sources are coordinated; it can, however, profile its own traffic
-when not under attack. The attacker controls $K$ origins, places them in the
+exposes. The defender sees neither the botnet's control channel nor any ground truth
+about which sources are coordinated, but can profile the service's own traffic
+outside attack episodes. The attacker controls $K$ origins, places them in the
 network, and may shape each session to be statistically indistinguishable from a
-legitimate one, which is the stealth assumption of our evaluation. It may also break
-individual coordination signals: forging JA4 with browser-impersonating
+legitimate one, which is the stealth assumption of our evaluation. The attacker
+may also break individual coordination signals: forging JA4 with browser-impersonating
 libraries, jittering timing, rotating identities, randomising payloads. Each move
 carries an operational cost, and the weighting of Section~\ref{sec:family}
 encodes that cost; Sections~\ref{sec:collateral} and~\ref{sec:discussion} report
@@ -364,7 +362,6 @@ mass}
 \Omega(S) \;=\; \sum_{i \in \mathcal{R}_{\mathrm{rel}}} w_i \,\big|E_i(S)\big| ,
 \label{eq:omega}
 \end{equation}
-
 with $E_i(S) = \{\{s_a,s_b\} \subseteq S : (s_a,\texttt{relatedBy}_i,s_b) \in E\}$
 the set of session pairs linked by sub-relation $i$. Sub-relations are symmetric,
 so each unordered pair counts once. The rule
@@ -441,7 +438,7 @@ over per-session detection in proportion to the \emph{degree of distribution}
 $K$ of the campaign, so the evaluation is parameterised by $K$ rather than by
 attack name. \textbf{Scenario~A (concentrated, $K=1$)} is the classic
 single-source high-volume attack: no cross-session edge is needed for detection
-and classic volumetric detectors are expected to suffice; it is degenerate for
+and conventional volumetric detectors are expected to suffice; it is degenerate for
 per-session AUC and we discuss it separately. \textbf{Scenario~B (moderately
 distributed, $10 \leq K \leq 100$)} models small botnets or proxy-limited
 operations, each origin staying inside its own rate limit; here network
@@ -539,7 +536,7 @@ size, rather than by querying the RDF graph. It is a feature-level proxy for the
 representation the \texttt{relatedBy} family encodes, chosen so that every
 configuration differs only in representation, not in the underlying data or the
 classifier. The ablation therefore isolates \emph{representation}, and its result
-is a statement about representation: it does not, on its own, evidence the
+is a statement about representation: it is not, on its own, evidence for the
 symbolic layer. What the ontology and the SPARQL/SWRL formulation add is
 evaluated separately, as the auditable derivation and the derived mitigation
 scope.
@@ -612,7 +609,7 @@ which consume the same feature set, land in the same place.
 
 Configuration (d) is where model choice starts to matter, and the realistic
 scenario exposes why. Fragmenting the botnet over 25 stacks makes the
-cross-session evidence \emph{non-monotonic} in the label: an attacker shares its
+cross-session evidence \emph{non-monotonic} in the label: an attacker shares a
 fingerprint with a few dozen peers, while a legitimate client in the head of the
 benign distribution shares it with hundreds. Tree ensembles carve out the
 intermediate band and reach $0.98$--$0.99$ at $K = 1000$ and $0.92$--$0.93$ at
@@ -623,10 +620,10 @@ indicates benign traffic. The paired contrasts on the reference learner remain
 decisive ($p_{\mathrm{Bonf}} = 7.5\times10^{-9}$; Cohen's $d = +22.4$ for
 (d)$-$(a) and $+13.5$ for (d)$-$(c) at $K = 1000$).
 
-That non-monotonicity argues for the symbolic path rather than against the
+The non-monotonicity argues for the symbolic path rather than against the
 approach: a learned model must infer the benign baseline from its training sample
 and encode it in a boundary, whereas the rule of Section~\ref{sec:evidence}
-compares against an explicit profile. That is why enrichment behaves uniformly
+compares against an explicit profile. Enrichment, by contrast, behaves uniformly
 across the fragmentation range where the learners diverge.
 
 That (b) also sits at chance is the most informative single result:
@@ -726,7 +723,7 @@ because the attack was never calibrated to mimic benign flow. Second, the
 comparison with KLAGE is favourable but \emph{uncontrolled}: our $0.911$ beats the
 published $0.841$, yet so does our own strong baseline at $0.900$, so the margin
 is \emph{not} attributable to cross-session reasoning. KLAGE also classifies
-network nodes into attack types while we classify sessions binarily. A controlled
+network nodes into attack types while we make a binary decision per session. A controlled
 rerun is not currently possible: the released code starts from a pre-built graph
 whose construction from the raw dataset is unpublished and ships no weights, so
 any rerun would rest on our own reconstruction of it. Third, the necessity of cross-session
@@ -741,7 +738,7 @@ symbolic verdict and a measurable collateral-damage figure.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig3_collateral.png}
+\includegraphics[width=\columnwidth]{figures/fig2_collateral.png}
 \caption{Choosing the discriminator by frequency versus by enrichment, under
 realistic benign fingerprint concentration ($\alpha = 1.5$). The modal rule holds
 only for a monolithic botnet; from five stacks on it blocks no attacker and
@@ -761,7 +758,7 @@ definition disconnects every legitimate user of the attacked service. That is th
 regime in which the frequency rule was validated, and it is not representative.
 From five stacks on, the modal fingerprint of the cluster becomes a
 \emph{legitimate} one and the rule inverts: $0.0\%$ of the attack blocked and
-$39.0\%$ of legitimate traffic hit. That is worse than doing nothing, since it
+$39.0\%$ of legitimate traffic hit. The result is worse than doing nothing: the filter
 imposes the cost of mitigation and delivers none of the benefit. A more concentrated
 benign population ($\alpha = 2.0$) raises that collateral to $61.1\%$.
 
@@ -797,8 +794,8 @@ implies, grows $6.6\times$. Keep $W$ as small as the traffic allows.
 
 \subsection{Statistical Significance}
 
-Paired Wilcoxon tests over the $n = 30$ runs, with Bonferroni correction and
-Cohen's $d$. In the distributed regime ($K = 1000$), \textbf{(d)$-$(c)} is
+We ran paired Wilcoxon tests over the $n = 30$ runs, with Bonferroni correction
+and Cohen's $d$. In the distributed regime ($K = 1000$), \textbf{(d)$-$(c)} is
 significant at $p_{\mathrm{Bonf}} = 7.5\times 10^{-9}$ with $d = 13.5$, and
 \textbf{(d)$-$(a)} at $p_{\mathrm{Bonf}} = 7.5\times 10^{-9}$ with $d = 22.4$.
 Effect sizes of this magnitude reflect the controlled nature of synthetic
@@ -809,14 +806,15 @@ expectation of field performance.
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
-Five limitations bound the claim; further ones are listed in
+Five limitations bound the claim, interleaved below with two paragraphs that
+place the framework operationally; further ones are listed in
 Appendix~\ref{app:limitations}.
 
 \textbf{The gain is regime-specific.} Against single-source high-volume attacks,
 per-IP or per-session thresholds perform comparably, and on the conventional
 real attacks available in public datasets a strong per-session classifier
-already reaches $\mathrm{AUC} \geq 0.98$, leaving cross-session reasoning a
-marginal margin. The advantage is decisive only when the campaign is distributed
+already reaches $\mathrm{AUC} \geq 0.98$, leaving cross-session reasoning only a
+marginal gain. The advantage is decisive only when the campaign is distributed
 \emph{and} stealthy. This work does not replace volumetric defences; it
 complements them. Validating the approach on \emph{captured} stealthy
 distributed traffic, which no public benchmark provides, is the single most
@@ -829,8 +827,8 @@ draw their per-session attributes from real benign distributions. The
 per-session non-separability in Table~\ref{tab:ablation} is therefore not an
 artefact of a weakened baseline, since four model families with all flow
 attributes stay at chance. The mimicry is imposed by construction, so the result
-shows the mechanism under an assumption of perfect per-session mimicry rather
-than proving performance on a real capture of that regime.
+shows the mechanism under an assumption of perfect per-session indistinguishability,
+rather than proving performance on a real capture of that regime.
 
 \textbf{Detection and scoping both depend on an observable high-weight
 discriminator.} A robustness sweep ($n = 10$) makes the dependency explicit: as
@@ -910,7 +908,7 @@ across four model families given the full flow-feature set, while the framework
 detects consistently ($0.50$ vs.\ $0.98$ ROC AUC; $d = 13.5$); on conventional
 real attacks the gain is marginal, because a strong per-session classifier already
 suffices. On the mitigation side the study produced a negative result worth as
-much as the positive one: scoping by the property the cluster mostly shares
+much as the positive one: scoping by the property most of the cluster shares
 selects a legitimate fingerprint once the botnet spans more than one TLS stack,
 blocking users instead of attackers. Enrichment over a profile of normal traffic
 restores $85$--$90\%$ coverage at $0.00\%$ collateral. And measured as a detector,
@@ -1060,7 +1058,7 @@ human-analyst study of time-to-decision and comprehension --- was not conducted.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig2_regime.png}
+\includegraphics[width=\columnwidth]{figures/fig4_regime.png}
 \caption{Where cross-session reasoning is \emph{needed}. On conventional real
 attacks a strong per-session classifier already saturates; only in the stealthy
 distributed regime does per-session detection collapse to chance while
@@ -1073,7 +1071,7 @@ cross-session reasoning holds.}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig4_latency.png}
+\includegraphics[width=\columnwidth]{figures/fig5_latency.png}
 \caption{Cost of the two layers against window occupancy. Per-request admission
 is linear in $|S_W|$ and stays in the microsecond range; per-window symbolic
 materialisation is linear in the number of RDF edges, which is itself quadratic

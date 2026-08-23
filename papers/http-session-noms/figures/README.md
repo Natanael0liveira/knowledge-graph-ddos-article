@@ -69,3 +69,31 @@ resultado.
 ```
 python make_figures_en.py
 ```
+
+### Paleta (comum às duas categorias)
+
+Monocromática, casada com a Fig. 1. O contraste vem de tom e de marcador, nunca
+de matiz, então sobrevive a impressão em escala de cinza e a leitores daltônicos.
+
+| papel | hex | onde |
+|---|---|---|
+| série principal / "ours" | `#1a1a1a` | barras e linhas do nosso método; traço do modelo na Fig. 1 |
+| série de comparação | `#bdbdbd` | *baseline* por sessão, regra modal |
+| anotação | `#595959` | notas cinzas, linha de *chance*, setas explicativas, `NetworkProximity` |
+
+No `make_figures_en.py` as constantes mantêm os nomes históricos (`NAVY`,
+`BAR_GRAY`, `CHANCE`) para não tocar o corpo das funções — só os valores mudaram.
+
+### Numeração: os nomes de arquivo NÃO batem com os números impressos
+
+| impressa | arquivo |
+|---|---|
+| Fig. 1 | `fig1_ontology.png` |
+| Fig. 2 | **`fig3_collateral.png`** |
+| Fig. 3 | bloco `verbatim` (regras SWRL/SPARQL, Apêndice A) |
+| Fig. 4 | **`fig2_regime.png`** |
+| Fig. 5 | **`fig4_latency.png`** |
+| Fig. 6 | bloco `verbatim` (cadeia de evidência, Apêndice D) |
+
+Os números impressos seguem a ordem de aparição no texto, que não é a ordem em
+que os arquivos foram criados. Confira sempre no PDF antes de discutir "a Fig. N".

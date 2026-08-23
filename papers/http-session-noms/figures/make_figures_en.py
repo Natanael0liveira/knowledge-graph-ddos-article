@@ -175,7 +175,7 @@ def fig_regime(root):
     ax.barh(y + h / 2, [g[1] for g in groups], height=h, color=BAR_GRAY,
             label="strong per-session ML (8-9 features)", zorder=3)
     ax.barh(y - h / 2, [g[2] for g in groups], height=h, color=NAVY,
-            label="cross-session reasoning (ours)", zorder=3)
+            label="cross-session representation (ours)", zorder=3)
     for yi, (_, vp, vc, hi) in zip(y, groups):
         ax.text(vp + .008, yi + h / 2, f"{vp:.2f}", va="center", fontsize=9,
                 fontweight="bold" if hi else "normal", color=CHANCE if hi else "#333")

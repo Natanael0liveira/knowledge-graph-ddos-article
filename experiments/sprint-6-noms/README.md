@@ -322,3 +322,28 @@ Gravados em `results/`:
 - `collateral_purity_runs.csv`, `collateral_purity.json` ✅
 - `realistic_final_runs.csv`, `realistic_consolidated.csv` ✅
 - `symbolic_detector_runs.csv`, `symbolic_detector.json` ✅
+- `profile_drift_runs.csv`, `profile_drift.json` ✅ **respalda a alegação de desvio de perfil da §V-D**
+
+## 8. Sensibilidade ao perfil de fundo (`profile_drift.py`)
+
+O teste de enriquecimento da §III-G compara a prevalência de cada
+*fingerprint* dentro do *cluster* que disparou contra um perfil de fundo que o
+operador mantém fora de episódios de ataque. Esse perfil é uma **dependência de
+implantação**, então a qualidade dele precisa ser medida, não assumida.
+
+O script fixa o episódio (cenário canônico α=1,5, M=25, K=1000) e varia só o
+perfil:
+
+| perfil | α do perfil | cobertura | colateral |
+|---|---|---|---|
+| alinhado | 1,5 | 90,3% | 0,00% |
+| desviado | 2,0 | 90,3% | **0,45%** |
+| plano | 0,0 | 90,3% | **81,19%** |
+
+A cobertura não se move: a qualidade do perfil governa **precisão**, não
+*recall*. Com perfil plano todo *fingerprint* parece raro, a cabeça benigna
+pontua como enriquecida, e o escopo passa de 25 para 39 valores.
+
+> Este experimento sustenta números que a §V-D já afirmava mas que, até
+> 2026-08-23, não tinham arquivo de resultado no repositório — tinham sido
+> rodados de forma avulsa e a saída se perdeu. Agora regeneram por `make drift`.

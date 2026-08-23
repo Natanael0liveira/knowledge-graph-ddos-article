@@ -1,0 +1,31 @@
+{
+  "episode_alpha": 1.5,
+  "stacks": 25,
+  "K": 1000,
+  "seeds": 15,
+  "min_support": 0.002,
+  "min_enrichment": 3.0,
+  "aggregate": {
+    "matched": {
+      "profile_alpha": 1.5,
+      "n": 15,
+      "coverage": 0.9029999999999999,
+      "collateral": 0.0,
+      "n_ja4": 25.0
+    },
+    "drifted": {
+      "profile_alpha": 2.0,
+      "n": 15,
+      "coverage": 0.9029999999999999,
+      "collateral": 0.0044666666666666665,
+      "n_ja4": 25.666666666666668
+    },
+    "flat": {
+      "profile_alpha": 0.0,
+      "n": 15,
+      "coverage": 0.9029999999999999,
+      "collateral": 0.8118666666666666,
+      "n_ja4": 39.0
+    }
+  }
+}

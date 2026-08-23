@@ -8,6 +8,8 @@
 #                botnet, adversarial fingerprint adoption) — modal vs enrichment scope
 #   canonical  : the ablation that the paper reports, on the realistic scenario
 #   purity     : collateral vs benign prevalence of the discriminator
+#   drift      : sensitivity of the derived scope to the background profile the
+#                enrichment test reads (matched / drifted / flat)
 #   symbolic   : the SPARQL/enrichment rule evaluated AS a detector, against the
 #                learned model forced onto the same operating point
 #   all-hd     : everything that needs the external drive
@@ -27,7 +29,7 @@ RESULTS  ?= results
 SEEDS    ?= 30
 K        ?= 50 1000
 
-.PHONY: help latency ml window realistic canonical purity symbolic all-hd check-data clean
+.PHONY: help latency ml window realistic canonical purity symbolic drift all-hd check-data clean
 
 help:
 	@echo "make latency            # no external data required"
@@ -85,7 +87,11 @@ symbolic: check-data
 	         1.5:5:1 1.5:25:1 2.0:25:1 \
 	  --K 1000 --seeds 15 --out-dir $(RESULTS)
 
-all-hd: ml window realistic canonical purity symbolic
+drift: check-data
+	nice -n 10 $(PY) scripts/profile_drift.py --work $(REALWORK) \
+	  --alpha 1.5 --stacks 25 --K 1000 --seeds 15 --out-dir $(RESULTS)
+
+all-hd: ml window realistic canonical purity symbolic drift
 
 clean:
 	rm -rf $(RESULTS)/*.csv $(RESULTS)/*.json

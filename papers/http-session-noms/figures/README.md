@@ -8,7 +8,8 @@ Fonte em `src-drawio/*.drawio`, referências de estilo em `reference/`.
 
 | figura | fonte | referência de estilo | estado |
 |---|---|---|---|
-| `fig1_ontology` | `src-drawio/fig1_ontology.drawio` | `reference/b.pdf` | rascunho — canvas 1032×396, entra a `\textwidth` |
+| `fig1_ontology` | `src-drawio/fig1_ontology.drawio` | `reference/b.pdf` | canvas 1032×396, entra a `\textwidth` |
+| `fig2_pipeline` | `src-drawio/fig_pipeline.drawio` | `reference/complete-framework.pdf` | canvas 1032×346, entra a `\textwidth` |
 | `fig:rules` (Apêndice A) | — | `reference/modular-symb.pdf` ou `code-frag-4.pdf` | hoje é bloco `verbatim` |
 | `fig:chain` (Apêndice D) | — | `reference/table-exec.pdf` | hoje é bloco `verbatim` |
 | pipeline de §III-D | — | `reference/mini-framework-6.pdf` | não existe |
@@ -86,20 +87,16 @@ No `make_figures_en.py` as constantes mantêm os nomes históricos (`NAVY`,
 
 ### Numeração: nome de arquivo = número impresso
 
-| impressa | fonte |
-|---|---|
-| Fig. 1 | `fig1_ontology.png` (draw.io) |
-| Fig. 2 | `fig2_collateral.png` |
-| Fig. 3 | `fig3_regime.png` |
-| Fig. 4 | `fig4_latency.png` |
-| Listing 1 | bloco `verbatim`, Apêndice A (regras SWRL/SPARQL) |
-| Listing 2 | bloco `verbatim`, Apêndice D (cadeia de evidência) |
-
-Os dois blocos de código eram floats `figure`, o que abria buracos na sequência
-das figuras-imagem (1, 2, 4, 5). Agora têm contador próprio via `float.sty`, com
-um estilo de legenda (`ieeelst`, definido no preâmbulo) que reproduz o
-`Fig. 1. Texto` do IEEEtran.
+| impressa | fonte | tipo |
+|---|---|---|
+| Fig. 1 | `src-drawio/fig1_ontology.drawio` | esquema draw.io |
+| Fig. 2 | `src-drawio/fig_pipeline.drawio` | esquema draw.io |
+| Fig. 3 | `fig3_collateral.png` | gerada por código |
+| Fig. 4 | `fig4_regime.png` | gerada por código |
+| Fig. 5 | `fig5_latency.png` | gerada por código |
+| Listagem 1 | bloco `verbatim`, Apêndice A | regras SWRL/SPARQL |
+| Listagem 2 | bloco `verbatim`, Apêndice D | cadeia de evidência |
 
 **Se acrescentar ou remover um float, confira a numeração no PDF e renomeie os
-arquivos.** Foi exatamente por não fazer isso que a sequência desandou duas
-vezes.
+arquivos.** A sequência já desandou três vezes por isso — os números impressos
+seguem a ordem de aparição, não a ordem de criação.

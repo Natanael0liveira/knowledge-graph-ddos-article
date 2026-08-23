@@ -3,7 +3,7 @@
 
 Generates the three DATA figures. fig1_ontology is a draw.io schematic and is NOT
 produced here -- see figures/README.md and figures/src-drawio/.
-  fig4_regime.png     -- single column: strong per-session ML already solves conventional
+  fig3_regime.png     -- single column: strong per-session ML already solves conventional
                          real attacks; only the stealthy-distributed regime needs
                          cross-session reasoning.
   fig2_collateral.png -- single column: derived-scope mitigation zeroes collateral damage
@@ -196,7 +196,7 @@ def fig_regime(root):
     ax.grid(axis="x", alpha=.3)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
-    out = os.path.join(OUT, "fig4_regime.png")
+    out = os.path.join(OUT, "fig3_regime.png")
     fig.savefig(out, dpi=200, bbox_inches="tight")
     plt.close(fig)
     print(f"OK: {out} | conventional a={conv_a:.3f} d={conv_d:.3f} | "
@@ -286,7 +286,7 @@ def fig_latency(root):
               label="admission, per request (indexed)")
     ax.loglog(sym_n, sym, "s-", color=BAR_GRAY, lw=2, ms=6,
               markeredgecolor="#777",
-              label="symbolic materialisation, per window (rdflib)")
+              label="symbolic materialization, per window (rdflib)")
 
     # reference slopes anchored on the first point of each series
     xs = [sizes[0], sizes[-1]]
@@ -308,7 +308,7 @@ def fig_latency(root):
               fontsize=8.2, frameon=False)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
-    out = os.path.join(OUT, "fig5_latency.png")
+    out = os.path.join(OUT, "fig4_latency.png")
     fig.savefig(out, dpi=200, bbox_inches="tight")
     plt.close(fig)
     print(f"OK: {out}")

@@ -33,6 +33,24 @@
 \setlength{\intextsep}{8pt plus 2pt minus 2pt}
 \setlength{\dbltextfloatsep}{10pt plus 2pt minus 2pt}
 
+%% Os dois blocos de codigo eram floats \begin{figure}, o que abria buracos na
+%% numeracao das figuras-imagem (1, 2, 4, 5). Com contador proprio, as figuras
+%% ficam 1-4 contiguas e o codigo vira Listing 1-2.
+\usepackage{float}
+%% Estilo de legenda igual ao das figuras do IEEEtran ("Listing 1. Texto"):
+%% o estilo plain do float.sty nao insere o ponto separador.
+\makeatletter
+\newcommand\floatc@ieeelst[2]{\setbox\@tempboxa\hbox{\footnotesize #1.\enskip #2}%
+  \ifdim\wd\@tempboxa>\hsize \footnotesize #1.\enskip #2\par
+  \else \hbox to\hsize{\hfil\box\@tempboxa\hfil}\fi}
+\newcommand\fs@ieeelst{\def\@fs@cfont{\footnotesize}\let\@fs@capt\floatc@ieeelst
+  \def\@fs@pre{}\def\@fs@mid{\vspace\abovecaptionskip}\def\@fs@post{}%
+  \let\@fs@iftopcapt\iffalse}
+\makeatother
+\floatstyle{ieeelst}
+\newfloat{listing}{tbp}{lol}
+\floatname{listing}{Listing}
+
 %% IEEEtran uses URW Courier (pcr) for \texttt. Fall back to Computer Modern
 %% typewriter when those metrics are absent locally; Overleaf and full TeX Live
 %% installations keep the IEEE-standard font.
@@ -90,7 +108,7 @@ HTTP/2 Rapid Reset (CVE-2023-44487) pushed mitigated peaks to 398 million
 requests per second from a botnet of roughly twenty thousand
 machines~\cite{cve202344487,google2023rapidreset}, and Cloudflare blocked more
 than 6\,500 hyper-volumetric attacks in Q2 2025 alone, with HTTP DDoS growing
-129\% year over year~\cite{cloudflare2025q2ddos}. Volumetric defences answer the
+129\% year over year~\cite{cloudflare2025q2ddos}. Volumetric defenses answer the
 loud end of this spectrum. The quiet end is harder. The family of
 \emph{distributed Slow HTTP DoS} attacks covers Slowloris and its descendants,
 plus rate-based variants that still hold connections open, such as HULK and
@@ -140,7 +158,7 @@ three gaps define the space this paper occupies.
 \item \textbf{The HTTP session as a first-class ontological entity, with a
 weighted \texttt{relatedTo} family.} An OWL ontology models
 \texttt{ApplicationSession} with typed relations to client identity, target
-endpoint, exhibited behaviour and applicable mitigation, and replaces the flat
+endpoint, exhibited behavior and applicable mitigation, and replaces the flat
 \texttt{relatedTo} link with a family of \emph{six typed, weighted}
 sub-properties. The weights encode the attacker's cost of breaking each signal. Network
 proximity, trivially broken by modern botnets, therefore enters as auxiliary
@@ -161,7 +179,7 @@ derive it --- the property most of the cluster shares --- is actively harmful un
 realistic conditions, and replace it with a criterion based on enrichment over a
 profile of normal traffic.
 
-\item \textbf{An evaluation parameterised by the degree of distribution, with a
+\item \textbf{An evaluation parameterized by the degree of distribution, with a
 collateral-damage metric.} Against a deliberately \emph{strong} per-session baseline, ablation isolates the
 gain of cross-session reasoning and the specific gain of high-weight signals over
 network proximity. We also report the fraction of legitimate traffic hit by the
@@ -183,7 +201,7 @@ bound the claim.
 \subsection{Knowledge Graphs for Security and Management}
 
 The first wave of security knowledge graphs was \emph{static}: entities
-extracted from CVEs, reports and blogs, normalised and linked into a queryable
+extracted from CVEs, reports and blogs, normalized and linked into a queryable
 base~\cite{jia2018practical,bonagiri2024practical}. The survey of Liu et
 al.~\cite{liu2022recent} states the resulting gap plainly: ``it is still
 unclear how to implement the knowledge graph to face real industrial
@@ -207,8 +225,8 @@ consolidate the domain~\cite{tripathi2021application,cambiaso2013slowdos}.
 Statistical profiling builds baselines from aggregated flow or session
 statistics: Fernandes et al.~\cite{fernandes2015autonomous} apply PCA to flow
 statistics, and Bharathi and Sukanesh~\cite{bharathi2012pca} to a per-session
-behavioural matrix. The latter is among the first formulations to put the session
-at the centre, though still as a feature vector. Supervised learning over session
+behavioral matrix. The latter is among the first formulations to put the session
+at the center, though still as a feature vector. Supervised learning over session
 features is the second family, with Kemp et al.~\cite{kemp2023approach} as the
 most recent representative; its authors note that the method was not validated in
 real time and that the output is binary, without ontological explanation. The
@@ -216,20 +234,20 @@ common denominator is that the session is treated as a feature aggregate, never
 as an entity one can reason about.
 
 
-\subsection{Session Modelling in Anomaly Detection}
+\subsection{Session Modeling in Anomaly Detection}
 
 The meta-analysis of Odusami et al.~\cite{odusami2020survey} gives the clearest
-quantitative evidence of how the session is handled: in 47\% of the catalogued
+quantitative evidence of how the session is handled: in 47\% of the cataloged
 methods, session-derived features feed the classifier, yet in none of the
 seventy-five studies is the session kept as an object with identity, target,
-behaviour and typed relations. The reduction is uniform, and it is precisely what places cross-session
+behavior and typed relations. The reduction is uniform, and it is precisely what places cross-session
 reasoning beyond the detector's reach.
 
 Industrial bot-management platforms do exploit cross-session structure, grouping
 apparently independent sessions by TLS stack similarity through JA4-family
 fingerprints~\cite{althouse2023ja4}. They are proprietary, however, with no public
-ontology, no reproducible academic benchmark, and no formalised collateral-damage
-metric. Formalising that practice auditably, and deriving mitigation scope from
+ontology, no reproducible academic benchmark, and no formalized collateral-damage
+metric. Formalizing that practice auditably, and deriving mitigation scope from
 an explicit ontological rule, is what remains open.
 
 %% ====================================================================
@@ -240,14 +258,14 @@ an explicit ontological rule, is what remains open.
 \centering
 \includegraphics[width=\textwidth]{figures/fig1_ontology.png}
 \caption{Session-centric ontology. \texttt{ApplicationSession} is a first-class
-entity with typed primary relations to identity, origin, endpoint and behaviour;
+entity with typed primary relations to identity, origin, endpoint and behavior;
 the weighted \texttt{relatedTo} family links sessions to each other; and the
 detection rule couples the symbolic verdict to a course of action whose scope is
 derived from the coordinated subset.}
 \label{fig:ontology}
 \end{figure*}
 
-Fig.~\ref{fig:ontology} summarises the framework. Four stages run over live
+Fig.~\ref{fig:ontology} summarizes the framework. Four stages run over live
 traffic: HTTP events are ingested; lifted into ontology instances with sessions
 as persistent graph nodes; evaluated by semantic rules; and turned into a verdict
 carrying its evidence chain and derived mitigation scope.
@@ -259,10 +277,10 @@ The central class is \texttt{ApplicationSession}, related by
 \texttt{hasIdentity} to a composite \texttt{Identity} (cookie, JWT token,
 username, TLS fingerprint), by \texttt{targets} to an \texttt{Endpoint}
 (\texttt{AuthEndpoint}, \texttt{APIEndpoint}, \texttt{StaticAsset}), by
-\texttt{exhibitsBehavior} to a behavioural profile, and by \texttt{mitigatedBy}
+\texttt{exhibitsBehavior} to a behavioral profile, and by \texttt{mitigatedBy}
 to a policy (\texttt{RateLimit}, \texttt{Challenge}, \texttt{Block}) carrying a
 \texttt{scope} attribute. The abstract class \texttt{ApplicationLayerAttack}
-specialises into \texttt{SlowHTTPDoSFamily}, itself split into
+specializes into \texttt{SlowHTTPDoSFamily}, itself split into
 \texttt{ConnectionExhaustionAttack} (Slowloris, slow body, slow read) and
 \texttt{CoordinatedHTTPFlood} (HULK, GoldenEye). The ontology is aligned with
 STIX~2.1~\cite{oasis2021stix} and MITRE ATT\&CK, and also declares
@@ -281,7 +299,7 @@ outside attack episodes. The attacker controls $K$ origins, places them in the
 network, and may shape each session to be statistically indistinguishable from a
 legitimate one, which is the stealth assumption of our evaluation. The attacker
 may also break individual coordination signals: forging JA4 with browser-impersonating
-libraries, jittering timing, rotating identities, randomising payloads. Each move
+libraries, jittering timing, rotating identities, randomizing payloads. Each move
 carries an operational cost, and the weighting of Section~\ref{sec:family}
 encodes that cost; Sections~\ref{sec:collateral} and~\ref{sec:discussion} report
 what happens when the strongest signal is taken away.
@@ -298,12 +316,12 @@ evidence, so two sessions may be linked by one, several or all six.
 
 The ordering is an evasion-cost argument. Changing the TLS stack forces the
 attacker to rewrite infrastructure, which is why JA4 survived the extension
-randomisation Chrome introduced in 2023 whereas classic JA3 did
+randomization Chrome introduced in 2023 whereas classic JA3 did
 not~\cite{althouse2023ja4}. Identity reuse is equally expensive to break, because
-pulverising credentials attacks the economics of the campaign itself. Temporal
+pulverizing credentials attacks the economics of the campaign itself. Temporal
 coherence emerges from botnet operation rather than from the client stack, and
 random jitter can partially break it. Payload and endpoint
-signals are middling: randomising them is cheap, but doing so costs campaign
+signals are middling: randomizing them is cheap, but doing so costs campaign
 coherence. Network proximity is the weakest link by construction: Mirai
 derivatives, cloud fleets and residential-proxy networks spread across ASNs and
 prefixes, and carrier-grade NAT makes a shared /24 a poor discriminator. That
@@ -316,13 +334,13 @@ Appendix~\ref{app:calibration} corroborates.
 Sessions and relations live inside a sliding operational window ($W = 5$~min by
 default) and are purged incrementally, following an RDF stream-processing
 discipline. We adopt the OWL~2~RL profile~\cite{w3c2012owl2profiles}, which
-admits forward-chaining materialisation with near-linear behaviour on indexed
+admits forward-chaining materialization with near-linear behavior on indexed
 SPARQL queries, over Apache Jena Fuseki with TDB2 storage; full OWL~2~DL
 reasoners do not scale to graphs of this size. Algorithm~\ref{alg:kg} sketches
 construction; the per-pair decision procedure of each \texttt{relatedBy}
 sub-relation is given in Appendix~\ref{app:algorithms}. Admitting a new session
 into a window holding $|S_W|$ active sessions costs $O(|S_W|\cdot c)$, with $c$
-amortised $O(1)$ for every sub-relation except the temporal one, which is
+amortized $O(1)$ for every sub-relation except the temporal one, which is
 dominated by FastDTW under a Sakoe--Chiba band. Section~\ref{sec:latency}
 measures both this admission path and the symbolic layer against window
 occupancy.
@@ -385,7 +403,7 @@ Pair-wise instantiation of the \texttt{relatedBy} family is pure Horn logic and
 is expressed as SWRL rules; aggregation is not, because SWRL cannot sum, so
 $\Omega(S)$ is computed by a SPARQL query whose weights are read from the
 \texttt{coordinationWeight} annotations in the ontology rather than hard-coded.
-Fig.~\ref{fig:rules} in Appendix~\ref{app:algorithms} shows one rule of each
+Listing~\ref{lst:rules} in Appendix~\ref{app:algorithms} shows one rule of each
 kind.
 
 
@@ -435,7 +453,7 @@ emitting a filter that only harms users.
 
 The central hypothesis is that weighted symbolic cross-session reasoning gains
 over per-session detection in proportion to the \emph{degree of distribution}
-$K$ of the campaign, so the evaluation is parameterised by $K$ rather than by
+$K$ of the campaign, so the evaluation is parameterized by $K$ rather than by
 attack name. \textbf{Scenario~A (concentrated, $K=1$)} is the classic
 single-source high-volume attack: no cross-session edge is needed for detection
 and conventional volumetric detectors are expected to suffice; it is degenerate for
@@ -452,12 +470,12 @@ the contribution has to hold if it is to be operationally meaningful. We report 
 \textbf{Primary evaluation: calibrated synthetic traffic.} A generator produces
 distributed Slow HTTP DoS campaigns, the family of
 Section~\ref{sec:ontology}: sustained low-rate sessions against one endpoint,
-with perfectly known coordination ground truth, parameterised by $K$,
+with perfectly known coordination ground truth, parameterized by $K$,
 by the fraction of origins sharing TLS signature and identity, by IP/ASN
 dispersion and by the time window.
 
 Two parameters of that generator decide whether the scenario resembles
-production, and both were initially set in the direction that favours the
+production, and both were initially set in the direction that favors the
 framework. First, benign fingerprint popularity: drawing benign JA4 \emph{uniformly}
 from a large pool makes every legitimate client nearly unique, whereas real
 populations are concentrated, since an up-to-date browser on a given platform
@@ -518,7 +536,7 @@ inter-request time). To keep the negative result from depending on one
 hypothesis class, we repeat it with histogram gradient boosting, a multilayer
 perceptron and logistic regression over the same features. We also reimplement
 three academic baselines: PCA profiling~\cite{fernandes2015autonomous}, $k$-means
-over a behavioural matrix~\cite{bharathi2012pca}, and supervised RF/SVM over
+over a behavioral matrix~\cite{bharathi2012pca}, and supervised RF/SVM over
 session features~\cite{kemp2023approach}. We compare against published KLAGE
 numbers on the same dataset and attack. The four ablation configurations are:
 \textbf{(a)} ML baseline without ontology; \textbf{(b)} ontology with \emph{no}
@@ -636,7 +654,7 @@ The mass of $\Omega(S)$ that fires the rule is dominated by
 also assessed evidence-chain quality over seven real attack clusters: all seven
 enumerate the satisfied rule, the activated sub-relations with weights, the
 $\Omega(S)$ score and the derived scope, and all yield a directly applicable
-filter (Fig.~\ref{fig:chain}, Appendix~\ref{app:cost}). A human-analyst study remains future work.
+filter (Listing~\ref{lst:chain}, Appendix~\ref{app:cost}). A human-analyst study remains future work.
 
 \subsection{The Rule Itself as a Detector}
 \label{sec:symbolic-detector}
@@ -674,7 +692,7 @@ measure and the rule emits a hard decision, we also force the classifier onto th
 rule's own operating point (Table~\ref{tab:symbolic}).
 
 The result is not uniform, and its shape is the point. Against a monolithic or
-lightly fragmented botnet the learned model matches or beats the rule at zero
+lightly fragmented botnet the learned model is competitive at zero
 false positives ($91.7\%$ and $88.6\%$ recall against $84.0\%$ and $90.0\%$):
 there is no symbolic advantage in the easy regime. From 25 stacks on the ordering
 reverses sharply: $90.3\%$ against $36.4\%$, and $85.0\%$ against $17.6\%$ at one
@@ -720,7 +738,7 @@ ahead by only $+0.011$.
 Three honest readings follow. First, \emph{on this real attack cross-session
 coordination is not necessary}: a competent per-session classifier separates it,
 because the attack was never calibrated to mimic benign flow. Second, the
-comparison with KLAGE is favourable but \emph{uncontrolled}: our $0.911$ beats the
+comparison with KLAGE is favorable but \emph{uncontrolled}: our $0.911$ beats the
 published $0.841$, yet so does our own strong baseline at $0.900$, so the margin
 is \emph{not} attributable to cross-session reasoning. KLAGE also classifies
 network nodes into attack types while we make a binary decision per session. A controlled
@@ -780,7 +798,7 @@ profile against an $\alpha = 1.5$ episode: $90.3\%$ coverage, $0.45\%$ collatera
 a flat or missing profile is not, since every fingerprint then looks rare, the
 benign head scores as enriched, and collateral jumps to $81.2\%$. Coverage is
 unaffected throughout, since profile quality governs precision rather than recall,
-so maintaining it is a deployment requirement and not an optimisation.
+so maintaining it is a deployment requirement and not an optimization.
 
 \subsection{Cost and the Choice of $W$}
 \label{sec:latency}
@@ -815,7 +833,7 @@ per-IP or per-session thresholds perform comparably, and on the conventional
 real attacks available in public datasets a strong per-session classifier
 already reaches $\mathrm{AUC} \geq 0.98$, leaving cross-session reasoning only a
 marginal gain. The advantage is decisive only when the campaign is distributed
-\emph{and} stealthy. This work does not replace volumetric defences; it
+\emph{and} stealthy. This work does not replace volumetric defenses; it
 complements them. Validating the approach on \emph{captured} stealthy
 distributed traffic, which no public benchmark provides, is the single most
 important experimental direction.
@@ -825,7 +843,7 @@ performance.} In the synthetic setting the coordination signals present in the
 campaign are exactly those measured by configuration (d), and attacker sessions
 draw their per-session attributes from real benign distributions. The
 per-session non-separability in Table~\ref{tab:ablation} is therefore not an
-artefact of a weakened baseline, since four model families with all flow
+artifact of a weakened baseline, since four model families with all flow
 attributes stay at chance. The mimicry is imposed by construction, so the result
 shows the mechanism under an assumption of perfect per-session indistinguishability,
 rather than proving performance on a real capture of that regime.
@@ -833,24 +851,24 @@ rather than proving performance on a real capture of that regime.
 \textbf{Detection and scoping both depend on an observable high-weight
 discriminator.} A robustness sweep ($n = 10$) makes the dependency explicit: as
 the fraction of origins sharing the TLS fingerprint falls, $\mathrm{AUC}$(d)
-decreases monotonically from $1.00$ to $\approx 0.74$ under full randomisation.
-That residual above chance is an artefact of a finite benign JA4 pool, so under
+decreases monotonically from $1.00$ to $\approx 0.74$ under full randomization.
+That residual above chance is an artifact of a finite benign JA4 pool, so under
 internet-scale diversity it should tend to chance. Endpoint convergence does
 \emph{not} compensate for the loss of JA4 when legitimate users share the
 endpoint, because they converge on it too. Adversaries can forge JA4 with tools
 such as \texttt{curl-impersonate}, jitter timing and rotate identities; the
 weighted family tolerates partial breakage, since surviving high-weight signals
-carry the cluster, but breaking three or more at once degrades it towards chance.
+carry the cluster, but breaking three or more at once degrades it toward chance.
 Widespread adoption of Encrypted Client Hello~\cite{ietf2024ech} could likewise
 make JA4 unobservable, requiring alternative TLS metadata to compensate.
 
 \textbf{Operational placement.} The framework closes a management loop rather
 than emitting labels: detection, evidence and scope come from one pass over the
 same graph, so what reaches the operator or a SOAR playbook is a STIX
-\emph{course-of-action} already parameterised by the discriminator that justified
+\emph{course-of-action} already parameterized by the discriminator that justified
 the verdict. The sliding window is what makes that affordable
 (Section~\ref{sec:latency}). It is a session-plane complement to volumetric
-defences at the edge, not a replacement.
+defenses at the edge, not a replacement.
 
 \textbf{Parallelism and partitioning.} The rule itself dictates the natural
 shard key. Condition (ii) requires every session of $S$ to target the same
@@ -863,11 +881,11 @@ one JA4 across many endpoints, since no shard accumulates enough coordinated
 pairs to clear $\tau_{\mathrm{cluster}}$; sharding by JA4 instead preserves those
 campaigns and breaks the endpoint condition. No single key preserves all six
 sub-relations, and that is a property of $\Omega(S)$ rather than of any
-implementation. The design it suggests, unimplemented, is two tiered:
+implementation. The design it suggests, unimplemented, is two-tiered:
 endpoint-sharded workers plus a global sketch over high-weight identifiers to
 recover cross-endpoint campaigns; quantifying the recall lost by the first tier
-and recovered by the second is a precondition for CDN-scale deployment. Taken together with Section~\ref{sec:latency}, the three
-measurements compose one scalability argument: endpoint sharding is exact and
+and recovered by the second is a precondition for CDN-scale deployment. Taken together with Section~\ref{sec:latency}, these
+observations compose one scalability argument: endpoint sharding is exact and
 needs no coordination, a small $W$ costs no detection while cutting the
 quadratic pair term, and admission is microseconds. In a correctly configured
 deployment the quadratic term therefore never binds.
@@ -885,7 +903,7 @@ zero-false-positive threshold. Readers should keep the two claims apart.
 
 \textbf{Attack-family, protocol and dataset coverage.} The ontology and the
 evaluation cover the Slow HTTP DoS family over HTTP/1.1; HTTP/2 attacks and
-other application protocols need sub-relations we have not modelled. Real-data
+other application protocols need sub-relations we have not modeled. Real-data
 validation spans six attacks (Slowloris, Slowhttptest, HULK, GoldenEye,
 HTTP-Flood, DoS-Other) across two datasets, but all of them are laboratory
 testbed captures, and the head-to-head comparison with KLAGE is necessarily
@@ -897,7 +915,7 @@ before any superiority claim.
 \section{Conclusion}
 \label{sec:conclusion}
 
-We modelled the HTTP session as a first-class ontological entity and replaced
+We modeled the HTTP session as a first-class ontological entity and replaced
 flat cross-session relatedness with six typed sub-properties, weighted by the
 attacker's cost of breaking each signal. A SPARQL/SWRL rule fires on their
 weighted mass, so that one derivation serves at once as the verdict, the evidence
@@ -905,7 +923,7 @@ chain and the scope of the mitigation.
 
 Against stealthy distributed campaigns, per-session detection sits at chance
 across four model families given the full flow-feature set, while the framework
-detects consistently ($0.50$ vs.\ $0.98$ ROC AUC; $d = 13.5$); on conventional
+detects consistently ($0.50$ vs.\ $0.98$ ROC AUC; $d = 22.4$); on conventional
 real attacks the gain is marginal, because a strong per-session classifier already
 suffices. On the mitigation side the study produced a negative result worth as
 much as the positive one: scoping by the property most of the cluster shares
@@ -920,7 +938,7 @@ directions are HTTP/2 attacks and a captured stealthy campaign, which no
 benchmark yet provides.
 
 \section*{Acknowledgment}
-We thank Azion Technologies for authorising the aggregate fingerprint measurement
+We thank Azion Technologies for authorizing the aggregate fingerprint measurement
 of Section~\ref{sec:method}.
 
 \bibliographystyle{IEEEtran}
@@ -946,8 +964,8 @@ across distinct stacks. Cost $O(1)$ per pair.
 the observed identity sets, $(\mathrm{cookie}(s_a) \cap \mathrm{cookie}(s_b))
 \cup (\mathrm{token}(s_a) \cap \mathrm{token}(s_b)) \cup (\mathrm{user}(s_a) \cap
 \mathrm{user}(s_b)) \neq \emptyset$. JWTs are decoded and compared by the
-\texttt{sub} claim; cookies and usernames are normalised (trim, lower-case).
-Cost $O(1)$ amortised with an inverted index.
+\texttt{sub} claim; cookies and usernames are normalized (trim, lower-case).
+Cost $O(1)$ amortized with an inverted index.
 
 \textbf{\texttt{TemporalPattern}.} With $\Delta(s)$ the sequence of
 inter-arrival times, we compute
@@ -967,7 +985,7 @@ cosine similarity exceeds $\tau_{\mathrm{payload}}$. Cost $O(1)$ given
 precomputed vectors.
 
 \textbf{\texttt{EndpointConvergence}.} Instantiated when both sessions converge
-on the same endpoint, under path-pattern normalisation
+on the same endpoint, under path-pattern normalization
 (\texttt{/api/users/12345} $\rightarrow$ \texttt{/api/users/\{id\}}) by default;
 an additional exact-path match annotates the edge with \emph{exact = true}. Cost
 $O(1)$ with a prefix-tree index.
@@ -977,7 +995,7 @@ $O(1)$ with a prefix-tree index.
 \emph{strong = true}. ASN resolution uses current BGP tables. Cost $O(1)$ with
 an inverted prefix index.
 
-\begin{figure}[t]
+\begin{listing}[t]
 \footnotesize
 \hrule\vspace{2pt}
 \begin{verbatim}
@@ -997,26 +1015,26 @@ WHERE { ?a kg:targets ?e . ?b kg:targets ?e .
 GROUP BY ?e HAVING (SUM(?w) >= ?tau)
 \end{verbatim}
 \vspace{-4pt}\hrule
-\caption{Verdict as derivation: Horn rules materialise typed cross-session edges;
+\caption{Verdict as derivation: Horn rules materialize typed cross-session edges;
 a SPARQL aggregation applies the ontology-declared weights and fires the rule.
 The bindings that satisfy the query \emph{are} the evidence chain.}
-\label{fig:rules}
-\end{figure}
+\label{lst:rules}
+\end{listing}
 
 \section{Weight Calibration}
 \label{app:calibration}
 
 Empirical calibration depends critically on the realism of the traffic. On
-laboratory datasets --- a few dozen distinct JA4 fingerprints --- optimisation
+laboratory datasets --- a few dozen distinct JA4 fingerprints --- optimization
 even inverts the sign of the TLS signal, because benign sessions share
 fingerprints more than partially coordinated campaigns do; this is a testbed
-artefact of low JA4 diversity, absent from the real internet.
+artifact of low JA4 diversity, absent from the real internet.
 
 In the realistic scenario (thousands of legitimate JA4 fingerprints, users
-hitting the attacked service), we calibrate by maximising per-session
+hitting the attacked service), we calibrate by maximizing per-session
 attack-vs-benign ROC AUC over the score
 $w_{\mathrm{tls}}\,z(\mathrm{ja4}) + w_{\mathrm{ep}}\,z(\mathrm{endpoint\ conv.})
-+ w_{\mathrm{net}}\,z(\mathrm{net\ prox.})$ with standardised attributes, over
++ w_{\mathrm{net}}\,z(\mathrm{net\ prox.})$ with standardized attributes, over
 the grid $\{0.3\ldots1.0\}^3$ (125 combinations, 60 scenarios, 91\,500
 sessions). The result corroborates the proposed ordering: the best vector is
 $(w_{\mathrm{tls}}{=}1.0,\ w_{\mathrm{ep}}{=}0.3,\ w_{\mathrm{net}}{=}0.3)$, and
@@ -1038,18 +1056,18 @@ identities and TLS fingerprints can be extracted from traffic events; where that
 instrumentation is partial or noisy, performance degrades.
 
 \textbf{Graph maintenance cost.} The symbolic figures of
-Section~\ref{sec:latency} come from an in-memory \texttt{rdflib} reference
+Appendix~\ref{app:cost} come from an in-memory \texttt{rdflib} reference
 implementation rather than the Jena/TDB2 backend, so they are an upper bound,
 and scaling to CDN-scale traffic requires the horizontal partitioning discussed
 in Section~\ref{sec:discussion}, which we did not implement.
 
-\textbf{Protocol coverage.} The current ontology covers the Slowloris family and
-direct descendants over HTTP/1.1. HTTP/2 attacks and other application
+\textbf{Protocol coverage.} The current ontology covers the Slow HTTP DoS family
+over HTTP/1.1. HTTP/2 attacks and other application
 protocols (DNS, gRPC) need additional sub-relations.
 
 \textbf{Dataset breadth.} Real-data validation covers one dataset and one attack
 for the head-to-head comparison, plus six attacks across CICIDS2017 and
-CIC-IoT2023 for the regime analysis. RT-IoT2022, CIC-DDoS2019 and anonymised
+CIC-IoT2023 for the regime analysis. RT-IoT2022, CIC-DDoS2019 and anonymized
 production traffic remain future work.
 
 \textbf{Explanation validation.} Evidence chains were assessed for structural
@@ -1058,7 +1076,7 @@ human-analyst study of time-to-decision and comprehension --- was not conducted.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig4_regime.png}
+\includegraphics[width=\columnwidth]{figures/fig3_regime.png}
 \caption{Where cross-session reasoning is \emph{needed}. On conventional real
 attacks a strong per-session classifier already saturates; only in the stealthy
 distributed regime does per-session detection collapse to chance while
@@ -1071,16 +1089,16 @@ cross-session reasoning holds.}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig5_latency.png}
+\includegraphics[width=\columnwidth]{figures/fig4_latency.png}
 \caption{Cost of the two layers against window occupancy. Per-request admission
 is linear in $|S_W|$ and stays in the microsecond range; per-window symbolic
-materialisation is linear in the number of RDF edges, which is itself quadratic
+materialization is linear in the number of RDF edges, which is itself quadratic
 in $|S_W|$. Reference slopes anchored on the first point of each series.}
 \label{fig:latency}
 \end{figure}
 
 The two layers run at different rates --- admission happens per request,
-symbolic materialisation and the $\Omega$ aggregation per window --- so we time
+symbolic materialization and the $\Omega$ aggregation per window --- so we time
 them separately, on a synthetic window in the realistic same-service mix (30\% of
 sessions in one campaign sharing a botnet JA4, benign JA4 from a pool of 2\,000,
 eight endpoints, dispersed /24s); medians over three repeats on one core. This
@@ -1097,12 +1115,12 @@ constant $14$--$19$~ns per pair.
 
 The symbolic layer is orders of magnitude more expensive: $0.56$~s at
 $|S_W| = 100$ rising to $49.7$~s at $|S_W| = 1\,000$. Read per unit of work,
-however, cost stays constant at $\approx 187\,\mu$s per materialised RDF edge
+however, cost stays constant at $\approx 187\,\mu$s per materialized RDF edge
 across all sizes, so the layer is \emph{linear in edges}; it is the edge count
 that grows quadratically, because $\Omega(S)$ is defined over pairs. The
 quadratic term is thus a property of the rule rather than of the backend, and it
 points at the deployment split the architecture already implies: detect on the
-indexed admission path, and materialise RDF only for the clusters that fire ---
+indexed admission path, and materialize RDF only for the clusters that fire ---
 the evidence-chain subset, not the whole window.
 
 \begin{table}[h]
@@ -1137,7 +1155,7 @@ deployment with interleaved campaigns may behave differently; and $W$ must still
 be long enough for a cluster to form at all, which at $W = 60$~s already means
 $\approx 132$ sessions here.
 
-\begin{figure}[t]
+\begin{listing}[t]
 \footnotesize
 \hrule\vspace{2pt}
 \begin{verbatim}
@@ -1160,15 +1178,15 @@ abridged). Every term of $\Omega(S) = 10.8$ is attributable to a sub-relation,
 a pair count and a weight, and the last field is the filter actually applied.
 The STIX~2.1 export carries the same content as an \emph{indicator} pattern
 plus a \emph{course-of-action} linked by \emph{mitigates}.}
-\label{fig:chain}
-\end{figure}
+\label{lst:chain}
+\end{listing}
 
 \section{Reproducibility}
 \label{app:repro}
 
 The reference implementation is available at
 \url{https://github.com/Natanael0liveira/knowledge-graph-ddos-article} under a
-permissive licence, organised by experimental stage: the extraction pipeline
+permissive license, organized by experimental stage: the extraction pipeline
 (PCAP $\rightarrow$ JA4 and flows $\rightarrow$ sessions $\rightarrow$ graph);
 the calibrated synthetic generator, including the three realism parameters of
 Section~\ref{sec:method} --- Zipf exponent of benign fingerprint popularity,
@@ -1186,11 +1204,13 @@ background profile the enrichment test needs is produced by an attack-free
 generator run, so no labels enter the decision path at any point. The cost model
 of Appendix~\ref{app:cost} requires no dataset and runs anywhere.
 
-Seeds are fixed, orchestration is driven by Makefiles, and artefacts --- figures,
-calibrated distributions and aggregated results --- are versioned; every table
-and figure in this paper regenerates from a single command per stage. The OWL
+Seeds are fixed, orchestration is driven by Makefiles, and artifacts --- figures,
+calibrated distributions and aggregated results --- are versioned; every table and
+every data figure in this paper regenerates from a single command per stage.
+Fig.~\ref{fig:ontology} is a hand-drawn schematic, and its editable source ships
+with the artifact. The OWL
 ontology is provided in RDF/XML, with every \texttt{relatedBy} sub-property
 annotated with its \texttt{coordinationWeight}. We intend to submit these
-artefacts to the Artifact Evaluation track.
+artifacts to the Artifact Evaluation track.
 
 \end{document}

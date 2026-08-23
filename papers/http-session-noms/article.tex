@@ -54,7 +54,11 @@
 %% IEEEtran uses URW Courier (pcr) for \texttt. Fall back to Computer Modern
 %% typewriter when those metrics are absent locally; Overleaf and full TeX Live
 %% installations keep the IEEE-standard font.
-\IfFileExists{pcrr8t.tfm}{}{\renewcommand{\ttdefault}{cmtt}}
+%% O IEEEtran usa URW Courier (pcr) para \texttt. Onde essas metricas nao
+%% existem, cai para Latin Modern Mono -- e NAO para cmtt: sem o cm-super
+%% instalado, cmtt em T1 gera bitmaps Type 3, que o IEEE PDF eXpress sinaliza
+%% e que ficam serrilhados na tela. lmtt e Type 1 e ja vem no TeX Live.
+\IfFileExists{pcrr8t.tfm}{}{\renewcommand{\ttdefault}{lmtt}}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 

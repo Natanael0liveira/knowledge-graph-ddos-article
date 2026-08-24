@@ -198,29 +198,34 @@ bound the claim.
 \centering
 \caption{Comparison of related work.}
 \label{tab:related}
-\footnotesize
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}lllll@{}}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llllllll@{}}
 \toprule
-Work & Reasoning unit & Cross-session relation & Verdict explanation & Mitigation scope \\
+Work & Year & Target & Reasoning unit & Cross-session relation & Verdict explanation & Mitigation scope & Collateral \\
 \midrule
-Fernandes et al.~\cite{fernandes2015autonomous}      & flow statistics     & ---                          & ---                 & --- \\
-Bharathi and Sukanesh~\cite{bharathi2012pca}         & session as vector   & ---                          & ---                 & --- \\
-Kemp et al.~\cite{kemp2023approach}                  & session as vector   & ---                          & ---                 & --- \\
-Sadlek et al.~\cite{sadlek2024device}                & network device      & learned (link prediction)    & ---                 & --- \\
-Wang and Stadler~\cite{wang2024intrusion}            & network node        & learned (action sequences)   & ---                 & --- \\
-KLAGE~\cite{belcastro2025klage}                      & network node        & learned embeddings           & LLM report          & --- \\
-Bot management, industrial~\cite{althouse2023ja4}    & session             & proprietary, TLS similarity  & ---                 & undisclosed \\
+Fernandes et al.~\cite{fernandes2015autonomous}   & 2015 & flow anomalies      & flow statistics     & ---                        & ---                  & ---         & --- \\
+Bharathi and Sukanesh~\cite{bharathi2012pca}      & 2012 & L7 DDoS             & session as vector   & ---                        & ---                  & ---         & --- \\
+Kemp et al.~\cite{kemp2023approach}               & 2023 & L7 DoS              & session as vector   & ---                        & ---                  & ---         & --- \\
+Sadlek et al.~\cite{sadlek2024device}             & 2024 & device dependencies & network device      & implicit (learned)         & ---                  & ---         & --- \\
+Wang and Stadler~\cite{wang2024intrusion}         & 2024 & IT intrusion        & host                & implicit (learned)         & ---                  & ---         & --- \\
+KLAGE~\cite{belcastro2025klage}                   & 2026 & network threats     & network node        & implicit (learned)         & post-hoc (LIME/LLM) & ---         & --- \\
+Industrial bot management~\cite{althouse2023ja4}  & ---  & bot traffic         & session             & proprietary                & ---                  & undisclosed & self-reported \\
 \midrule
-\textbf{This work} & application session & \textbf{explicit, typed, weighted} & symbolic derivation & \textbf{derived from the same graph} \\
+\textbf{This work} & --- & distributed L7 DDoS & application session & explicit (typed, weighted) & derivation & derived & reported \\
 \bottomrule
 \end{tabular}
+
+\vspace{2pt}
+{\footnotesize A dash marks a dimension outside the stated scope of a work, not a
+shortcoming; \emph{target} states each work's own objective.}
 \end{table*}
 
 Table~\ref{tab:related} positions the closest work on the axes this paper
 turns on: the unit over which reasoning happens, whether relations between
 sessions are represented at all, whether the verdict carries an explanation,
-and whether a mitigation scope follows from the same representation.
+whether a mitigation scope follows from the same representation, and whether
+the legitimate traffic that scope blocks is reported.
 
 \subsection{Knowledge Graphs for Security and Management}
 

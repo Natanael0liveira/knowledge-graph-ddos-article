@@ -124,18 +124,18 @@ continuation abuse. Those call for sub-relations outside the scope we evaluate
 here, and we treat them as the immediate extension target
 (Section~\ref{sec:conclusion}) rather than as a claim of this paper.
 
-Seen in isolation, every request is indistinguishable from a legitimate one. The
-signal lives in the structure \emph{between} sessions: connection duration,
-route entropy, client fingerprint consistency, and the convergence of many
-origins on one endpoint under one client signature~\cite{kemp2023approach}.
+Examined individually, each request is statistically indistinguishable from a
+legitimate one; the discriminative signal resides in the structure \emph{between}
+sessions, in connection duration, route entropy, client fingerprint consistency
+and the convergence of many origins on one endpoint under one client
+signature~\cite{kemp2023approach}. The problem is therefore one of network and
+service management as much as of detection: an operator requires not a label but
+a decision, namely \emph{which} clients to act on, on \emph{what} evidence, and
+with a filter narrow enough not to disconnect the legitimate users of the service
+under attack.
 
-This is a network and service management problem as much as a detection problem.
-An operator does not need a label but a decision: \emph{which} clients to act
-on, on \emph{what} evidence, and with a filter narrow enough not to disconnect
-the legitimate users of the very service under attack.
-
-The literature acknowledges the first half and largely ignores the second. The
-meta-analysis of Odusami et al.~\cite{odusami2020survey} over seventy-five
+Existing work addresses the detection half and largely leaves the operational
+half open. The meta-analysis of Odusami et al.~\cite{odusami2020survey} over seventy-five
 studies finds that 47\% of application-layer DDoS methods derive features from
 sessions, such as request rate per user, mean duration and operations per
 identity. In our inspection of those studies, the session is consistently
@@ -156,33 +156,33 @@ And the pipeline ends at a report, without a mitigation policy whose scope is
 derived from the graph itself. Those
 three gaps define the space this paper occupies.
 
-\textbf{Contributions.} We make four:
+\textbf{Contributions.} Each contribution below names the section that delivers
+it and the evidence that substantiates it.
 
 \begin{enumerate}
-\item \textbf{The HTTP session as a first-class ontological entity, with a
-weighted \texttt{relatedTo} family.} An OWL ontology replaces the flat
-\texttt{relatedTo} link with \emph{six typed sub-properties} weighted by the
-attacker's cost of breaking each signal; the evaluation exercises the three that
-the available traffic exposes. Network proximity, trivially broken by modern
-botnets, therefore enters as auxiliary evidence and never as a prerequisite.
+\item \textbf{The session as a first-class ontological entity.} An OWL ontology
+relates sessions through \emph{six typed sub-properties} weighted by the
+attacker's cost of breaking each signal, so that network proximity, trivially
+broken by modern botnets, enters as auxiliary evidence and never as a
+prerequisite (Section~\ref{sec:approach}).
 
-\item \textbf{Symbolic reasoning over their weighted sum.} A SPARQL/SWRL rule
-fires on the weighted coordination mass $\Omega(S)$ of a candidate cluster, so
-the verdict is the derivation that satisfied the rule rather than a classifier
-output interpreted after the fact.
+\item \textbf{The verdict as a derivation.} A SPARQL/SWRL rule fires on the
+weighted coordination mass $\Omega(S)$ of a candidate cluster, so what is
+reported is the derivation that satisfied the rule, not a classifier score
+explained after the fact (Section~\ref{sec:approach}).
 
-\item \textbf{An evidence chain coupled to automatic mitigation scoping.} Each
-verdict carries a JSON-LD and STIX~2.1 chain, and the mitigation scope is derived
-from the same graph. We show that the natural way to derive it, the property most
-of the cluster shares, is actively harmful under realistic conditions, and
-replace it with a criterion based on enrichment over a profile of normal traffic.
+\item \textbf{Mitigation scope derived from the same graph.} Each verdict
+carries a JSON-LD and STIX~2.1 evidence chain. We show that the natural
+derivation, the property most of the cluster shares, is actively harmful under
+realistic conditions, and replace it with an enrichment criterion over a profile
+of normal traffic (Section~\ref{sec:approach}).
 
-\item \textbf{An evaluation parameterized by the degree of distribution, with a
-collateral-damage metric.} Against a deliberately \emph{strong} per-session
-baseline, the ablation isolates the gain of cross-session representation. We also
-report the fraction of legitimate traffic hit by the resulting mitigation, a
-metric self-reported by commercial bot-management products but, to our knowledge,
-not used systematically in the academic Layer-7 literature.
+\item \textbf{An evaluation parameterized by the degree of distribution.}
+Against a deliberately \emph{strong} per-session baseline, an ablation isolates
+the gain of cross-session representation and reports the fraction of legitimate
+traffic the resulting mitigation blocks, a metric self-reported by commercial
+bot-management products but not, to our knowledge, used systematically in the
+academic Layer-7 literature (Sections~\ref{sec:method} and~\ref{sec:results}).
 \end{enumerate}
 
 Section~\ref{sec:related} positions the work, Section~\ref{sec:approach}
@@ -193,6 +193,34 @@ bound the claim.
 %% ====================================================================
 \section{Related Work}
 \label{sec:related}
+
+\begin{table*}[t]
+\centering
+\caption{Comparison of related work.}
+\label{tab:related}
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+Work & Reasoning unit & Cross-session relation & Verdict explanation & Mitigation scope \\
+\midrule
+Fernandes et al.~\cite{fernandes2015autonomous}      & flow statistics     & ---                          & ---                 & --- \\
+Bharathi and Sukanesh~\cite{bharathi2012pca}         & session as vector   & ---                          & ---                 & --- \\
+Kemp et al.~\cite{kemp2023approach}                  & session as vector   & ---                          & ---                 & --- \\
+Sadlek et al.~\cite{sadlek2024device}                & network device      & learned (link prediction)    & ---                 & --- \\
+Wang and Stadler~\cite{wang2024intrusion}            & network node        & learned (action sequences)   & ---                 & --- \\
+KLAGE~\cite{belcastro2025klage}                      & network node        & learned embeddings           & LLM report          & --- \\
+Bot management, industrial~\cite{althouse2023ja4}    & session             & proprietary, TLS similarity  & ---                 & undisclosed \\
+\midrule
+\textbf{This work} & application session & \textbf{explicit, typed, weighted} & symbolic derivation & \textbf{derived from the same graph} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Table~\ref{tab:related} positions the closest work on the axes this paper
+turns on: the unit over which reasoning happens, whether relations between
+sessions are represented at all, whether the verdict carries an explanation,
+and whether a mitigation scope follows from the same representation.
 
 \subsection{Knowledge Graphs for Security and Management}
 
@@ -210,9 +238,7 @@ are also gaining ground in management tasks adjacent to ours: Sadlek et
 al.~\cite{sadlek2024device} identify device dependencies through link prediction
 over network graphs, and Wang and Stadler~\cite{wang2024intrusion} learn attack
 action sequences from testbed measurements. Both operate on network-level
-entities. We differ from them on three axes. Our reasoning unit is the
-application session; our formalism is named symbolic relations rather than
-learned embeddings; and our output includes the scope of the mitigation.
+entities, and neither derives a mitigation scope.
 
 \subsection{Layer-7 HTTP DDoS Detection}
 
@@ -253,11 +279,7 @@ an explicit ontological rule, is what remains open.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig1_ontology.png}
-\caption{Session-centric ontology. \texttt{ApplicationSession} is a first-class
-entity with typed primary relations to identity, origin, endpoint and behavior;
-the weighted \texttt{relatedTo} family links sessions to each other; and the
-detection rule couples the symbolic verdict to a course of action whose scope is
-derived from the coordinated subset.}
+\caption{Session-centric ontology and detection rule.}
 \label{fig:ontology}
 \end{figure*}
 
@@ -265,6 +287,20 @@ Fig.~\ref{fig:ontology} summarizes the framework. Four stages run over live
 traffic: HTTP events are ingested; lifted into ontology instances with sessions
 as persistent graph nodes; evaluated by semantic rules; and turned into a verdict
 carrying its evidence chain and derived mitigation scope.
+
+\subsection{Background}
+
+Three standard components carry the framework. A knowledge graph states facts as
+RDF triples $\langle$subject, predicate, object$\rangle$, and an OWL~2 ontology
+declares the classes and properties those triples may use. We work in the
+OWL~2~RL profile~\cite{w3c2012owl2profiles}, whose rule-based entailment admits
+forward-chaining materialization in polynomial time and is therefore admissible
+at line rate, where full OWL~2~DL reasoning is not. SWRL extends the ontology
+with Horn rules, which materialize a new triple when a conjunction of premises
+holds, and SPARQL queries the resulting graph and, unlike SWRL, aggregates over
+solution sets. Client identity comes from JA4~\cite{althouse2023ja4}, a hash of
+the TLS \emph{ClientHello} that characterizes a client's TLS stack rather than
+its address and so persists across IP rotation.
 
 \subsection{Ontology}
 \label{sec:ontology}
@@ -329,10 +365,7 @@ Appendix~\ref{app:calibration} corroborates.
 
 Sessions and relations live inside a sliding operational window ($W = 5$~min by
 default) and are purged incrementally, following an RDF stream-processing
-discipline. We adopt the OWL~2~RL profile~\cite{w3c2012owl2profiles}, which
-admits forward-chaining materialization with near-linear behavior on indexed
-SPARQL queries, over Apache Jena Fuseki with TDB2 storage; full OWL~2~DL
-reasoners do not scale to graphs of this size. Fig.~\ref{fig:pipeline} lays out
+discipline. Materialization runs over Apache Jena Fuseki with TDB2 storage. Fig.~\ref{fig:pipeline} lays out
 the two layers and the rates they run at; Algorithm~\ref{alg:kg} sketches
 construction; the per-pair decision procedure of each \texttt{relatedBy}
 sub-relation is given in Appendix~\ref{app:algorithms}. Admitting a new session
@@ -369,9 +402,7 @@ occupancy.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_pipeline.png}
-\caption{Runtime pipeline. Admission runs per request over inverted indexes;
-RDF materialization and the $\Omega$ aggregation run once per window. The
-enrichment test reads a background profile built outside attack episodes.}
+\caption{Runtime pipeline, per request and per window.}
 \label{fig:pipeline}
 \end{figure*}
 
@@ -586,10 +617,9 @@ derived scope coherent with the cluster discriminator?).
 
 \begin{table}[t]
 \centering
-\caption{Per-session ROC AUC [95\% CI] on the production-realistic
-\emph{synthetic} scenario (Zipf benign fingerprints, $\alpha = 1.5$; botnet
-spread over 25 TLS stacks), $n = 30$ seeds, strong per-session baseline,
-legitimate users on the \emph{same} service under attack.}
+\caption{Per-session ROC AUC [95\% CI], realistic synthetic scenario
+($\alpha = 1.5$, $M = 25$), $n = 30$ seeds, strong per-session baseline,
+legitimate users on the attacked service.}
 \label{tab:ablation}
 \scriptsize
 \setlength{\tabcolsep}{3.5pt}
@@ -674,10 +704,9 @@ filter (Listing~\ref{lst:chain}, Appendix~\ref{app:cost}). A human-analyst study
 
 \begin{table}[t]
 \centering
-\caption{The SPARQL/enrichment path evaluated end to end as a detector: the
-sessions matching the derived scope \emph{are} the flagged sessions. Compared
-against the learned model forced onto the same operating point, except in the
-adversarial row (see text). $K = 1000$, $n = 15$ seeds.}
+\caption{The SPARQL/enrichment path as a detector, against the learned model
+forced onto the same operating point, except in the adversarial row (see text).
+$K = 1000$, $n = 15$ seeds.}
 \label{tab:symbolic}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -729,8 +758,7 @@ an unconditional guarantee.
 \begin{table}[t]
 \centering
 \caption{\texttt{DDoS Slowloris} on CIC-IoT2023 (\emph{real data}, 143 distinct
-/24 prefixes). The \emph{strong} per-session baseline does not collapse; the gain
-of cross-session representation over it is marginal on this conventional attack.}
+/24 prefixes).}
 \label{tab:real}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -776,9 +804,7 @@ symbolic verdict and a measurable collateral-damage figure.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig3_collateral.png}
-\caption{Attack blocked and legitimate traffic hit, choosing the discriminator by
-frequency versus by enrichment, against botnet fragmentation $M$ under realistic
-benign fingerprint concentration ($\alpha = 1.5$). $n = 15$ seeds.}
+\caption{Scope derivation: frequency versus enrichment ($\alpha = 1.5$, $n = 15$).}
 \label{fig:collateral}
 \end{figure}
 
@@ -1046,9 +1072,7 @@ WHERE { ?a kg:targets ?e . ?b kg:targets ?e .
 GROUP BY ?e HAVING (SUM(?w) >= ?tau)
 \end{verbatim}
 \vspace{-4pt}\hrule
-\caption{Verdict as derivation: Horn rules materialize typed cross-session edges;
-a SPARQL aggregation applies the ontology-declared weights and fires the rule.
-The bindings that satisfy the query \emph{are} the evidence chain.}
+\caption{Verdict as derivation: one Horn rule and the SPARQL aggregation.}
 \label{lst:rules}
 \end{listing}
 
@@ -1118,10 +1142,7 @@ human-analyst study of time-to-decision and comprehension) was not.
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig4_regime.png}
-\caption{Where cross-session evidence is \emph{needed}. On conventional real
-attacks a strong per-session classifier already saturates; only in the stealthy
-distributed regime does per-session detection collapse to chance while
-cross-session representation remains discriminative.}
+\caption{Where cross-session evidence is needed.}
 \label{fig:regime}
 \end{figure}
 
@@ -1131,8 +1152,7 @@ cross-session representation remains discriminative.}
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig5_latency.png}
-\caption{Cost of the two layers against window occupancy, log--log. Reference
-slopes are anchored on the first point of each series.}
+\caption{Cost of the two layers against window occupancy.}
 \label{fig:latency}
 \end{figure}
 
@@ -1148,7 +1168,9 @@ Section~\ref{sec:pipeline}, and the symbolic layer runs on in-memory
 \texttt{rdflib} rather than the Jena/TDB2 backend used for the dataset pipeline,
 so its figures are an upper bound.
 
-Admission behaves as the bound predicts (Fig.~\ref{fig:latency}): median latency
+Admission behaves as the bound predicts (Fig.~\ref{fig:latency}, where the
+dotted lines are reference slopes anchored on the first point of each series):
+median latency
 grows from $2.1\,\mu$s at $|S_W| = 100$ to $122\,\mu$s at $|S_W| = 10\,000$,
 tracking the candidate-pair count (148 to 6\,495 edges per admission) at a
 constant $14$--$20$~ns per pair.
@@ -1165,9 +1187,7 @@ the evidence-chain subset rather than the whole window.
 
 \begin{table}[tb]
 \centering
-\caption{Window sweep, $K = 1000$, $n = 10$ seeds. Detection is flat across a
-$30\times$ range of $W$ while cluster occupancy --- and hence the quadratic pair
-term --- grows with it.}
+\caption{Window sweep, $K = 1000$, $n = 10$ seeds.}
 \label{tab:window}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -1212,9 +1232,7 @@ means $\approx 132$ sessions.
   "kg:srcNet24":  "172.16.0.0/24"}
 \end{verbatim}
 \vspace{-4pt}\hrule
-\caption{Evidence chain emitted for the CICIDS2017 DoS-Other cluster (JSON-LD,
-abridged). Every term of $\Omega(S) = 10.8$ is attributable to a sub-relation, a
-pair count and a weight; the last field is the filter applied.}
+\caption{Evidence chain for the CICIDS2017 DoS-Other cluster (JSON-LD, abridged).}
 \label{lst:chain}
 \end{listing}
 

@@ -4,7 +4,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="tA" parent="1" style="text;html=1;fontFamily=Helvetica;fontSize=21;fontStyle=1;align=left;verticalAlign=middle;" value="Session" vertex="1">
+        <mxCell id="tA" parent="1" style="text;html=1;fontFamily=Helvetica;fontSize=18;fontStyle=1;align=left;verticalAlign=middle;" value="Session" vertex="1">
           <mxGeometry height="26" width="183" x="123" as="geometry" />
         </mxCell>
         <mxCell id="nId" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=12;" value="Identity&lt;br&gt;cookie / token&lt;br&gt;JA4" vertex="1">
@@ -22,18 +22,18 @@
         <mxCell id="s0" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=15;" value="Application&lt;br&gt;Session" vertex="1">
           <mxGeometry height="86" width="112" x="206" y="151" as="geometry" />
         </mxCell>
-        <mxCell id="enId" edge="1" parent="1" source="nId" style="endArrow=block;endFill=1;endSize=6;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.6;fontFamily=Helvetica;fontSize=10;labelBackgroundColor=#FFFFFF;" target="s0" value="hasIdentity">
+        <mxCell id="enId" edge="1" parent="1" source="nId" style="endArrow=block;endFill=1;endSize=6;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.6;fontFamily=Helvetica;fontSize=12;labelBackgroundColor=#FFFFFF;" target="s0" value="hasIdentity">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="enEp" edge="1" parent="1" source="nEp" style="endArrow=block;endFill=1;endSize=6;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.6;fontFamily=Helvetica;fontSize=10;labelBackgroundColor=#FFFFFF;" target="s0" value="targets">
+        <mxCell id="enEp" edge="1" parent="1" source="nEp" style="endArrow=block;endFill=1;endSize=6;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.6;fontFamily=Helvetica;fontSize=12;labelBackgroundColor=#FFFFFF;" target="s0" value="targets">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="enOr" edge="1" parent="1" source="nOr" style="endArrow=block;endFill=1;endSize=6;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.6;fontFamily=Helvetica;fontSize=10;labelBackgroundColor=#FFFFFF;" target="s0" value="originatesFrom">
+        <mxCell id="enOr" edge="1" parent="1" source="nOr" style="endArrow=block;endFill=1;endSize=6;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.6;fontFamily=Helvetica;fontSize=12;labelBackgroundColor=#FFFFFF;" target="s0" value="originatesFrom">
           <mxGeometry relative="1" x="-0.0047" y="-2" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="enBe" edge="1" parent="1" source="nBe" style="endArrow=block;endFill=1;endSize=6;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.6;fontFamily=Helvetica;fontSize=10;labelBackgroundColor=#FFFFFF;" target="s0" value="exhibitsBehavior">
+        <mxCell id="enBe" edge="1" parent="1" source="nBe" style="endArrow=block;endFill=1;endSize=6;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.6;fontFamily=Helvetica;fontSize=12;labelBackgroundColor=#FFFFFF;" target="s0" value="exhibitsBehavior">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="aA" parent="1" style="text;html=1;fontFamily=Helvetica;fontSize=13;fontColor=#4D4D4D;align=center;verticalAlign=top;" value="first-class entity, not a feature vector" vertex="1">
@@ -45,7 +45,7 @@
             <mxPoint x="326" y="378" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="tB" parent="1" style="text;html=1;fontFamily=Helvetica;fontSize=21;fontStyle=1;align=left;verticalAlign=middle;" value="relatedTo  cross-session, weighted" vertex="1">
+        <mxCell id="tB" parent="1" style="text;html=1;fontFamily=Helvetica;fontSize=18;fontStyle=1;align=left;verticalAlign=middle;" value="relatedTo  cross-session, weighted" vertex="1">
           <mxGeometry height="26" width="362" x="369" as="geometry" />
         </mxCell>
         <mxCell id="S1" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;" value="S1" vertex="1">
@@ -177,7 +177,7 @@
             <mxPoint x="761" y="378" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="tC" parent="1" style="text;html=1;fontFamily=Helvetica;fontSize=21;fontStyle=1;align=left;verticalAlign=middle;" value="Verdict" vertex="1">
+        <mxCell id="tC" parent="1" style="text;html=1;fontFamily=Helvetica;fontSize=18;fontStyle=1;align=left;verticalAlign=middle;" value="Verdict" vertex="1">
           <mxGeometry height="26" width="93" x="858.5" as="geometry" />
         </mxCell>
         <mxCell id="vR" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;" value="CoordinatedHTTPFlood&lt;br&gt;fires iff Ω(S) ≥ τ" vertex="1">

@@ -78,27 +78,24 @@ Distributed Slow HTTP DoS campaigns keep every source below any reasonable
 per-session threshold, so the attack signal lives in the structure \emph{between}
 sessions rather than inside any one of them. Detectors discard that structure by
 reducing the session to a numeric vector, and recent knowledge-graph detectors
-reason at the network-node level and stop at a textual report. We model the HTTP session as a first-class ontological entity in OWL and
-replace the flat \texttt{relatedTo} link with six typed sub-properties weighted
-by the attacker's cost of breaking each signal, network proximity ranking lowest
-because modern botnets distribute aggressively across ASNs and prefixes. A
-SPARQL/SWRL rule fires on their weighted mass, and its derivation \emph{is} the
-verdict, exported as a JSON-LD and STIX~2.1 evidence chain whose discriminator
-scopes the mitigation. Against stealthy distributed campaigns, per-session
-detection stays at chance across four classifier families given the full flow-feature
-set, while cross-session representation separates them consistently (ROC AUC $0.50$
-vs.\ $0.98$; $d = 22.4$); on public datasets, whose attacks carry an obvious flow
-signature, a strong per-session baseline already suffices --- a boundary we report
-explicitly. We further show that the obvious way to scope the mitigation is
-harmful: the property most of the cluster shares is a \emph{legitimate}
-fingerprint once the botnet spans several TLS stacks, blocking $0\%$ of the attack
-and $39\%$ of legitimate traffic. Choosing the discriminator by enrichment over a
-profile
-of normal traffic blocks $85$--$90\%$ with no collateral observed instead. Measured as
-a detector, that symbolic path needs no model training and no learned score
-threshold, and recovers
-two to five times more of a fragmented campaign than the learned model does at
-the same zero-false-positive operating point.
+reason at the network-node level and stop at a textual report. We model the HTTP
+session as a first-class ontological entity in OWL and replace the flat
+\texttt{relatedTo} link with six typed sub-properties weighted by the attacker's
+cost of breaking each signal. A SPARQL/SWRL rule fires on their weighted mass,
+and its derivation \emph{is} the verdict, exported as a JSON-LD and STIX~2.1
+evidence chain whose discriminator scopes the mitigation. Three results follow.
+Against stealthy distributed campaigns, per-session detection stays at chance
+across four classifier families given the full flow-feature set, while
+cross-session representation reaches ROC AUC $0.98$ against $0.50$; on public
+datasets, whose attacks carry an obvious flow signature, a strong per-session
+baseline already suffices, a boundary we report explicitly. Scoping the
+mitigation by the property most of the cluster shares is harmful: it selects a
+\emph{legitimate} fingerprint once the botnet spans several TLS stacks, blocking
+$0\%$ of the attack and $39\%$ of legitimate traffic, whereas choosing the
+discriminator by enrichment blocks $85$--$90\%$ with no collateral observed. And
+measured as a detector, the symbolic path needs no model training and no learned
+score threshold, yet recovers two to five times more of a fragmented campaign
+than the learned model does at the same zero-false-positive operating point.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -116,8 +113,8 @@ requests per second from a botnet of roughly twenty thousand
 machines~\cite{cve202344487,google2023rapidreset}, and Cloudflare blocked more
 than 6\,500 hyper-volumetric attacks in Q2 2025 alone, with HTTP DDoS growing
 129\% year over year~\cite{cloudflare2025q2ddos}. Volumetric defenses answer the
-loud end of this spectrum. The quiet end is harder. The family of
-\emph{distributed Slow HTTP DoS} attacks covers Slowloris and its descendants,
+high-rate end of this spectrum; the low-rate end is where detection is harder.
+The family of \emph{distributed Slow HTTP DoS} attacks covers Slowloris and its descendants,
 plus rate-based variants that still hold connections open, such as HULK and
 GoldenEye~\cite{cambiaso2013slowdos}. These exhaust a server from many
 coordinated origins, each contributing so little that no per-source threshold is
@@ -163,39 +160,29 @@ three gaps define the space this paper occupies.
 
 \begin{enumerate}
 \item \textbf{The HTTP session as a first-class ontological entity, with a
-weighted \texttt{relatedTo} family.} An OWL ontology models
-\texttt{ApplicationSession} with typed relations to client identity, target
-endpoint, exhibited behavior and applicable mitigation, and replaces the flat
-\texttt{relatedTo} link with a family of \emph{six typed, weighted}
-sub-properties, of which the evaluation exercises the three that the available
-traffic exposes. The weights encode the attacker's cost of breaking each signal. Network
-proximity, trivially broken by modern botnets, therefore enters as auxiliary
-evidence and never as a prerequisite.
+weighted \texttt{relatedTo} family.} An OWL ontology replaces the flat
+\texttt{relatedTo} link with \emph{six typed sub-properties} weighted by the
+attacker's cost of breaking each signal; the evaluation exercises the three that
+the available traffic exposes. Network proximity, trivially broken by modern
+botnets, therefore enters as auxiliary evidence and never as a prerequisite.
 
-\item \textbf{Symbolic reasoning over a weighted sum of sub-relations.} A
-runtime pipeline lifts HTTP events into ontology instances, instantiating each
-sub-property independently from its own evidence. A SPARQL/SWRL rule fires on the
-weighted coordination mass $\Omega(S)$ of a candidate cluster. The verdict is the
-derivation that satisfied the rule, not a classifier output interpreted after the
-fact.
+\item \textbf{Symbolic reasoning over their weighted sum.} A SPARQL/SWRL rule
+fires on the weighted coordination mass $\Omega(S)$ of a candidate cluster, so
+the verdict is the derivation that satisfied the rule rather than a classifier
+output interpreted after the fact.
 
 \item \textbf{An evidence chain coupled to automatic mitigation scoping.} Each
-verdict carries a JSON-LD and STIX~2.1 chain listing the activated
-sub-relations, their weights and the values that satisfied the rule, and the scope
-of the mitigation is derived from the same graph. We show that the natural way to
-derive it --- the property most of the cluster shares --- is actively harmful under
-realistic conditions, and replace it with a criterion based on enrichment over a
-profile of normal traffic.
+verdict carries a JSON-LD and STIX~2.1 chain, and the mitigation scope is derived
+from the same graph. We show that the natural way to derive it, the property most
+of the cluster shares, is actively harmful under realistic conditions, and
+replace it with a criterion based on enrichment over a profile of normal traffic.
 
 \item \textbf{An evaluation parameterized by the degree of distribution, with a
-collateral-damage metric.} Against a deliberately \emph{strong} per-session baseline, ablation isolates the
-gain of cross-session representation and the specific gain of high-weight signals
-over
-network proximity. We also report the fraction of legitimate traffic hit by the
-resulting mitigation, a metric self-reported by commercial bot-management products
-but, to our knowledge, not used systematically in the academic Layer-7
-literature. The reference implementation
-is open source.
+collateral-damage metric.} Against a deliberately \emph{strong} per-session
+baseline, the ablation isolates the gain of cross-session representation. We also
+report the fraction of legitimate traffic hit by the resulting mitigation, a
+metric self-reported by commercial bot-management products but, to our knowledge,
+not used systematically in the academic Layer-7 literature.
 \end{enumerate}
 
 Section~\ref{sec:related} positions the work, Section~\ref{sec:approach}
@@ -382,12 +369,9 @@ occupancy.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_pipeline.png}
-\caption{Runtime pipeline, and the split that makes its cost bearable. The two
-layers run at different rates: admission is per request over inverted indexes,
-while RDF materialization and the $\Omega$ aggregation run once per window, four
-orders of magnitude apart per unit of work. The enrichment test reads a
-background profile built outside attack episodes, so no label enters the decision
-path at any point.}
+\caption{Runtime pipeline. Admission runs per request over inverted indexes;
+RDF materialization and the $\Omega$ aggregation run once per window. The
+enrichment test reads a background profile built outside attack episodes.}
 \label{fig:pipeline}
 \end{figure*}
 
@@ -524,15 +508,17 @@ We shape benign popularity as a Zipf curve of exponent $\alpha$ and sweep it. Th
 measured curve is not exactly Zipf. Its head matches $\alpha = 1.5$ ($38.9\%$
 against $38.4\%$) while its top ten matches $\alpha = 2.0$ ($94.2\%$ against
 $93.8\%$), so the sweep brackets it. We take $\alpha = 1.5$ as canonical.
+
 Second, botnet composition: a single shared fingerprint is not representative,
 since real botnets span device classes such as routers, IP cameras, DVRs and
 printers~\cite{antonakakis2017mirai}, and therefore TLS stacks. We distribute
 the campaign over $M$ stacks, uniformly, which is the conservative choice for a
 given $M$, and take $M = 25$ as canonical. No published measurement fixes $M$, so
-we sweep it rather than choose a single value. Finally, an \emph{adversarial} mode lets the
-botnet adopt the most common benign fingerprints instead of its own; this is
-operationally feasible rather than hypothetical: browser-impersonation tooling
-ships ready ClientHello templates for specific Chrome and Safari versions.
+we sweep it rather than choose a single value. Finally, an \emph{adversarial}
+mode lets the botnet adopt the most common benign fingerprints instead of its
+own; this is operationally feasible rather than hypothetical: browser-impersonation
+tooling ships ready ClientHello templates for specific Chrome and Safari versions.
+
 Legitimate distributions are calibrated against the $\sim$322k benign sessions of
 CICIDS2017 and verified by Kolmogorov--Smirnov
 tests: $D = 0.003$ for duration and $D = 0.002$ for request count, both with
@@ -688,12 +674,10 @@ filter (Listing~\ref{lst:chain}, Appendix~\ref{app:cost}). A human-analyst study
 
 \begin{table}[t]
 \centering
-\caption{The SPARQL/enrichment path evaluated end to end as a detector, where the
-sessions matching the derived scope \emph{are} the flagged sessions, with no
-classifier, no training and no learned classification threshold, against the
-learned model forced onto
-the same operating point --- with the exception of the adversarial row, discussed
-in the text. $K = 1000$, $n = 15$ seeds.}
+\caption{The SPARQL/enrichment path evaluated end to end as a detector: the
+sessions matching the derived scope \emph{are} the flagged sessions. Compared
+against the learned model forced onto the same operating point, except in the
+adversarial row (see text). $K = 1000$, $n = 15$ seeds.}
 \label{tab:symbolic}
 \scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -792,11 +776,9 @@ symbolic verdict and a measurable collateral-damage figure.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig3_collateral.png}
-\caption{Choosing the discriminator by frequency versus by enrichment, under
-realistic benign fingerprint concentration ($\alpha = 1.5$). The modal rule holds
-only for a monolithic botnet; from five stacks on it blocks no attacker and
-$39\%$ of legitimate traffic. Enrichment is invariant to fragmentation, and under
-adversarial fingerprint adoption it declines rather than harms. $n = 15$ seeds.}
+\caption{Attack blocked and legitimate traffic hit, choosing the discriminator by
+frequency versus by enrichment, against botnet fragmentation $M$ under realistic
+benign fingerprint concentration ($\alpha = 1.5$). $n = 15$ seeds.}
 \label{fig:collateral}
 \end{figure}
 
@@ -921,7 +903,9 @@ one JA4 across many endpoints, since no shard accumulates enough coordinated
 pairs to clear $\tau_{\mathrm{cluster}}$; sharding by JA4 instead preserves those
 campaigns and breaks the endpoint condition. No single key preserves all six
 sub-relations, and that is a property of $\Omega(S)$ rather than of any
-implementation. The design it suggests, unimplemented, is two-tiered:
+implementation.
+
+The design it suggests, unimplemented, is two-tiered:
 endpoint-sharded workers plus a global sketch over high-weight identifiers to
 recover cross-endpoint campaigns; quantifying the recall lost by the first tier
 and recovered by the second is a precondition for CDN-scale deployment. Taken together with Section~\ref{sec:latency}, these
@@ -1147,10 +1131,8 @@ cross-session representation remains discriminative.}
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig5_latency.png}
-\caption{Cost of the two layers against window occupancy. Per-request admission
-is linear in $|S_W|$ and stays in the microsecond range; per-window symbolic
-materialization is linear in the number of RDF edges, which is itself quadratic
-in $|S_W|$. Reference slopes anchored on the first point of each series.}
+\caption{Cost of the two layers against window occupancy, log--log. Reference
+slopes are anchored on the first point of each series.}
 \label{fig:latency}
 \end{figure}
 
@@ -1231,10 +1213,8 @@ means $\approx 132$ sessions.
 \end{verbatim}
 \vspace{-4pt}\hrule
 \caption{Evidence chain emitted for the CICIDS2017 DoS-Other cluster (JSON-LD,
-abridged). Every term of $\Omega(S) = 10.8$ is attributable to a sub-relation,
-a pair count and a weight, and the last field is the filter actually applied.
-The STIX~2.1 export carries the same content as an \emph{indicator} pattern
-plus a \emph{course-of-action} linked by \emph{mitigates}.}
+abridged). Every term of $\Omega(S) = 10.8$ is attributable to a sub-relation, a
+pair count and a weight; the last field is the filter applied.}
 \label{lst:chain}
 \end{listing}
 

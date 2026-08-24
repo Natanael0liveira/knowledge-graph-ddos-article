@@ -38,7 +38,7 @@
 \renewcommand{\floatpagefraction}{0.75}
 \renewcommand{\dblfloatpagefraction}{0.75}
 \setcounter{topnumber}{4}
-\setcounter{dbltopnumber}{3}
+\setcounter{dbltopnumber}{1}
 \setcounter{totalnumber}{5}
 \setcounter{bottomnumber}{2}
 \setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
@@ -168,6 +168,7 @@ And the pipeline ends at a report, without a mitigation policy whose scope is
 derived from the graph itself. Those
 three gaps define the space this paper occupies.
 
+
 \begin{table*}[t]
 \centering
 \caption{Comparison of related work.}
@@ -225,6 +226,7 @@ Table~\ref{tab:related} positions the closest work on the axes this paper turns
 on: the unit of reasoning, the representation of relations between sessions, the
 form of the explanation, and whether a mitigation scope and its collateral cost
 follow from that same representation.
+
 
 \subsection{Knowledge Graphs for Security and Management}
 
@@ -1070,7 +1072,7 @@ CICIDS2017 testbed~\cite{sharafaldin2018cicids} is more concentrated still
 ($52.7\%$ head), so laboratory shape is indicative only. The measured curve is
 also not exactly Zipf: its head matches $\alpha = 1.5$ ($38.9\%$ against
 $38.4\%$) while its top ten matches $\alpha = 2.0$ ($94.2\%$ against $93.8\%$),
-which is why the sweep brackets it rather than fitting a single exponent.
+so the sweep brackets it.
 
 \section{Additional Limitations}
 \label{app:limitations}
@@ -1104,9 +1106,9 @@ application-layer attack representation as a dataset deficiency, yet its 17 DDoS
 scenarios are all TCP-based. Among the benchmarks examined we therefore found no
 independent capture of the stealthy Layer-7 regime studied here.
 
-\textbf{Explanation validation.} Evidence chains were assessed for structural
-completeness and actionability ($7/7$), but \emph{perceived} actionability (a
-human-analyst study of time-to-decision and comprehension) was not.
+\textbf{Explanation validation.} Evidence chains pass the automated completeness
+and actionability checks of Section~\ref{sec:method} ($7/7$). We ran no user
+study, so whether they shorten an analyst's time to decision is untested.
 
 \begin{figure}[tb]
 \centering
@@ -1125,17 +1127,14 @@ human-analyst study of time-to-decision and comprehension) was not.
 \label{fig:latency}
 \end{figure}
 
-The two layers run at different rates: admission happens per request, while
-symbolic materialization and the $\Omega$ aggregation run once per window. We
-therefore time them separately, on a synthetic window in the realistic
+Admission happens per request while symbolic materialization and the $\Omega$
+aggregation run once per window, so we time them separately, on a synthetic window in the realistic
 same-service mix (30\% of sessions in one campaign sharing a botnet JA4, benign
 JA4 from a pool of 2\,000, eight endpoints, dispersed /24s), reporting medians
-over three repeats on one core. This
-is a cost model of the algorithm as specified, not a system benchmark: the
-admission path implements the inverted-index scheme of
-Section~\ref{sec:pipeline}, and the symbolic layer runs on in-memory
-\texttt{rdflib} rather than the Jena/TDB2 backend used for the dataset pipeline,
-so its figures are an upper bound.
+over three repeats on one core. This is a cost model of the algorithm as
+specified, not a system benchmark: the symbolic layer runs on in-memory
+\texttt{rdflib} rather than the Jena/TDB2 backend, so its figures are an upper
+bound.
 
 Admission behaves as the bound predicts (Fig.~\ref{fig:latency}, where the
 dotted lines are reference slopes anchored on the first point of each series):
@@ -1150,9 +1149,8 @@ however, cost stays within $180$--$210\,\mu$s per materialized RDF edge across
 all sizes, so the layer is \emph{linear in edges}; it is the edge count
 that grows quadratically, because $\Omega(S)$ is defined over pairs. The
 quadratic term is thus a property of the rule rather than of the backend, and it
-points at the deployment split the architecture already implies: detect on the
-indexed admission path, and materialize RDF only for the clusters that fire,
-the evidence-chain subset rather than the whole window.
+points at the deployment split the architecture implies: detect on the indexed
+admission path, and materialize RDF only for the clusters that fire.
 
 \begin{table}[tb]
 \centering
@@ -1211,12 +1209,10 @@ The design that endpoint sharding suggests, unimplemented here, is two-tiered:
 endpoint-sharded workers plus a global sketch over high-weight identifiers to
 recover campaigns that spread across endpoints. Quantifying the recall lost by
 the first tier and recovered by the second is a precondition for CDN-scale
-deployment. Taken together with the cost model above, these observations compose
-one scalability argument: endpoint sharding is exact and needs no coordination, a
-small $W$ costs no detection while cutting the quadratic pair term, and admission
-is microseconds. Endpoint partitioning and a bounded window should therefore keep
-the quadratic component off the per-request path, though confirming that at CDN
-scale remains future work.
+deployment. With the cost model above, the scalability argument is that endpoint
+sharding is exact and needs no coordination, a small $W$ cuts the quadratic pair
+term at no cost in detection, and admission is microseconds; confirming that at
+CDN scale remains future work.
 
 \section{Reproducibility}
 \label{app:repro}
@@ -1224,30 +1220,25 @@ scale remains future work.
 The reference implementation is available at
 \url{https://github.com/Natanael0liveira/knowledge-graph-ddos-article} under a
 permissive license. It is organized by experimental stage: the extraction
-pipeline
-(PCAP $\rightarrow$ JA4 and flows $\rightarrow$ sessions $\rightarrow$ graph);
-the calibrated synthetic generator, with the three realism parameters of
-Section~\ref{sec:method} and the canonical and adversarial scenario
-configurations; the
-ablation, the academic baselines, the four classifier families, the statistical runner
-and the comparison against published state of the art; the symbolic layer
-(SWRL rules plus the SPARQL aggregation, with weights read from the ontology);
-and the evidence and mitigation modules.
+pipeline (PCAP $\rightarrow$ JA4 and flows $\rightarrow$ sessions $\rightarrow$
+graph); the calibrated generator, with the realism parameters of
+Section~\ref{sec:method} and its canonical and adversarial configurations; the
+ablation, the academic baselines, the four classifier families and the
+statistical runner; the symbolic layer, SWRL rules plus the SPARQL aggregation
+with weights read from the ontology; and the evidence and mitigation modules.
 
 Both scope derivations ship side by side: the frequency rule that fails and the
 enrichment rule that replaces it, so the negative result of
 Section~\ref{sec:collateral} is reproducible rather than asserted. The
 background profile the enrichment test needs is produced by an attack-free
-generator run, so no labels enter the decision path at any point. The cost model
-of Appendix~\ref{app:cost} requires no dataset and runs anywhere.
+generator run, so no labels enter the decision path at any point.
 
-Seeds are fixed, orchestration is driven by Makefiles, and artifacts --- figures,
-calibrated distributions and aggregated results --- are versioned; every table and
-every data figure in this paper regenerates from a single command per stage.
-Fig.~\ref{fig:ontology} is a schematic; its editable source ships with the
-artifact. The OWL ontology is provided in RDF/XML, with every \texttt{relatedBy}
-sub-property
-annotated with its \texttt{coordinationWeight}. We intend to submit these
-artifacts to the Artifact Evaluation track.
+Seeds are fixed, orchestration is driven by Makefiles, and artifacts are
+versioned, so every table and data figure regenerates from a single command per
+stage. Fig.~\ref{fig:ontology} is a schematic; its source ships with the
+artifact. The OWL ontology is provided in RDF/XML, with
+every \texttt{relatedBy} sub-property annotated with its
+\texttt{coordinationWeight}. We intend to submit these artifacts to the Artifact
+Evaluation track.
 
 \end{document}

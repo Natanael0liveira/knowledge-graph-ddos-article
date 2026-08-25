@@ -49,6 +49,7 @@
 %% numeracao das figuras-imagem (1, 2, 4, 5). Com contador proprio, as figuras
 %% ficam 1-4 contiguas e o codigo vira Listing 1-2.
 \usepackage{float}
+\usepackage{stfloats}
 %% Estilo de legenda igual ao das figuras do IEEEtran ("Listing 1. Texto"):
 %% o estilo plain do float.sty nao insere o ponto separador.
 \makeatletter
@@ -169,32 +170,6 @@ derived from the graph itself. Those
 three gaps define the space this paper occupies.
 
 
-\begin{table*}[t]
-\centering
-\caption{Comparison of related work.}
-\label{tab:related}
-\scriptsize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}llllllll@{}}
-\toprule
-Work & Year & Target & Reasoning unit & Cross-session relation & Verdict explanation & Mitigation scope & Collateral \\
-\midrule
-Fernandes et al.~\cite{fernandes2015autonomous}   & 2015 & flow anomalies      & flow statistics     & ---                        & ---                  & ---         & --- \\
-Bharathi and Sukanesh~\cite{bharathi2012pca}      & 2012 & L7 DDoS             & session as vector   & ---                        & ---                  & ---         & --- \\
-Kemp et al.~\cite{kemp2023approach}               & 2023 & L7 DoS              & session as vector   & ---                        & ---                  & ---         & --- \\
-Sadlek et al.~\cite{sadlek2024device}             & 2024 & device dependencies & network device      & implicit (learned)         & ---                  & ---         & --- \\
-Wang and Stadler~\cite{wang2024intrusion}         & 2024 & IT intrusion        & host                & implicit (learned)         & ---                  & ---         & --- \\
-KLAGE~\cite{belcastro2025klage}                   & 2026 & network threats     & network node        & implicit (learned)         & post-hoc (LIME/LLM) & ---         & --- \\
-Industrial bot management~\cite{althouse2023ja4}  & ---  & bot traffic         & session             & proprietary                & ---                  & undisclosed & self-reported \\
-\midrule
-\textbf{This work} & --- & distributed L7 DDoS & application session & explicit (typed, weighted) & derivation & derived & reported \\
-\bottomrule
-\end{tabular}
-
-\vspace{2pt}
-{\footnotesize A dash marks a dimension outside the stated scope of a work, not a
-shortcoming; \emph{target} states each work's own objective.}
-\end{table*}
 
 \textbf{Contributions.} This paper contributes (i) an OWL ontology in which the
 HTTP session is a first-class entity, related to other sessions by \emph{six
@@ -227,6 +202,33 @@ on: the unit of reasoning, the representation of relations between sessions, the
 form of the explanation, and whether a mitigation scope and its collateral cost
 follow from that same representation.
 
+
+\begin{table*}[b]
+\centering
+\caption{Comparison of related work.}
+\label{tab:related}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llllllll@{}}
+\toprule
+Work & Year & Target & Reasoning unit & Cross-session relation & Verdict explanation & Mitigation scope & Collateral \\
+\midrule
+Fernandes et al.~\cite{fernandes2015autonomous}   & 2015 & flow anomalies      & flow statistics     & ---                        & ---                  & ---         & --- \\
+Bharathi and Sukanesh~\cite{bharathi2012pca}      & 2012 & L7 DDoS             & session as vector   & ---                        & ---                  & ---         & --- \\
+Kemp et al.~\cite{kemp2023approach}               & 2023 & L7 DoS              & session as vector   & ---                        & ---                  & ---         & --- \\
+Sadlek et al.~\cite{sadlek2024device}             & 2024 & device dependencies & network device      & implicit (learned)         & ---                  & ---         & --- \\
+Wang and Stadler~\cite{wang2024intrusion}         & 2024 & IT intrusion        & host                & implicit (learned)         & ---                  & ---         & --- \\
+KLAGE~\cite{belcastro2025klage}                   & 2026 & network threats     & network node        & implicit (learned)         & post-hoc (LIME/LLM) & ---         & --- \\
+Industrial bot management~\cite{althouse2023ja4}  & ---  & bot traffic         & session             & proprietary                & ---                  & undisclosed & self-reported \\
+\midrule
+\textbf{This work} & --- & distributed L7 DDoS & application session & explicit (typed, weighted) & derivation & derived & reported \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+{\footnotesize A dash marks a dimension outside the stated scope of a work, not a
+shortcoming; \emph{target} states each work's own objective.}
+\end{table*}
 
 \subsection{Knowledge Graphs for Security and Management}
 

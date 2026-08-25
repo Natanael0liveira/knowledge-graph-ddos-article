@@ -184,7 +184,7 @@ evidence chain, together with the finding that the natural derivation, the
 property most of the cluster shares, is harmful under realistic
 conditions, and an enrichment criterion over a profile of normal traffic that
 replaces it; and (iv) an evaluation parameterized by the degree of distribution
-against a deliberately \emph{strong} per-session baseline, reporting the fraction
+against a strong per-session baseline, reporting the fraction
 of legitimate traffic the resulting mitigation blocks, a metric self-reported by
 commercial bot-management products but not, to our knowledge, used systematically
 in the academic Layer-7 literature.
@@ -276,7 +276,7 @@ apparently independent sessions by TLS stack similarity through JA4-family
 fingerprints~\cite{althouse2023ja4}. They are proprietary, however, with no public
 ontology, no reproducible academic benchmark, and no formalized collateral-damage
 metric. Formalizing that practice auditably, and deriving mitigation scope from
-an explicit ontological rule, is what remains open.
+an explicit ontological rule, remains open.
 
 %% ====================================================================
 \section{Session-Centric Knowledge Graph}
@@ -362,9 +362,9 @@ random jitter can partially break it. Payload and endpoint
 signals are middling: randomizing them is cheap, but doing so costs campaign
 coherence. Network proximity is the weakest link by construction: Mirai
 derivatives, cloud fleets and residential-proxy networks spread across ASNs and
-prefixes, and carrier-grade NAT makes a shared /24 a poor discriminator. That
-weight ordering, not the absolute values, is what the calibration in
-Appendix~\ref{app:calibration} corroborates.
+prefixes, and carrier-grade NAT makes a shared /24 a poor discriminator. The calibration in
+Appendix~\ref{app:calibration} corroborates that ordering, not the absolute
+values.
 
 \subsection{Runtime Graph Construction}
 \label{sec:pipeline}
@@ -454,11 +454,10 @@ frequency. Let $c(f)$ be the prevalence of fingerprint $f$ inside the fired
 cluster and $b(f)$ its prevalence in a background profile of normal traffic
 maintained by the operator outside attack episodes. The scope admits every $f$
 with $c(f)/b(f) \geq \rho$ and $c(f) \geq \sigma$, yielding a \emph{set} of
-fingerprints rather than one, which is what covers a fragmented botnet. The
+fingerprints rather than one, which covers a fragmented botnet. The
 support floor $\sigma$ must sit below the share of the smallest stack worth acting
 on, that is, below $1/M$ for a botnet of $M$ stacks. Lowering it costs nothing,
-because it is the enrichment test, not the floor, that keeps legitimate traffic
-out. We use $\rho = 3$ and $\sigma = 0.002$.
+because the enrichment test, not the floor, keeps legitimate traffic out. We use $\rho = 3$ and $\sigma = 0.002$.
 
 The background must come from outside the attack episode: the campaign spans the
 whole window, so using the window itself makes cluster and background prevalences
@@ -644,7 +643,7 @@ $K = 50$; logistic regression, restricted to a monotone response, drops to
 $0.80$ and $0.87$; and the perceptron inverts outright at $K = 50$
 ($\mathrm{AUC} = 0.235$), having learned that a widely shared fingerprint
 indicates benign traffic. The paired contrasts on the reference learner remain
-decisive ($p_{\mathrm{Bonf}} = 7.5\times10^{-9}$; Cohen's $d = +22.4$ for
+significant ($p_{\mathrm{Bonf}} = 7.5\times10^{-9}$; Cohen's $d = +22.4$ for
 (d)$-$(a) and $+13.5$ for (d)$-$(c) at $K = 1000$).
 
 The non-monotonicity argues for the symbolic path rather than against the
@@ -654,8 +653,7 @@ compares against an explicit profile. Enrichment, by contrast, behaves uniformly
 across the fragmentation range where the learners diverge.
 
 That (b) also sits at chance shows that per-session ontological attributes are
-not enough: it is the \emph{explicit relation between} sessions that carries
-detection.
+not enough; the \emph{explicit relation between} sessions carries detection.
 
 The mass of $\Omega(S)$ that fires the rule is dominated by
 \texttt{relatedByTLSFingerprint} ($w=1.0$) and endpoint convergence;
@@ -706,7 +704,7 @@ reverses: $90.3\%$ against $36.4\%$, and $85.0\%$ against $17.6\%$ at one
 hundred stacks, and the rule holds that lead even against a model allowed to
 spend false positives: at $1\%$ FPR the model reaches only $66.8\%$ and $44.5\%$.
 The adversarial row is \emph{not} a like-for-like comparison and we make no claim
-from it --- there the rule itself incurs a $3.78\%$ false-positive rate, and the model reaches $23.4\%$
+from it: there the rule itself incurs a $3.78\%$ false-positive rate, and the model reaches $23.4\%$
 once allowed $1\%$, so the ordering at a matched operating point is unresolved.
 
 AUC alone does not capture this operating-point behavior. The classifier still scores $0.979$
@@ -806,7 +804,7 @@ benign head scores as enriched, and collateral jumps to $81.2\%$. Coverage is
 unaffected throughout, since profile quality governs precision, not recall,
 so maintaining it is a deployment requirement and not an optimization. It also
 implies a fail-safe. Where the profile fails a freshness or drift check, scoped
-mitigation should be suppressed and the verdict emitted as evidence only --- the
+mitigation should be suppressed and the verdict emitted as evidence only, the
 same abstention the enrichment test already performs when nothing is enriched.
 
 \subsection{Cost and the Choice of $W$}
@@ -841,7 +839,7 @@ additional ones.
 per-IP or per-session thresholds perform comparably, and on the conventional
 real attacks available in public datasets a strong per-session classifier
 already reaches $\mathrm{AUC} \geq 0.98$, leaving cross-session representation only
-a marginal gain. The advantage is decisive only when the campaign is distributed
+a marginal gain. The advantage holds only when the campaign is distributed
 \emph{and} stealthy. This work does not replace volumetric defenses; it
 complements them.
 
@@ -871,7 +869,7 @@ Hello~\cite{ietf2024ech} could likewise make JA4 unobservable.
 than emitting labels: detection, evidence and scope come from one pass over the
 same graph, so what reaches the operator or a SOAR playbook is a STIX
 \emph{course-of-action} already parameterized by the discriminator that justified
-the verdict. The sliding window is what makes that affordable
+the verdict. The sliding window bounds that cost
 (Section~\ref{sec:latency}).
 
 \textbf{Parallelism and partitioning.} The rule dictates the natural shard key.
@@ -923,7 +921,7 @@ across four classifier families given the full flow-feature set, while the
 framework's cross-session representation reaches $0.98$ ROC AUC against $0.50$
 ($d = 22.4$, all 30 paired runs in the same direction); on conventional real
 attacks the gain is marginal, a strong per-session classifier already sufficing.
-The study also exposes an operationally important negative result: scoping by the
+The study also exposes a negative result: scoping by the
 property most of the cluster shares selects a legitimate fingerprint once the
 botnet spans several TLS stacks, blocking users instead of attackers, whereas
 enrichment over a profile of normal traffic restores $85$--$90\%$ coverage with

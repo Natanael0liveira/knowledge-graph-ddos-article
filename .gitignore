@@ -69,11 +69,19 @@ dist/
 
 # Claude Code local session data
 .claude/
-papers/*/avaliacao_completa_NOMS.txt
-papers/*/revisao_forte_NOMS_atualizada.txt
-papers/*/terceira_revisao_forte_NOMS.txt
-papers/*/quarta_revisao_estrategica_NOMS.txt
-papers/*/recomendacao_BCCC_NOMS.txt
-papers/*/information-15-00195-v2.pdf
-papers/*/revisao_final_freeze_NOMS.txt
-papers/*/revisao_veridica_final_NOMS.txt
+
+# ============================================================
+# Third-party papers: kept locally, never redistributed
+# ============================================================
+docs/pdfs/
+
+# ============================================================
+# Review rounds received by e-mail (working notes, not artifacts)
+# ============================================================
+papers/*/*revisao*.txt
+papers/*/*avaliacao*.txt
+papers/*/*recomendacao*.txt
+papers/*/information-*.pdf
+
+# LaTeX scratch
+texput.log

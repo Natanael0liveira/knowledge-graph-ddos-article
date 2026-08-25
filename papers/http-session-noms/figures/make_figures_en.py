@@ -41,118 +41,6 @@ OUT = os.path.dirname(os.path.abspath(__file__))
 
 
 # --------------------------------------------------------------------------- fig 1
-def fig_ontology():
-    fig, ax = plt.subplots(figsize=(10.6, 4.10))
-    ax.set_xlim(0, 14)
-    ax.set_ylim(0, 5.4)
-    ax.axis("off")
-
-    def box(x, y, w, h, label, fc=GRAY, ec=GRAYB, tc=TXT, fs=8.6, bold=False, lw=1.3):
-        ax.add_patch(FancyBboxPatch((x, y), w, h,
-                                    boxstyle="round,pad=0.04,rounding_size=0.10",
-                                    linewidth=lw, edgecolor=ec, facecolor=fc, zorder=3))
-        ax.text(x + w / 2, y + h / 2, label, ha="center", va="center", fontsize=fs,
-                color=tc, fontweight="bold" if bold else "normal", zorder=4)
-
-    def arrow(p1, p2, color=GRAYB, lw=1.4, rad=0.0, style="-|>", ms=13):
-        ax.add_patch(FancyArrowPatch(p1, p2, arrowstyle=style, mutation_scale=ms,
-                                     linewidth=lw, color=color,
-                                     connectionstyle=f"arc3,rad={rad}", zorder=2))
-
-    def plabel(x, y, t, color="#555", fs=7.4):
-        ax.text(x, y, t, ha="center", va="center", fontsize=fs, color=color, style="italic",
-                zorder=5, bbox=dict(boxstyle="round,pad=0.10", fc="white", ec="none", alpha=.92))
-
-    # --- satellites of S_i ---------------------------------------------------
-    sat = [
-        (4.85, "Identity\n(Cookie / Token / JA4)", "hasIdentity"),
-        (3.95, "IPAddress / Host", "originatesFrom"),
-        (3.05, "Endpoint\n(API / Login / Checkout)", "targets"),
-        (2.15, "Behavior\n(BotBehavior, ...)", "exhibitsBehavior"),
-    ]
-    for yc, lab, prop in sat:
-        box(0.10, yc - 0.32, 2.05, 0.66, lab, fs=7.4)
-        arrow((2.17, yc), (2.85, 3.30), rad=0.0)
-        plabel(2.42, yc + 0.22, prop, fs=6.8)
-
-    # --- the two sessions ----------------------------------------------------
-    box(2.85, 2.85, 2.35, 0.90, "ApplicationSession\n$S_i$", fc=NAVY, ec=NAVY, tc="white",
-        fs=9.4, bold=True)
-    box(7.75, 2.85, 2.35, 0.90, "ApplicationSession\n$S_j$", fc=NAVY2, ec=NAVY, tc="white",
-        fs=9.4, bold=True)
-    ax.text(8.93, 2.66, "(same primary relations as $S_i$)", ha="center", fontsize=6.8,
-            style="italic", color="#777")
-
-    ax.add_patch(FancyArrowPatch((4.85, 3.75), (8.15, 3.75), arrowstyle="<|-|>",
-                                 mutation_scale=15, linewidth=2.6, color=NAVY,
-                                 connectionstyle="arc3,rad=-0.42", zorder=2))
-    ax.text(6.50, 5.00, "relatedTo  (cross-session)", ha="center", fontsize=9.6,
-            fontweight="bold", color=NAVY, zorder=6,
-            bbox=dict(boxstyle="round,pad=0.20", fc="white", ec=NAVY, lw=1.2))
-
-    # --- weighted family strip ----------------------------------------------
-    ax.add_patch(FancyBboxPatch((2.85, 0.55), 7.30, 1.85,
-                                boxstyle="round,pad=0.05,rounding_size=0.08",
-                                linewidth=1.4, edgecolor=NAVY, facecolor="#f4f7fb", zorder=3))
-    ax.text(3.05, 2.24, "relatedTo family: six typed, weighted sub-properties",
-            ha="left", va="top", fontsize=8.4, fontweight="bold", color=NAVY)
-    ax.text(3.05, 1.94, "weight = attacker's cost to break the signal",
-            ha="left", va="top", fontsize=7.6, style="italic", color="#555")
-    rows = [
-        ("relatedByTLSFingerprint", "1.0", NAVY),
-        ("relatedByReusedIdentity", "1.0", NAVY),
-        ("relatedByTemporalPattern", "0.9", NAVY),
-        ("relatedByEndpointConvergence", "0.6", "#6b6b6b"),
-        ("relatedByPayloadSignature", "0.6", "#6b6b6b"),
-        ("relatedByNetworkProximity", "0.3", "#a5a5a5"),
-    ]
-    for i, (name, w, col) in enumerate(rows):
-        cx = 3.05 + (i // 3) * 3.65
-        cy = 1.55 - (i % 3) * 0.33
-        ax.text(cx, cy, "*", fontsize=10, color=col, va="center")
-        ax.text(cx + 0.22, cy, name.replace("relatedBy", ""), fontsize=8.0,
-                family="monospace", color=TXT, va="center")
-        ax.text(cx + 3.35, cy, f"w={w}", fontsize=8.0, family="monospace", color=col,
-                va="center", fontweight="bold", ha="right")
-    arrow((6.50, 3.55), (6.50, 2.45), color=NAVY, lw=1.2, rad=0.10)
-
-    # --- rule -> verdict -> mitigation --------------------------------------
-    box(10.60, 3.10, 3.30, 1.05,
-        "DetectionRule CoordinatedHTTPFlood\n"
-        r"fires iff $\Omega(S)=\sum_i w_i\,|E_i(S)|\geq\tau$",
-        fc=GRAY, ec=NAVY, fs=7.6, lw=1.4)
-    box(10.60, 1.80, 3.30, 0.95,
-        "Verdict = symbolic derivation\nevidence chain: JSON-LD / STIX 2.1",
-        fc="white", ec=NAVY, fs=7.6, lw=1.4)
-    box(10.60, 0.55, 3.30, 0.90,
-        "CourseOfAction: scoped mitigation\nderived from the coordinated subset",
-        fc=NAVY, ec=NAVY, tc="white", fs=7.6, lw=1.4)
-    arrow((10.15, 3.62), (10.60, 3.62), color=NAVY, lw=1.6)
-    arrow((12.25, 3.10), (12.25, 2.75), color=NAVY, lw=1.6)
-    arrow((12.25, 1.80), (12.25, 1.45), color=NAVY, lw=1.6)
-    plabel(13.20, 1.62, "mitigatedBy", color=NAVY, fs=6.8)
-
-    # --- attack hierarchy ----------------------------------------------------
-    ax.add_patch(FancyBboxPatch((0.10, 0.30), 2.66, 1.25,
-                                boxstyle="round,pad=0.05,rounding_size=0.08",
-                                linewidth=1.1, edgecolor=GRAYB, facecolor="white", zorder=3))
-    ax.text(0.26, 1.44, "Attack hierarchy", ha="left", fontsize=8.0, fontweight="bold",
-            color="#444")
-    hier = ("ApplicationLayerAttack\n"
-            " > SlowHTTPDoSFamily\n"
-            "   > ConnectionExhaustionAttack\n"
-            "   > CoordinatedHTTPFlood\n"
-            " > LoginFlood > CredentialStuffing")
-    ax.text(0.26, 1.22, hier, ha="left", va="top", fontsize=5.9, color=TXT, family="monospace")
-
-    fig.tight_layout()
-    out = os.path.join(OUT, "fig1_ontology.png")
-    fig.savefig(out, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    print(f"OK: {out}")
-
-
-# --------------------------------------------------------------------------- fig 2
 def fig_regime(root):
     real = pd.read_csv(os.path.join(root, "experiments/sprint-3/results/real_multiattack_strong.csv"))
     conv_a = real[real.config == "a_ml_sem_ontologia"]["auc"].mean()
@@ -316,10 +204,8 @@ def fig_latency(root):
 
 if __name__ == "__main__":
     root = os.path.abspath(os.path.join(OUT, "..", "..", ".."))
-    # fig1_ontology is NOT generated here anymore: it is a draw.io schematic,
-    # source in figures/src-drawio/fig1_ontology.drawio (see figures/README.md).
-    # fig_ontology() below is kept only as the historical matplotlib version and
-    # must not run, or it would overwrite the draw.io export.
+    # fig1_ontology and fig2_pipeline are draw.io schematics, not generated here.
+    # Sources live in src-drawio/; see README.md for the export procedure.
     fig_regime(root)
     fig_collateral(root)
     fig_latency(root)

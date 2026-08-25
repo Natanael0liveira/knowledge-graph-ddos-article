@@ -164,7 +164,7 @@ via LIME and large language models, reaching $F_1 = 84.1\%$ on IoT benchmarks
 that include DDoS Slowloris. It is solid evidence that knowledge graphs are a
 viable runtime detection substrate. Three gaps, however, remain. Its reasoning unit is the \emph{network
 node} (port, IP, flow) rather than the application session. Coordination is
-captured implicitly in learned embeddings rather than in named symbolic relations.
+captured implicitly, in learned embeddings, not in named symbolic relations.
 And the pipeline ends at a report, without a mitigation policy whose scope is
 derived from the graph itself. Those
 three gaps define the space this paper occupies.
@@ -181,7 +181,7 @@ candidate cluster, so that what is reported is the derivation that satisfied the
 rule rather than a classifier score explained after the fact; (iii) a mitigation
 scope derived from that same graph and carried with a JSON-LD and STIX~2.1
 evidence chain, together with the finding that the natural derivation, the
-property most of the cluster shares, is actively harmful under realistic
+property most of the cluster shares, is harmful under realistic
 conditions, and an enrichment criterion over a profile of normal traffic that
 replaces it; and (iv) an evaluation parameterized by the degree of distribution
 against a deliberately \emph{strong} per-session baseline, reporting the fraction
@@ -235,7 +235,7 @@ shortcoming; \emph{target} states each work's own objective.}
 The first wave of security knowledge graphs was \emph{static}: entities
 extracted from CVEs, reports and blogs, normalized and linked into a queryable
 base~\cite{jia2018practical,bonagiri2024practical}. The survey of Liu et
-al.~\cite{liu2022recent} states the resulting gap plainly: ``it is still
+al.~\cite{liu2022recent} states the resulting gap: ``it is still
 unclear how to implement the knowledge graph to face real industrial
 difficulties in cyber attack and defense situations''. Graphs built from threat
 intelligence text do not capture runtime traffic structure.
@@ -268,8 +268,8 @@ The meta-analysis of Odusami et al.~\cite{odusami2020survey} gives the clearest
 quantitative evidence of how the session is handled: in 47\% of the cataloged
 methods, session-derived features feed the classifier; across the seventy-five
 studies we found none in which the session is kept as an object with identity,
-target, behavior and typed relations. The reduction is uniform, and it is precisely what places cross-session
-reasoning beyond the detector's reach.
+target, behavior and typed relations. The reduction is uniform, and it places cross-session reasoning beyond the
+detector's reach.
 
 Industrial bot-management platforms do exploit cross-session structure, grouping
 apparently independent sessions by TLS stack similarity through JA4-family
@@ -299,12 +299,13 @@ carrying its evidence chain and derived mitigation scope.
 A knowledge graph states facts as RDF triples $\langle$subject, predicate,
 object$\rangle$, and an OWL~2 ontology declares the classes and properties they
 may use. We work in the OWL~2~RL profile~\cite{w3c2012owl2profiles}, whose
-forward-chaining entailment is polynomial and therefore admissible at line rate,
-where OWL~2~DL is not. SWRL adds Horn rules, which assert a triple when a
+polynomial forward-chaining entailment makes bounded materialization tractable
+for runtime reasoning where OWL~2~DL is not; it runs once per operational window
+rather than on the per-request path. SWRL adds Horn rules, which assert a triple when a
 conjunction of premises holds; SPARQL queries the result and, unlike SWRL,
 aggregates over solution sets. Client identity comes from
 JA4~\cite{althouse2023ja4}, a hash of the TLS \emph{ClientHello} that fingerprints
-a client's TLS stack rather than its address and so survives IP rotation.
+a client's TLS stack, not its address, and so survives IP rotation.
 
 \subsection{Ontology}
 \label{sec:ontology}
@@ -441,7 +442,7 @@ STIX~2.1, an \emph{indicator} plus a \emph{course-of-action} linked by
 \emph{mitigates}, for SIEM and SOAR ingestion.
 
 How the scope is chosen decides whether the verdict is useful or harmful, and the
-obvious choice is wrong. The modal fingerprint of the cluster selects whatever is
+frequency-based choice fails. The modal fingerprint of the cluster selects whatever is
 common, and on a service under attack what is common is the legitimate
 population: against a botnet spread over several TLS stacks, each attacker stack
 is smaller than the head of the benign distribution, so the modal value is a
@@ -533,7 +534,7 @@ Slowloris, Slowhttptest, HULK, GoldenEye) and
 CIC-IoT2023~\cite{neto2023ciciot}, the latter being the dataset on which KLAGE
 reports $F_1 = 84.1\%$ for \texttt{DDoS Slowloris}, run through the same
 extraction pipeline (PCAP $\rightarrow$ JA4 + flows $\rightarrow$ sessions
-$\rightarrow$ graph). Both are laboratory testbed captures rather than
+$\rightarrow$ graph). Both are laboratory testbed captures, not
 production traffic, a caveat we return to in Section~\ref{sec:discussion}.
 
 \subsection{Baselines, Configurations and Metrics}
@@ -557,7 +558,7 @@ numbers on the same dataset and attack. The four ablation configurations are:
 \textbf{(a)} ML baseline without ontology; \textbf{(b)} ontology with \emph{no}
 \texttt{relatedBy} sub-relation, sessions as isolated nodes; \textbf{(c)}
 ontology with \emph{only} \texttt{relatedByNetworkProximity}, emulating a naive
-ASN/prefix detector; and \textbf{(d)} the complete framework over the three
+ASN/prefix detector; and \textbf{(d)} the full cross-session feature representation over the three
 sub-relations observable in the evaluated traffic. Thus (d)$-$(a) is the total contribution, (d)$-$(b) the
 gain of representing cross-session structure at all, and (d)$-$(c) the gain of
 high-weight signals over network proximity.
@@ -596,7 +597,7 @@ Configuration & $K = 50$ & $K = 1000$ \\
 (a) per-session ML (strong)         & 0.498 [.47--.53] & 0.503 [.50--.51] \\
 (b) ontology, no \texttt{relatedBy} & 0.500 [.47--.53] & 0.502 [.49--.51] \\
 (c) \texttt{NetworkProximity} only  & 0.499 [.46--.53] & 0.659 [.65--.67] \\
-\textbf{(d) complete framework}     & \textbf{0.927 [.92--.93]} & \textbf{0.982 [.98--.98]} \\
+\textbf{(d) cross-session repr.}    & \textbf{0.927 [.92--.93]} & \textbf{0.982 [.98--.98]} \\
 \midrule
 \multicolumn{3}{@{}l}{\emph{(a) and (d) across classifier families (point estimates)}} \\
 \quad hist.\ gradient boosting & 0.502 \,/\, 0.921 & 0.501 \,/\, 0.990 \\
@@ -610,21 +611,23 @@ Kemp et al.~\cite{kemp2023approach}             & 0.499 & 0.503 \\
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize $^{\dagger}$ below chance: the perceptron inverts, having learned
+{\footnotesize Configuration (d) reaches the cross-session evidence through
+features rather than SPARQL, so this table measures the representation; the
+symbolic path is evaluated separately in Table~\ref{tab:symbolic}.
+$^{\dagger}$ below chance: the perceptron inverts, having learned
 that a widely shared fingerprint indicates benign traffic. See text.}
 \end{table}
 
 Table~\ref{tab:ablation} reports per-session ROC AUC over stealthy distributed
 campaigns in which legitimate users access the \emph{same} endpoint on the same
 port as the attack, so neither flow volume nor destination port separates the
-two classes. The pattern is sharp and, crucially, \emph{survives a strong
-baseline}: per-session detection (a) with the full flow-feature set, the three
+two classes. The pattern survives a strong baseline: per-session detection (a) with the full flow-feature set, the three
 academic baselines, and configuration (b), which adds per-session ontological
 attributes but no cross-session relation, all sit at chance
 ($\mathrm{AUC}\approx 0.50$), because each attacker session is by construction
-drawn from the benign distributions. The complete framework (d) reaches
+drawn from the benign distributions. The cross-session representation (d) reaches
 $0.93$--$0.98$. Configuration (c), restricted to network proximity, is weak
-($0.50$--$0.66$) precisely because the botnet is dispersed.
+($0.50$--$0.66$) because the botnet is dispersed.
 
 Across the four hypothesis classes, configuration (a) stays at chance for every
 family, at $0.471$--$0.502$, so the collapse is a property of the representation,
@@ -650,9 +653,9 @@ and encode it in a boundary, whereas the rule of Section~\ref{sec:evidence}
 compares against an explicit profile. Enrichment, by contrast, behaves uniformly
 across the fragmentation range where the learners diverge.
 
-That (b) also sits at chance is the most informative single result:
-per-session ontological attributes are not enough. It is the \emph{explicit
-relation between} sessions that carries detection.
+That (b) also sits at chance shows that per-session ontological attributes are
+not enough: it is the \emph{explicit relation between} sessions that carries
+detection.
 
 The mass of $\Omega(S)$ that fires the rule is dominated by
 \texttt{relatedByTLSFingerprint} ($w=1.0$) and endpoint convergence;
@@ -699,14 +702,14 @@ point (Table~\ref{tab:symbolic}).
 Against a monolithic or lightly fragmented botnet the learned model is competitive at zero
 false positives ($91.7\%$ and $88.6\%$ recall against $84.0\%$ and $90.0\%$):
 there is no symbolic advantage in the easy regime. From 25 stacks on the ordering
-reverses sharply: $90.3\%$ against $36.4\%$, and $85.0\%$ against $17.6\%$ at one
+reverses: $90.3\%$ against $36.4\%$, and $85.0\%$ against $17.6\%$ at one
 hundred stacks, and the rule holds that lead even against a model allowed to
 spend false positives: at $1\%$ FPR the model reaches only $66.8\%$ and $44.5\%$.
 The adversarial row is \emph{not} a like-for-like comparison and we make no claim
 from it --- there the rule itself incurs a $3.78\%$ false-positive rate, and the model reaches $23.4\%$
 once allowed $1\%$, so the ordering at a matched operating point is unresolved.
 
-What the AUC column hides is exactly this. The classifier still scores $0.979$
+AUC alone does not capture this operating-point behavior. The classifier still scores $0.979$
 and $0.961$ where it recovers a third and a sixth of the attack: its ranking is
 good, but its scores overlap benign traffic in the tail, so no threshold yields
 automatic action without collateral. The rule produces no score to threshold; it
@@ -735,7 +738,7 @@ KLAGE, node level~\cite{belcastro2025klage} & 0.841 & --- & --- & --- \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:real} contrasts sharply with Table~\ref{tab:ablation}. A
+Table~\ref{tab:real} differs from Table~\ref{tab:ablation}. A
 \emph{lean} per-session baseline (three attributes) collapses to $F_1 = 0.179$,
 but a \emph{strong} one (eight flow attributes) reaches $F_1 = 0.900$, because
 real CIC-IoT2023 Slowloris, unlike our stealthy synthetic campaigns, leaves a
@@ -779,8 +782,8 @@ definition disconnects every legitimate user of the attacked service. That is th
 regime in which the frequency rule was validated, and it is not representative.
 From five stacks on, the modal fingerprint of the cluster becomes a
 \emph{legitimate} one and the rule inverts: $0.0\%$ of the attack blocked and
-$39.0\%$ of legitimate traffic hit, worse than doing nothing in that it carries
-all of the cost of mitigation and none of the benefit. A more concentrated benign
+$39.0\%$ of legitimate traffic hit, a net loss that imposes the cost of
+mitigation without its benefit. A more concentrated benign
 population ($\alpha = 2.0$) raises that collateral to $61.1\%$.
 
 Enrichment removes the failure, blocking $90.0\%$, $90.3\%$ and $85.0\%$ of the
@@ -800,7 +803,7 @@ second is the background profile. Moderate drift is tolerable ($\alpha = 2.0$
 profile against an $\alpha = 1.5$ episode: $90.3\%$ coverage, $0.45\%$ collateral);
 a flat or missing profile is not, since every fingerprint then looks rare, the
 benign head scores as enriched, and collateral jumps to $81.2\%$. Coverage is
-unaffected throughout, since profile quality governs precision rather than recall,
+unaffected throughout, since profile quality governs precision, not recall,
 so maintaining it is a deployment requirement and not an optimization. It also
 implies a fail-safe. Where the profile fails a freshness or drift check, scoped
 mitigation should be suppressed and the verdict emitted as evidence only --- the
@@ -1067,7 +1070,7 @@ traffic with partial and conflicting signals.
 \subsection*{Generator Realism}
 
 Two caveats apply to the production measurement of benign fingerprint popularity.
-The log carries no connection identifier, so weighting is per request rather than
+The log carries no connection identifier, so weighting is per request, not
 per session, which overweights heavy clients and if anything \emph{overstates}
 concentration; and the sample is one point of presence over one window. The
 CICIDS2017 testbed~\cite{sharafaldin2018cicids} is more concentrated still
@@ -1135,7 +1138,7 @@ same-service mix (30\% of sessions in one campaign sharing a botnet JA4, benign
 JA4 from a pool of 2\,000, eight endpoints, dispersed /24s), reporting medians
 over three repeats on one core. This is a cost model of the algorithm as
 specified, not a system benchmark: the symbolic layer runs on in-memory
-\texttt{rdflib} rather than the Jena/TDB2 backend, so its figures are an upper
+\texttt{rdflib}, not the Jena/TDB2 backend, so its figures are an upper
 bound.
 
 Admission behaves as the bound predicts (Fig.~\ref{fig:latency}, where the

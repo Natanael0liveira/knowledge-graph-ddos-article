@@ -1,129 +1,86 @@
-# Experimentos — Pasta mestre
+# Experiments
 
-Este diretório contém o código e a configuração dos cinco sprints experimentais do paper. Os **dados** (PCAPs, *datasets* processados, *output* do KG) ficam fora do repositório, em um HD externo configurado via variável de ambiente. Apenas o código, *configs* e *logs* leves são versionados.
+Code and configuration for every experimental stage of the paper. **Data**
+(PCAPs, processed datasets, KG output) lives outside the repository on an
+external drive pointed at by an environment variable; only code, configs and
+light logs are versioned.
 
-> **Plano consolidado:** [`../docs/pontos-de-reflexao/03-plano-de-acao.md`](../docs/pontos-de-reflexao/03-plano-de-acao.md)
+For why each stage exists and what it can establish, see
+[`../docs/evaluation.md`](../docs/evaluation.md). For the decisions behind each
+one, see [`METHODOLOGY.md`](METHODOLOGY.md). For results on real captures, see
+[`FINDINGS.md`](FINDINGS.md).
 
-## Setup inicial (uma vez)
+## Setup
 
-### Pré-requisitos
+### Prerequisites
 
-| Ferramenta | Versão mínima | Como instalar (macOS) |
+| Tool | Minimum | Install (macOS) |
 |---|---|---|
-| **Python** | 3.11 | `brew install python@3.11` |
-| **Docker Desktop** | 4.x | https://www.docker.com/products/docker-desktop |
-| **tshark** | 4.0+ (tem JA4) | `brew install wireshark` |
-| **GNU Make** | qualquer | já vem no macOS |
-| **Java** | 17+ (para CICFlowMeter) | `brew install openjdk@17` |
-
-Comando único para validar:
+| Python | 3.11 | `brew install python@3.11` |
+| Docker Desktop | 4.x | https://www.docker.com/products/docker-desktop |
+| tshark | 4.0+ (has JA4) | `brew install wireshark` |
+| GNU Make | any | ships with macOS |
+| Java | 17+ (for CICFlowMeter) | `brew install openjdk@17` |
 
 ```bash
 python3 --version && docker --version && tshark --version && make --version && java --version
 ```
 
-### Configuração do HD externo
+### External drive
 
-1. Conecte o HD externo. Identifique o caminho de montagem:
+```bash
+df -h | grep -i volumes                          # find the mount point
+export DATA_ROOT=/Volumes/YourDrive/kg-ddos-data
+mkdir -p "$DATA_ROOT"
+./scripts/setup-data-storage.sh "$DATA_ROOT"     # creates the tree and experiments/.env
+```
 
-   ```bash
-   df -h | grep -i volumes
-   ```
+Confirm that `experiments/.env` holds `DATA_ROOT=...` and that `experiments/data`
+is a symlink exposing `raw/`, `processed/`, `synth/`, `kg/` and `results/`.
 
-2. Crie um diretório raiz para os dados (recomendado: `kg-ddos-data`):
-
-   ```bash
-   export DATA_ROOT=/Volumes/SeuHD/kg-ddos-data   # ajuste o nome do HD
-   mkdir -p "$DATA_ROOT"
-   ```
-
-3. Execute o script de setup do diretório, que cria a estrutura completa e o `.env` da pasta `experiments/`:
-
-   ```bash
-   ./scripts/setup-data-storage.sh "$DATA_ROOT"
-   ```
-
-4. Confirme:
-
-   ```bash
-   cat experiments/.env
-   # deve conter: DATA_ROOT=/Volumes/SeuHD/kg-ddos-data
-   ls experiments/data
-   # symlink para o HD externo, mostrando raw/, processed/, synth/, kg/, results/
-   ```
-
-## Estrutura por sprint
+## Stages
 
 ```
 experiments/
-├── README.md                       # Este arquivo
-├── .env                            # DATA_ROOT (não versionado)
-├── data → /Volumes/SeuHD/...       # symlink ao HD externo (não versionado)
-├── requirements.txt                # dependências Python comuns aos sprints
-│
-├── sprint-1/                       # Pipeline de extração (PCAP → KG)
-│   ├── README.md
-│   ├── Makefile
-│   ├── docker-compose.yml          # Apache Jena Fuseki
-│   ├── configs/
-│   ├── scripts/
-│   │   ├── extract_ja4.py
-│   │   ├── extract_flows.py
-│   │   ├── build_sessions.py
-│   │   ├── derive_clusters.py
-│   │   └── load_to_fuseki.py
-│   └── notebooks/
-│       └── validate.ipynb
-│
-├── sprint-2/                       # Gerador sintético calibrado (✅)
-├── sprint-3/                       # Baselines + ablação a/b/c/d (✅)
-├── sprint-4/                       # Execução estatística n=30 + figura (✅)
-├── sprint-5/                       # Comparação com KLAGE (✅ CIC-IoT2023)
-├── sprint-6-noms/                  # Cenário realista + correções + submissão NOMS (✅)
-├── pillar2-symbolic-reasoning/     # Pilar 2: SWRL+SPARQL, veredicto-como-derivação (✅)
-├── pillar4-evidence-mitigation/    # Pilar 4: cadeia JSON-LD/STIX + mitigação cirúrgica (✅)
-├── figures-candidatas/             # Figuras candidatas ao artigo (fora do .tex, p/ revisão)
-├── METODOLOGIA-DECISOES-RESULTADOS.md  # Por quê/cálculos/resultados/prático por etapa
-├── DEEP-DIVE-FINDINGS.md           # Resultados em dados reais (Passos A–C + Pilar 4)
-└── RESUME.md                       # Ponto de parada / handoff (status + pendências)
+├── sprint-1/                     extraction pipeline: PCAP -> JA4 + flows -> sessions -> graph
+├── sprint-2/                     calibrated synthetic generator
+├── sprint-3/                     baselines and ablation (a/b/c/d)
+├── sprint-4/                     statistical run, n = 30
+├── sprint-5/                     comparison against KLAGE on CIC-IoT2023
+├── sprint-6-noms/                realistic scenario, cost model, corrections for submission
+├── pillar2-symbolic-reasoning/   SWRL + SPARQL, verdict as derivation
+├── pillar4-evidence-mitigation/  JSON-LD / STIX chain and scoped mitigation
+├── requirements.txt
+├── METHODOLOGY.md                why each decision was made, per stage
+└── FINDINGS.md                   results on real captures
 ```
 
-> **Estado:** os 5 sprints e os 4 pilares do paper estão codificados e **executados em
-> dados reais** (ver `DEEP-DIVE-FINDINGS.md`); o paper está consolidado com os resultados.
-> Para o raciocínio das decisões e o significado dos cálculos por etapa, ver
-> [`METODOLOGIA-DECISOES-RESULTADOS.md`](METODOLOGIA-DECISOES-RESULTADOS.md); o status
-> atual e as pendências reais estão em [`RESUME.md`](RESUME.md).
+Each stage is driven by a Makefile with named targets and fixed seeds. Start with
+`make help` inside any of them.
 
-## Estado atual — Fase B completa (2026-06-01)
+## Status
 
-| Sprint | Dataset | Status / resultado |
+All stages are coded and executed. Headline results, matching the paper:
+
+| Stage | Data | Result |
 |---|---|---|
-| **1** — Pipeline + KG | CICIDS2017 + CIC-IoT2023 | ✅ ambos carregados; gates G1–G4 PASS no `validate.ipynb` |
-| **2** — Gerador sintético | calibrado pelo S1 | ✅ KS pass (D≤0.02); reprodutível; modo *stealth* |
-| **3** — Baselines + ablação | sintético furtivo (mesmo serviço, :443) | ✅ (d) entre sessões ≫ (a) forte/(b) ontologia s/ relatedBy/baselines, todos no acaso (0,968 vs 0,519/0,527 em K=50) |
-| **4** — Execução estatística | sintético, n=30 | ✅ (d)−(c) em C: p_bonf=7,4×10⁻⁹, Cohen's d=12,2 |
-| **5** — Comparação KLAGE | CIC-IoT2023 (real) | ✅ (d) F1=0,911 e (a') por-sessão forte F1=0,900 > KLAGE 0,841; vantagem entre-sessões marginal (dataset convencional) |
+| 1 — pipeline and KG | CICIDS2017 + CIC-IoT2023 | Both loaded; gates G1–G4 pass in `validate.ipynb` |
+| 2 — synthetic generator | calibrated from stage 1 | KS pass (D = 0.003 duration, 0.002 request count); reproducible; stealth mode |
+| 3 — baselines and ablation | stealthy synthetic, same service on :443 | (d) 0.927 at K = 50 and 0.982 at K = 1000, against 0.498–0.503 for (a), (b) and the three academic baselines |
+| 4 — statistical run | synthetic, n = 30 | (d)−(a) Cohen's *d* = 22.4 and (d)−(c) *d* = 13.5, both p_bonf = 7.5 × 10⁻⁹; rank-biserial +1.00 |
+| 5 — comparison with KLAGE | CIC-IoT2023 (real) | (d) F₁ = 0.911 and a strong per-session baseline at 0.900, both above KLAGE's published 0.841; the cross-session margin is marginal on this conventional dataset |
+| 6 — NOMS additions | synthetic + real | Cost model, window sweep, profile drift |
+| Pillar 2 | synthetic | Rule as detector: 90.3% recall at zero false positives where the learned model reaches 36.4% |
+| Pillar 4 | synthetic + real | Frequency scoping fails (0% attack, 39% legitimate hit); enrichment blocks 85–90% with no collateral observed |
 
-**Tese sustentada:** a vantagem do raciocínio entre sessões é real e estatisticamente
-fortíssima no regime **furtivo-distribuído** sintético (S3, S4); em datasets reais
-convencionais (S5) um ML por-sessão forte já basta, mas as contribuições de arcabouço
-(sessão ontológica, veredicto simbólico, evidência, mitigação cirúrgica) permanecem. Cada sprint tem README próprio
-com resultados, gates e caveats. Para carga no KG, ver `sprint-1/README.md`.
+**What this supports.** The cross-session advantage is real and statistically
+strong in the **stealthy distributed** regime. On conventional real datasets a
+strong per-session classifier already suffices, and the paper says so explicitly;
+what remains unconditional there is the framework: the session as an ontological
+entity, the symbolic verdict, the evidence chain and the derived mitigation
+scope.
 
-**Pendências (fora da Fase B):** RT-IoT2022 (download manual IEEE DataPort);
-calibração dos **valores absolutos** de w_i em produção (no cenário realista de mesmo
-serviço a calibração por sessão já corrobora a **ordem** TLS-dominante, com os pesos do paper
-atingindo o AUC ótimo 0,943 — ver DEEP-DIVE-FINDINGS); integração das figuras finais no
-`article.tex` (§3 arquitetura+ontologia, §5.4 figC, §5.5 figB), aguardando a edição dos `.drawio`.
-
-## Como começar o Sprint 1
-
-Após o setup do HD externo:
-
-```bash
-cd experiments/sprint-1
-cat README.md   # leia primeiro
-make help       # lista os targets disponíveis
-```
-
-Os comandos do Sprint 1 são orquestrados pelo `Makefile`, com targets nomeados (`setup`, `test`, `download`, `extract`, `sessions`, `cluster`, `load-kg`, `validate`). A maior parte roda em *background* sem requerer sua atenção; veja [`sprint-1/README.md`](sprint-1/README.md) para o passo a passo.
+**Open.** RT-IoT2022 (manual download from IEEE DataPort) and calibration of the
+*absolute* w values against production traffic with partial and conflicting
+signals. In the realistic same-service scenario the calibration corroborates the
+TLS-dominant *ordering*, with the paper's weights reaching the optimal AUC 0.943.

@@ -1,151 +1,113 @@
-# Sprint 1 — Pipeline de Extração (PCAP → KG)
+# Sprint 1 — Extraction pipeline (PCAP → KG)
 
-> **Objetivo:** transformar PCAPs do CICIDS2017 (Slowloris e variantes Slow HTTP) em um grafo de conhecimento consultável via SPARQL, com sessões reconstruídas, JA4 extraído e *ground truth* de *cluster* derivada.
+Turn CICIDS2017 PCAPs (Slowloris and the Slow HTTP variants) into a knowledge
+graph queryable over SPARQL, with sessions reconstructed, JA4 extracted and
+cluster ground truth derived.
 
-> **Dataset alvo:** CICIDS2017 (e não CIC-DDoS2019, conforme revisão de escopo). CICIDS2017 tem os PCAPs nomeados por ataque, incluindo Slowloris específico, alinhado ao foco experimental do paper na família Slow HTTP DoS.
+CICIDS2017 rather than CIC-DDoS2019: its PCAPs are named per attack, Slowloris
+included, which matches the paper's focus on the Slow HTTP DoS family.
 
-> **Tempo estimado de envolvimento ativo:** ~6 h, distribuídas em ~14 dias calendário.
-> A maior parte do *wall clock* (downloads, extrações pesadas) roda em *background*.
+Most of the wall clock is downloads and heavy extraction running in the
+background; active involvement is roughly six hours spread over two weeks.
 
-## Fluxo geral
+## Flow
 
 ```
 [CICIDS2017 PCAPs] ────┐
-                       ├──► extract_ja4.py  ──► ja4.csv
+                       ├──► extract_ja4.py   ──► ja4.csv
                        └──► extract_flows.py ──► flows.csv
                                                        │
-                                                       ▼
                                             build_sessions.py ──► sessions.parquet
                                                        │
-                                                       ▼
                                             derive_clusters.py ──► clusters.csv
                                                        │
-                                                       ▼
-                                            load_to_fuseki.py ──► KG em TDB2
+                                            load_to_fuseki.py ──► KG in TDB2
                                                        │
-                                                       ▼
                                                  validate.ipynb
 ```
 
-## Pré-requisitos
+## Prerequisites
 
-Itens validados pelo `make check`:
+Checked by `make check`: Python 3.11+ with a venv, Docker running (for Fuseki),
+tshark 4.0+ (with JA4), Java 17+ (for CICFlowMeter), and `experiments/.env`
+written by `setup-data-storage.sh`.
 
-- Python 3.11+ com venv
-- Docker rodando (para Fuseki)
-- tshark 4.0+ (com JA4)
-- Java 17+ (para CICFlowMeter)
-- `experiments/.env` configurado pelo `setup-data-storage.sh`
+## Steps
 
-## Passo a passo (com tempo seu vs *wall clock*)
+| Step | Command | Your time | Wall clock |
+|---|---|---|---|
+| 1. Validate setup | `make check` | 5 min | immediate |
+| 2. Start Fuseki | `make fuseki-up` | 2 min | 1 min |
+| 3. Small-PCAP test | `make test` | 30 min | 5 min |
+| 4. Acquire CICIDS2017 | `make download` | 10 min | 6–12 h |
+| 5. JA4 extraction | `make extract-ja4` | 5 min | 2–6 h |
+| 6. Flow extraction | `make extract-flows` | 5 min | 2–4 h |
+| 7. Session reconstruction | `make sessions` | 10 min | 30 min |
+| 8. Cluster ground truth | `make clusters` | 30 min | 10 min + review |
+| 9. Load into Fuseki | `make install-jena-tools && make DATASET=<ds> load-kg-bulk` | 5 min | ~2 min |
+| 10. Coordination, gates G3/G4 | `make DATASET=<ds> coordination` | 5 min | ~2 min |
+| 11. Final validation | `make validate` | 2 h | 1 h |
 
-| Passo | Comando | Seu tempo | Wall clock | Observação |
-|---|---|---|---|---|
-| **1. Validar setup** | `make check` | 5 min | imediato | Detecta dependências faltantes |
-| **2. Subir Fuseki** | `make fuseki-up` | 2 min | 1 min | Container Apache Jena rodando em http://localhost:3030 |
-| **3. Teste com PCAP pequeno** | `make test` | 30 min | 5 min | Baixa amostra pública (~100 MB), roda pipeline completa, valida output |
-| **4. Aquisição do CICIDS2017** | `make download` | 10 min | 6–12 h | Você confirma o registro UNB e dispara; volta no dia seguinte |
-| **5. Extração JA4** | `make extract-ja4` | 5 min | 2–6 h | Background. Logs em `$DATA_ROOT/logs/extract_ja4_*.log` |
-| **6. Extração de flows** | `make extract-flows` | 5 min | 2–4 h | Background |
-| **7. Reconstrução de sessões** | `make sessions` | 10 min | 30 min | Junta flows + JA4 |
-| **8. Ground truth de cluster** | `make clusters` | 30 min | 10 min + revisão | Revisa amostra de 10 *clusters* manualmente |
-| **9. Carga no Fuseki** | `make install-jena-tools && make DATASET=<ds> load-kg-bulk` | 5 min | ~2 min | Bulk load nativo (`tdb2.tdbloader`). **Não use `load-kg`** (HTTP POST) p/ datasets grandes — trava. Ver "Carga no KG" abaixo. |
-| **10. Coordenação + gates G3/G4** | `make DATASET=<ds> coordination` | 5 min | ~2 min | Computa Ω(S), ROC AUC (G3) e materializa `coordinatedHTTPFlood` (G4) no Fuseki |
-| **11. Validação final** | `make validate` | 2 h | 1 h | Abre notebook Jupyter com gráficos e estatísticas |
-| **Buffer** | — | 1 h | — | Imprevistos |
+Step 8 asks you to review a sample of ten clusters by hand. Step 10 computes
+Ω(S), the ROC AUC gate (G3) and materializes `coordinatedHTTPFlood` (G4).
 
-**Total seu envolvimento ativo:** ~6 h.
+Run `make help` for the full target list.
 
-## Targets do Makefile
+## Loading the KG: use `load-kg-bulk`, not `load-kg`
 
-```bash
-make help              # lista todos os targets com descrição
+`make load-kg` loads over chunked HTTP POST. On datasets beyond roughly 1.2M
+triples it **hangs** on Apple Silicon: the `stain/jena-fuseki` image runs under
+amd64 emulation and the per-chunk commit thrashes the index. The TDB2 store also
+cannot live on exFAT, which lacks POSIX memory-map semantics.
 
-# Configuração e validação
-make check             # verifica dependências
-make python-venv       # cria .venv (se ainda não existe)
-make fuseki-up         # sobe Apache Jena Fuseki via docker-compose
-make fuseki-down       # derruba o container
+The working path:
 
-# Teste rápido (PCAP pequeno público)
-make test              # pipeline completa em ~100 MB de PCAP
+1. Point `FUSEKI_DB` in `.env` at the **internal SSD** (see `.env.example`). Only
+   the store is local; data and exports stay under `DATA_ROOT`, external drive
+   included.
+2. `make install-jena-tools` fetches Apache Jena at **the same version as the
+   Fuseki image**, so the TDB2 format matches.
+3. `make DATASET=<ds> load-kg-bulk` serializes sessions to N-Triples in
+   **constant memory** (building the whole rdflib graph blows out swap past ~400k
+   sessions), stops Fuseki, runs the native `tdb2.tdbloader` on the host JVM, and
+   restarts. Roughly 10M triples in 2 minutes, against hours or a hang over HTTP.
 
-# Pipeline principal
-make download          # CICIDS2017 Wednesday-WorkingHours (Slow HTTP family)
-make extract-ja4       # PCAPs → JA4 via tshark
-make extract-flows     # PCAPs → flows via CICFlowMeter
-make sessions          # flows + JA4 → sessions.parquet
-make clusters          # sessions → clusters.csv (ground truth heurística)
+The G4 gate query is in
+[`queries/coordinatedHTTPFlood.rq`](queries/coordinatedHTTPFlood.rq).
 
-# Carga no KG (use a versão bulk — ver seção "Carga no KG")
-make install-jena-tools                  # baixa apache-jena (tdb2.tdbloader nativo)
-make DATASET=<ds> load-kg-bulk           # stream → .nt → tdb2.tdbloader → Fuseki (~2 min)
-make DATASET=<ds> coordination           # Ω(S) + gates G3 (ROC AUC) e G4 (SPARQL)
-# make load-kg                           # DEPRECADO: HTTP POST chunked, trava em datasets grandes
+## Outputs
 
-# Validação
-make validate          # abre notebook validate.ipynb
-make stats             # imprime contagens e estatísticas básicas
+Under `$DATA_ROOT`:
 
-# Limpeza
-make clean             # remove artefatos intermediários (mantém raw e KG)
-make clean-all         # remove tudo (cuidado!)
-```
+- `processed/ja4/cicids2017/*.csv` — JA4 per flow
+- `processed/flows/cicids2017/*.csv` — CICFlowMeter flows
+- `processed/sessions/cicids2017.parquet` — reconstructed sessions
+- `processed/clusters/cicids2017.csv` — derived clusters
+- `kg/fuseki-tdb2/` — Fuseki RDF store
+- `kg/exports/cicids2017.ttl` — exportable Turtle snapshot
 
-## Carga no KG (por que `load-kg-bulk` e não `load-kg`)
+## Acceptance gates
 
-`make load-kg` carrega via HTTP POST em chunks transacionais. Em datasets grandes
-(>~1.2M triples) isso **trava** numa máquina Apple Silicon: a imagem `stain/jena-fuseki`
-roda sob emulação amd64 (QEMU) e o commit por chunk faz thrashing de índice. Além disso,
-o banco TDB2 **não pode** ficar em exfat (memory-map sem semântica POSIX). A solução:
-
-1. `FUSEKI_DB` no `.env` aponta o banco para o **SSD interno** (ver `.env.example`); só o
-   banco mora local, os dados/exports seguem em `DATA_ROOT` (pode ser HD externo).
-2. `make install-jena-tools` baixa o Apache Jena **na mesma versão da imagem Fuseki**
-   (formato TDB2 idêntico).
-3. `make DATASET=<ds> load-kg-bulk`:
-   - `load_to_fuseki.py --stream` serializa as sessions em N-Triples com **memória
-     constante** (o build de grafo rdflib inteiro estoura swap em >400k sessions);
-   - para o Fuseki, roda `tdb2.tdbloader` nativo (JVM ARM do host) e reinicia.
-   - ~10M triples em ~2 min vs horas (e trava) pelo caminho HTTP.
-
-A query do gate G4 fica em [`queries/coordinatedHTTPFlood.rq`](queries/coordinatedHTTPFlood.rq).
-
-## Saídas esperadas
-
-Ao final do Sprint 1, em `$DATA_ROOT`:
-
-- `processed/ja4/cicids2017/*.csv` — JA4 por flow
-- `processed/flows/cicids2017/*.csv` — flows CICFlowMeter
-- `processed/sessions/cicids2017.parquet` — sessões reconstruídas
-- `processed/clusters/cicids2017.csv` — *clusters* derivados
-- `kg/fuseki-tdb2/` — base RDF do Fuseki
-- `kg/exports/cicids2017.ttl` — snapshot Turtle exportável
-
-## Gates de aprovação
-
-- [ ] `make test` produz JA4 não-vazio para ao menos um *handshake* TLS observado
-- [ ] `sessions.parquet` cobre ≥ 80% dos flows originais
-- [ ] Pelo menos 10 *clusters* manualmente validados em `clusters.csv`
-- [ ] Fuseki responde `SELECT (COUNT(*) AS ?n) WHERE { ?s a kg:ApplicationSession }` com $n \ge 1000$
-- [ ] `validate.ipynb` gera relatório com distribuições de JA4, duração de sessão, e estatísticas básicas
+- [ ] `make test` yields non-empty JA4 for at least one observed TLS handshake
+- [ ] `sessions.parquet` covers ≥ 80% of the original flows
+- [ ] At least ten clusters manually validated in `clusters.csv`
+- [ ] Fuseki answers `SELECT (COUNT(*) AS ?n) WHERE { ?s a kg:ApplicationSession }` with n ≥ 1000
+- [ ] `validate.ipynb` reports JA4 and session-duration distributions
 
 ## Troubleshooting
 
-Em caso de problemas, os logs estão em `$DATA_ROOT/logs/`. Os erros mais comuns:
+Logs are in `$DATA_ROOT/logs/`.
 
-| Sintoma | Causa provável | Solução |
+| Symptom | Likely cause | Fix |
 |---|---|---|
-| `tshark: command not found` | Wireshark não instalado | `brew install wireshark` |
-| `JA4 column empty` | tshark < 4.0 (sem plugin JA4) | Atualizar Wireshark via Homebrew |
-| `Docker daemon not running` | Docker Desktop fechado | Abrir Docker Desktop |
-| `cicids2017/` vazio | Registro UNB pendente | Visitar https://www.unb.ca/cic/datasets/ids-2017.html |
-| `CICFlowMeter not found` | Java/JAR não baixado | `make install-cicflowmeter` |
+| `tshark: command not found` | Wireshark missing | `brew install wireshark` |
+| JA4 column empty | tshark < 4.0, no JA4 plugin | Update Wireshark |
+| `Docker daemon not running` | Docker Desktop closed | Open Docker Desktop |
+| `cicids2017/` empty | UNB registration pending | https://www.unb.ca/cic/datasets/ids-2017.html |
+| `CICFlowMeter not found` | JAR not downloaded | `make install-cicflowmeter` |
 
-## Onde se encaixa no paper
+## Where it lands in the paper
 
-Os dados produzidos pelo Sprint 1 servem como:
-
-- **§4.2 Conjunto de Dados** — *dataset* secundário para comparação com literatura
-- **§5.1 Desempenho Geral por Cenário** — *baseline* Cenário A em dados reais
-- **§5.3 Análise por Sub-Relação** — distribuições reais de JA4 e padrões temporais para calibração de `τ_DTW`, `τ_payload`
+Real-capture dataset for the comparison against the literature, the Scenario A
+baseline on real data, and the observed JA4 and temporal distributions used to
+calibrate the sub-relation thresholds.

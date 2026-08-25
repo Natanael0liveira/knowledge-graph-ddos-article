@@ -1,105 +1,107 @@
-# Pilar 4 — Cadeia de Evidência Simbólica + Mitigação Cirúrgica
+# Pillar 4 — Evidence chain and scoped mitigation
 
-> Contribuição 4 do paper, antes **não codificada**. Quando a regra
-> `coordinatedHTTPFlood` dispara sobre um cluster S, este módulo acopla
-> **detecção → evidência simbólica → mitigação de escopo derivado**.
+When `coordinatedHTTPFlood` fires on a cluster S, this module couples
+**detection → symbolic evidence → mitigation with a derived scope**.
 
-## O que faz (`scripts/evidence_mitigation.py`)
+## What `scripts/evidence_mitigation.py` does
 
-1. **Decompõe Ω(S)** por sub-relação `relatedBy_*` (quais sinais ativaram, com peso).
-2. **Deriva o escopo de mitigação.** Duas implementações convivem, de propósito:
-   - `derive_scope` — heurística original, pelo JA4 **modal** do subconjunto
-     coordenado. **Falha contra botnet heterogênea** (ver abaixo). Mantida para que
-     o resultado negativo continue reproduzível.
-   - `derive_scope_enriched` — a correção, por **enriquecimento** sobre um perfil
-     histórico benigno. É a que o paper usa.
-3. **Exporta a cadeia de evidência** em **JSON-LD** (vocabulário da ontologia:
-   `kg:CoordinatedHTTPFlood`, `kg:activatedSubRelations`, `kg:coordinationWeight`,
-   `kg:derivedMitigationScope`) e em **STIX 2.1** (`indicator` + `course-of-action` +
-   `relationship` *mitigates*). O veredicto É a derivação que satisfez a regra.
-4. **Estima o dano colateral** do escopo cirúrgico vs um rate-limit GLOBAL no endpoint.
+1. **Decomposes Ω(S)** per `relatedBy_*` sub-relation: which signals fired, at
+   which weight.
+2. **Derives the mitigation scope.** Two implementations coexist, deliberately:
+   - `derive_scope` — the original heuristic, by the **modal** JA4 of the
+     coordinated subset. **Fails against a heterogeneous botnet** (below). Kept so
+     the negative result stays reproducible.
+   - `derive_scope_enriched` — the correction, by **enrichment** over a benign
+     background profile. This is what the paper uses.
+3. **Exports the evidence chain** as **JSON-LD** over the ontology vocabulary
+   (`kg:CoordinatedHTTPFlood`, `kg:activatedSubRelations`,
+   `kg:coordinationWeight`, `kg:derivedMitigationScope`) and as **STIX 2.1**
+   (`indicator` + `course-of-action` + a *mitigates* `relationship`). The verdict
+   *is* the derivation that satisfied the rule.
+4. **Estimates collateral damage** of the scoped filter against a global rate
+   limit on the endpoint.
 
-## Demonstração (offline, sem HD)
+## Demo
 
 ```bash
-make demo      # cluster-brinquedo: 12 atacantes furtivos + 400 benignos no mesmo endpoint
+make demo      # toy cluster: 12 stealthy attackers, 400 benign, same endpoint
 ```
 
-Resultado:
-
 ```
-Ω(S) = 105.6  (12 sessões)
-  relatedByTLSFingerprint        pares=66  ×1.0 = 66.0
-  relatedByEndpointConvergence   pares=66  ×0.6 = 39.6   (NetworkProximity NÃO ativa — /24 dispersos)
-ESCOPO DERIVADO: {tlsJa4: t13d_botnetX, endpoint: 10.0.0.1:443}
-DANO COLATERAL (400 BENIGN):
-  cirúrgica (escopo derivado): 0   (0.00%)
-  rate-limit GLOBAL endpoint:  198 (49.50%)
-  → redução de dano colateral: 100.0%
+Omega(S) = 105.6  (12 sessions)
+  relatedByTLSFingerprint        pairs=66  x1.0 = 66.0
+  relatedByEndpointConvergence   pairs=66  x0.6 = 39.6   (NetworkProximity inactive: /24s dispersed)
+DERIVED SCOPE: {tlsJa4: t13d_botnetX, endpoint: 10.0.0.1:443}
+COLLATERAL (400 BENIGN):
+  scoped (derived):           0   (0.00%)
+  global endpoint rate limit: 198 (49.50%)
 ```
 
-Saídas em `--out-dir`: `evidence.jsonld`, `mitigation.stix.json`.
+Outputs land in `--out-dir` as `evidence.jsonld` and `mitigation.stix.json`.
 
-> ⚠️ **O número de colateral desta demo (0,00% cirúrgico) é do cenário monolítico.**
-> Ele não se sustenta contra botnet heterogênea com a heurística modal — ver a seção
-> seguinte.
+> **The 0.00% in this demo is the monolithic scenario.** It does not hold against
+> a heterogeneous botnet under the modal heuristic. See below.
 
-## O erro que o Sprint 6 encontrou, e a correção
+## The error Sprint 6 found, and the correction
 
-**Escolher por frequência modal está errado por construção.** Frequência premia o que
-é comum, e num serviço sob ataque **o que é comum é o tráfego legítimo**. Com a botnet
-fragmentada em 5 ou mais stacks TLS, cada stack do atacante fica menor que a cabeça da
-distribuição benigna, o modal do cluster passa a ser um fingerprint **legítimo**, e o
-escopo derivado vira um filtro que bloqueia:
+**Choosing by modal frequency is wrong by construction.** Frequency rewards what
+is common, and on a service under attack **what is common is legitimate traffic**.
+With the botnet fragmented across five or more TLS stacks, each attacker stack is
+smaller than the head of the benign distribution, the cluster's modal value
+becomes a **legitimate** fingerprint, and the derived scope becomes a filter that
+blocks users:
 
-| cenário (alpha=1,5, benigno realista) | modal: ataque / colateral | enriquecimento |
+| Scenario (α = 1.5, realistic benign) | Modal: attack / collateral | Enrichment |
 |---|---|---|
-| botnet monolítica (M=1) | 84,0% / 0,00% | 84,0% / 0,00% |
-| M=5 | **0,0% / 39,0%** | **90,0% / 0,00%** |
-| M=25 | **0,0% / 39,0%** | **90,3% / 0,00%** |
-| M=100 | **0,0% / 39,0%** | **85,0% / 0,00%** |
-| M=25, adversarial | 3,6% / 39,0% | 30,4% / 3,78% |
+| Monolithic (M = 1) | 84.0% / 0.00% | 84.0% / 0.00% |
+| M = 5 | **0.0% / 39.0%** | **90.0% / 0.00%** |
+| M = 25 | **0.0% / 39.0%** | **90.3% / 0.00%** |
+| M = 100 | **0.0% / 39.0%** | **85.0% / 0.00%** |
+| M = 25, adversarial | 3.6% / 39.0% | 30.4% / 3.78% |
 
-Não é degradação suave: o mecanismo seleciona o **alvo errado** e produz um filtro que
-só machuca usuários.
+This is not graceful degradation: the mechanism selects the **wrong target** and
+produces a filter that only hurts users.
 
-**A correção** (`derive_scope_enriched` + `matches_scope_multi`) ordena candidatos por
-enriquecimento sobre um perfil histórico de tráfego normal — janela sem ataque, sem uso
-de rótulos — e devolve um **conjunto** de fingerprints, que é o que cobre botnet
-fragmentada. Ponto de operação: `min_enrichment=3.0`, `min_support=0.01` (0.002 quando
-M é elevado; o piso precisa ficar abaixo de 1/M).
+**The correction** (`derive_scope_enriched` plus `matches_scope_multi`) ranks
+candidates by enrichment over a background profile of normal traffic, taken from
+an attack-free window with no labels, and returns a **set** of fingerprints, which
+is what covers a fragmented botnet. Operating point: `min_enrichment=3.0`,
+`min_support=0.01`, dropping to 0.002 when M is high, since the floor must sit
+below 1/M.
 
-Duas condições de contorno, medidas:
+Two boundary conditions, both measured:
 
-- **Adversário que adota a cabeça benigna**: nada fica enriquecido, e a regra recusa
-  bloquear os fingerprints populares. Perde-se a vantagem cirúrgica, mas **com
-  segurança** — nunca emite o filtro nocivo.
-- **Perfil histórico**: tolera desvio moderado (0,45% de colateral com perfil de outra
-  distribuição), mas **quebra com perfil plano ou ausente** (81–84%). A qualidade do
-  perfil governa a precisão, nunca a cobertura. Mantê-lo é requisito de implantação.
+- **An adversary adopting the benign head.** Nothing is enriched and the rule
+  refuses to block the popular fingerprints. The scoped advantage is lost, but it
+  is lost **safely**: the harmful filter is never emitted.
+- **Background profile quality.** Moderate drift is tolerable (0.45% collateral
+  with a profile from another distribution), but a flat or missing profile is not
+  (81–84%). Profile quality governs precision, never coverage. Keeping it fresh is
+  a deployment requirement.
 
-Experimentos e dados em [`../sprint-6-noms/`](../sprint-6-noms/).
+Experiments and data in [`../sprint-6-noms/`](../sprint-6-noms/).
 
-> **Nota — toy vs. número canônico do paper.** Este demo-brinquedo dá global 49,5% (só
-> ~metade dos 400 benignos cai na janela do cluster). O número **canônico** do paper vem do
-> `collateral_eval.py` no **cenário realista de mesmo serviço** (n=30, K=1000), em que os
-> legítimos acessam o serviço atacado: aí um *rate-limit* global derruba **100%** dos
-> legítimos e o escopo cirúrgico **0%** → redução de 100% (JA4 no escopo em 30/30). É esse
-> 0% vs 100% que a §5.5 e a figB reportam.
+> **Toy demo versus the paper's canonical number.** This demo gives 49.5% for the
+> global control, because only about half the 400 benign sessions fall inside the
+> cluster window. The **canonical** number comes from `collateral_eval.py` in the
+> realistic same-service scenario (n = 30, K = 1000), where legitimate users do
+> access the attacked service: there a global rate limit takes down **100%** of
+> them and the scoped filter **0%**, with the JA4 in scope in 30 of 30 runs. That
+> 0% against 100% is what the paper reports.
 
-## Como ligar aos dados reais (próxima sessão online)
+## Wiring to real data
 
-O cluster de entrada é uma fatia das sessões que a `coordinatedHTTPFlood` (G4)
-detectou. Fluxo: `compute_coordination.py` marca o `det_cluster` campeão → passar
-essas sessões + um conjunto BENIGN como `--cluster`/`--benign`.
+The input cluster is a slice of the sessions that `coordinatedHTTPFlood` (G4)
+detected. `compute_coordination.py` marks the winning `det_cluster`; pass those
+sessions plus a BENIGN set as `--cluster` and `--benign`.
 
-## Caveats honestos
+## Caveats
 
-- **Demonstrado em cluster-brinquedo**; rodar sobre um cluster REAL detectado precisa
-  do HD (parquets). A lógica está validada, os números reais virão depois.
-- O **STIX 2.1 é representativo** (estrutura correta: bundle/indicator/CoA/relationship,
-  `pattern_type: stix`), não validado contra um validador STIX formal. JA4 usa uma
-  extensão custom `x-tls:ja4`.
-- Só as 3 sub-relações com dado a nível de sessão entram na decomposição (mesmo escopo
-  da ablação): TLS/JA4, endpoint, /24.
-- O escopo é derivado por cobertura modal (≥90%); calibrar esse limiar é trabalho fino.
+- Demonstrated on a toy cluster; running over a real detected cluster needs the
+  drive. The logic is validated, the real numbers come after.
+- The **STIX 2.1 output is representative**, with the correct structure
+  (bundle / indicator / course-of-action / relationship, `pattern_type: stix`),
+  but is not checked against a formal STIX validator. JA4 uses a custom
+  `x-tls:ja4` extension.
+- Only the three sub-relations with session-level data enter the decomposition,
+  the same scope as the ablation: TLS/JA4, endpoint, /24.

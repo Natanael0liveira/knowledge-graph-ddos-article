@@ -1,119 +1,88 @@
-# Sprint 5 — Comparação com KLAGE (CIC-IoT2023)
+# Sprint 5 — Comparison with KLAGE (CIC-IoT2023)
 
-> **Objetivo:** rodar o arcabouço no mesmo *dataset* usado por KLAGE (Belcastro et al., FGCS 2026) para comparação direta em DDoS Slowloris. KLAGE reporta $F_1 = 84{,}1\%$; queremos reportar o nosso F1 lado a lado, com a métrica adicional de dano colateral em legítimos.
+Run the framework on the dataset KLAGE uses (Belcastro et al., FGCS 2026) for a
+direct comparison on DDoS Slowloris. KLAGE reports F₁ = 84.1%; we report ours
+alongside, plus the collateral-damage metric KLAGE does not have.
 
-> **Status:** ✅ Executado em CIC-IoT2023 (já adquirido e processado no Sprint 1).
-> RT-IoT2022 fica pendente de download (IEEE DataPort, manual).
+**Status:** executed on CIC-IoT2023. RT-IoT2022 is still pending a manual
+download from IEEE DataPort.
 
-## ✅ Resultados — DDoS Slowloris, CIC-IoT2023
+## Results — DDoS Slowloris, CIC-IoT2023
 
-Detecção de Slowloris (one-vs-rest), `make run`:
+One-vs-rest detection, `make run`:
 
-| método | F1 | prec | rec | AUC | dano colateral (FPR benigno) |
+| Method | F₁ | Prec | Rec | AUC | Collateral (benign FPR) |
 |---|---|---|---|---|---|
-| **KLAGE** (node-level, Graph-BERT) | 0.841 | — | — | — | não reportado |
-| nosso **(a)** ML por-sessão **magro** (3 feat) | 0.179 | 0.691 | 0.103 | 0.551 | 1.06% |
-| nosso **(a')** ML por-sessão **forte** (8 feat) | 0.900 | — | — | 0.987 | — |
-| nosso **(d)** completo, entre sessões | **0.911** | 0.908 | 0.915 | 0.982 | 2.73% |
+| **KLAGE** (node-level, Graph-BERT) | 0.841 | — | — | — | not reported |
+| Ours **(a)** per-session ML, **lean** (3 feat.) | 0.179 | 0.691 | 0.103 | 0.551 | 1.06% |
+| Ours **(a′)** per-session ML, **strong** (8 feat.) | 0.900 | — | — | 0.987 | — |
+| Ours **(d)** full, cross-session | **0.911** | 0.908 | 0.915 | 0.982 | 2.73% |
 
-**O "colapso por-sessão F1=0,18" era artefato do baseline magro.** O (a) original
-usava apenas 3 *features* de fluxo; com 8 *features* (baseline **forte**, (a')) a
-detecção por-sessão **não colapsa**: F1=0,900, AUC=0,987. Tanto (a') quanto (d)
-superam o KLAGE (a' +0,059, d +0,070), e a vantagem de (d) sobre o por-sessão forte
-é **marginal** (ΔF1 = +0,011). Logo, a dianteira sobre o KLAGE **não é atribuível ao
-raciocínio entre sessões** — o Slowloris real do CIC-IoT2023 é um ataque convencional
-com assinatura de fluxo por sessão.
+**The "per-session collapse to F₁ = 0.18" was an artifact of the lean baseline.**
+The original (a) used only three flow features; with eight, per-session detection
+does not collapse: F₁ = 0.900, AUC = 0.987. Both (a′) and (d) beat KLAGE, and the
+advantage of (d) over the strong per-session model is **marginal** (ΔF₁ = +0.011).
+The lead over KLAGE is therefore **not attributable to cross-session reasoning**:
+real Slowloris in CIC-IoT2023 is a conventional attack with a per-session flow
+signature.
 
-**Como ler a comparação com o KLAGE (honestamente):** o F1=0.911 está **na mesma
-ordem de grandeza** do 0.841 publicado pelo KLAGE — **não é um head-to-head
-controlado** e NÃO afirmamos "superar". São experimentos diferentes: granularidade
-distinta (sessão × nó de rede), protocolo distinto (binário ataque-vs-resto num
-split nosso × multiclasse deles), e cobertura distinta (só CIC-IoT2023 × RT-IoT2022
-+ CIC-IoT2023). A leitura defensável é: *nosso método session-level é competitivo com
-o estado-da-arte node-level em DDoS Slowloris, e adiciona o que o KLAGE não tem —
-veredicto simbólico auditável e dano colateral mensurável.* A vantagem do raciocínio
-entre sessões **não** aparece aqui (dataset convencional); ela só se manifesta no
-regime furtivo-distribuído sintético (Sprint 3/4).
+**How to read the KLAGE comparison, honestly.** F₁ = 0.911 is in the **same order
+of magnitude** as the published 0.841. This is **not a controlled head-to-head**
+and we do not claim to beat it. The experiments differ in granularity (session
+versus network node), in protocol (our binary attack-vs-rest split versus their
+multiclass) and in coverage (CIC-IoT2023 only versus RT-IoT2022 plus
+CIC-IoT2023). The defensible reading: *our session-level method is competitive
+with the node-level state of the art on DDoS Slowloris, and adds what KLAGE does
+not have, an auditable symbolic verdict and a measurable collateral-damage
+figure.* The cross-session advantage does not appear here; it lives in the
+stealthy distributed regime of Sprints 3 and 4.
 
-**⚠️ Caveats honestos:**
-- **Granularidade:** KLAGE classifica *nós de rede*; nós classificamos *sessões*. Os
-  F1 não são diretamente comutáveis — comparação de ordem de grandeza. Vantagem
-  qualitativa nossa: veredicto simbólico auditável (regra SPARQL) + dano colateral
-  mensurável (KLAGE não reporta).
-- KLAGE avalia em RT-IoT2022 **+** CIC-IoT2023; aqui só CIC-IoT2023 (RT-IoT2022 não
-  adquirido).
-- (d) tem dano colateral maior que (a) magro (2.73% vs 1.06%): pega muito mais ataque
-  mas sinaliza levemente mais benigno — ainda baixo.
+**Caveats.**
 
-Artefato: [`results/klage_comparison.json`](results/klage_comparison.json).
+- **Granularity.** KLAGE classifies network nodes; we classify sessions. The F₁
+  values are not directly commutable.
+- KLAGE evaluates on RT-IoT2022 **and** CIC-IoT2023; only the latter is used here.
+- (d) has higher collateral than the lean (a) (2.73% against 1.06%): it catches
+  far more attack while flagging slightly more benign traffic. Still low.
+- A controlled rerun of KLAGE is not currently possible. The released code starts
+  from a pre-built graph whose construction from the raw dataset is unpublished,
+  and ships no weights.
 
-## Quando rodar este sprint
+Artifact: [`results/klage_comparison.json`](results/klage_comparison.json).
 
-**Após** Sprint 1 (pipeline em CICIDS2017) validado. Sprint 5 reaproveita a maior parte da infra de Sprint 1, apenas trocando o conjunto de PCAPs de entrada.
+## Acquiring CIC-IoT2023
 
-## Aquisição do CIC-IoT2023
+Run this sprint **after** Sprint 1 is validated; it reuses that infrastructure,
+swapping only the input PCAPs.
 
-### Opção A — Via UNB (mesma conta do CICIDS2017)
+- **Option A, UNB** (same account as CICIDS2017):
+  https://www.unb.ca/cic/datasets/iotdataset-2023.html — take the `PCAPs/`
+  (~12 GB, 33 attacks over 105 IoT devices) and `CSVs/` (~3 GB). To align with
+  KLAGE, prefer the **DDoS Slowloris** subset.
+- **Option B, IEEE DataPort:** https://ieee-dataport.org/documents/ciciot2023-dataset
+  (free account, mirror of the same data).
 
-URL: **https://www.unb.ca/cic/datasets/iotdataset-2023.html**
+Save under `$DATA_ROOT/raw/cic-iot-2023/`, already created by
+`setup-data-storage.sh`.
 
-Mesma página, mesmo registro UNB. Procurar:
-
-| Arquivo | Tamanho | O que tem |
-|---|---|---|
-| `Network traffic` → `PCAPs/` (subfolder específico) | ~12 GB total | Tráfego de 33 ataques sobre 105 dispositivos IoT |
-| `Network traffic` → `CSVs/` (features extraídas) | ~3 GB | Flow-level features prontas para ML |
-
-Para alinhar com a metodologia de KLAGE, baixe especificamente os PCAPs e CSVs do ataque **`DDoS Slowloris`** se possível, ou o subconjunto temporal correspondente.
-
-### Opção B — Via IEEE DataPort
-
-URL: **https://ieee-dataport.org/documents/ciciot2023-dataset**
-
-Requer conta IEEE DataPort gratuita. Mirror do mesmo dataset.
-
-## Onde salvar
-
-```
-$DATA_ROOT/raw/cic-iot-2023/
-```
-
-(diretório já criado pelo `setup-data-storage.sh`).
-
-## Como reaproveitar o Sprint 1
-
-Quando o CIC-IoT2023 estiver no HD, executar:
+## Reusing the Sprint 1 pipeline
 
 ```bash
-cd experiments/sprint-1
+cd ../sprint-1
 make DATASET=cic-iot-2023 extract-ja4
 make DATASET=cic-iot-2023 extract-flows
 make DATASET=cic-iot-2023 sessions
 make DATASET=cic-iot-2023 clusters
-make DATASET=cic-iot-2023 load-kg
+make DATASET=cic-iot-2023 load-kg-bulk
 ```
 
-O parâmetro `DATASET=cic-iot-2023` direciona o Makefile para os paths corretos no HD (`raw/cic-iot-2023/`, `processed/.../cic-iot-2023/`, etc.). A infra é a mesma.
+`DATASET=cic-iot-2023` points the Makefile at the right paths on the drive. The
+infrastructure is unchanged.
 
-## O que será produzido (Sprint 5 propriamente dito)
+## Acceptance gates
 
-| Saída | Conteúdo |
-|---|---|
-| `results/aggregated/klage_comparison.csv` | F1, precisão, *recall* lado a lado (nosso × KLAGE) |
-| `results/figures/klage_comparison.pdf` | Figura comparativa |
-| Análise textual em §5 do paper | Discussão metodológica honesta sobre granularidade session-level (nossa) × node-level (KLAGE) |
-
-## Gates de aprovação
-
-- [ ] CIC-IoT2023 baixado e descompactado em `$DATA_ROOT/raw/cic-iot-2023/`
-- [ ] Pipeline do Sprint 1 roda com `DATASET=cic-iot-2023` sem ajuste de código
-- [ ] F1 do arcabouço em `DDoS Slowloris` do CIC-IoT2023 reportado
-- [ ] Dano colateral em legítimos do CIC-IoT2023 reportado
-- [ ] Tabela comparativa com KLAGE em §5 do paper
-
-## Próximos passos
-
-1. Concluir Sprint 1 (validar pipeline em CICIDS2017)
-2. Baixar CIC-IoT2023 quando o Sprint 1 estiver validado
-3. Re-rodar os mesmos `make` com `DATASET=cic-iot-2023`
-4. Compor a tabela comparativa final
+- [x] Sprint 1 pipeline runs with `DATASET=cic-iot-2023` without code changes
+- [x] F₁ on CIC-IoT2023 DDoS Slowloris reported
+- [x] Collateral damage on legitimate traffic reported
+- [x] Comparison table with KLAGE in the paper
+- [ ] RT-IoT2022 acquired and run

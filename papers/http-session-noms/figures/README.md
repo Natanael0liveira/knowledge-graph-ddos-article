@@ -1,102 +1,97 @@
-# Figuras
+# Figures
 
-Duas categorias, com fluxos de trabalho diferentes. Não misture.
+Two categories with different workflows. Do not mix them.
 
-## 1. Esquemas — desenhados no draw.io
+## 1. Schematics — drawn in draw.io
 
-Fonte em `src-drawio/*.drawio`, referências de estilo em `reference/`.
+Sources in `src-drawio/*.drawio`.
 
-| figura | fonte | referência de estilo | estado |
-|---|---|---|---|
-| `fig1_ontology` | `src-drawio/fig1_ontology.drawio` | `reference/b.pdf` | canvas 1032×396, entra a `\textwidth` |
-| `fig2_pipeline` | `src-drawio/fig_pipeline.drawio` | `reference/complete-framework.pdf` | canvas 1032×346, entra a `\textwidth` |
-| `fig:rules` (Apêndice A) | — | `reference/modular-symb.pdf` ou `code-frag-4.pdf` | hoje é bloco `verbatim` |
-| `fig:chain` (Apêndice D) | — | `reference/table-exec.pdf` | hoje é bloco `verbatim` |
-| pipeline de §III-D | — | `reference/mini-framework-6.pdf` | não existe |
+| Figure | Source | Canvas |
+|---|---|---|
+| `fig1_ontology` | `src-drawio/fig1_ontology.drawio` | 1032 × 396, included at 0.95`\textwidth` |
+| `fig2_pipeline` | `src-drawio/fig_pipeline.drawio` | 1032 × 346, included at 0.93`\textwidth` |
 
-**Fluxo:** abrir o `.drawio` em [app.diagrams.net](https://app.diagrams.net) ou no
-draw.io desktop → ajustar → *File ▸ Export as ▸ PDF*, com **Crop** ligado e
-**Include a copy of my diagram** ligado (assim o `.pdf` volta a ser editável e a
-fonte não se perde) → salvar como `figN_nome.pdf` aqui.
+**Workflow.** Open the `.drawio` at [app.diagrams.net](https://app.diagrams.net)
+or in the desktop app, edit, then *File ▸ Export as ▸ PDF* with **Crop** on and
+**Include a copy of my diagram** on, so the export stays editable and the source
+is not lost.
 
-### Regra de escala — leia antes de desenhar
+### Scale rule — read before drawing
 
-O texto encolhe junto com a figura, e é fácil produzir algo ilegível sem
-perceber. A figura antiga `fig1_ontology.png` tinha 2100 px incluídos a
-`0.72\textwidth`: fator 0,18, corpo de texto a **~5 pt impressos**, abaixo do
-piso do IEEE.
+Text shrinks with the figure, and it is easy to produce something illegible
+without noticing. An earlier `fig1_ontology.png` was 2100 px included at
+0.72`\textwidth`: a factor of 0.18, body text at roughly **5 pt printed**, below
+the IEEE floor.
 
-Convenção adotada: **desenhe em 2× o tamanho final e inclua com o dobro da
-largura.** Para uma figura de largura total (`figure*`), `\textwidth` ≈ 516 pt,
-então o canvas é **1032 pt** e as fontes do draw.io saem pela metade:
+The convention adopted is: **draw at 2× the final size and include at twice the
+width.** For a full-width `figure*`, `\textwidth` ≈ 516 pt, so the canvas is
+**1032 pt** and draw.io fonts come out at half their nominal size:
 
-| fonte no draw.io | impressa |
+| draw.io | printed |
 |---|---|
-| 21 pt (título de painel) | 10,5 pt |
-| 15 pt (rótulo de nó) | 7,5 pt |
-| 13 pt (legenda, anotação) | 6,5 pt |
-| 12 pt (rótulo de aresta) | 6 pt |
+| 21 pt (panel title) | 10.5 pt |
+| 15 pt (node label) | 7.5 pt |
+| 13 pt (caption, annotation) | 6.5 pt |
+| 12 pt (edge label) | 6 pt |
 
-Nada abaixo de 12 pt no draw.io. Confira o tamanho da página em
-*File ▸ Page Setup* antes de exportar.
+Nothing below 12 pt in draw.io. Check the page size under *File ▸ Page Setup*
+before exporting.
 
-Depois trocar no `article.tex`: `figures/fig1_ontology.png` → `.pdf`.
+### Visual grammar
 
-### Gramática visual (extraída de `reference/b.pdf`)
+- Nodes as ellipses, **no fill**, thin black stroke (1.2–1.3 pt)
+- Solid black arrows for model relations
+- **Dashed grey** only for meta-comment: what quantifies, annotates or explains
+- Panel titles in bold, left-aligned, at the top
+- **Dotted vertical** divider between panels
+- Helvetica / Liberation Sans; no decorative colour
+- Wide and short proportions
 
-- nós em elipse, **sem preenchimento**, traço preto fino (1.2–1.3 pt)
-- setas pretas sólidas para relações do modelo
-- **cinza tracejado** só para meta-comentário: o que quantifica, anota ou explica
-- títulos de painel em negrito, alinhados à esquerda, no topo
-- divisor **vertical pontilhado** entre painéis
-- Helvetica / Liberation Sans; sem cor decorativa
-- proporção larga e baixa (o `b.pdf` é 3:1)
+Colour only when it carries meaning, never for emphasis.
 
-Cor só quando for semântica, nunca para dar ênfase. O `reference/unit-1.pdf` usa
-relógio vermelho vs verde porque a cor *é* o resultado; o `b.pdf` não usa cor
-nenhuma.
+## 2. Data plots — generated from code
 
-## 2. Gráficos de dados — gerados por código
+`fig3_collateral`, `fig4_regime` and `fig5_latency` come from
+`make_figures_en.py`, reading the results in
+`experiments/sprint-6-noms/results/`.
 
-`fig2_regime`, `fig3_collateral` e `fig4_latency` saem de `make_figures_en.py`,
-a partir dos resultados em `experiments/sprint-6-noms/results/`.
-
-**Não redesenhe estes à mão.** O Apêndice E do artigo promete que toda figura
-regenera por um comando; desenhá-las converteria número medido em ilustração e
-quebraria essa promessa. Para aproximá-las do estilo dos esquemas, mexa no
-*matplotlib* — família tipográfica, espessura de traço, paleta — não no
-resultado.
-
-```
+```bash
 python make_figures_en.py
 ```
 
-### Paleta (comum às duas categorias)
+**Do not redraw these by hand.** Appendix E of the paper promises that every
+figure regenerates from one command; drawing them would turn a measured number
+into an illustration and break that promise. To bring them closer to the
+schematics, change matplotlib settings — font family, line weight, palette — not
+the result.
 
-Monocromática, casada com a Fig. 1. O contraste vem de tom e de marcador, nunca
-de matiz, então sobrevive a impressão em escala de cinza e a leitores daltônicos.
+### Palette, shared by both categories
 
-| papel | hex | onde |
+Monochrome, matched to Fig. 1. Contrast comes from tone and marker, never from
+hue, so it survives greyscale printing and colour-blind readers.
+
+| Role | Hex | Where |
 |---|---|---|
-| série principal / "ours" | `#1a1a1a` | barras e linhas do nosso método; traço do modelo na Fig. 1 |
-| série de comparação | `#bdbdbd` | *baseline* por sessão, regra modal |
-| anotação | `#595959` | notas cinzas, linha de *chance*, setas explicativas, `NetworkProximity` |
+| Main series / ours | `#1a1a1a` | Bars and lines for our method; model stroke in Fig. 1 |
+| Comparison series | `#bdbdbd` | Per-session baseline, frequency rule |
+| Annotation | `#595959` | Grey notes, chance line, explanatory arrows, `NetworkProximity` |
 
-No `make_figures_en.py` as constantes mantêm os nomes históricos (`NAVY`,
-`BAR_GRAY`, `CHANCE`) para não tocar o corpo das funções — só os valores mudaram.
+In `make_figures_en.py` the constants keep their historical names (`NAVY`,
+`BAR_GRAY`, `CHANCE`) so the function bodies did not have to change; only the
+values did.
 
-### Numeração: nome de arquivo = número impresso
+### Numbering: filename matches the printed number
 
-| impressa | fonte | tipo |
+| Printed | Source | Type |
 |---|---|---|
-| Fig. 1 | `src-drawio/fig1_ontology.drawio` | esquema draw.io |
-| Fig. 2 | `src-drawio/fig_pipeline.drawio` | esquema draw.io |
-| Fig. 3 | `fig3_collateral.png` | gerada por código |
-| Fig. 4 | `fig4_regime.png` | gerada por código |
-| Fig. 5 | `fig5_latency.png` | gerada por código |
-| Listagem 1 | bloco `verbatim`, Apêndice A | regras SWRL/SPARQL |
-| Listagem 2 | bloco `verbatim`, Apêndice D | cadeia de evidência |
+| Fig. 1 | `src-drawio/fig1_ontology.drawio` | draw.io schematic |
+| Fig. 2 | `src-drawio/fig_pipeline.drawio` | draw.io schematic |
+| Fig. 3 | `fig3_collateral.png` | generated |
+| Fig. 4 | `fig4_regime.png` | generated |
+| Fig. 5 | `fig5_latency.png` | generated |
+| Listing 1 | `verbatim` block, Appendix A | SWRL / SPARQL rules |
+| Listing 2 | `verbatim` block, Appendix D | evidence chain |
 
-**Se acrescentar ou remover um float, confira a numeração no PDF e renomeie os
-arquivos.** A sequência já desandou três vezes por isso — os números impressos
-seguem a ordem de aparição, não a ordem de criação.
+**If you add or remove a float, check the numbering in the PDF and rename the
+files to match.** The mapping above is the only thing keeping the two categories
+navigable.

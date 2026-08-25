@@ -30,6 +30,18 @@
 \usepackage[hidelinks]{hyperref}
 
 %% Ver comentario equivalente na versao em ingles.
+%% Empacotamento de floats: os padroes deixam vaos grandes nas paginas que
+%% carregam as duas figuras de largura dupla.
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\dbltopfraction}{0.92}
+\renewcommand{\bottomfraction}{0.6}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+\renewcommand{\dblfloatpagefraction}{0.75}
+\setcounter{topnumber}{4}
+\setcounter{dbltopnumber}{1}
+\setcounter{totalnumber}{5}
+\setcounter{bottomnumber}{2}
 \setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
 \setlength{\intextsep}{8pt plus 2pt minus 2pt}
 \setlength{\dbltextfloatsep}{10pt plus 2pt minus 2pt}
@@ -38,6 +50,7 @@
 %% abriam buracos na numeracao das figuras-imagem. O estilo ieeelst reproduz a
 %% legenda "Fig. N. Texto" do IEEEtran.
 \usepackage{float}
+\usepackage{stfloats}
 \makeatletter
 \newcommand\floatc@ieeelst[2]{\setbox\@tempboxa\hbox{\footnotesize #1.\enskip #2}%
   \ifdim\wd\@tempboxa>\hsize \footnotesize #1.\enskip #2\par
@@ -49,6 +62,9 @@
 \floatstyle{ieeelst}
 \newfloat{listing}{tbp}{lol}
 \floatname{listing}{Listagem}
+\floatname{algorithm}{Algoritmo}
+\renewcommand{\algorithmicrequire}{\textbf{Requer:}}
+\renewcommand{\algorithmicensure}{\textbf{Garante:}}
 
 %% O IEEEtran usa URW Courier (pcr) para \texttt. Onde essas metricas nao
 %% existem, cai para Latin Modern Mono -- e NAO para cmtt: sem o cm-super
@@ -165,53 +181,63 @@ aprendidos, e não em relações simbólicas nomeadas. E o \emph{pipeline} termi
 relatório, sem uma política de mitigação cujo escopo derive do próprio grafo.
 Essas três lacunas delimitam o espaço que este artigo ocupa.
 
-\textbf{Contribuições.} São quatro:
+\textbf{Contribuições.} Este artigo contribui com (i) uma ontologia OWL em que a
+sessão HTTP é entidade de primeira classe, relacionada a outras sessões por
+\emph{seis sub-propriedades tipadas} ponderadas pelo custo que o atacante teria
+para quebrar cada sinal, de modo que a proximidade de rede, trivialmente quebrada
+por \emph{botnets} modernas, entra como evidência auxiliar e nunca como
+pré-requisito; (ii) um procedimento de decisão em que uma regra SPARQL/SWRL
+dispara sobre a massa ponderada de coordenação $\Omega(S)$ de um \emph{cluster}
+candidato, de modo que o que se reporta é a derivação que satisfez a regra, e não
+um escore de classificador explicado a posteriori; (iii) um escopo de mitigação
+derivado desse mesmo grafo e transportado por uma cadeia de evidência em JSON-LD e
+STIX~2.1, junto do achado de que a derivação natural, pela propriedade que a
+maioria do \emph{cluster} compartilha, é nociva em condições realistas, e de um
+critério de enriquecimento sobre um perfil de tráfego normal que a substitui; e
+(iv) uma avaliação parametrizada pelo grau de distribuição contra um
+\emph{baseline} por sessão deliberadamente \emph{forte}, reportando a fração de
+tráfego legítimo que a mitigação resultante bloqueia, métrica auto-reportada por
+produtos comerciais de \emph{bot management} mas, até onde sabemos, não usada
+sistematicamente na literatura acadêmica de Camada 7.
 
-\begin{enumerate}
-\item \textbf{A sessão HTTP como entidade ontológica de primeira classe, com uma
-família \texttt{relatedTo} ponderada.} Uma ontologia OWL modela
-\texttt{ApplicationSession} com relações tipadas para identidade do cliente,
-\emph{endpoint} alvo, comportamento exibido e mitigação aplicável, e substitui a
-relação plana \texttt{relatedTo} por uma família de \emph{seis sub-propriedades
-tipadas e ponderadas}, das quais a avaliação exercita as três que o tráfego
-disponível expõe. Os pesos codificam o custo que o atacante teria para
-quebrar cada sinal. A proximidade de rede, trivialmente quebrada por
-\emph{botnets} modernas, entra portanto como evidência auxiliar e nunca como
-pré-requisito.
-
-\item \textbf{Raciocínio simbólico sobre a soma ponderada das sub-relações.} Um
-\emph{pipeline} em tempo de execução eleva eventos HTTP a instâncias da ontologia,
-instanciando cada sub-propriedade independentemente a partir de sua própria
-evidência. Uma regra SPARQL/SWRL dispara sobre a massa ponderada de coordenação
-$\Omega(S)$ de um \emph{cluster} candidato. O veredicto é a derivação que
-satisfez a regra, não a saída de um classificador interpretada a posteriori.
-
-\item \textbf{Uma cadeia de evidência acoplada à derivação automática de escopo de
-mitigação.} Cada veredicto carrega uma cadeia em JSON-LD e STIX~2.1 que lista as
-sub-relações ativadas, seus pesos e os valores que satisfizeram a regra, e o
-escopo da mitigação é derivado do mesmo grafo. Mostramos que a maneira natural de
-derivá-lo, pela propriedade que a maioria do \emph{cluster} compartilha, é
-ativamente nociva em condições realistas, e a substituímos por um critério
-baseado em enriquecimento sobre um perfil de tráfego normal.
-
-\item \textbf{Uma avaliação parametrizada pelo grau de distribuição, com métrica
-de dano colateral.} Contra um \emph{baseline} por sessão deliberadamente
-\emph{forte}, a ablação isola o ganho da representação entre sessões e o ganho
-específico dos sinais de peso alto sobre a proximidade de rede. Reportamos também
-a fração de tráfego legítimo atingida pela mitigação resultante, métrica
-auto-reportada por produtos comerciais de \emph{bot management} mas, até onde
-sabemos, não usada sistematicamente na literatura acadêmica de Camada 7. A
-implementação de referência é código aberto.
-\end{enumerate}
-
-A Seção~\ref{sec:related} posiciona o trabalho, a Seção~\ref{sec:approach}
-apresenta o arcabouço, as Seções~\ref{sec:method} e~\ref{sec:results} a
-metodologia e os resultados, e a Seção~\ref{sec:discussion} as limitações que
-delimitam a afirmação.
+A Seção~\ref{sec:approach} apresenta o arcabouço, e as
+Seções~\ref{sec:method} e~\ref{sec:results} a metodologia e os resultados.
 
 %% ====================================================================
 \section{Trabalhos Relacionados}
 \label{sec:related}
+
+\begin{table*}[b]
+\centering
+\caption{Comparação dos trabalhos relacionados.}
+\label{tab:related}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llllllll@{}}
+\toprule
+Trabalho & Ano & Alvo & Unidade de raciocínio & Relação entre sessões & Explicação do veredicto & Escopo de mitigação & Colateral \\
+\midrule
+Fernandes et al.~\cite{fernandes2015autonomous}   & 2015 & anomalias de fluxo    & estatísticas de fluxo & ---                        & ---                    & ---           & --- \\
+Bharathi e Sukanesh~\cite{bharathi2012pca}        & 2012 & DDoS L7               & sessão como vetor     & ---                        & ---                    & ---           & --- \\
+Kemp et al.~\cite{kemp2023approach}               & 2023 & DoS L7                & sessão como vetor     & ---                        & ---                    & ---           & --- \\
+Sadlek et al.~\cite{sadlek2024device}             & 2024 & dependências de disp. & dispositivo de rede   & implícita (aprendida)      & ---                    & ---           & --- \\
+Wang e Stadler~\cite{wang2024intrusion}           & 2024 & intrusão em TI        & \emph{host}           & implícita (aprendida)      & ---                    & ---           & --- \\
+KLAGE~\cite{belcastro2025klage}                   & 2026 & ameaças de rede       & nó de rede            & implícita (aprendida)      & pós-hoc (LIME/LLM)     & ---           & --- \\
+Gestão de \emph{bots}, indústria~\cite{althouse2023ja4} & ---  & tráfego de \emph{bot} & sessão          & proprietária, similaridade TLS & ---                & não divulgado & autodeclarado \\
+\midrule
+\textbf{Este trabalho} & --- & DDoS L7 distribuído & sessão de aplicação & explícita (tipada, ponderada) & derivação & derivado & reportado \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+{\footnotesize Um traço marca uma dimensão fora do escopo declarado do trabalho, não
+uma deficiência; \emph{alvo} indica o objetivo que cada trabalho se propõe.}
+\end{table*}
+
+A Tabela~\ref{tab:related} posiciona os trabalhos mais próximos nos eixos de que
+este artigo trata: a unidade sobre a qual se raciocina, a representação das
+relações entre sessões, a forma da explicação, e se um escopo de mitigação e seu
+custo colateral decorrem dessa mesma representação.
 
 \subsection{Grafos de Conhecimento em Segurança e Gestão}
 
@@ -273,7 +299,7 @@ mitigação de uma regra ontológica explícita, é o que permanece em aberto.
 \section{Grafo de Conhecimento Centrado na Sessão}
 \label{sec:approach}
 
-\begin{figure*}[t]
+\begin{figure*}[b]
 \centering
 \includegraphics[width=\textwidth]{figures/fig1_ontology.png}
 \caption{Ontologia centrada na sessão. \texttt{ApplicationSession} é entidade de
@@ -289,6 +315,21 @@ tráfego ao vivo: eventos HTTP são ingeridos; elevados a instâncias da ontolog
 com sessões como nós persistentes do grafo; avaliados por regras semânticas; e
 convertidos num veredicto que carrega sua cadeia de evidência e o escopo de
 mitigação derivado.
+
+\subsection{Fundamentos}
+
+Três componentes padrão sustentam o arcabouço. Um grafo de conhecimento enuncia
+fatos como triplas RDF $\langle$sujeito, predicado, objeto$\rangle$, e uma
+ontologia OWL~2 declara as classes e propriedades que essas triplas podem usar.
+Trabalhamos no perfil OWL~2~RL~\cite{w3c2012owl2profiles}, cujo encadeamento
+progressivo polinomial torna a materialização limitada tratável para raciocínio em
+tempo de execução onde o OWL~2~DL não é; ela roda uma vez por janela operacional,
+e não no caminho por requisição. O SWRL acrescenta regras de Horn, que afirmam uma
+tripla quando uma conjunção de premissas vale; o SPARQL consulta o resultado e,
+diferentemente do SWRL, agrega sobre conjuntos de solução. A identidade do cliente
+vem do JA4~\cite{althouse2023ja4}, um \emph{hash} do \emph{ClientHello} TLS que
+caracteriza a pilha TLS do cliente, não o seu endereço, e por isso sobrevive à
+rotação de IP.
 
 \subsection{Ontologia}
 \label{sec:ontology}
@@ -355,44 +396,16 @@ Apêndice~\ref{app:calibration} corrobora.
 
 Sessões e relações vivem dentro de uma janela operacional deslizante ($W = 5$~min
 por padrão) e são purgadas incrementalmente, seguindo uma disciplina de
-processamento de fluxos RDF. Adotamos o perfil OWL~2~RL~\cite{w3c2012owl2profiles},
-que admite materialização por encadeamento progressivo com comportamento
-quase-linear em consultas SPARQL indexadas, sobre Apache Jena Fuseki com
-armazenamento TDB2; \emph{reasoners} OWL~2~DL completos não escalam para grafos
-desse tamanho. A Fig.~\ref{fig:pipeline} dispõe as duas camadas e as taxas em
-que operam; o Algoritmo~\ref{alg:kg} esboça a construção; o procedimento de
-decisão par a par de cada sub-relação \texttt{relatedBy} está no
+processamento de fluxos RDF. A materialização roda sobre Apache Jena Fuseki com armazenamento TDB2. A Fig.~\ref{fig:pipeline} dispõe as duas camadas e as taxas em
+que operam; o algoritmo de construção e o procedimento de decisão par a par de
+cada sub-relação \texttt{relatedBy} estão no
 Apêndice~\ref{app:algorithms}. Admitir uma sessão nova numa janela com $|S_W|$
 sessões ativas custa $O(|S_W|\cdot c)$, com $c$ amortizado $O(1)$ para todas as
 sub-relações exceto a temporal, dominada pelo FastDTW sob banda de
 Sakoe--Chiba. A Seção~\ref{sec:latency} mede tanto esse caminho de admissão
 quanto a camada simbólica em função da ocupação da janela.
 
-\begin{algorithm}[t]
-\caption{Construção do grafo em tempo de execução}
-\label{alg:kg}
-\begin{algorithmic}[1]
-\REQUIRE fluxo de requisições $\mathcal{R}$, ontologia $\mathcal{O}$, janela $W$
-\ENSURE grafo de conhecimento $KG$ persistente em $W$
-\STATE $KG \leftarrow \emptyset$
-\FOR{cada requisição $r \in \mathcal{R}$}
-  \STATE $s,i,e \leftarrow \textsc{ResolveSessao/Identidade/Endpoint}(r)$
-  \STATE $KG.\mathrm{add}(s,i,e)$; \, $KG.\mathrm{link}(s,\texttt{hasIdentity},i)$
-  \STATE $KG.\mathrm{link}(s,\texttt{targets},e)$
-  \FOR{cada $s' \in S_W$ ativa, $s' \neq s$}
-    \FOR{cada sub-relação $i \in \mathcal{R}_{\mathrm{rel}}$}
-      \IF{$\textsc{Vale}_i(s,s')$}
-        \STATE $KG.\mathrm{link}(s,\texttt{relatedBy}_i,s')$
-      \ENDIF
-    \ENDFOR
-  \ENDFOR
-  \STATE $KG.\mathrm{purgarFora}(W)$
-\ENDFOR
-\RETURN $KG$
-\end{algorithmic}
-\end{algorithm}
-
-\begin{figure*}[t]
+\begin{figure*}[b]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_pipeline.png}
 \caption{O \emph{pipeline} de execução, e a divisão que torna seu custo
@@ -518,38 +531,27 @@ Seção~\ref{sec:ontology}: sessões sustentadas de baixa taxa contra um
 parametrizadas por $K$, pela fração de origens que compartilham assinatura TLS e
 identidade, pela dispersão de IP/ASN e pela janela temporal.
 
-Dois parâmetros desse gerador decidem se o cenário se parece com produção.
-Primeiro, a
-popularidade dos \emph{fingerprints} benignos: sortear o JA4 legítimo
-\emph{uniformemente} de um pool grande torna cada cliente legítimo quase único, ao
-passo que populações reais são concentradas, já que um navegador atualizado numa
-dada plataforma emite essencialmente um JA4~\cite{althouse2023ja4}. Medimos essa
-curva diretamente, sobre $6{,}33$M de requisições TLS registradas num ponto de
+Dois parâmetros desse gerador decidem se o cenário se parece com produção, e
+ambos são calibrados, não presumidos. O primeiro é a popularidade dos
+\emph{fingerprints} benignos, modelada como uma curva de Zipf de expoente
+$\alpha$: populações reais são concentradas, já que um navegador atualizado numa
+dada plataforma emite essencialmente um JA4~\cite{althouse2023ja4}, ao passo que
+sortear os \emph{fingerprints} benignos uniformemente tornaria cada cliente
+legítimo quase único. Calibramos essa curva contra $6{,}33$M de requisições TLS registradas num ponto de
 presença de \emph{edge} em produção da Azion
 Technologies\footnote{Medição de 22 de agosto de 2026, a partir de um \emph{log}
 de acesso que a plataforma já coleta; o extrato contém apenas \emph{fingerprints}
 de software cliente e suas frequências, sem endereço, \emph{host}, URI, cabeçalho
 ou idioma.}: $495$ \emph{fingerprints} JA4 distintos, o mais comum respondendo por
-$38{,}4\%$ das requisições e os dez maiores por $93{,}8\%$. Duas ressalvas se
-aplicam: o \emph{log} não carrega identificador de conexão, então a ponderação é
-por requisição e não por sessão, o que superpondera clientes pesados e, se algo,
-\emph{superestima} a concentração; e a amostra é de um ponto de presença numa
-janela. O \emph{testbed} CICIDS2017~\cite{sharafaldin2018cicids} é ainda mais
-concentrado ($52{,}7\%$ de cabeça), de modo que a forma medida em laboratório é
-apenas indicativa.
-
-Modelamos a popularidade benigna como uma curva de Zipf de expoente $\alpha$ e a
-varremos. A curva medida não é exatamente Zipf. Sua cabeça corresponde a
-$\alpha = 1{,}5$ ($38{,}9\%$ contra $38{,}4\%$) enquanto seu top dez corresponde a
-$\alpha = 2{,}0$ ($94{,}2\%$ contra $93{,}8\%$), de modo que a varredura a
-contém. Adotamos $\alpha = 1{,}5$ como canônico. Segundo, a composição da
-\emph{botnet}: um único \emph{fingerprint} compartilhado não é representativo, já
-que \emph{botnets} reais abrangem classes de dispositivo como roteadores, câmeras
-IP, DVRs e impressoras~\cite{antonakakis2017mirai}, e portanto \emph{stacks} TLS.
-Distribuímos a campanha por $M$ \emph{stacks}, uniformemente, que é a escolha
-conservadora para um dado $M$, e adotamos $M = 25$ como canônico. Nenhuma medição
-publicada fixa $M$, então o varremos em vez de escolher um valor único. Por fim, um modo
-\emph{adversarial} faz a \emph{botnet} adotar os \emph{fingerprints} benignos mais
+$38{,}4\%$ das requisições e os dez maiores por $93{,}8\%$. A curva medida é
+delimitada por $\alpha = 1{,}5$ e $\alpha = 2{,}0$; adotamos $\alpha = 1{,}5$ como
+canônico e varremos a faixa. O segundo é a composição da \emph{botnet}:
+\emph{botnets} reais abrangem classes de dispositivo como roteadores, câmeras IP e
+DVRs~\cite{antonakakis2017mirai}, e portanto \emph{stacks} TLS, de modo que
+distribuímos a campanha uniformemente por $M$ \emph{stacks}, a escolha
+conservadora para um dado $M$, com $M = 25$ canônico e varrido porque nenhuma
+medição publicada o fixa. Um modo \emph{adversarial} faz ainda a \emph{botnet}
+adotar os \emph{fingerprints} benignos mais
 comuns em vez dos próprios; isso é operacionalmente viável, e não hipotético: as
 ferramentas de personificação de navegador distribuem modelos prontos de
 \emph{ClientHello} para versões específicas de Chrome e Safari. As distribuições
@@ -592,7 +594,7 @@ de ablação são: \textbf{(a)} \emph{baseline} de ML sem ontologia; \textbf{(b)
 ontologia \emph{sem nenhuma} sub-relação \texttt{relatedBy}, sessões como nós
 isolados; \textbf{(c)} ontologia com \emph{apenas}
 \texttt{relatedByNetworkProximity}, emulando um detector ingênuo por ASN/prefixo;
-e \textbf{(d)} o arcabouço completo sobre as três sub-relações observáveis no
+e \textbf{(d)} a representação completa de \emph{features} entre sessões sobre as três sub-relações observáveis no
 tráfego avaliado. Assim,
 (d)$-$(a) é a contribuição total, (d)$-$(b) o ganho de representar estrutura entre
 sessões, e (d)$-$(c) o ganho dos sinais de peso alto sobre a proximidade de rede.
@@ -636,7 +638,7 @@ Configuração & $K = 50$ & $K = 1000$ \\
 (a) ML por sessão (forte)            & 0,498 [,47--,53] & 0,503 [,50--,51] \\
 (b) ontologia, sem \texttt{relatedBy} & 0,500 [,47--,53] & 0,502 [,49--,51] \\
 (c) só \texttt{NetworkProximity}      & 0,499 [,46--,53] & 0,659 [,65--,67] \\
-\textbf{(d) arcabouço completo}       & \textbf{0,927 [,92--,93]} & \textbf{0,982 [,98--,98]} \\
+\textbf{(d) repr. entre sessões}      & \textbf{0,927 [,92--,93]} & \textbf{0,982 [,98--,98]} \\
 \midrule
 \multicolumn{3}{@{}l}{\emph{(a) e (d) por família de classificador (estimativa pontual)}} \\
 \quad hist.\ gradient boosting & 0,502 \,/\, 0,921 & 0,501 \,/\, 0,990 \\
@@ -650,7 +652,10 @@ Kemp et al.~\cite{kemp2023approach}             & 0,499 & 0,503 \\
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize $^{\dagger}$ abaixo do acaso: o \emph{perceptron} inverte, tendo
+{\footnotesize A configuração (d) alcança a evidência entre sessões por \emph{features}, e não
+por SPARQL, de modo que esta tabela mede a representação; o caminho simbólico é
+avaliado à parte na Tabela~\ref{tab:symbolic}.
+$^{\dagger}$ abaixo do acaso: o \emph{perceptron} inverte, tendo
 aprendido que um \emph{fingerprint} amplamente compartilhado indica tráfego
 benigno. Ver texto.}
 \end{table}
@@ -663,9 +668,9 @@ separam as duas classes. O padrão é nítido e, o que é crucial, \emph{resiste
 atributos de fluxo, os três \emph{baselines} acadêmicos, e a configuração (b), que
 acrescenta atributos ontológicos por sessão mas nenhuma relação entre sessões,
 ficam todos no acaso ($\mathrm{AUC}\approx 0{,}50$), porque cada sessão atacante é,
-por construção, amostrada das distribuições benignas. O arcabouço completo (d)
+por construção, amostrada das distribuições benignas. A representação entre sessões (d)
 alcança $0{,}93$--$0{,}98$. A configuração (c), restrita à proximidade de rede, é
-fraca ($0{,}50$--$0{,}66$) precisamente porque a \emph{botnet} está dispersa.
+fraca ($0{,}50$--$0{,}66$) porque a \emph{botnet} está dispersa.
 
 A afirmação de que \emph{nenhum} detector por sessão separa este regime não deveria
 repousar sobre uma única classe de hipótese, então repetimos a ablação com
@@ -797,23 +802,21 @@ $F_1 = 0{,}900$, porque o Slowloris real do CIC-IoT2023, ao contrário das nossa
 campanhas furtivas sintéticas, deixa assinatura de fluxo por sessão. O arcabouço
 entre sessões alcança $F_1 = 0{,}911$, à frente por apenas $+0{,}011$.
 
-Três observações decorrem daí. Primeiro, \emph{neste ataque real a
-coordenação entre sessões não é necessária}: um classificador por sessão competente
-o separa, porque o ataque nunca foi calibrado para mimetizar o fluxo benigno.
-Segundo, a comparação com o KLAGE é favorável mas \emph{não controlada}: nosso
+Neste ataque real a coordenação entre sessões não é necessária: um classificador
+por sessão competente o separa, porque o ataque nunca foi calibrado para mimetizar
+o fluxo benigno. A comparação com o KLAGE é favorável mas \emph{não controlada}: nosso
 $0{,}911$ supera o $0{,}841$ publicado, mas nosso próprio \emph{baseline} forte
 também o supera com $0{,}900$, de modo que a margem não pode ser atribuída
-especificamente à representação entre sessões. O KLAGE também classifica nós de rede em tipos de ataque
-enquanto nós classificamos sessões de forma binária. Uma reexecução controlada não
+especificamente à representação entre sessões. Uma reexecução controlada não
 é possível no momento: o código publicado parte de um grafo já construído cuja
 construção a partir do conjunto bruto não é publicada, e não distribui pesos, de
 modo que qualquer reexecução repousaria sobre nossa própria reconstrução dele.
-Terceiro, a necessidade da evidência entre sessões aparece no regime furtivo
+A necessidade da evidência entre sessões aparece apenas no regime furtivo
 distribuído, que os \emph{datasets} públicos de DDoS, restritos a ataques com
-assinatura de fluxo evidente, simplesmente não contêm (Fig.~\ref{fig:regime},
-Apêndice~\ref{app:limitations}). O que a abordagem em nível de sessão acrescenta
-\emph{incondicionalmente} sobre o estado da arte em nível de nó é o veredicto
-simbólico auditável e uma medida de dano colateral.
+assinatura de fluxo evidente, não contêm (Fig.~\ref{fig:regime},
+Apêndice~\ref{app:limitations}). Incondicionalmente sobre o estado da arte em
+nível de nó, a abordagem acrescenta um veredicto simbólico auditável e uma medida
+de dano colateral.
 
 \subsection{Dano Colateral em Tráfego Legítimo}
 \label{sec:collateral}
@@ -970,7 +973,7 @@ configurada, o particionamento por \emph{endpoint} e uma janela limitada devem
 portanto manter o termo quadrático fora do caminho por requisição, embora
 confirmar isso em escala de CDN siga como trabalho futuro.
 
-\textbf{A ablação mede representação, não formalismo.} A configuração (d) alcança a
+\textbf{Escopo da ablação.} A configuração (d) alcança a
 evidência do grafo por atributos e não por SPARQL: um modelo linear sobre os mesmos
 três atributos entre sessões ainda alcança $0{,}799$ contra $0{,}495$ do conjunto
 por sessão, de modo que o ganho de AUC na Tabela~\ref{tab:ablation} é atribuível a
@@ -1032,8 +1035,32 @@ Agradecemos à Azion Technologies por autorizar a medição agregada de
 %% ====================================================================
 \appendices
 
-\section{Instanciação das Sub-Relações \texttt{relatedBy}}
+\section{Construção em Tempo de Execução e Instanciação das Sub-Relações}
 \label{app:algorithms}
+
+\begin{algorithm}[H]
+\caption{Construção do grafo em tempo de execução}
+\label{alg:kg}
+\begin{algorithmic}[1]
+\REQUIRE fluxo de requisições $\mathcal{R}$, ontologia $\mathcal{O}$, janela $W$
+\ENSURE grafo de conhecimento $KG$ persistente em $W$
+\STATE $KG \leftarrow \emptyset$
+\FOR{cada requisição $r \in \mathcal{R}$}
+  \STATE $s,i,e \leftarrow \textsc{ResolveSessao/Identidade/Endpoint}(r)$
+  \STATE $KG.\mathrm{add}(s,i,e)$; \, $KG.\mathrm{link}(s,\texttt{hasIdentity},i)$
+  \STATE $KG.\mathrm{link}(s,\texttt{targets},e)$
+  \FOR{cada $s' \in S_W$ ativa, $s' \neq s$}
+    \FOR{cada sub-relação $i \in \mathcal{R}_{\mathrm{rel}}$}
+      \IF{$\textsc{Vale}_i(s,s')$}
+        \STATE $KG.\mathrm{link}(s,\texttt{relatedBy}_i,s')$
+      \ENDIF
+    \ENDFOR
+  \ENDFOR
+  \STATE $KG.\mathrm{purgarFora}(W)$
+\ENDFOR
+\RETURN $KG$
+\end{algorithmic}
+\end{algorithm}
 
 Para cada par $(s_a,s_b)$ ativo em $W$, os procedimentos a seguir decidem se a
 aresta é instanciada.
@@ -1137,6 +1164,20 @@ de mesmo serviço, os pesos médio e baixo não são separadamente identificáve
 que isoladamente ambos ficam perto do acaso, e seus valores absolutos permanecem em
 aberto até que haja tráfego de produção com sinais parciais e conflitantes.
 
+\subsection*{Realismo do Gerador}
+
+Duas ressalvas se aplicam à medição em produção da popularidade dos
+\emph{fingerprints} benignos. O \emph{log} não carrega identificador de conexão,
+então a ponderação é por requisição e não por sessão, o que superpondera clientes
+pesados e, se algo, \emph{superestima} a concentração; e a amostra é de um ponto
+de presença numa janela. O \emph{testbed}
+CICIDS2017~\cite{sharafaldin2018cicids} é ainda mais concentrado ($52{,}7\%$ de
+cabeça), de modo que a forma medida em laboratório é apenas indicativa. A curva
+medida também não é exatamente Zipf: sua cabeça corresponde a $\alpha = 1{,}5$
+($38{,}9\%$ contra $38{,}4\%$) enquanto seu top dez corresponde a
+$\alpha = 2{,}0$ ($94{,}2\%$ contra $93{,}8\%$), e é por isso que a varredura a
+delimita em vez de ajustar um expoente único.
+
 \section{Limitações Adicionais}
 \label{app:limitations}
 
@@ -1170,10 +1211,10 @@ deficiência de \emph{dataset}, mas seus 17 cenários de DDoS são todos baseado
 TCP. Entre os \emph{benchmarks} examinados não encontramos, portanto, captura
 independente do regime furtivo de Camada 7 estudado aqui.
 
-\textbf{Validação da explicação.} As cadeias de evidência foram avaliadas quanto a
-completude estrutural e acionabilidade ($7/7$), mas a acionabilidade
-\emph{percebida} --- um estudo com analistas medindo tempo até a decisão e
-compreensão --- não foi conduzida.
+\textbf{Validação da explicação.} As cadeias de evidência passam nas verificações
+automatizadas de completude e acionabilidade da Seção~\ref{sec:method} ($7/7$).
+Não conduzimos estudo com usuários, de modo que se elas encurtam o tempo até a
+decisão de um analista permanece não testado.
 
 \begin{figure}[tb]
 \centering
@@ -1284,6 +1325,18 @@ efetivamente aplicado. A exportação STIX~2.1 carrega o mesmo conteúdo como pa
 de \emph{indicator} mais um \emph{course-of-action} ligado por \emph{mitigates}.}
 \label{lst:chain}
 \end{listing}
+
+\subsection*{Particionamento em Escala de CDN}
+
+O desenho que o particionamento por \emph{endpoint} sugere, não implementado
+aqui, é de dois níveis: trabalhadores particionados por \emph{endpoint} mais um
+\emph{sketch} global sobre identificadores de peso alto, para recuperar campanhas
+que se espalham por vários \emph{endpoints}. Quantificar o \emph{recall} perdido
+pelo primeiro nível e recuperado pelo segundo é pré-requisito para implantação em
+escala de CDN. Com o modelo de custo acima, o argumento de escalabilidade é que o
+particionamento por \emph{endpoint} é exato e não exige coordenação, que um $W$
+pequeno corta o termo quadrático de pares sem custo em detecção, e que a admissão
+custa microssegundos; confirmar isso em escala de CDN permanece trabalho futuro.
 
 \section{Reprodutibilidade}
 \label{app:repro}

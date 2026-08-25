@@ -96,8 +96,7 @@ session as a first-class ontological entity in OWL and replace the flat
 \texttt{relatedTo} link with six typed sub-properties weighted by the attacker's
 cost of breaking each signal. A SPARQL/SWRL rule fires on their weighted mass,
 and its derivation \emph{is} the verdict, exported as a JSON-LD and STIX~2.1
-evidence chain whose discriminator scopes the mitigation. Three results follow.
-Against stealthy distributed campaigns, per-session detection stays at chance
+evidence chain whose discriminator scopes the mitigation. Against stealthy distributed campaigns, per-session detection stays at chance
 across four classifier families given the full flow-feature set, while
 cross-session representation reaches ROC AUC $0.98$ against $0.50$; on public
 datasets, whose attacks carry an obvious flow signature, a strong per-session
@@ -498,8 +497,8 @@ by the fraction of origins sharing TLS signature and identity, by IP/ASN
 dispersion and by the time window.
 
 Two parameters of that generator decide whether the scenario resembles
-production, and both are calibrated rather than assumed. The first is benign
-fingerprint popularity, shaped as a Zipf curve of exponent $\alpha$: real
+production, and both are calibrated rather than assumed. Benign fingerprint
+popularity is shaped as a Zipf curve of exponent $\alpha$: real
 populations are concentrated, since an up-to-date browser on a given platform
 emits essentially one JA4~\cite{althouse2023ja4}, whereas drawing benign
 fingerprints uniformly would make every legitimate client nearly unique. We
@@ -510,7 +509,7 @@ fingerprints and their frequencies, with no address, host, URI, header or
 locale.}: $495$ distinct fingerprints, the most common accounting for $38.4\%$ of
 requests and the top ten for $93.8\%$. The measured curve is bracketed by
 $\alpha = 1.5$ and $\alpha = 2.0$; we take $\alpha = 1.5$ as canonical and sweep
-the range. The second is botnet composition: real botnets span device classes
+the range. Botnet composition matters as much: real botnets span device classes
 such as routers, IP cameras and DVRs~\cite{antonakakis2017mirai}, and therefore
 TLS stacks, so we distribute the campaign uniformly over $M$ stacks, the
 conservative choice for a given $M$, with $M = 25$ canonical and swept because no
@@ -743,21 +742,20 @@ real CIC-IoT2023 Slowloris, unlike our stealthy synthetic campaigns, leaves a
 per-session flow signature. The cross-session framework reaches $F_1 = 0.911$,
 ahead by only $+0.011$.
 
-Three observations follow. First, \emph{on this real attack cross-session
-coordination is not necessary}: a competent per-session classifier separates it,
-because the attack was never calibrated to mimic benign flow. Second, the
-comparison with KLAGE is favorable but \emph{uncontrolled}: our $0.911$ beats the
+On this real attack, cross-session coordination is not necessary: a competent
+per-session classifier separates it, because the attack was never calibrated to
+mimic benign flow. The comparison with KLAGE is favorable but \emph{uncontrolled}: our $0.911$ beats the
 published $0.841$, yet so does our own strong baseline at $0.900$, so the margin
 cannot be attributed specifically to the cross-session representation. A
 controlled rerun is not currently possible: the released code starts from a
 pre-built graph
 whose construction from the raw dataset is unpublished and ships no weights, so
-any rerun would rest on our own reconstruction of it. Third, the necessity of
-cross-session evidence appears in the stealthy distributed regime, which public
+any rerun would rest on our own reconstruction of it. The necessity of
+cross-session evidence appears only in the stealthy distributed regime, which public
 DDoS datasets, restricted to attacks with obvious flow signatures, do not contain
-(Fig.~\ref{fig:regime}, Appendix~\ref{app:limitations}). What the approach adds
-\emph{unconditionally} over the node-level state of the art is the auditable
-symbolic verdict and a measurable collateral-damage figure.
+(Fig.~\ref{fig:regime}, Appendix~\ref{app:limitations}). Unconditionally over the node-level state of
+the art, the approach adds an auditable symbolic verdict and a measurable
+collateral-damage figure.
 
 \subsection{Collateral Damage on Legitimate Traffic}
 \label{sec:collateral}
@@ -885,7 +883,7 @@ that is a property of $\Omega(S)$ rather than of any implementation.
 Appendix~\ref{app:cost} sketches the two-tier design this suggests and states
 what it leaves unquantified.
 
-\textbf{The ablation measures representation, not formalism.} Configuration (d)
+\textbf{Scope of the ablation.} Configuration (d)
 reaches the graph's evidence through features rather than through SPARQL: a
 linear model over the same three cross-session features still attains $0.799$
 against $0.495$ for the per-session set, so the AUC gain in

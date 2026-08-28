@@ -1,9 +1,11 @@
 # Concepts
 
 Conceptual background for the NOMS submission in
-[`papers/http-session-noms`](../papers/http-session-noms/). For the experimental
-design see [`evaluation.md`](evaluation.md); for the novelty check on scoped
-mitigation see [`prior-art.md`](prior-art.md).
+[`papers/http-session-noms`](../papers/http-session-noms/). For how the graph is
+built and evaluated while traffic flows see [`runtime.md`](runtime.md); for the
+experimental design see [`evaluation.md`](evaluation.md); for the metrics the
+results are reported in see [`metrics.md`](metrics.md); for the novelty check on
+scoped mitigation see [`prior-art.md`](prior-art.md).
 
 ---
 
@@ -128,8 +130,25 @@ For a candidate set S of sessions active in the window, the coordination mass is
 
 summed over the sub-relations, where Eᵢ(S) is the set of unordered session pairs
 in S linked by sub-relation *i*. A SPARQL/SWRL rule fires when Ω(S) clears a
-threshold and every session of S targets the same endpoint. The derivation that
-satisfied the rule *is* the verdict; nothing is explained after the fact.
+threshold τ_cluster and every session of S targets the same endpoint. The
+derivation that satisfied the rule *is* the verdict; nothing is explained after
+the fact.
+
+**Calibrating τ_cluster.** The threshold is neither tuned on labels nor guessed.
+It is fixed per scenario at the **99th percentile of Ω over legitimate
+clusters**: the graph is built over attack-free traffic, Ω is computed for the
+clusters that form there on their own, and the threshold is set just above where
+ordinary legitimate co-occurrence lands. A cluster must therefore be more
+coordinated than 99% of what benign traffic produces by itself before the rule
+fires.
+
+The weights make that floor asymmetric in a useful way. A set held together
+*only* by network proximity — legitimate mobile users behind one CGN /24, the
+classic false-positive mode — needs over three times as many linked pairs to
+reach the same Ω as a TLS-linked set, so ordinary CGN aggregation stays below
+τ_cluster. Conversely Ω can clear the threshold with `relatedByNetworkProximity`
+at exactly zero, which is precisely the distributed-botnet case, provided some
+combination of high-weight signals is present.
 
 ## 5. Coordinated attack classes
 
@@ -168,8 +187,14 @@ no attackers.
 The scope is therefore selected by **enrichment**. With c(f) the prevalence of
 fingerprint f inside the fired cluster and b(f) its prevalence in a background
 profile of normal traffic maintained outside attack episodes, the scope admits
-every f with c(f)/b(f) ≥ ρ and c(f) ≥ σ. This yields a *set* of fingerprints,
-which is what covers a fragmented botnet.
+every f with c(f)/b(f) ≥ ρ and c(f) ≥ σ, with **ρ = 3** and **σ = 0.002** at
+the operating point used throughout. This yields a *set* of fingerprints, which
+is what covers a fragmented botnet.
+
+The support floor σ must sit **below the share of the smallest stack worth acting
+on**, that is, below 1/M for a botnet spread over M TLS stacks; σ = 0.002 leaves
+room down to M = 100 and beyond. Lowering it costs nothing, because it is the
+enrichment test — not the floor — that keeps legitimate traffic out.
 
 The background must come from outside the attack episode: the campaign spans the
 whole window, so using the window itself makes cluster and background prevalences

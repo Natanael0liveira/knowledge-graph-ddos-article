@@ -64,6 +64,24 @@ calibrated rather than assumed:
   mode lets the botnet adopt the most common benign fingerprints instead of its
   own.
 
+**What the M sweep is for.** M is not a realism knob among others: it is the axis
+that *breaks the assumption prior work rests on*. A detector that scopes
+mitigation by the single most frequent fingerprint only works while the botnet
+emits one — at M = 1. Spreading the campaign over M stacks gives each attacker
+stack a share of about 1/M, and once that falls below the head of the benign
+Zipf curve (38.4% of requests at the measured edge), the most frequent
+fingerprint inside a fired cluster stops being an attacker's and becomes a
+*legitimate* one. Distributing uniformly is the conservative choice for a given
+M, since it denies the detector any dominant stack to latch onto.
+
+Two consequences follow, and both are measured rather than assumed. First, the
+sweep is the stress test of the enrichment rule: it has to keep working from
+M = 1 to M = 100 while the frequency rule inverts at M = 5 (see
+[`../experiments/pillar4-evidence-mitigation/`](../experiments/pillar4-evidence-mitigation/)).
+Second, M fixes a design constraint — the support floor σ must sit below 1/M, or
+the scope silently drops the smaller stacks — which is why σ = 0.002 rather than
+a rounder number. See [`concepts.md`](concepts.md) for the derivation.
+
 Legitimate distributions are calibrated against the ~322k benign sessions of
 CICIDS2017 and verified by Kolmogorov–Smirnov tests (D = 0.003 for duration,
 D = 0.002 for request count, both p > 0.8), so the observed gain cannot come from

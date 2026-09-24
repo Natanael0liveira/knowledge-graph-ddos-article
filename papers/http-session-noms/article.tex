@@ -475,9 +475,7 @@ and packet sums in both directions, mean and standard deviation of
 inter-request time). To keep the negative result from depending on one
 hypothesis class, we repeat it with histogram gradient boosting, a multilayer
 perceptron and logistic regression over the same features. We also reimplement
-three academic baselines: PCA profiling~\cite{fernandes2015autonomous}, an
-unsupervised $k$-means adaptation of the behavioral-matrix framework
-of~\cite{bharathi2012pca}, and supervised RF/SVM over session
+three academic baselines: PCA profiling~\cite{fernandes2015autonomous}, PCA followed by $k$-means clustering over a behavioral matrix~\cite{bharathi2012pca}, and supervised RF/SVM over session
 features~\cite{kemp2023approach}. We compare against published KLAGE
 numbers on the same dataset and attack. The four ablation configurations are:
 \textbf{(a)} ML baseline without ontology; \textbf{(b)} ontology with \textit{no}
@@ -530,7 +528,7 @@ The results follow the claims they support. We begin with the ablation that isol
 \quad logistic regression      & 0.488 \,/\, 0.873 & 0.495 \,/\, 0.799 \\
 \midrule
 PCA over flow statistics~\cite{fernandes2015autonomous}      & 0.518 & 0.509 \\
-$k$-means over a session matrix~\cite{bharathi2012pca}        & 0.520 & 0.509 \\
+PCA and $k$-means over a session matrix~\cite{bharathi2012pca} & 0.499 & 0.495 \\
 Supervised over session features~\cite{kemp2023approach}     & 0.499 & 0.503 \\
 \bottomrule
 \end{tabular}

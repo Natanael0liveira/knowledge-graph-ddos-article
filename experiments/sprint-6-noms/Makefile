@@ -19,7 +19,9 @@
 
 PY       ?= ../.venv/bin/python
 DATA     ?= ../data
-DIST     ?= $(DATA)/synth/distributions
+# Calibrated generator distributions (aggregates of public CICIDS2017), versioned
+# in sprint-2/distributions so scenario generation does not need the data drive.
+DIST     ?= ../sprint-2/distributions
 # Canonical scenario cache: the REALISTIC same-service run that produced the
 # paper's Table III. NOT synth/sprint4 (pre-flow-feature cache, missing columns)
 # and NOT synth/sprint4_strong_work (still carries the target-port artefact,
@@ -43,11 +45,11 @@ help:
 	@echo "Vars: SEEDS=$(SEEDS)  K='$(K)'  DATA=$(DATA)"
 
 check-data:
-	@test -d "$(DIST)" || { \
-	  echo "ERROR: $(DIST) not found."; \
+	@test -d "$(REALWORK)" || { \
+	  echo "ERROR: $(REALWORK) not found (cached scenarios live on the data drive)."; \
 	  echo "Mount the external drive (experiments/data -> /Volumes/Untitled/kg-ddos-data)."; \
 	  exit 1; }
-	@echo "data OK: $(DIST)"
+	@echo "data OK: $(REALWORK)"
 
 latency:
 	$(PY) scripts/bench_latency.py \
@@ -95,3 +97,13 @@ all-hd: ml window realistic canonical purity symbolic drift
 
 clean:
 	rm -rf $(RESULTS)/*.csv $(RESULTS)/*.json
+
+# Academic baselines on the canonical scenarios: the source of Table II's baseline rows.
+baselines: check-data
+	nice -n 10 $(PY) scripts/run_canonical_baselines.py --work $(REALWORK) --out-dir $(RESULTS)
+
+# The rule Omega >= tau as a window-level detector, with flash crowds.
+RULEWORK ?= $(DATA)/synth/sprint6_rule
+rule: check-data
+	nice -n 10 $(PY) scripts/rule_detection.py --work $(REALWORK) --clean-work $(RULEWORK) \
+	  --dist-dir $(DIST) --out-dir $(RESULTS)

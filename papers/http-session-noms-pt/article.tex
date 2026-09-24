@@ -464,9 +464,7 @@ desvio padrão do intervalo entre requisições). Para que o resultado negativo 
 dependa de uma única classe de hipóteses, repetimo-lo com \textit{gradient
 boosting} por histograma, um \textit{perceptron} multicamadas e regressão
 logística sobre os mesmos atributos. Reimplementamos também três linhas de base
-acadêmicas: perfilamento por PCA~\cite{fernandes2015autonomous}, uma adaptação não
-supervisionada em $k$-médias do \textit{framework} de matriz comportamental
-de~\cite{bharathi2012pca} e RF/SVM supervisionados sobre atributos de
+acadêmicas: perfilamento por PCA~\cite{fernandes2015autonomous}, PCA seguido de agrupamento por $k$-médias sobre uma matriz comportamental~\cite{bharathi2012pca} e RF/SVM supervisionados sobre atributos de
 sessão~\cite{kemp2023approach}. Comparamos contra os números
 publicados do KLAGE no mesmo conjunto e ataque. As quatro configurações de
 ablação são: \textbf{(a)} linha de base de aprendizado de máquina sem ontologia;
@@ -520,7 +518,7 @@ Os resultados seguem as afirmações que sustentam. Começamos pela ablação qu
 \quad regressão logística        & 0,488 \,/\, 0,873 & 0,495 \,/\, 0,799 \\
 \midrule
 PCA sobre estatística de fluxo~\cite{fernandes2015autonomous} & 0,518 & 0,509 \\
-$k$-médias sobre matriz de sessão~\cite{bharathi2012pca}         & 0,520 & 0,509 \\
+PCA e $k$-médias sobre matriz de sessão~\cite{bharathi2012pca}         & 0,499 & 0,495 \\
 Supervisionado sobre atributos de sessão~\cite{kemp2023approach} & 0,499 & 0,503 \\
 \bottomrule
 \end{tabular}

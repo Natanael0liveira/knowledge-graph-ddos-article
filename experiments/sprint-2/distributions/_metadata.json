@@ -1,0 +1,20 @@
+{
+  "source": "/Volumes/Untitled/kg-ddos-data/processed/sessions/cicids2017.parquet",
+  "total_sessions": 368777,
+  "benign_sessions": 322658,
+  "label_distribution": {
+    "BENIGN": 322658,
+    "Hulk": 30391,
+    "GoldenEye": 7472,
+    "Slowhttptest": 4217,
+    "Slowloris": 4035,
+    "DoS-Other": 4
+  },
+  "files_produced": [
+    "session_duration.json",
+    "session_requests.json",
+    "ja4_users.json",
+    "endpoints.json",
+    "arrival.json"
+  ]
+}

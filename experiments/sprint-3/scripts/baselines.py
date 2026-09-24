@@ -51,6 +51,30 @@ def bharathi2012(Xtr, Xte, ytr=None):
     return (score - score.min()) / (score.ptp() + 1e-9)
 
 
+def bharathi2012_pca(Xtr, Xte, ytr=None):
+    """Bharathi 2012 with the published structure: PCA, then k-means, then a
+    per-cluster threshold (WSEAS Trans. Inf. Sci. Appl. 9(12), 2012, Sec. 3).
+
+    The paper reduces the behavior matrix with PCA, clusters the retained
+    components with k-means, and drops a request whose value exceeds its
+    cluster's threshold. Its threshold (eq. 8) is under-specified, so the score
+    is the distance to the nearest centroid divided by that cluster's
+    95th-percentile training distance: above 1 means beyond the threshold.
+    ``bharathi2012`` above is the earlier k-means-only adaptation, kept so past
+    results stay reproducible. Unsupervised.
+    """
+    scaler = StandardScaler().fit(Xtr)
+    Xtr_s, Xte_s = scaler.transform(Xtr), scaler.transform(Xte)
+    pca = PCA(n_components=0.95, svd_solver="full").fit(Xtr_s)
+    Ztr, Zte = pca.transform(Xtr_s), pca.transform(Xte_s)
+    km = KMeans(n_clusters=2, n_init=10, random_state=42).fit(Ztr)
+    dtr, ltr = km.transform(Ztr).min(axis=1), km.labels_
+    thr = np.array([np.percentile(dtr[ltr == c], 95) if (ltr == c).any() else 1.0
+                    for c in range(km.n_clusters)])
+    dte = km.transform(Zte)
+    return dte.min(axis=1) / np.maximum(thr[dte.argmin(axis=1)], 1e-9)
+
+
 def kemp2023(Xtr, Xte, ytr):
     """Kemp 2023 — supervised Random Forest + SVM ensemble.
 
@@ -70,5 +94,6 @@ def kemp2023(Xtr, Xte, ytr):
 BASELINES = {
     "fernandes2015": (fernandes2015, "PCA + limiarização (não-supervisionado)"),
     "bharathi2012": (bharathi2012, "k-means comportamental (não-supervisionado)"),
+    "bharathi2012_pca": (bharathi2012_pca, "PCA + k-means + per-cluster threshold (unsupervised)"),
     "kemp2023": (kemp2023, "RandomForest + SVM (supervisionado)"),
 }

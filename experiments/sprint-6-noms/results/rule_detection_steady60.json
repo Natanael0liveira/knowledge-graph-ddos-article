@@ -1,0 +1,89 @@
+{
+  "config": {
+    "work": "/Volumes/Untitled/kg-ddos-data/synth/sprint6_realistic",
+    "clean_work": "/Volumes/Untitled/kg-ddos-data/synth/sprint6_rule",
+    "dist_dir": "/Volumes/Untitled/kg-ddos-data/synth/distributions",
+    "out_dir": "results",
+    "alpha": 1.5,
+    "stacks": 25,
+    "seeds": 30,
+    "K": [
+      50,
+      1000
+    ],
+    "window_s": 300,
+    "k_min": 5,
+    "tau_rate": 1.0,
+    "percentiles": [
+      99.0
+    ],
+    "flash": [
+      25,
+      50,
+      100
+    ],
+    "min_count": 0,
+    "steady_minutes": 60.0,
+    "tag": "_steady60"
+  },
+  "calibration_windows": 0,
+  "by_percentile": {
+    "99.0": {
+      "tau": Infinity,
+      "attack_K1000": {
+        "windows": 90,
+        "omega": 0.0,
+        "pipeline": 0.0,
+        "enrichment": 1.0,
+        "median_omega": 7387.0,
+        "median_size": 147.5,
+        "collateral_when_filtered": 0.0
+      },
+      "attack_K50": {
+        "windows": 35,
+        "omega": 0.0,
+        "pipeline": 0.0,
+        "enrichment": 1.0,
+        "median_omega": 5601.599999999999,
+        "median_size": 129.0,
+        "collateral_when_filtered": 0.0
+      },
+      "clean": {
+        "windows": 360,
+        "omega": 0.0,
+        "pipeline": 0.0,
+        "enrichment": 1.0,
+        "median_omega": 2657.5,
+        "median_size": 83.0,
+        "collateral_when_filtered": 0.0
+      },
+      "flash_100": {
+        "windows": 30,
+        "omega": 0.0,
+        "pipeline": 0.0,
+        "enrichment": 1.0,
+        "median_omega": 12823.15,
+        "median_size": 182.0,
+        "collateral_when_filtered": 0.0
+      },
+      "flash_25": {
+        "windows": 30,
+        "omega": 0.0,
+        "pipeline": 0.0,
+        "enrichment": 1.0,
+        "median_omega": 4811.050000000001,
+        "median_size": 110.0,
+        "collateral_when_filtered": 0.0
+      },
+      "flash_50": {
+        "windows": 30,
+        "omega": 0.0,
+        "pipeline": 0.0,
+        "enrichment": 1.0,
+        "median_omega": 6992.65,
+        "median_size": 135.0,
+        "collateral_when_filtered": 0.0
+      }
+    }
+  }
+}

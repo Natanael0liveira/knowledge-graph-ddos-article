@@ -37,46 +37,59 @@ mislead:
 ## 1. Latency
 
 Measures the **two layers separately**, because they run at different rates and
-have different complexity, and that distinction *is* the result:
+have different complexity, and each layer **in two ways**:
 
 - **Layer 1, admission (per request, hot path).** Admitting a new session into a
-  window of |S_W| sessions, instantiating `relatedBy_*` edges through the
-  inverted indexes (JA4 bucket, endpoint bucket, /24 bucket). Cost per candidate
-  pair is O(1); what grows is the number of candidates.
-- **Layer 2, symbolic evaluation (per window, auditable path).** Materializing
-  edges in RDF via SPARQL CONSTRUCT and running the weighted Ω(S) aggregation.
+  window of |S_W| sessions. *Peers enumerated*: instantiate `relatedBy_*` edges
+  through the inverted indexes (JA4, endpoint, /24 buckets), O(1) per candidate
+  pair. *Class counters*: for the equality-based sub-relations, increment one
+  counter per sub-relation, O(1) per session.
+- **Layer 2, symbolic evaluation (per window, auditable path).** *Pair edges*:
+  materialize every pair in RDF via SPARQL CONSTRUCT, then aggregate Ω(S).
+  *Class aggregation*: materialize class membership and compute Ω(S) from class
+  sizes, `Σ C(n, 2)`, with one SPARQL query. Every run checks that both give the
+  same Ω(S) for every endpoint.
 
 No dataset needed: latency depends on |S_W| and on the window's coordination
 structure, not on the traffic being real. The session mix is parameterized
 (`--coord-frac`, `--ja4-pool`, `--endpoints`) and recorded with the timings.
 
-The sweep has a `--pair-cap`: above it the symbolic layer is skipped rather than
-exhausting memory. The blow-up is itself a finding, since Ω(S) counts *pairs*, so
-the quadratic term is inherent to the rule's definition.
+The sweep has a `--pair-cap`: above it the pair-edge path is skipped rather than
+exhausting memory.
 
-### Results (3 repeats, one core)
+### Results (3 repeats, one core, AC power, Low Power Mode off)
 
-| \|S_W\| | admission p50 | edges/adm | ns/pair | sessions/s | symbolic | RDF edges | µs/edge |
-|---|---|---|---|---|---|---|---|
-| 100 | 2.1 µs | 148 | 14.3 | 470,578 | 0.56 s | 2,703 | 208 |
-| 250 | 3.3 µs | 239 | 13.7 | 305,762 | 3.10 s | 17,221 | 180 |
-| 500 | 6.1 µs | 396 | 15.3 | 164,950 | 12.09 s | 65,115 | 186 |
-| 1,000 | 11.9 µs | 741 | 16.0 | 84,207 | 49.69 s | 265,328 | 187 |
-| 2,500 | 32.5 µs | 1,660 | 19.6 | 30,730 | — | — | — |
-| 5,000 | 61.7 µs | 3,373 | 18.3 | 16,205 | — | — | — |
-| 10,000 | 122.1 µs | 6,495 | 18.8 | 8,188 | — | — | — |
+| \|S_W\| | admission, peers | edges/adm | ns/pair | admission, classes | pair edges | RDF edges | µs/edge | class aggregation |
+|---|---|---|---|---|---|---|---|---|
+| 100 | 2.3 µs | 148 | 15.3 | 0.42 µs | 0.84 s | 2,703 | 309 | 0.07 s |
+| 250 | 3.8 µs | 239 | 15.9 | 0.38 µs | 3.67 s | 17,221 | 213 | 0.09 s |
+| 500 | 6.7 µs | 396 | 17.0 | 0.38 µs | 12.89 s | 65,115 | 198 | 0.16 s |
+| 1,000 | 12.0 µs | 741 | 16.2 | 0.37 µs | 52.78 s | 265,328 | 199 | 0.33 s |
+| 2,500 | 31.0 µs | 1,660 | 18.7 | 0.38 µs | 357.76 s | 1,641,169 | 218 | 0.81 s |
+| 5,000 | 64.2 µs | 3,373 | 19.0 | 0.33 µs | not run | |  | 1.38 s |
+| 10,000 | 126.9 µs | 6,495 | 19.5 | 0.37 µs | not run | |  | 2.86 s |
+| 25,000 | 293.9 µs | 16,321 | 18.0 | 0.33 µs | not run | |  | 6.77 s |
+| 50,000 | 608.8 µs | 32,156 | 18.9 | 0.33 µs | not run | |  | 13.22 s |
+| 100,000 | 1364.6 µs | 65,020 | 21.0 | 0.38 µs | not run | |  | 26.37 s |
 
-**Both layers are linear in their own unit of work.** Admission costs 14–19 ns per
-candidate pair, constant across the range, confirming O(|S_W|·c) with *c*
-genuinely O(1). The symbolic layer costs about 187 µs per materialized RDF edge,
-also constant. The quadratic term belongs to neither the implementation nor the
-backend: Ω(S) is defined over **pairs**, so the edge count grows with the square
-of |S_W|. That is what makes the window a structural necessity rather than a
-convenience.
+Both paths give the same Ω(S), to within 7e-12.
 
-The design consequence the measurement supports: detect on the indexed path
-(microseconds) and materialize RDF only for the clusters that fire, which is
-exactly the evidence-chain subset.
+**Class counting removes the quadratic cost.** Admission is flat at 0.33–0.42 µs
+per session from 100 to 100,000 sessions, and class aggregation is linear, 26.4 s
+at 100,000. The pair path stays linear in its own unit of work (15–21 ns per
+candidate pair, about 200 µs per RDF edge), but its edge count grows with the
+square of |S_W|: 52.8 s at 1,000 and 358 s at 2,500.
+
+An earlier version of this README said the quadratic term belonged to neither the
+implementation nor the backend. For the equality-based sub-relations that was
+wrong: they are equivalence relations, so pair counts follow from class sizes.
+The quadratic growth stays in the value of Ω(S), which counts pairs, and in the
+pair edges of the non-transitive relations (near-variant JA4, temporal, payload),
+which the indexes restrict.
+
+> **Measure on AC power.** A run on battery with macOS Low Power Mode on came out
+> about 1.8× slower across every size. The published numbers above are from a
+> plugged-in run; the pre-change results are kept in git history.
 
 **Backend caveat.** The symbolic layer is measured on `rdflib`, the in-memory
 reference implementation. The production backend declared in the paper is Apache
@@ -130,13 +143,14 @@ sides are reported: effect on detection and cost in cluster occupancy.
 | 1800 | 3 | 867 | 0.505 | 0.508 | 0.664 | 0.978 |
 
 **Detection is insensitive to W over a 30× range** while mean cluster occupancy
-grows 6.6×, and with it the quadratic term. The reason: the discriminative
+grows 6.6×. The reason: the discriminative
 feature is a *fraction* (the share of the cluster carrying one JA4), invariant to
 cluster scale. Cluster size alone carries little, which is why (c) stays at 0.664
 throughout.
 
 Operational rule: **keep W as small as the traffic permits.** A larger window buys
-no detection and costs roughly the square.
+no detection and adds state, linearly with class counting (quadratically with
+pair edges, Section 1).
 
 Two bounds: the scenarios target a single endpoint, so W is the only clustering
 knob and a multi-endpoint deployment may behave differently; and W must still be

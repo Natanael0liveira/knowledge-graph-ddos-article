@@ -536,6 +536,29 @@
         <rdfs:comment>Peso w_i da sub-relação na soma ponderada Ω(S). Alto = sinal caro de falsificar (resistência à evasão).</rdfs:comment>
     </owl:AnnotationProperty>
 
+    <!-- Class membership for the equality-based sub-relations.
+         Exact JA4, endpoint and prefix matches are equivalence relations, so the
+         pairs a sub-relation links inside a cluster S follow from class sizes:
+         |E_i(S)| = sum_k C(n_k, 2). Linking each session to one class node per
+         such sub-relation lets the SPARQL aggregation compute Omega(S) from
+         counts, without materializing a pair edge. The relatedBy properties keep
+         their pairwise meaning; this is an equivalent way to count them. -->
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#SessionClass">
+        <rdfs:label>session class</rdfs:label>
+        <rdfs:comment>Equivalence class of sessions under one equality-based sub-relation, such as all sessions sharing one JA4 or one /24 prefix. An Endpoint individual serves as the class of relatedByEndpointConvergence.</rdfs:comment>
+    </owl:Class>
+
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#inClass">
+        <rdfs:label>in class</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:comment>Links a session to its equivalence class under one equality-based sub-relation.</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#ofRelation">
+        <rdfs:label>of relation</rdfs:label>
+        <rdfs:comment>Names the relatedBy sub-property whose equivalence class the subject is, so the aggregation can read that sub-property's coordinationWeight.</rdfs:comment>
+    </owl:ObjectProperty>
+
     <!-- Super-propriedade abstrata: coordenação entre sessões (mútua => simétrica) -->
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedTo">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>

@@ -18,6 +18,13 @@ different rates and have different complexity:
       Horn rules in pillar2-symbolic-reasoning/rules/relatedBy.swrl) and then
       running the weighted Omega(S) aggregation that fires the rule.
 
+Both layers are also timed in CLASS mode. The three evaluated sub-relations
+(exact JA4, endpoint, /24) are equivalence relations, so the pair count of a
+cluster depends only on class sizes, sum_k C(n_k, 2). Admission then increments
+one class counter per sub-relation, and the symbolic layer materialises class
+membership and computes Omega by aggregation, with no pair edge. The run checks
+that both modes give the same Omega for every endpoint.
+
 No dataset is required: latency depends on |S_W| and on the coordination
 structure of the window, not on the traffic being real. The session mix is
 parameterised and reported alongside the timings so the numbers are
@@ -105,12 +112,19 @@ class WindowIndex:
         self.n += 1
         return edges
 
+    def insert(self, s):
+        """Add a session to the indices without enumerating its peers."""
+        self.by_ja4[s["ja4"]].append(s["sid"])
+        self.by_endpoint[s["endpoint"]].append(s["sid"])
+        self.by_net24[s["net24"]].append(s["sid"])
+        self.n += 1
+
 
 def bench_admission(sessions, n_probe, seed):
     """Fill the window, then time the admission of ``n_probe`` further sessions."""
     idx = WindowIndex()
-    for s in sessions:
-        idx.admit(s)
+    for s in sessions:          # fill only; the probes below are what is timed
+        idx.insert(s)
     probes = make_window(n_probe, 0.5, 8, 2000, seed + 7919)
     lat_us, edges = [], []
     for s in probes:
@@ -123,6 +137,27 @@ def bench_admission(sessions, n_probe, seed):
         "admission_p95_us": sorted(lat_us)[int(0.95 * len(lat_us)) - 1],
         "admission_mean_edges": sum(edges) / len(edges),
     }
+
+
+def bench_admission_classes(sessions, n_probe, seed):
+    """Admission when the equality-based sub-relations are kept as classes.
+
+    Admitting a session increments one class counter per sub-relation instead of
+    enumerating the peers already in its classes, so the cost does not depend on
+    |S_W|. The pair counts Omega needs follow from the class sizes.
+    """
+    counts = {k: defaultdict(int) for k in ("ja4", "endpoint", "net24")}
+    for s in sessions:
+        for k in counts:
+            counts[k][s[k]] += 1
+    probes = make_window(n_probe, 0.5, 8, 2000, seed + 7919)
+    lat_us = []
+    for s in probes:
+        t0 = time.perf_counter()
+        for k in counts:
+            counts[k][s[k]] += 1
+        lat_us.append((time.perf_counter() - t0) * 1e6)
+    return {"admission_class_p50_us": median(lat_us)}
 
 
 # ------------------------------------------------------------------- layer 2
@@ -189,6 +224,7 @@ def bench_symbolic(sessions, tau, pair_cap):
         "SELECT DISTINCT ?e WHERE { ?s a kg:ApplicationSession ; kg:targets ?e }",
         initNs={"kg": KG})}
     n_fired = 0
+    omegas = {}
     for ep in endpoints:
         members = {s for (s,) in g.query(
             "SELECT ?s WHERE { ?s a kg:ApplicationSession ; kg:targets ?ep }",
@@ -200,6 +236,7 @@ def bench_symbolic(sessions, tau, pair_cap):
             pairs = sum(1 for a, b in g.subject_objects(KG[rel])
                         if a in members and b in members)
             omega += pairs * w
+        omegas[str(ep)] = omega
         if omega >= tau:
             n_fired += 1
     t_omega = time.perf_counter() - t0
@@ -213,6 +250,65 @@ def bench_symbolic(sessions, tau, pair_cap):
         "edges": n_edges,
         "triples": len(g),
         "rules_fired": n_fired,
+        "omegas": omegas,
+    }
+
+
+REL_OF = {"ja4": "relatedByTLSFingerprint",
+          "endpoint": "relatedByEndpointConvergence",
+          "net24": "relatedByNetworkProximity"}
+
+
+def bench_symbolic_classes(sessions, tau):
+    """Omega(S) from class sizes: membership triples plus one SPARQL aggregation.
+
+    Each session is linked to one class node per sub-relation (its JA4, its
+    endpoint, its /24), and each class node names its relation. The query counts
+    the members of each (endpoint, class) and sums w * n(n-1)/2, so no pair edge
+    is materialised and the cost is linear in |S_W|. The per-relation terms are
+    the pair counts the evidence chain reports as kg:linkedPairs.
+    """
+    from rdflib import Graph, Literal, Namespace, RDF, XSD
+
+    KG = Namespace("http://security.example.org/ontology/ddos#")
+    g = Graph()
+    g.bind("kg", KG)
+
+    t0 = time.perf_counter()
+    for rel, w in WEIGHTS.items():
+        g.add((KG[rel], KG.coordinationWeight, Literal(w, datatype=XSD.double)))
+    labelled = set()
+    for s in sessions:
+        node = KG[f"session/{s['sid']}"]
+        ep = KG[f"endpoint/{s['endpoint'].replace(':', '_')}"]
+        g.add((node, RDF.type, KG.ApplicationSession))
+        g.add((node, KG.targets, ep))
+        for key, rel in REL_OF.items():
+            cls = ep if key == "endpoint" else KG[f"class/{key}/{s[key]}"]
+            g.add((node, KG.inClass, cls))
+            if cls not in labelled:
+                g.add((cls, KG.ofRelation, KG[rel]))
+                labelled.add(cls)
+    t_build = time.perf_counter() - t0
+
+    t0 = time.perf_counter()
+    q = """
+        SELECT ?e (SUM(?w * ?n * (?n - 1) / 2) AS ?omega)
+        WHERE {
+          { SELECT ?e ?c (COUNT(?s) AS ?n)
+            WHERE { ?s a kg:ApplicationSession ; kg:targets ?e ; kg:inClass ?c . }
+            GROUP BY ?e ?c }
+          ?c kg:ofRelation ?rel . ?rel kg:coordinationWeight ?w .
+        } GROUP BY ?e"""
+    omegas = {str(e): float(o) for e, o in g.query(q, initNs={"kg": KG})}
+    t_omega = time.perf_counter() - t0
+    return {
+        "class_build_s": t_build,
+        "class_omega_s": t_omega,
+        "class_total_s": t_build + t_omega,
+        "class_triples": len(g),
+        "class_rules_fired": sum(o >= tau for o in omegas.values()),
+        "omegas": omegas,
     }
 
 
@@ -244,12 +340,23 @@ def main():
             row = {"n_sessions": n, "repeat": rep,
                    "coord_frac": args.coord_frac, "ja4_pool": args.ja4_pool}
             row.update(bench_admission(win, args.probes, seed))
+            row.update(bench_admission_classes(win, args.probes, seed))
             sym = bench_symbolic(win, args.tau, args.pair_cap)
+            cls = bench_symbolic_classes(win, args.tau)
+            pair_om, cls_om = sym.pop("omegas", None), cls.pop("omegas")
+            if pair_om is not None:     # same Omega for every endpoint?
+                row["omega_max_abs_diff"] = max(
+                    abs(pair_om.get(e, 0.0) - cls_om.get(e, 0.0))
+                    for e in set(pair_om) | set(cls_om))
             row.update({f"sym_{k}": v for k, v in sym.items()})
+            row.update(cls)
             rows.append(row)
-            log.info("n=%-6d rep=%d  admission p50=%.1f us (%.0f edges)  symbolic=%s",
+            log.info("n=%-6d rep=%d  admission p50=%.1f us (%.0f edges) / class %.2f us"
+                     "  symbolic=%s / class %.2f s",
                      n, rep, row["admission_p50_us"], row["admission_mean_edges"],
-                     "skipped" if sym.get("skipped") else f"{sym['total_s']:.2f} s")
+                     row["admission_class_p50_us"],
+                     "skipped" if sym.get("skipped") else f"{sym['total_s']:.2f} s",
+                     cls["class_total_s"])
 
     import pandas as pd
     df = pd.DataFrame(rows)
@@ -261,7 +368,12 @@ def main():
             "admission_p50_us": float(sub["admission_p50_us"].median()),
             "admission_p95_us": float(sub["admission_p95_us"].median()),
             "admission_mean_edges": float(sub["admission_mean_edges"].mean()),
+            "admission_class_p50_us": float(sub["admission_class_p50_us"].median()),
+            "class_total_s": float(sub["class_total_s"].median()),
+            "class_triples": float(sub["class_triples"].median()),
         }
+        if "omega_max_abs_diff" in sub and sub["omega_max_abs_diff"].notna().any():
+            s["omega_max_abs_diff"] = float(sub["omega_max_abs_diff"].max())
         done = sub[sub["sym_skipped"] == False]  # noqa: E712
         if len(done):
             s.update({

@@ -166,33 +166,42 @@ def fig_latency(root):
         root, "experiments/sprint-6-noms/results/latency_summary.json")))["by_window_size"]
     sizes = sorted((int(k) for k in d), key=int)
     adm = [d[str(n)]["admission_p50_us"] / 1e6 for n in sizes]
+    adm_c = [d[str(n)]["admission_class_p50_us"] / 1e6 for n in sizes]
+    sym_c = [d[str(n)]["class_total_s"] for n in sizes]
     sym_n = [n for n in sizes if "symbolic_total_s" in d[str(n)]]
     sym = [d[str(n)]["symbolic_total_s"] for n in sym_n]
 
     fig, ax = plt.subplots(figsize=(7.0, 3.1))
-    ax.loglog(sizes, adm, "o-", color=NAVY, lw=2, ms=6,
-              label="admission, per request (indexed)")
-    ax.loglog(sym_n, sym, "s-", color=BAR_GRAY, lw=2, ms=6,
-              markeredgecolor="#777",
-              label="symbolic materialization, per window (rdflib)")
+    # comparison series (grey): pair edges enumerated or materialized
+    ax.loglog(sym_n, sym, "s-", color=BAR_GRAY, lw=2, ms=6, markeredgecolor="#777",
+              label="symbolic layer, pair edges materialized")
+    ax.loglog(sizes, adm, "o-", color=BAR_GRAY, lw=2, ms=6, markeredgecolor="#777",
+              label="admission, peers enumerated")
+    # proposed series (ink): equality-based sub-relations kept as classes
+    ax.loglog(sizes, sym_c, "s-", color=NAVY, lw=2, ms=6,
+              label="symbolic layer, class aggregation")
+    ax.loglog(sizes, adm_c, "o-", color=NAVY, lw=2, ms=6,
+              label="admission, class counters")
 
     # reference slopes anchored on the first point of each series
-    xs = [sizes[0], sizes[-1]]
-    ax.loglog(xs, [adm[0], adm[0] * (xs[1] / xs[0])], ":", color=NAVY, lw=1, alpha=.7)
-    ax.text(sizes[-1], adm[-1] * 1.45, "slope 1", color=NAVY, fontsize=8,
+    def ref(xs, y0, k, color, label, dy):
+        x = [xs[0], xs[-1]]
+        y = [y0, y0 * (x[1] / x[0]) ** k]
+        ax.loglog(x, y, ":", color=color, lw=1, alpha=.7)
+        ax.text(x[1], y[1] * dy, label, color=color, fontsize=8, ha="right",
+                style="italic")
+    ref(sym_n, sym[0], 2, "#777", "slope 2", 1.6)
+    ref(sizes, sym_c[0], 1, NAVY, "slope 1", 1.6)
+    ref(sizes, adm[0], 1, "#777", "slope 1", 1.6)
+    ax.text(sizes[-1], adm_c[-1] * 2.6, "constant", color=NAVY, fontsize=8,
             ha="right", style="italic")
-    xs2 = [sym_n[0], sym_n[-1]]
-    ax.loglog(xs2, [sym[0], sym[0] * (xs2[1] / xs2[0]) ** 2], ":", color="#777",
-              lw=1, alpha=.7)
-    ax.text(sym_n[-1], sym[-1] * 1.6, "slope 2", color="#666", fontsize=8,
-            ha="right", style="italic")
+    ax.set_ylim(bottom=min(adm_c) / 4)     # room under the flat series
 
     ax.set_xlabel("active sessions in the window, $|S_W|$", fontsize=9)
     ax.set_ylabel("latency (s)", fontsize=9)
     ax.grid(True, which="both", alpha=.25)
-    # legenda abaixo dos eixos: dentro do grafico ela ocupava a faixa vazia
-    # entre as duas series e competia com os dados.
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=1,
+    # legenda abaixo dos eixos: dentro do grafico ela competia com os dados.
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=2,
               fontsize=8.2, frameon=False)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()

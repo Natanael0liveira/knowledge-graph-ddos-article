@@ -184,17 +184,55 @@ stacks, each attacker stack is smaller than the head of the benign distribution,
 so the modal value is a *legitimate* fingerprint and the filter blocks users and
 no attackers.
 
-The scope is therefore selected by **enrichment**. With c(f) the prevalence of
-fingerprint f inside the fired cluster and b(f) its prevalence in a background
-profile of normal traffic maintained outside attack episodes, the scope admits
-every f with c(f)/b(f) ≥ ρ and c(f) ≥ σ, with **ρ = 3** and **σ = 0.002** at
-the operating point used throughout. This yields a *set* of fingerprints, which
-is what covers a fragmented botnet.
+The scope is therefore selected by **enrichment**. Let c(f) be the number of the
+n sessions of the fired cluster that carry fingerprint f, and b(f) the prevalence
+of f in a background profile of normal traffic maintained outside attack
+episodes. The scope admits every f that passes two tests:
 
-The support floor σ must sit **below the share of the smallest stack worth acting
-on**, that is, below 1/M for a botnet spread over M TLS stacks; σ = 0.002 leaves
-room down to M = 100 and beyond. Lowering it costs nothing, because it is the
-enrichment test — not the floor — that keeps legitimate traffic out.
+- **Effect size:** c(f)/n ≥ ρ · b(f), with **ρ = 3**. The fingerprint is at least
+  three times more common in the cluster than in normal traffic.
+- **Significance:** P[X ≥ c(f)] < α / |F| for X ~ Bin(n, b(f)), with **α = 0.01**.
+  A count this high is improbable if the cluster drew fingerprints the way normal
+  traffic does. |F| is the number of fingerprints in the profile or the cluster,
+  a Bonferroni correction over every fingerprint that could have been tested.
+  Counting only the fingerprints present in the cluster undercounts the family,
+  because which ones appear is itself random; a first prototype did that and
+  exceeded the nominal false-alarm level on the calibration windows.
+
+A fingerprint absent from the profile gets b(f) = 1/N, with N the profile's
+session count, so a single observation never becomes infinite enrichment. The
+result is a *set* of fingerprints, which is what covers a fragmented botnet.
+
+**Why a significance test instead of a support floor.** Earlier revisions
+required c(f)/n ≥ σ with σ = 0.002. A fixed fraction ignores n. On a cluster of
+2,000 sessions it means at least four sessions, a reasonable bar. In a
+five-minute window of 80 sessions it means less than one, so any tail fingerprint
+seen once passes, since its background prevalence is tiny and its ratio huge.
+Measured per window, the fixed floor named a filter in every clean window and in
+every flash crowd, blocking a median 12–18% of legitimate users (sprint-6 README,
+section 7). The binomial test asks the same question, whether f is
+over-represented against the background, with the sample size in it: one
+occurrence is never significant, while a few sessions of a fingerprint the
+background almost never shows are.
+
+Worked example, with a background of N = 30,000 sessions (|F| ≈ 900, so the cut
+is 0.01 / 900 ≈ 1.1 × 10⁻⁵):
+
+| Fingerprint in the window | b(f) | Count | P[X ≥ count] | Named? |
+|---|---|---|---|---|
+| Botnet stack absent from the profile, n = 150 | 1/30,000 | 2 | ≈ 1.2 × 10⁻⁵ | no, just above the cut |
+| Same stack | 1/30,000 | 3 | ≈ 2 × 10⁻⁸ | yes |
+| Benign tail fingerprint, n = 86 | 0.0016 | 4 | ≈ 1.5 × 10⁻⁵ | no |
+| Benign fingerprint seen once, n = 86 | 1/30,000 | 1 | ≈ 2.9 × 10⁻³ | no |
+
+**The profile has to be large enough for the stacks it must certify.** With the
+1,000-session profile of the cluster-level experiments, b(f) of an unseen
+fingerprint is 0.001, and a stack of about ten sessions in a 2,000-session cluster
+(M = 100) is indistinguishable from the profile's own tail: coverage falls to
+38.6%, with no collateral. A profile pooled over 30 attack-free periods (30,000
+sessions) restores 89.6% (`experiments/sprint-6-noms/results/profile_drift_m100.json`).
+Profile quality governs precision, and profile size governs the smallest stack
+the test can certify.
 
 The background must come from outside the attack episode: the campaign spans the
 whole window, so using the window itself makes cluster and background prevalences

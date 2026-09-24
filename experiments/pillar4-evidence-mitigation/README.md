@@ -56,7 +56,7 @@ blocks users:
 | Monolithic (M = 1) | 84.0% / 0.00% | 84.0% / 0.00% |
 | M = 5 | **0.0% / 39.0%** | **90.0% / 0.00%** |
 | M = 25 | **0.0% / 39.0%** | **90.3% / 0.00%** |
-| M = 100 | **0.0% / 39.0%** | **85.0% / 0.00%** |
+| M = 100 | **0.0% / 39.0%** | **38.6% / 0.00%** (89.6% with a 30k-session profile) |
 | M = 25, adversarial | 3.6% / 39.0% | 30.4% / 3.78% |
 
 This is not graceful degradation: the mechanism selects the **wrong target** and
@@ -65,19 +65,23 @@ produces a filter that only hurts users.
 **The correction** (`derive_scope_enriched` plus `matches_scope_multi`) ranks
 candidates by enrichment over a background profile of normal traffic, taken from
 an attack-free window with no labels, and returns a **set** of fingerprints, which
-is what covers a fragmented botnet. Operating point: `min_enrichment=3.0`,
-`min_support=0.01`, dropping to 0.002 when M is high, since the floor must sit
-below 1/M.
+is what covers a fragmented botnet. Operating point: `min_enrichment=3.0` and
+`significance=0.01`, a binomial over-representation test that replaces the fixed
+`min_support` floor of earlier revisions (see [`docs/concepts.md`](../../docs/concepts.md)).
+Without `significance` the function keeps the old floor, so earlier results stay
+reproducible.
 
 Two boundary conditions, both measured:
 
 - **An adversary adopting the benign head.** Nothing is enriched and the rule
   refuses to block the popular fingerprints. The scoped advantage is lost, but it
   is lost **safely**: the harmful filter is never emitted.
-- **Background profile quality.** Moderate drift is tolerable (0.45% collateral
-  with a profile from another distribution), but a flat or missing profile is not
-  (81–84%). Profile quality governs precision, never coverage. Keeping it fresh is
-  a deployment requirement.
+- **Background profile quality and size.** Moderate drift is tolerable (no
+  collateral with a profile from another distribution), but a flat or missing
+  profile is not (77.6%). Profile quality governs precision; profile size governs
+  the smallest stack the test can certify (38.6% at M = 100 with 1,000 profile
+  sessions, 89.6% with 30,000). Keeping the profile fresh and ample is a
+  deployment requirement.
 
 Experiments and data in [`../sprint-6-noms/`](../sprint-6-noms/).
 

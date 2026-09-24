@@ -30,6 +30,13 @@ WORK     ?= $(DATA)/synth/sprint4_realistic_work
 RESULTS  ?= results
 SEEDS    ?= 30
 K        ?= 50 1000
+# Family-wise level of the binomial over-representation test that selects the
+# fingerprints of the enrichment scope (Section III-H). Empty = the fixed floor
+# sigma = 0.002 of earlier revisions.
+SIG      ?= 0.01
+SIGFLAG   = $(if $(SIG),--significance $(SIG))
+# Attack-free runs of rule_detection.py (calibration, test and flash-crowd donors).
+RULEWORK ?= $(DATA)/synth/sprint6_rule
 
 .PHONY: help latency ml window realistic canonical purity symbolic drift all-hd check-data clean
 
@@ -71,7 +78,7 @@ REALWORK ?= $(DATA)/synth/sprint6_realistic
 realistic: check-data
 	nice -n 10 $(PY) scripts/realistic_probe.py \
 	  --grid 0:1:0 1.5:1:0 1.5:5:0 1.5:25:0 1.5:100:0 2.0:25:0 1.5:5:1 1.5:25:1 2.0:25:1 \
-	  --seeds 15 --dist-dir $(DIST) --work $(REALWORK) --out-dir $(RESULTS) --tag final
+	  --seeds 15 --dist-dir $(DIST) --work $(REALWORK) --out-dir $(RESULTS) --tag final $(SIGFLAG)
 
 canonical: check-data
 	nice -n 10 $(PY) scripts/run_canonical_realistic.py --seeds $(SEEDS) --K $(K) \
@@ -87,11 +94,13 @@ symbolic: check-data
 	nice -n 10 $(PY) scripts/symbolic_detector.py --work $(REALWORK) \
 	  --grid 0.0:1:0 1.5:1:0 1.5:5:0 1.5:25:0 1.5:100:0 2.0:25:0 \
 	         1.5:5:1 1.5:25:1 2.0:25:1 \
-	  --K 1000 --seeds 15 --out-dir $(RESULTS)
+	  --K 1000 --seeds 15 --out-dir $(RESULTS) $(SIGFLAG)
 
 drift: check-data
 	nice -n 10 $(PY) scripts/profile_drift.py --work $(REALWORK) \
-	  --alpha 1.5 --stacks 25 --K 1000 --seeds 15 --out-dir $(RESULTS)
+	  --alpha 1.5 --stacks 25 --K 1000 --seeds 15 --out-dir $(RESULTS) $(SIGFLAG)
+	nice -n 10 $(PY) scripts/profile_drift.py --work $(REALWORK) --pooled-work $(RULEWORK) \
+	  --alpha 1.5 --stacks 100 --K 1000 --seeds 15 --out-dir $(RESULTS) $(SIGFLAG) --tag _m100
 
 all-hd: ml window realistic canonical purity symbolic drift
 
@@ -102,8 +111,11 @@ clean:
 baselines: check-data
 	nice -n 10 $(PY) scripts/run_canonical_baselines.py --work $(REALWORK) --out-dir $(RESULTS)
 
-# The rule Omega >= tau as a window-level detector, with flash crowds.
-RULEWORK ?= $(DATA)/synth/sprint6_rule
+# The rule Omega >= tau as a window-level detector, with flash crowds. Benign
+# traffic is spread over 60 min, since the generator packs it into one window;
+# the stealth campaign does not raise the aggregate rate, so condition (iv) is off;
+# the background profile pools the 30 attack-free calibration runs.
 rule: check-data
 	nice -n 10 $(PY) scripts/rule_detection.py --work $(REALWORK) --clean-work $(RULEWORK) \
-	  --dist-dir $(DIST) --out-dir $(RESULTS)
+	  --dist-dir $(DIST) --out-dir $(RESULTS) --percentiles 99 --steady-minutes 60 \
+	  --tau-rate 0 --profile calib $(SIGFLAG) --tag _steady60_rate0_bigprof_binom

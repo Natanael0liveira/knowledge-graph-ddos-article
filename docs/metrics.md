@@ -31,7 +31,7 @@ much legitimate traffic there was.
 In the canonical scenario (M = 25 stacks), the symbolic rule reaches **recall =
 90.3%**: of every attacker session in the window, just over nine in ten matched
 the derived scope. The missing 9.7% is the tail of attackers carrying one-off
-fingerprints that never cleared the enrichment floor.
+fingerprints that never passed the enrichment test.
 
 ## FPR — "how many innocent users did I hit?"
 

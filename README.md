@@ -45,8 +45,9 @@ STIX 2.1) and the scope of the mitigation.
 - **A negative result on mitigation scope.** Scoping by the property most of the
   cluster shares, the obvious choice, selects a *legitimate* fingerprint once the
   botnet spans several TLS stacks: **0% of the attack blocked, 39% of legitimate
-  traffic hit**. Choosing the discriminator by **enrichment** over a profile of
-  normal traffic blocks 85–90% with no collateral observed.
+  traffic hit**. Choosing the discriminator by a binomial **enrichment** test over
+  a profile of normal traffic blocks 90% with no collateral observed, and, run per
+  five-minute window, fires on no clean window and no flash crowd.
 - **The rule as a detector.** At the same zero-false-positive operating point the
   symbolic path recovers **90% of a 25-stack campaign where the learned model
   recovers 36%**, a gap that AUC hides.
@@ -88,8 +89,9 @@ the experiment behind, or a figure you want the source of.
 | Ω(S) = Σᵢ wᵢ·\|Eᵢ(S)\| | Coordination mass of a candidate cluster | §III-F, eq. (1) | [`concepts.md`](docs/concepts.md) | [`reason.py`](experiments/pillar2-symbolic-reasoning/scripts/reason.py) |
 | wᵢ ∈ [0,1], the six weights | Evasion-cost ordering of the sub-relations | §III-D, Fig. 1; App. B | [`concepts.md`](docs/concepts.md) | [`ddos_ontology.owl`](ontology/ddos_ontology.owl) |
 | τ_cluster | Firing threshold: 99th percentile of Ω over legitimate clusters | §IV-B | [`concepts.md`](docs/concepts.md) | `reason.py --tau` |
-| c(f)/b(f) ≥ ρ, c(f) ≥ σ | Scope derivation by enrichment (ρ = 3, σ = 0.002) | §III-H | [`concepts.md`](docs/concepts.md) | [`evidence_mitigation.py`](experiments/pillar4-evidence-mitigation/scripts/evidence_mitigation.py) |
-| σ < 1/M | Why the support floor depends on botnet fragmentation | §III-H, §V-D | [`evaluation.md`](docs/evaluation.md) | — |
+| c(f)/n ≥ ρ·b(f), P[Bin(n, b(f)) ≥ c(f)] < α/\|F\| | Scope derivation by a binomial enrichment test (ρ = 3, α = 0.01) | §III-H | [`concepts.md`](docs/concepts.md) | [`evidence_mitigation.py`](experiments/pillar4-evidence-mitigation/scripts/evidence_mitigation.py) |
+| Profile size vs. M | Why a 100-stack botnet needs a larger background profile | §V-D | [`evaluation.md`](docs/evaluation.md) | [`profile_drift.py`](experiments/sprint-6-noms/scripts/profile_drift.py) |
+| Ω(S) ≥ τ per window | The rule end to end, with flash crowds (App. E) | §V-B; App. E | [`sprint-6 README`](experiments/sprint-6-noms/README.md) | [`rule_detection.py`](experiments/sprint-6-noms/scripts/rule_detection.py) |
 | Per-pair decision procedures | JA4 near-match, identity overlap, DTW, cosine, prefix match | App. A | [`runtime.md`](docs/runtime.md) | see note below |
 | Σₖ C(nₖ, 2) class counting | Why admission is constant and the symbolic layer linear | §III-E, §V-E; App. D | [`runtime.md`](docs/runtime.md) | [`bench_latency.py`](experiments/sprint-6-noms/scripts/bench_latency.py) |
 | AUC, recall @ FPR = 0, collateral damage | The metrics every result is reported in | §IV-B | [`metrics.md`](docs/metrics.md) | — |
@@ -161,8 +163,10 @@ stage's README for what it expects on disk.
 
 Both scope derivations ship side by side, the frequency rule that fails and the
 enrichment rule that replaces it, so the negative result is reproducible rather
-than asserted. The background profile the enrichment test needs comes from an
-attack-free generator run, so no labels enter the decision path.
+than asserted. The background profile the enrichment test needs comes from
+attack-free generator runs, so the test itself reads no labels. Labels enter only
+the evaluation: the Table III scripts pick the fired cluster by its attack share,
+while the per-window evaluation uses none before scoring.
 
 Large captures live outside the repository; `experiments/data/` is ignored.
 Third-party papers under `docs/pdfs/` are kept locally and not redistributed.

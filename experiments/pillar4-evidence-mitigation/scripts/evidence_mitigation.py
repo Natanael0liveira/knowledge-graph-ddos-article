@@ -27,6 +27,7 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+from scipy.stats import binom
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
@@ -288,7 +289,8 @@ if __name__ == "__main__":
 def derive_scope_enriched(cluster: pd.DataFrame, background: pd.DataFrame,
                           min_enrichment: float = 3.0,
                           min_support: float = 0.01,
-                          max_values: int = 32) -> dict:
+                          max_values: int = 32,
+                          significance: float | None = None) -> dict:
     """Escopo cujo discriminador é escolhido por enriquecimento, não por frequência.
 
     ``cluster``    sessões do cluster que disparou a regra.
@@ -307,6 +309,18 @@ def derive_scope_enriched(cluster: pd.DataFrame, background: pd.DataFrame,
                        cobertura só porque cada stack fica abaixo do piso; com
                        0.01 recupera ~90% sem custo de colateral (0.00%).
     ``max_values``     teto de valores no filtro resultante (disjunção).
+    ``significance``   when set, replaces the ``min_support`` floor by a one-sided
+                       binomial test: a fingerprint seen c times among the n
+                       sessions is kept only if P(X >= c) < significance / m for
+                       X ~ Bin(n, b(f)). Bonferroni runs over m, every fingerprint
+                       of the profile or of the cluster: which ones appear in the
+                       cluster is itself random, so counting only those
+                       undercounts the family. A fixed fraction ignores n: at window
+                       scale 0.002 of the sessions is less than one, so any tail
+                       fingerprint seen once passes. The test asks the same
+                       question, whether f is over-represented against the
+                       background, with the sample size in it. ``min_enrichment``
+                       still applies as the effect size.
 
     Retorna um escopo em que ``tlsJa4`` pode ser um CONJUNTO de fingerprints — é
     o que permite cobrir uma botnet fragmentada em vários stacks.
@@ -327,11 +341,17 @@ def derive_scope_enriched(cluster: pd.DataFrame, background: pd.DataFrame,
         # prior fraco no fundo: um fingerprint ausente do perfil não vira
         # enriquecimento infinito por conta de uma única observação.
         eps = 1.0 / max(n_bg, 1)
+        n_ja4 = int(cluster["ja4"].notna().sum())
+        family = len(set(b_freq.index) | set(c_freq.index))
+        cut = significance / family if significance is not None else None
         picked = []
         for ja4, cf in c_freq.items():
-            if cf < min_support:
-                continue
             bf = float(b_freq.get(ja4, 0.0)) + eps
+            if cut is None:
+                if cf < min_support:
+                    continue
+            elif binom.sf(round(cf * n_ja4) - 1, n_ja4, min(bf, 1.0)) >= cut:
+                continue
             if cf / bf >= min_enrichment:
                 picked.append((ja4, cf, cf / bf))
             if len(picked) >= max_values:

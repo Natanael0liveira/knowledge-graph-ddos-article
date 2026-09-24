@@ -101,7 +101,7 @@ def ensure(py, dist_dir, work, alpha, stacks, adv, K, seed):
     return pq
 
 
-def evaluate(pq, profile):
+def evaluate(pq, profile, significance=None):
     raw = pd.read_parquet(pq)
     df = build_features(raw)
     y = _is_attack(df["label_first"]).astype(int).values
@@ -134,7 +134,9 @@ def evaluate(pq, profile):
         out["mit_collateral"] = float(matches_scope(B, scope).mean())
         out["mit_ja4_in_scope"] = "tlsJa4" in scope
         # (ii) proposta: discriminador escolhido por enriquecimento sobre o fundo
-        scope_e = derive_scope_enriched(cluster, profile)
+        scope_e = derive_scope_enriched(cluster, profile,
+                                        min_support=0.0 if significance else 0.002,
+                                        max_values=256, significance=significance)
         out["enr_attack_cov"] = float(matches_scope_multi(A, scope_e).mean())
         out["enr_collateral"] = float(matches_scope_multi(B, scope_e).mean())
         out["enr_ja4_in_scope"] = "tlsJa4" in scope_e
@@ -169,6 +171,9 @@ def main():
     ap.add_argument("--work", required=True, type=Path)
     ap.add_argument("--out-dir", required=True, type=Path)
     ap.add_argument("--tag", default="probe")
+    ap.add_argument("--significance", type=float, default=None,
+                    help="binomial over-representation test for the scope at this "
+                         "family-wise level; default: the fixed floor sigma = 0.002")
     args = ap.parse_args()
     args.work.mkdir(parents=True, exist_ok=True)
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -181,7 +186,7 @@ def main():
         profile = ensure_baseline(py, args.dist_dir, args.work, alpha)
         for seed in range(1, args.seeds + 1):
             pq = ensure(py, args.dist_dir, args.work, alpha, stacks, adv, args.K, seed)
-            r = evaluate(pq, profile)
+            r = evaluate(pq, profile, args.significance)
             if r:
                 r.update({"alpha": alpha, "stacks": stacks, "adversarial": adv,
                           "K": args.K, "seed": seed})
@@ -217,7 +222,17 @@ def main():
                 f" {sub.enr_n_ja4.mean():>4.1f} {sub.mit_global_collateral.mean()*100:>6.1f}%")
     (args.out_dir / f"realistic_{args.tag}.json").write_text(
         json.dumps({"grid": args.grid, "K": args.K, "seeds": args.seeds,
-                    "rows": rows}, indent=2, default=str))
+                    "significance": args.significance, "rows": rows}, indent=2, default=str))
+    # One row per grid point: the input of Fig. 3 (make_figures_en.py).
+    cons = (df.assign(adv=df.adversarial.astype(int))
+              .groupby(["alpha", "stacks", "adv"], sort=False)
+              .agg(n=("seed", "size"), d_auc=("d_completo", "mean"),
+                   a_auc=("a_ml_sem_ontologia", "mean"), c_auc=("c_so_network_proximity", "mean"),
+                   modal_cov=("mit_attack_cov", "mean"), modal_coll=("mit_collateral", "mean"),
+                   enr_cov=("enr_attack_cov", "mean"), enr_coll=("enr_collateral", "mean"),
+                   n_ja4=("enr_n_ja4", "mean"))
+              .reset_index())
+    cons.to_csv(args.out_dir / f"realistic_{args.tag}_consolidated.csv", index=False)
     print(f"\nOK: {args.out_dir}/realistic_{args.tag}_runs.csv")
 
 

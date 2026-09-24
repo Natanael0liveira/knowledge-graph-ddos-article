@@ -96,16 +96,22 @@ def window_stats(g):
     }
 
 
-def scope_of(g, profile, min_count=0):
+def scope_of(g, profile, min_count=0, significance=None):
     """Enrichment scope and the fraction of the window it would block.
 
     ``min_count`` adds an absolute floor to the relative one: a fingerprint must
     cover sigma of the window AND at least ``min_count`` sessions. Coordination
     needs several sessions sharing a value, and a fingerprint seen once is never
     evidence of it, however rare it is in the background.
+
+    ``significance`` replaces sigma by the binomial test of
+    ``derive_scope_enriched``; the floor, if also given, still applies.
     """
     sigma = max(0.002, min_count / len(g)) if min_count else 0.002
-    scope = derive_scope_enriched(g, profile, min_support=sigma, max_values=256)
+    if significance is not None:
+        sigma = min_count / len(g) if min_count else 0.0
+    scope = derive_scope_enriched(g, profile, min_support=sigma, max_values=256,
+                                  significance=significance)
     if not scope.get("tlsJa4"):
         return False, 0.0, 0.0
     hit = matches_scope_multi(g, scope).values
@@ -133,12 +139,13 @@ def steady(df, minutes, rng):
     return df
 
 
-def evaluate(df, kind, scen, w_s, profile, k_min, min_count=0):
+def evaluate(df, kind, scen, w_s, profile, k_min, min_count=0, significance=None):
     rows = []
     for (ep, win), g in windows(df, w_s).groupby(["endpoint", "win"]):
         st = window_stats(g)
         n_att = int(_is_attack(g["label_first"]).sum())
-        named, recall, coll = (scope_of(g, profile, min_count) if st["size"] >= k_min
+        named, recall, coll = (scope_of(g, profile, min_count, significance)
+                               if st["size"] >= k_min
                                else (False, 0.0, 0.0))
         rows.append({"kind": kind, "scenario": scen, "endpoint": ep, "win": win,
                      "n_attack": n_att, **st, "scope_named": named,
@@ -183,6 +190,9 @@ def main():
     ap.add_argument("--profile", choices=["baseline", "calib"], default="baseline",
                     help="background profile: the single attack-free baseline run "
                          "(1,000 sessions) or all calibration runs pooled")
+    ap.add_argument("--significance", type=float, default=None,
+                    help="replace sigma by a binomial over-representation test at "
+                         "this family-wise level (e.g. 0.01); default: sigma")
     ap.add_argument("--tag", default="", help="suffix for the output files")
     args = ap.parse_args()
     args.clean_work.mkdir(parents=True, exist_ok=True)
@@ -206,17 +216,20 @@ def main():
     for s in calib_seeds:
         rows += evaluate(steady(pd.read_parquet(ensure_clean(py, args.dist_dir, args.clean_work, args.alpha, s)),
                                 args.steady_minutes, rng),
-                         "calib", s, args.window_s, profile, args.k_min, args.min_count)
+                         "calib", s, args.window_s, profile, args.k_min, args.min_count,
+                         args.significance)
     for s in test_seeds:
         rows += evaluate(steady(pd.read_parquet(ensure_clean(py, args.dist_dir, args.clean_work, args.alpha, s)),
                                 args.steady_minutes, rng),
-                         "clean", s, args.window_s, profile, args.k_min, args.min_count)
+                         "clean", s, args.window_s, profile, args.k_min, args.min_count,
+                         args.significance)
     log.info("attack-free windows evaluated")
     for K in args.K:
         for s in range(1, args.seeds + 1):
             pq = args.work / f"a{args.alpha}_m{args.stacks}_adv0_K{K}_seed{s}.parquet"
             rows += evaluate(steady(pd.read_parquet(pq), args.steady_minutes, rng),
-                             f"attack_K{K}", s, args.window_s, profile, args.k_min, args.min_count)
+                             f"attack_K{K}", s, args.window_s, profile, args.k_min,
+                             args.min_count, args.significance)
         log.info("attack K=%d evaluated", K)
     for n in args.flash:
         for s, dn in zip(test_seeds, donor_seeds):
@@ -225,7 +238,7 @@ def main():
             donor = pd.read_parquet(ensure_clean(py, args.dist_dir, args.clean_work, args.alpha, dn))
             fc, win = flash_crowd(base, donor, n, args.window_s, rng)
             for r in evaluate(fc, f"flash_{n}", s, args.window_s, profile, args.k_min,
-                              args.min_count):
+                              args.min_count, args.significance):
                 if r["win"] == win:            # only the surge window
                     rows.append(r)
         log.info("flash crowd N=%d evaluated", n)

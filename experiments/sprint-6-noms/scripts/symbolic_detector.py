@@ -54,7 +54,7 @@ def profile_for(work, alpha):
     return p
 
 
-def symbolic(raw, profile):
+def symbolic(raw, profile, significance=None):
     """Rule as detector: flagged = sessions matching the derived scope."""
     d = raw.copy()
     d["start_ts"] = pd.to_datetime(d["start_ts"]); d["end_ts"] = pd.to_datetime(d["end_ts"])
@@ -65,7 +65,8 @@ def symbolic(raw, profile):
         return None
     cid = atk.sort_values("omega", ascending=False).iloc[0]["det_cluster"]
     scope = derive_scope_enriched(d[d["det_cluster"] == cid], profile,
-                                  min_support=0.002, max_values=256)
+                                  min_support=0.0 if significance else 0.002,
+                                  max_values=256, significance=significance)
     y = _is_attack(raw["label_first"]).astype(int).values
     flagged = matches_scope_multi(raw, scope).values
     tp = int((flagged & (y == 1)).sum()); fp = int((flagged & (y == 0)).sum())
@@ -101,6 +102,9 @@ def main():
     ap.add_argument("--K", type=int, default=1000)
     ap.add_argument("--seeds", type=int, default=15)
     ap.add_argument("--out-dir", required=True, type=Path)
+    ap.add_argument("--significance", type=float, default=None,
+                    help="binomial over-representation test for the scope at this "
+                         "family-wise level; default: the fixed floor sigma = 0.002")
     args = ap.parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -114,7 +118,7 @@ def main():
             if not f.exists():
                 continue
             raw = pd.read_parquet(f)
-            sym = symbolic(raw, prof)
+            sym = symbolic(raw, prof, args.significance)
             if not sym:
                 continue
             r = {"alpha": alpha, "stacks": stacks, "adv": adv, "seed": seed}
@@ -153,7 +157,8 @@ def main():
               f"{e['rf_recall_fpr1']*100:>12.1f}%")
 
     (args.out_dir / "symbolic_detector.json").write_text(json.dumps(
-        {"K": args.K, "seeds": args.seeds, "grid": args.grid, "aggregate": agg}, indent=2))
+        {"K": args.K, "seeds": args.seeds, "grid": args.grid,
+         "significance": args.significance, "aggregate": agg}, indent=2))
     print(f"\nOK: {args.out_dir}/symbolic_detector.json")
 
 

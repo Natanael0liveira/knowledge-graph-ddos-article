@@ -1,0 +1,91 @@
+{
+  "config": {
+    "work": "/Volumes/Untitled/kg-ddos-data/synth/sprint6_realistic",
+    "clean_work": "/Volumes/Untitled/kg-ddos-data/synth/sprint6_rule",
+    "dist_dir": "../sprint-2/distributions",
+    "out_dir": "results",
+    "alpha": 1.5,
+    "stacks": 25,
+    "seeds": 30,
+    "K": [
+      50,
+      1000
+    ],
+    "window_s": 300,
+    "k_min": 5,
+    "tau_rate": 1.0,
+    "percentiles": [
+      99.0
+    ],
+    "flash": [
+      25,
+      50,
+      100
+    ],
+    "min_count": 0,
+    "steady_minutes": 0,
+    "profile": "baseline",
+    "significance": 0.01,
+    "tag": "_binom"
+  },
+  "calibration_windows": 19,
+  "by_percentile": {
+    "99.0": {
+      "tau": 310511.692,
+      "attack_K1000": {
+        "windows": 90,
+        "omega": 0.16666666666666666,
+        "pipeline": 0.16666666666666666,
+        "enrichment": 0.8555555555555555,
+        "median_omega": 5673.200000000001,
+        "median_size": 131.5,
+        "collateral_when_filtered": 0.0
+      },
+      "attack_K50": {
+        "windows": 35,
+        "omega": 0.45714285714285713,
+        "pipeline": 0.0,
+        "enrichment": 0.02857142857142857,
+        "median_omega": 330595.3,
+        "median_size": 929.0,
+        "collateral_when_filtered": 0.0
+      },
+      "clean": {
+        "windows": 356,
+        "omega": 0.0056179775280898875,
+        "pipeline": 0.0,
+        "enrichment": 0.0,
+        "median_omega": 0.6,
+        "median_size": 2.0,
+        "collateral_when_filtered": 0.0
+      },
+      "flash_100": {
+        "windows": 30,
+        "omega": 0.0,
+        "pipeline": 0.0,
+        "enrichment": 0.0,
+        "median_omega": 3993.0,
+        "median_size": 100.0,
+        "collateral_when_filtered": 0.0
+      },
+      "flash_25": {
+        "windows": 30,
+        "omega": 0.03333333333333333,
+        "pipeline": 0.0,
+        "enrichment": 0.0,
+        "median_omega": 248.0,
+        "median_size": 25.0,
+        "collateral_when_filtered": 0.0
+      },
+      "flash_50": {
+        "windows": 30,
+        "omega": 0.0,
+        "pipeline": 0.0,
+        "enrichment": 0.0,
+        "median_omega": 1027.3,
+        "median_size": 50.0,
+        "collateral_when_filtered": 0.0
+      }
+    }
+  }
+}

@@ -78,9 +78,11 @@ Two consequences follow, and both are measured rather than assumed. First, the
 sweep is the stress test of the enrichment rule: it has to keep working from
 M = 1 to M = 100 while the frequency rule inverts at M = 5 (see
 [`../experiments/pillar4-evidence-mitigation/`](../experiments/pillar4-evidence-mitigation/)).
-Second, M fixes a design constraint — the support floor σ must sit below 1/M, or
-the scope silently drops the smaller stacks — which is why σ = 0.002 rather than
-a rounder number. See [`concepts.md`](concepts.md) for the derivation.
+Second, M sets how small a stack the scope has to certify. At M = 100 each stack
+holds about ten sessions of a 2,000-session cluster, and the binomial enrichment
+test certifies it only against a background profile large enough to resolve it:
+38.6% coverage with a 1,000-session profile, 89.6% with 30,000. See
+[`concepts.md`](concepts.md) for the test and a worked example.
 
 Legitimate distributions are calibrated against the ~322k benign sessions of
 CICIDS2017 and verified by Kolmogorov–Smirnov tests (D = 0.003 for duration,

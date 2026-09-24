@@ -16,10 +16,14 @@ existing result; all are additive and Sprints 1–5 stay intact.
 ```bash
 make latency      # runs anywhere
 make all-hd       # ml + window, needs the drive mounted
-make drift        # profile drift
+make drift        # profile drift, plus the M = 100 run with a pooled profile
 make baselines    # Table II baseline rows
-make rule         # the rule as a window-level detector
+make rule         # the rule as a window-level detector (Appendix E)
 ```
+
+`realistic`, `symbolic`, `drift` and `rule` pass `--significance $(SIG)` to the
+scope derivation (`SIG ?= 0.01`, section 7). `make SIG= <target>` reruns a target
+with the fixed floor σ = 0.002 of earlier revisions.
 
 ## Which scenario cache is canonical
 
@@ -261,4 +265,64 @@ the fixed ratio, which ignores window size.
 
 The paper's report of no collateral holds at the cluster sizes of Table III
 (about 1,000–2,000 sessions), where σ = 0.002 already means several sessions.
+Section 7 replaces the fixed floor by a significance test.
+
+## 7. The binomial enrichment test
+
+The fixed floor σ ignores the number of sessions it is applied to. The scope now
+admits a fingerprint f seen c times among n sessions when it is enriched,
+c/n ≥ ρ·b(f), and improbable under the background, P[X ≥ c] < α/|F| for
+X ~ Bin(n, b(f)), with ρ = 3 and α = 0.01 (`derive_scope_enriched(...,
+significance=0.01)`). [`docs/concepts.md`](../../docs/concepts.md) has the
+derivation and a worked example.
+
+**The Bonferroni family is every fingerprint of the profile or the window.** The
+first prototype divided α by the fingerprints present in the window, about 27.
+Which fingerprints appear is itself random, so that undercounts the family: the
+scope then named a filter in 1.9–2.2% of the *calibration* windows, above the 1%
+level, with p-values of 10⁻⁴ to 10⁻⁵ on benign tail fingerprints. With the family
+at about 900, those picks fall below the cut.
+
+**Per window** (`make rule`, 60-min benign spread, rate condition off, pooled
+30,000-session profile, τ = 4,323):
+
+| Windows | n | Ω ≥ τ | Ω and scope: σ = 0.002 | Ω and scope: binomial | Coverage (binomial) |
+|---|---|---|---|---|---|
+| attack, K = 1000 | 90 | 77.8% | 77.8% | 77.8% | median 79.8%, no collateral |
+| attack, K = 50 | 35 | 85.7% | 85.7% | 85.7% | median 75.3%, no collateral |
+| clean | 360 | 0.6% | 0.6% | 0.0% | |
+| flash crowd, N = 25 | 30 | 80.0% | 80.0% | 0.0% | |
+| flash crowd, N = 50 | 30 | 100% | 100% | 0.0% | |
+| flash crowd, N = 100 | 30 | 100% | 100% | 0.0% | |
+
+With the fixed floor the scope alone names a filter in every clean window and
+every flash crowd (median collateral 17.8% and 12–16%), and in attack windows it
+blocks every attacker at a median 12% collateral. With the binomial test it names
+one clean window in 360 and no flash crowd. Source:
+`results/rule_detection_steady60_rate0_bigprof{,_binom}.json`.
+
+**Per cluster** (Table III, Fig. 3, the drift paragraph), with the paper's
+1,000-session profile, the test reproduces every row except two:
+
+| Configuration | σ = 0.002 | binomial |
+|---|---|---|
+| M = 1, 5, 25, and the three adversarial rows | as published | identical |
+| α = 2.0, M = 25 | 90.3%, collateral 0.05% | 90.3%, no collateral |
+| **M = 100** | **85.0%** | **38.6%**, no collateral |
+| drift: α = 2.0 profile | 0.45% collateral | no collateral |
+| drift: flat profile | 81.2% collateral | 77.6% collateral |
+
+At M = 100 a stack holds about ten of some 2,000 cluster sessions, and a
+1,000-session profile cannot tell it from its own tail. A profile pooled over the
+30 attack-free calibration runs restores 89.6% with no collateral
+(`results/profile_drift_m100.json`). The Random Forest columns of Table III do not
+change.
+
+**Fig. 3 now has a source.** It used to read `results/realistic_consolidated.csv`,
+which no script wrote: its enrichment bars came from a σ = 0.002 run, while
+`realistic_probe.py` called the scope with its default σ = 0.01, which at
+M = 100 names no fingerprint and falls back to the whole endpoint (93% collateral).
+`realistic_probe.py` now passes σ = 0.002 or the test explicitly and writes
+`results/realistic_{tag}_consolidated.csv`, which `make_figures_en.py` reads. The
+orphan file was removed.
 

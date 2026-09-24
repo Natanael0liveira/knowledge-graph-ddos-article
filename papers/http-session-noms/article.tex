@@ -121,7 +121,8 @@ strong per-session baseline suffices. Scoping mitigation by the property
 most of the cluster shares selects a \textit{legitimate} fingerprint once the
 botnet spans several TLS stacks, blocking $0\%$ of the attack and $39\%$ of
 legitimate traffic. Scoping by a binomial enrichment test over normal traffic
-blocks $90\%$ with no collateral observed, and flash crowds trigger no filter.
+blocks $90\%$ of a 25-stack botnet with no collateral observed, and simulated
+flash crowds trigger no filter.
 As a detector, the symbolic path needs no training,
 yet recovers more than twice as much of a fragmented campaign as a learned
 model at zero false positives.
@@ -382,8 +383,8 @@ attackers (Section~\ref{sec:collateral}).
 
 We therefore select the discriminator by \textbf{enrichment}. Let $c(f)$ be
 the number of the $n$ sessions of the fired cluster that carry fingerprint $f$,
-and $b(f)$ the prevalence of $f$ in a background profile of normal traffic
-maintained by the operator outside attack episodes. The scope admits every $f$
+and $b(f)$ the prevalence of $f$, plus $1/N$, in a profile of $N$ sessions of
+normal traffic kept by the operator outside attack episodes. The scope admits every $f$
 that is enriched, $c(f)/n \geq \rho\, b(f)$, and improbable under the background,
 $\Pr[X \geq c(f)] < \alpha/|F|$ for $X \sim \mathrm{Bin}(n, b(f))$, where the
 Bonferroni divisor $|F|$ counts the fingerprints of profile and cluster.
@@ -639,11 +640,11 @@ its zero false-positive rate in these scenarios follows from that criterion
 with no tuned threshold behind it. That is not an unconditional guarantee.
 
 Table~\ref{tab:symbolic} also takes the fired cluster as given. Evaluated end to
-end per five-minute window, with $\tau_{\mathrm{cluster}}$ calibrated on separate
-attack-free runs, $\Omega(S) \geq \tau_{\mathrm{cluster}}$ alone fires on
+end per five-minute window, with $\tau_{\mathrm{cluster}}$ and the profile taken from
+separate attack-free runs, $\Omega(S) \geq \tau_{\mathrm{cluster}}$ alone fires on
 $78$--$86\%$ of attack windows and $0.6\%$ of clean ones, yet also on
-$80$--$100\%$ of flash crowds of 25 to 100 legitimate users, who share
-fingerprints and an endpoint too. Requiring the enrichment test to name a
+$80$--$100\%$ of flash crowds of 25 to 100 users drawn from the benign mix, who
+share fingerprints and an endpoint too. Requiring the enrichment test to name a
 fingerprint removes every false alarm and keeps the detection, with no collateral
 (Appendix~\ref{app:window}).
 
@@ -845,7 +846,7 @@ representation reaches ROC AUC $0.98$, and on conventional real attacks a strong
 per-session classifier suffices. Scoping by the property most of the cluster
 shares selects a legitimate fingerprint once the botnet spans several TLS stacks,
 whereas a binomial enrichment test over normal traffic restores $90\%$ coverage
-with no observed collateral and fires on no flash crowd. As a detector, the
+at 25 stacks with no observed collateral and fires on no simulated flash crowd. As a detector, the
 symbolic path recovers $90\%$ of a 25-stack campaign where the learned model
 recovers $36\%$ at zero false positives. Immediate directions are HTTP/2 attacks, a
 semi-synthetic evaluation over production traffic, and a captured stealthy
@@ -1192,14 +1193,22 @@ hold.
 Table~\ref{tab:perwindow} gives the result. $\Omega(S) \geq
 \tau_{\mathrm{cluster}}$ separates attack windows from clean ones, but it
 measures coordination mass, and a flash crowd adds mass the way a campaign does.
-The enrichment test tells the two apart, since the fingerprints of a surge of
-real users follow the background profile. With it, the rule fires on no clean
+The enrichment test tells the two apart because our flash crowds draw their users
+from the benign mix, whose fingerprints the profile describes. A surge
+concentrated on one client type, such as the users of a freshly updated app,
+would be enriched and filtered, a case we do not evaluate. With the test, the rule fires on no clean
 window and no flash crowd, and still acts on every attack window that $\Omega$
 flags, blocking a median $75$--$80\%$ of the attackers with no legitimate session
 hit. A fixed support floor cannot do this at window scale: with a floor of
 $0.2\%$ of the window in place of the binomial test, the scope names a filter in
 every clean window and every flash crowd, blocking a median $12$--$18\%$ of their
 legitimate sessions.
+
+The result also depends on the size of the profile. With the $1\,000$-session
+profile of Section~\ref{sec:collateral} in place of the pooled one, the rule
+still fires on no clean window and acts on $69$--$80\%$ of attack windows with no
+collateral, but blocks a median of only $20$--$55\%$ of their attackers and names
+a filter in one flash crowd of 90, hitting $11.7\%$ of its users.
 
 \section{Reproducibility}
 \label{app:repro}

@@ -112,8 +112,8 @@ o escopo da mitigação pela propriedade que a maior parte do agrupamento
 compartilha seleciona uma impressão digital \textit{legítima} quando a
 \textit{botnet} se espalha por várias pilhas TLS, bloqueando $0\%$ do ataque e
 $39\%$ do tráfego legítimo. Definir o escopo por um teste binomial de
-enriquecimento sobre o tráfego normal bloqueia $90\%$ sem colateral observado, e
-\textit{flash crowds} não disparam filtro algum. Como detector, o caminho
+enriquecimento sobre o tráfego normal bloqueia $90\%$ de uma \textit{botnet} de 25 pilhas sem
+colateral observado, e \textit{flash crowds} simulados não disparam filtro algum. Como detector, o caminho
 simbólico dispensa treino e ainda recupera de uma campanha fragmentada mais que o
 dobro do que recupera um modelo aprendido com zero falsos positivos.
 \end{abstract}
@@ -367,7 +367,7 @@ usuários e nenhum atacante (Seção~\ref{sec:collateral}).
 
 Selecionamos, portanto, o discriminador por \textbf{enriquecimento}. Seja $c(f)$ o
 número de sessões, entre as $n$ do agrupamento que disparou, que portam a
-impressão digital $f$, e $b(f)$ a prevalência de $f$ em um perfil de fundo de
+impressão digital $f$, e $b(f)$ a prevalência de $f$, somada a $1/N$, em um perfil de $N$ sessões de
 tráfego normal mantido pelo operador fora dos episódios de ataque. O escopo admite
 todo $f$ que seja enriquecido, $c(f)/n \geq \rho\, b(f)$, e improvável sob o
 fundo, $\Pr[X \geq c(f)] < \alpha/|F|$ para $X \sim \mathrm{Bin}(n, b(f))$, em que
@@ -636,11 +636,12 @@ positivos nesses cenários decorre desse critério, sem limiar ajustado por trá
 Isso não é uma garantia incondicional.
 
 A Tabela~\ref{tab:symbolic} também toma como dado o agrupamento que disparou.
-Avaliada de ponta a ponta por janela de cinco minutos, com
-$\tau_{\mathrm{cluster}}$ calibrado em execuções separadas livres de ataque, a
+Avaliada de ponta a ponta por janela de cinco minutos, com $\tau_{\mathrm{cluster}}$ e o perfil tirados de execuções separadas livres de
+ataque, a
 condição $\Omega(S) \geq \tau_{\mathrm{cluster}}$ sozinha dispara em $78$ a $86\%$
 das janelas de ataque e em $0{,}6\%$ das limpas, mas dispara ainda em $80$ a
-$100\%$ dos \textit{flash crowds} de 25 a 100 usuários legítimos, que igualmente
+$100\%$ dos \textit{flash crowds} de 25 a 100 usuários sorteados da mistura benigna, que
+igualmente
 compartilham impressões digitais e um \textit{endpoint}. Exigir que o teste de
 enriquecimento nomeie uma impressão digital elimina todo falso alarme e mantém a
 detecção, sem colateral (Apêndice~\ref{app:window}).
@@ -850,9 +851,8 @@ representação entre sessões alcança ROC AUC $0{,}98$, e em ataques reais
 convencionais basta um classificador forte por sessão. Definir o escopo pela
 propriedade que a maior parte do agrupamento compartilha seleciona uma impressão
 digital legítima assim que a \textit{botnet} se espalha por várias pilhas TLS, ao
-passo que um teste binomial de enriquecimento sobre o tráfego normal restaura
-$90\%$ de cobertura sem colateral observado e não dispara em nenhum \textit{flash
-crowd}. Como detector, o caminho simbólico recupera $90\%$ de uma campanha de 25
+passo que um teste binomial de enriquecimento sobre o tráfego normal restaura $90\%$ de cobertura em 25 pilhas sem colateral observado e não dispara
+em nenhum \textit{flash crowd} simulado. Como detector, o caminho simbólico recupera $90\%$ de uma campanha de 25
 pilhas onde o modelo aprendido recupera $36\%$ com zero falsos positivos. As
 direções imediatas são ataques sobre HTTP/2, uma avaliação semi-sintética sobre
 tráfego de produção e uma campanha furtiva capturada, que nenhum
@@ -1213,8 +1213,11 @@ desativada, porque uma campanha furtiva mantém a taxa agregada no
 A Tabela~\ref{tab:perwindow} traz o resultado. $\Omega(S) \geq
 \tau_{\mathrm{cluster}}$ separa janelas de ataque das limpas, mas mede massa de
 coordenação, e um \textit{flash crowd} acrescenta massa como uma campanha
-acrescenta. O teste de enriquecimento distingue os dois, já que as impressões
-digitais de um surto de usuários reais seguem o perfil de fundo. Com ele, a regra
+acrescenta. O teste de enriquecimento distingue os dois porque nossos \textit{flash crowds}
+sorteiam seus usuários da mistura benigna, cujas impressões digitais o perfil
+descreve. Um surto concentrado em um único tipo de cliente, como os usuários de um
+aplicativo recém-atualizado, seria enriquecido e filtrado, caso que não avaliamos.
+Com o teste, a regra
 não dispara em nenhuma janela limpa nem em nenhum \textit{flash crowd}, e ainda
 age em toda janela de ataque que $\Omega$ sinaliza, bloqueando em mediana $75$ a
 $80\%$ dos atacantes sem atingir nenhuma sessão legítima. Um piso fixo de suporte
@@ -1222,6 +1225,13 @@ não consegue isso na escala da janela: com um piso de $0{,}2\%$ da janela no lu
 do teste binomial, o escopo nomeia um filtro em toda janela limpa e em todo
 \textit{flash crowd}, bloqueando em mediana $12$ a $18\%$ de suas sessões
 legítimas.
+
+O resultado também depende do tamanho do perfil. Com o perfil de $1\,000$ sessões
+da Seção~\ref{sec:collateral} no lugar do agregado, a regra continua sem disparar
+em nenhuma janela limpa e age em $69$ a $80\%$ das janelas de ataque sem
+colateral, mas bloqueia em mediana apenas $20$ a $55\%$ de seus atacantes e nomeia
+um filtro em um \textit{flash crowd} de 90, atingindo $11{,}7\%$ de seus
+usuários.
 
 \section{Reprodutibilidade}
 \label{app:repro}

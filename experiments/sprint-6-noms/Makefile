@@ -38,7 +38,7 @@ SIGFLAG   = $(if $(SIG),--significance $(SIG))
 # Attack-free runs of rule_detection.py (calibration, test and flash-crowd donors).
 RULEWORK ?= $(DATA)/synth/sprint6_rule
 
-.PHONY: help latency ml window realistic canonical purity symbolic drift all-hd check-data clean
+.PHONY: help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule audit
 
 help:
 	@echo "make latency            # no external data required"
@@ -119,3 +119,9 @@ rule: check-data
 	nice -n 10 $(PY) scripts/rule_detection.py --work $(REALWORK) --clean-work $(RULEWORK) \
 	  --dist-dir $(DIST) --out-dir $(RESULTS) --percentiles 99 --steady-minutes 60 \
 	  --tau-rate 0 --profile calib $(SIGFLAG) --tag _steady60_rate0_bigprof_binom
+
+# Recompute every sprint-6 number of the paper from results/ and compare with the
+# text of article.tex. Needs no drive: it reads only the committed result files.
+audit:
+	$(PY) scripts/audit_paper.py
+

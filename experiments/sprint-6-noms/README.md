@@ -19,6 +19,7 @@ make all-hd       # ml + window, needs the drive mounted
 make drift        # profile drift, plus the M = 100 run with a pooled profile
 make baselines    # Table II baseline rows
 make rule         # the rule as a window-level detector (Appendix E)
+make audit        # every sprint-6 number of the paper against results/ (no drive)
 ```
 
 `realistic`, `symbolic`, `drift` and `rule` pass `--significance $(SIG)` to the
@@ -301,6 +302,19 @@ blocks every attacker at a median 12% collateral. With the binomial test it name
 one clean window in 360 and no flash crowd. Source:
 `results/rule_detection_steady60_rate0_bigprof{,_binom}.json`.
 
+The per-window result depends on the profile size, as the M = 100 point does.
+With the 1,000-session profile of the cluster-level experiments
+(`--profile baseline`, `results/rule_detection_steady60_rate0_binom.json`) the
+rule still fires on no clean window and acts on 68.9% / 80.0% of attack windows
+(K = 1000 / 50) with no collateral, but blocks a median 54.5% / 20.2% of their
+attackers and names a filter in 1 of the 90 flash crowds, hitting 11.7% of its
+users.
+
+The flash crowds draw their users from another attack-free run of the same
+generator, so their fingerprints follow the profile by construction. A surge
+concentrated on one client type would be enriched and filtered; that case is not
+evaluated.
+
 **Per cluster** (Table III, Fig. 3, the drift paragraph), with the paper's
 1,000-session profile, the test reproduces every row except two:
 
@@ -325,4 +339,15 @@ M = 100 names no fingerprint and falls back to the whole endpoint (93% collatera
 `realistic_probe.py` now passes σ = 0.002 or the test explicitly and writes
 `results/realistic_{tag}_consolidated.csv`, which `make_figures_en.py` reads. The
 orphan file was removed.
+
+## 8. Audit of the paper's numbers
+
+`make audit` runs `scripts/audit_paper.py`, which recomputes every number this
+sprint contributes to the paper (Table III rows as printed, Section V-B and V-D
+text, Fig. 3 bars, the drift figures, Table VI and Appendix E) from the committed
+files in `results/`, and compares them with the literal text of
+`papers/http-session-noms/article.tex`. It also checks that Table III
+(`symbolic_detector.py`) and Fig. 3 (`realistic_probe.py`), two independent
+scripts, agree on the enrichment coverage. It exits with status 1 on any
+mismatch; a negative test that altered two numbers of the text was caught.
 

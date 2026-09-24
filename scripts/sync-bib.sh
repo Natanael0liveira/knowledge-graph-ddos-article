@@ -24,9 +24,13 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MASTER="$REPO_ROOT/shared/references.bib"
 
+# ATENCAO: papers/http-session-noms/references.bib NAO esta nesta lista.
+# Ele divergiu do master e hoje contem 10 entradas que shared/references.bib
+# nao tem (althouse2023ja4, sharafaldin2018cicids, w3c2012owl2profiles e
+# outras). Sincroniza-lo destruiria essas entradas e quebraria a submissao.
+# Antes de reintroduzi-lo aqui, promova essas entradas para o master.
 TARGETS=(
     "$REPO_ROOT/papers/http-session/references.bib"
-    "$REPO_ROOT/papers/cdn-crosssurface/references.bib"
 )
 
 if [[ ! -f "$MASTER" ]]; then

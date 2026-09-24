@@ -10,11 +10,15 @@ existing result; all are additive and Sprints 1–5 stay intact.
 | `scripts/window_sweep.py` | Sensitivity to *W* was declared uncharacterized | Yes |
 | `scripts/run_canonical_realistic.py` | The generator had three realism defects, all favourable to us | Yes |
 | `scripts/profile_drift.py` | How much background-profile staleness the enrichment test tolerates | No |
+| `scripts/run_canonical_baselines.py` | Table II's baseline rows had **no result file** behind them | Yes |
+| `scripts/rule_detection.py` | The rule Ω(S) ≥ τ had **never been evaluated on its own**, nor against flash crowds | Yes |
 
 ```bash
 make latency      # runs anywhere
 make all-hd       # ml + window, needs the drive mounted
 make drift        # profile drift
+make baselines    # Table II baseline rows
+make rule         # the rule as a window-level detector
 ```
 
 ## Which scenario cache is canonical
@@ -174,3 +178,87 @@ Three defects, all favourable to us, all corrected and backward-compatible
 
 > Watch out: `--param x=false` arrives as the **string** `"false"`, and
 > `bool("false")` is `True` in Python. Fixed for both boolean keys.
+
+## 5. Table II baselines
+
+`run_canonical_baselines.py` runs the academic baselines of
+`sprint-3/scripts/baselines.py` on the cached canonical scenarios (α = 1.5,
+M = 25, 30 seeds, K ∈ {50, 1000}) with the same features and split as
+configuration (b): `test_size = 0.3`, `random_state = 42`, stratified. Output:
+`results/canonical_baselines.json` and `canonical_baselines_runs.csv`.
+
+| Baseline | K = 50 | K = 1000 |
+|---|---|---|
+| `fernandes2019` | 0.518 | 0.509 |
+| `bharathi2012` (k-means only, earlier adaptation) | 0.520 | 0.509 |
+| `bharathi2012_pca` (published structure, in the paper) | 0.499 | 0.495 |
+| `kemp2018` | 0.499 | 0.503 |
+
+The earlier rows of Table II are reproduced to three decimals, so they were
+right and only lacked a committed source. Bharathi et al. describe PCA over a
+behavior matrix, k-means on the retained components and a per-cluster threshold.
+Their threshold (eq. 8) is under-specified; `bharathi2012_pca` scores a session
+by its distance to the nearest centroid over that cluster's 95th-percentile
+training distance.
+
+## 6. The rule as a detector
+
+`rule_detection.py` evaluates Ω(S) ≥ τ per fixed window of W = 300 s, per
+endpoint, instead of per gap-chained cluster:
+
+- τ is a percentile of Ω over attack-free scenarios with their own seeds
+  (calibration 5001–5030), so no label enters the threshold;
+- false alarms are measured on held-out attack-free scenarios (6001–6030);
+- detection is measured on the canonical scenarios, over windows holding at
+  least `k_min` = 5 attacker sessions;
+- a flash crowd retimes N ∈ {25, 50, 100} legitimate sessions from a donor
+  scenario (7001–7030) into one window of the attacked service.
+
+Three rules are compared: `omega` (conditions i, iv and v), `pipeline` (Ω
+followed by a non-empty enrichment scope) and `enrichment` (the scope alone).
+Attack-free scenarios are generated on first use into `$RULEWORK`.
+
+Options, each variant written under its own `--tag`:
+`--steady-minutes` spreads benign sessions uniformly over that many minutes,
+`--min-count` adds an absolute floor to σ, `--tau-rate` sets condition (iv), and
+`--profile calib` builds the background profile from the 30 calibration runs
+instead of one.
+
+### Findings
+
+**The generator packs benign traffic into one burst.** A median 87.6% of the
+benign sessions of a scenario fall in one 5-minute window. The paper's
+gap-chained clusters therefore hold nearly every session, and W never operates.
+This is also why the window sweep (section 3) is flat.
+
+**Ω alone reacts to volume.** With benign traffic spread over 60 min, τ at p99
+of 360 calibration windows (τ = 4,323) and condition (iv) off
+(`_steady60_floor4_rate0_bigprof`):
+
+| Windows | n | Ω ≥ τ | pipeline | enrichment |
+|---|---|---|---|---|
+| attack, K = 1000 | 90 | 77.8% | 68.9% | 72.2% |
+| attack, K = 50 | 35 | 85.7% | 80.0% | 82.9% |
+| clean | 360 | 0.6% | 0.3% | 13.9% |
+| flash crowd, N = 25 | 30 | 80.0% | 13.3% | 20.0% |
+| flash crowd, N = 50 | 30 | 100% | 16.7% | 16.7% |
+| flash crowd, N = 100 | 30 | 100% | 13.3% | 13.3% |
+
+**Condition (iv) never holds in steady traffic.** With τ_rate = 1 req/s no
+window of low-rate sessions is eligible (`_steady60`), so τ is undefined and
+the rule never fires outside a burst.
+
+**The enrichment scope is unsafe at window scale.** With the paper's operating
+point (ρ = 3, σ = 0.002 as a fraction, default run), a scope is named in 93% of
+clean windows with at least 5 sessions, blocking a median 19.9% of their
+legitimate sessions (max 80%), and in every flash crowd (median 14–24%). The
+reason is that σ = 0.002 of a 5-minute window is less than one session. An
+absolute floor of 4 sessions (`--min-count 4`) cuts this to 7.8% of clean
+windows and 7–20% of flash crowds, but the scope then covers a median 20–53% of
+the attackers, since 25 stacks leave few sessions per stack in one window. A
+background profile from 30 runs instead of one does not help, so the cause is
+the fixed ratio, which ignores window size.
+
+The paper's report of no collateral holds at the cluster sizes of Table III
+(about 1,000–2,000 sessions), where σ = 0.002 already means several sessions.
+

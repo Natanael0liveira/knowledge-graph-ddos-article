@@ -95,7 +95,7 @@ def fig_regime(root):
 def fig_collateral(root):
     """Modal vs enrichment scope derivation across the realism axis."""
     import csv
-    path = os.path.join(root, "experiments/sprint-6-noms/results/realistic_consolidated.csv")
+    path = os.path.join(root, "experiments/sprint-6-noms/results/realistic_final_consolidated.csv")
     rows = list(csv.DictReader(open(path)))
 
     def get(alpha, stacks, adv):

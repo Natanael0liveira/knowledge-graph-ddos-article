@@ -111,10 +111,11 @@ por sessão basta. Definir
 o escopo da mitigação pela propriedade que a maior parte do agrupamento
 compartilha seleciona uma impressão digital \textit{legítima} quando a
 \textit{botnet} se espalha por várias pilhas TLS, bloqueando $0\%$ do ataque e
-$39\%$ do tráfego legítimo. Definir o escopo por enriquecimento bloqueia
-de $85$ a $90\%$ sem colateral observado. Como detector, o caminho simbólico
-dispensa treino e ainda recupera de duas a cinco vezes mais de uma campanha
-fragmentada do que um modelo aprendido com zero falsos positivos.
+$39\%$ do tráfego legítimo. Definir o escopo por um teste binomial de
+enriquecimento sobre o tráfego normal bloqueia $90\%$ sem colateral observado, e
+\textit{flash crowds} não disparam filtro algum. Como detector, o caminho
+simbólico dispensa treino e ainda recupera de uma campanha fragmentada mais que o
+dobro do que recupera um modelo aprendido com zero falsos positivos.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -132,7 +133,7 @@ Uma campanha furtiva também molda cada sessão para parecer legítima nos sinai
 
 O trabalho existente ataca o lado da detecção desse problema e deixa o operacional em aberto. Uma meta-análise de 75 estudos constata que 47\% dos detectores de DDoS de camada de aplicação derivam seus atributos de sessões HTTP~\cite{odusami2020survey}, e essas sessões são achatadas em um vetor numérico antes de chegar ao classificador. O detector passa então a enxergar estatísticas sobre sessões, e não consegue raciocinar sobre impressões digitais que se repetem entre origens nem sobre padrões que só existem entre sessões individualmente normais. Detectores baseados em grafos preservam essas relações: o KLAGE~\cite{belcastro2025klage} constrói grafos de conhecimento a partir de \textit{logs} de rede, classifica nós com Graph-BERT~\cite{zhang2020graphbertattentionneededlearning} e reporta em linguagem natural, alcançando $F_1 = 84{,}1\%$ em \textit{benchmarks} de IoT com DDoS Slowloris. Três oportunidades permanecem abertas. Primeiro, a unidade de raciocínio é o \textit{nó de rede} (porta, IP, fluxo), enquanto a coordenação de camada 7 só se torna visível no nível da sessão de aplicação. Segundo, a coordenação é capturada implicitamente, em \textit{embeddings} aprendidos, de modo que nenhum operador consegue inspecionar as relações por trás do veredicto. Terceiro, a saída para no relato, enquanto agir sobre ele exige uma política de mitigação cujo escopo decorra do grafo. Essas três lacunas definem o espaço que este artigo ocupa.
 
-Este artigo as endereça com uma solução baseada em grafos de conhecimento para detectar e mitigar DDoS de camada de aplicação. Ela captura tráfego HTTP/TLS ao vivo, extrai de cada requisição informação de impressão digital, fluxo e \textit{endpoint}, e associa a requisição a um nó \texttt{ApplicationSession} de um grafo OWL mantido ao longo de uma janela deslizante. As sessões dessa janela são ligadas por seis sub-propriedades tipadas, ponderadas pelo custo que o atacante teria para quebrar cada sinal, e uma regra SPARQL/SWRL dispara sobre a massa ponderada dessas ligações. O operador recebe, portanto, a derivação que satisfez a regra, e o discriminador que ela nomeia passa a ser o escopo da mitigação. O alvo são campanhas conduzidas por \textit{botnets} de dispositivos comprometidos, cujas pilhas TLS seu operador não consegue trocar a baixo custo, e bots que apresentam a impressão digital de um navegador são avaliados como a fronteira do método. Este artigo traz quatro contribuições. \1~Propomos uma ontologia OWL na qual a sessão HTTP é entidade de primeira classe, relacionada a outras sessões por \textit{seis sub-propriedades tipadas} ponderadas pelo custo de evasão, de modo que a proximidade de rede, que \textit{botnets} modernas quebram trivialmente, entra apenas como evidência auxiliar. \2~Definimos um procedimento de decisão em que uma regra SPARQL/SWRL dispara sobre a massa de coordenação ponderada $\Omega(S)$ de um agrupamento candidato, de modo que o veredicto reportado é a derivação que satisfez a regra. \3~Derivamos o escopo de mitigação do mesmo grafo e o exportamos com sua cadeia de evidência em JSON-LD e STIX~2.1. Mostramos que a escolha natural, a propriedade que a maior parte do agrupamento compartilha, é prejudicial em condições realistas, e a substituímos por um critério de enriquecimento sobre um perfil de tráfego normal. \4~Avaliamos a abordagem contra uma linha de base forte por sessão à medida que a campanha se torna mais distribuída, e medimos a taxa de falsos positivos do filtro de mitigação resultante como dano colateral sobre o tráfego legítimo.
+Este artigo as endereça com uma solução baseada em grafos de conhecimento para detectar e mitigar DDoS de camada de aplicação. Ela captura tráfego HTTP/TLS ao vivo, extrai de cada requisição informação de impressão digital, fluxo e \textit{endpoint}, e associa a requisição a um nó \texttt{ApplicationSession} de um grafo OWL mantido ao longo de uma janela deslizante. As sessões dessa janela são ligadas por seis sub-propriedades tipadas, ponderadas pelo custo que o atacante teria para quebrar cada sinal, e uma regra SPARQL/SWRL dispara sobre a massa ponderada dessas ligações. O operador recebe, portanto, a derivação que satisfez a regra, e o discriminador que ela nomeia passa a ser o escopo da mitigação. O alvo são campanhas conduzidas por \textit{botnets} de dispositivos comprometidos, cujas pilhas TLS seu operador não consegue trocar a baixo custo, e bots que apresentam a impressão digital de um navegador são avaliados como a fronteira do método. Este artigo traz quatro contribuições. \1~Propomos uma ontologia OWL na qual a sessão HTTP é entidade de primeira classe, relacionada a outras sessões por \textit{seis sub-propriedades tipadas} ponderadas pelo custo de evasão, de modo que a proximidade de rede, que \textit{botnets} modernas quebram trivialmente, entra apenas como evidência auxiliar. \2~Definimos um procedimento de decisão em que uma regra SPARQL/SWRL dispara sobre a massa de coordenação ponderada $\Omega(S)$ de um agrupamento candidato, de modo que o veredicto reportado é a derivação que satisfez a regra. \3~Derivamos o escopo de mitigação do mesmo grafo e o exportamos com sua cadeia de evidência em JSON-LD e STIX~2.1. Mostramos que a escolha natural, a propriedade que a maior parte do agrupamento compartilha, é prejudicial em condições realistas, e a substituímos por um teste binomial de enriquecimento sobre um perfil de tráfego normal. \4~Avaliamos a abordagem contra uma linha de base forte por sessão à medida que a campanha se torna mais distribuída, e medimos a taxa de falsos positivos do filtro de mitigação resultante como dano colateral sobre o tráfego legítimo.
 
 %% Declarada aqui para cair no topo da pagina 2, junto da Secao II.
 \begin{table*}[t]
@@ -178,7 +179,7 @@ O estado da arte em detecção de DDoS de camada 7 sobre HTTP~\cite{tripathi2021
 
 Entre os 75 estudos de uma meta-análise sobre o tema~\cite{odusami2020survey}, nenhum mantém a sessão como objeto com identidade, alvo, comportamento e relações tipadas. A redução é uniforme, e coloca o raciocínio entre sessões fora do alcance do detector.
 
-Plataformas industriais de gestão de \textit{bots} de fato exploram estrutura entre sessões: sinais agregados por impressão digital JA4 sobre todo o tráfego recente alimentam a pontuação de \textit{bots} e a proteção contra DDoS~\cite{martinetti2024ja4signals}. São proprietárias, porém, sem ontologia pública, sem \textit{benchmark} acadêmico reprodutível e sem métrica formalizada de dano colateral.
+Plataformas industriais de gestão de \textit{bots} de fato exploram estrutura entre sessões: sinais agregados por JA4 sobre o tráfego recente alimentam a pontuação de \textit{bots} e a proteção contra DDoS~\cite{martinetti2024ja4signals}. São proprietárias, sem ontologia pública, sem \textit{benchmark} acadêmico reprodutível e sem métrica formalizada de dano colateral.
 
 A Tabela~\ref{tab:related} torna a fronteira explícita. Detectores estatísticos e de aprendizado de máquina reduzem a sessão a um vetor, de modo que nenhuma relação entre sessões sobrevive, e nenhum escopo de mitigação ou custo pode decorrer da decisão. Detectores baseados em grafos preservam relações, mas sobre entidades de nível de rede e em forma aprendida, o que produz uma classificação e, na melhor das hipóteses, uma explicação reconstruída a posteriori. Plataformas industriais agem sobre agregados por impressão digital e não divulgam nem a representação nem o custo de agir sobre ela. Nenhuma abordagem publicada, portanto, reúne três propriedades: a sessão de aplicação como unidade de raciocínio, relações entre sessões explícitas e tipadas, e um escopo de mitigação derivado da representação que produziu o veredicto, com seu dano colateral reportado. O restante deste artigo fornece essa combinação e mede quanto ela custa quando o escopo erra.
 
@@ -364,16 +365,17 @@ do atacante é menor que a cabeça da distribuição benigna, de modo que o valo
 modal é uma impressão digital \textit{legítima} e o filtro resultante bloqueia
 usuários e nenhum atacante (Seção~\ref{sec:collateral}).
 
-Selecionamos, portanto, o discriminador por \textbf{enriquecimento}. Seja $c(f)$ a
-prevalência da impressão digital $f$ dentro do agrupamento que disparou e $b(f)$
-sua prevalência em um perfil de fundo de tráfego normal mantido pelo operador
-fora dos episódios de ataque. O escopo admite todo $f$ com $c(f)/b(f) \geq \rho$ e
-$c(f) \geq \sigma$, produzindo um \textit{conjunto} de impressões digitais, que é
-o que cobre uma \textit{botnet} fragmentada. O piso de suporte $\sigma$ precisa
-ficar abaixo da fatia da menor pilha sobre a qual valha a pena agir, isto é,
-abaixo de $1/M$ para uma \textit{botnet} de $M$ pilhas. Baixá-lo não custa nada,
-porque é o teste de enriquecimento que mantém o tráfego legítimo de fora. Usamos
-$\rho = 3$ e $\sigma = 0{,}002$.
+Selecionamos, portanto, o discriminador por \textbf{enriquecimento}. Seja $c(f)$ o
+número de sessões, entre as $n$ do agrupamento que disparou, que portam a
+impressão digital $f$, e $b(f)$ a prevalência de $f$ em um perfil de fundo de
+tráfego normal mantido pelo operador fora dos episódios de ataque. O escopo admite
+todo $f$ que seja enriquecido, $c(f)/n \geq \rho\, b(f)$, e improvável sob o
+fundo, $\Pr[X \geq c(f)] < \alpha/|F|$ para $X \sim \mathrm{Bin}(n, b(f))$, em que
+o divisor de Bonferroni $|F|$ conta as impressões digitais do perfil e do
+agrupamento. O resultado, um \textit{conjunto} de impressões digitais, cobre uma
+\textit{botnet} fragmentada. Um piso fixo sobre $c(f)/n$ ignoraria $n$: na escala
+da janela, $0{,}2\%$ das sessões é menos de uma, e qualquer impressão digital da
+cauda passaria. Usamos $\rho = 3$ e $\alpha = 0{,}01$.
 
 O fundo precisa vir de fora do episódio de ataque, porque a campanha se estende
 por toda a janela e, de outro modo, daria a todo candidato enriquecimento igual a
@@ -446,8 +448,7 @@ quarta-feira: Slowloris, Slowhttptest, HULK, GoldenEye) e
 CIC-IoT2023~\cite{neto2023ciciot}, este último o conjunto sobre o qual o KLAGE
 reporta $F_1 = 84{,}1\%$ para \texttt{DDoS Slowloris}, passam pelo mesmo
 \textit{pipeline} de extração (PCAP $\rightarrow$ JA4 + fluxos $\rightarrow$
-sessões $\rightarrow$ grafo). Ambos são capturas de bancada de laboratório, ressalva à
-qual retornamos na Seção~\ref{sec:discussion}.
+sessões $\rightarrow$ grafo). Ambos são capturas de laboratório (Seção~\ref{sec:discussion}).
 
 \subsection{Linhas de Base, Configurações e Métricas}
 
@@ -493,7 +494,7 @@ escopo derivado é coerente com o discriminador do agrupamento?).
 \section{Resultados}
 \label{sec:results}
 
-Os resultados seguem as afirmações que sustentam. Começamos pela ablação que isola a representação sob campanhas furtivas distribuídas, depois medimos a regra simbólica diretamente como detector, sem classificador treinado sobre seus atributos, e confrontamos ambos com tráfego real e com o sistema publicado mais próximo. As subseções restantes quantificam quanto o veredicto custa uma vez que se age sobre ele: o dano colateral do escopo derivado, o custo de execução de cada camada e a escolha de $W$, e a significância estatística das comparações.
+Os resultados seguem as afirmações que sustentam. Começamos pela ablação que isola a representação sob campanhas furtivas distribuídas, depois medimos a regra simbólica como detector e confrontamos ambos com tráfego real e com o sistema publicado mais próximo. As subseções restantes quantificam quanto custa agir sobre o veredicto, em dano colateral e em tempo de execução, e a significância das comparações.
 
 \subsection{Ablação em Campanhas Furtivas Distribuídas}
 
@@ -525,11 +526,8 @@ Supervisionado sobre atributos de sessão~\cite{kemp2023approach} & 0,499 & 0,50
 
 \vspace{2pt}
 {\footnotesize $\alpha = 1{,}5$, $M = 25$, $n = 30$ sementes, IC $95\%$, usuários
-legítimos no serviço atacado. A configuração (d) alcança a evidência entre
-sessões por atributos, então a tabela mede a representação. O caminho simbólico
-está na Tabela~\ref{tab:symbolic}. $^{\dagger}$ abaixo do acaso: o
-\textit{perceptron} inverte, tendo aprendido que uma impressão digital
-amplamente compartilhada significa tráfego benigno.}
+legítimos no serviço atacado. O caminho simbólico está na
+Tabela~\ref{tab:symbolic}. $^{\dagger}$ Abaixo do acaso, ver texto.}
 \end{table}
 
 A Tabela~\ref{tab:ablation} reporta a AUC por sessão em campanhas furtivas distribuídas nas
@@ -595,7 +593,7 @@ com analistas humanos é trabalho futuro.
 Monolítica ($M{=}1$)   & 84,0\% & 0,00\% & 0,885 & 0,997 & 91,7\% \\
 $M{=}5$                & 90,0\% & 0,00\% & 0,948 & 0,996 & 88,6\% \\
 $M{=}25$               & 90,3\% & 0,00\% & \textbf{0,949} & 0,979 & \textbf{36,4\%} \\
-$M{=}100$              & 85,0\% & 0,00\% & 0,919 & 0,961 & \textbf{17,6\%} \\
+$M{=}100$              & 38,6\% & 0,00\% & 0,556 & 0,961 & \textbf{17,6\%} \\
 $M{=}25$, adversarial  & 30,4\% & 3,78\% & 0,452 & 0,862 & 7,8\% \\
 \bottomrule
 \end{tabular}
@@ -617,11 +615,12 @@ classificador ao ponto de operação da própria regra
 
 Contra uma \textit{botnet} monolítica ou pouco fragmentada, o modelo aprendido é
 competitivo em zero falsos positivos ($91{,}7\%$ e $88{,}6\%$ de revocação contra
-$84{,}0\%$ e $90{,}0\%$): não há vantagem simbólica no regime fácil. A partir de 25
-pilhas a regra abre vantagem clara: $90{,}3\%$ contra $36{,}4\%$, e $85{,}0\%$ contra
-$17{,}6\%$ em cem pilhas, e a regra mantém essa dianteira mesmo contra um modelo
-autorizado a gastar falsos positivos: em $1\%$ de TFP o modelo alcança apenas
-$66{,}8\%$ e $44{,}5\%$. A linha adversarial \textit{não} é uma comparação
+$84{,}0\%$ e $90{,}0\%$): não há vantagem simbólica no regime fácil. Em 25 pilhas a
+regra abre vantagem clara, $90{,}3\%$ contra $36{,}4\%$, dianteira que mantém sobre
+um modelo autorizado a $1\%$ de TFP ($66{,}8\%$). Em cem pilhas, onde cada pilha
+tem sessões de menos para o perfil certificar (Seção~\ref{sec:collateral}), ela
+ainda dobra o modelo em zero falsos positivos, $38{,}6\%$ contra $17{,}6\%$,
+enquanto o modelo alcança $44{,}5\%$ em $1\%$ de TFP. A linha adversarial \textit{não} é uma comparação
 equivalente e dela não extraímos afirmação alguma: ali a própria regra incorre em
 uma taxa de falsos positivos de $3{,}78\%$, e o modelo alcança $23{,}4\%$ uma vez
 autorizado a $1\%$, de modo que a ordem em um ponto de operação equiparado fica
@@ -635,6 +634,16 @@ não produz escore para limiarizar, apenas um conjunto definido por um teste de
 enriquecimento contra um fundo explícito, de modo que sua taxa nula de falsos
 positivos nesses cenários decorre desse critério, sem limiar ajustado por trás.
 Isso não é uma garantia incondicional.
+
+A Tabela~\ref{tab:symbolic} também toma como dado o agrupamento que disparou.
+Avaliada de ponta a ponta por janela de cinco minutos, com
+$\tau_{\mathrm{cluster}}$ calibrado em execuções separadas livres de ataque, a
+condição $\Omega(S) \geq \tau_{\mathrm{cluster}}$ sozinha dispara em $78$ a $86\%$
+das janelas de ataque e em $0{,}6\%$ das limpas, mas dispara ainda em $80$ a
+$100\%$ dos \textit{flash crowds} de 25 a 100 usuários legítimos, que igualmente
+compartilham impressões digitais e um \textit{endpoint}. Exigir que o teste de
+enriquecimento nomeie uma impressão digital elimina todo falso alarme e mantém a
+detecção, sem colateral (Apêndice~\ref{app:window}).
 
 \subsection{Tráfego Real e Comparação com o KLAGE}
 
@@ -662,18 +671,18 @@ Em tráfego real, o quadro por sessão muda (Tabela~\ref{tab:real}). Uma linha d
 base \textit{enxuta} por sessão (três atributos) desaba para $F_1 = 0{,}179$, mas
 uma \textit{forte} (oito atributos de fluxo) alcança $0{,}900$, porque o Slowloris
 real do CIC-IoT2023, ao contrário das nossas campanhas furtivas, deixa assinatura
-de fluxo por sessão. O \textit{framework} entre sessões alcança $0{,}911$, à frente
-por apenas $+0{,}011$, de modo que nesse ataque a coordenação entre sessões não é
-necessária. A comparação com o KLAGE é favorável, mas \textit{não controlada}:
-nosso $0{,}911$ supera o $0{,}841$ publicado, e nossa linha de base forte também,
-de modo que a margem não pode ser creditada à representação entre sessões. Uma
-reexecução controlada não é possível, já que o código liberado parte de um grafo
-pré-construído cuja construção não foi publicada, e não distribui pesos. Os
-conjuntos públicos de DDoS contêm apenas ataques com assinatura de fluxo
-evidente, e não têm o regime furtivo distribuído em que a evidência entre sessões
-se torna necessária (Fig.~\ref{fig:regime}, Apêndice~\ref{app:limitations}). Em
-qualquer regime, a abordagem acrescenta ao estado da arte em nível de nó um
-veredicto simbólico auditável e uma medida de dano colateral.
+de fluxo por sessão. O \textit{framework} entre sessões alcança $0{,}911$, de modo
+que nesse ataque a coordenação entre sessões não é necessária. A comparação com o
+KLAGE é favorável, mas \textit{não controlada}: nossa linha de base forte também
+supera o $0{,}841$ publicado, de modo que a margem não pode ser creditada à
+representação, e uma reexecução controlada é impossível porque o código liberado
+parte de um grafo pré-construído cuja construção não foi publicada, e não
+distribui pesos. Os conjuntos públicos de DDoS contêm apenas ataques com
+assinatura de fluxo evidente e não têm o regime furtivo distribuído em que a
+evidência entre sessões se torna necessária (Fig.~\ref{fig:regime},
+Apêndice~\ref{app:limitations}). Em qualquer regime, a abordagem acrescenta ao
+estado da arte em nível de nó um veredicto simbólico auditável e uma medida de
+colateral.
 
 
 
@@ -702,26 +711,30 @@ ataque bloqueado e $39{,}0\%$ do tráfego legítimo atingido, uma perda líquida
 impõe o custo da mitigação sem o benefício dela. Uma população benigna mais
 concentrada ($\alpha = 2{,}0$) eleva esse colateral a $61{,}1\%$.
 
-O enriquecimento elimina a falha, bloqueando $90{,}0\%$, $90{,}3\%$ e $85{,}0\%$ do
-ataque em $M = 5$, $25$ e $100$ pilhas, em todos os casos \textbf{sem colateral
-observado} nas $n = 15$ campanhas, e reproduzindo a regra por frequência onde ela
-funcionava. Os $10$ a $15\%$ que sobrevivem são a cauda de atacantes com
-impressões digitais únicas: a mitigação com escopo troca completude por precisão.
+O enriquecimento elimina a falha, bloqueando $90{,}0\%$ e $90{,}3\%$ do ataque em
+$M = 5$ e $25$ pilhas \textbf{sem colateral observado} nas $n = 15$ campanhas, e
+reproduzindo a regra por frequência onde ela funcionava. Os $10\%$ que sobrevivem
+são a cauda de atacantes com impressões digitais únicas, de modo que a mitigação
+com escopo troca completude por precisão. Em $M = 100$ a cobertura cai para
+$38{,}6\%$, ainda sem colateral: uma pilha de cerca de dez sessões em duas mil não
+se distingue da cauda de um perfil de $1\,000$ sessões, e agregar ao perfil 30
+períodos livres de ataque restaura $89{,}6\%$.
 
 \textbf{Duas condições limitam o resultado.} A primeira é a fronteira do
 modelo de ameaça: quando a
 \textit{botnet} adota impressões digitais benignas comuns, pouco fica enriquecido
 e a regra bloqueia $30{,}4\%$ do ataque a $3{,}78\%$ de colateral, contra $3{,}6\%$
 e $39{,}0\%$ da regra por frequência. A vantagem de seletividade se perde em
-grande parte, mas se perde de forma \textit{segura}: com um $\rho$ mais estrito o
+grande parte, mas de forma \textit{segura}: com um $\rho$ mais estrito o
 escopo se recusa a nomear uma impressão digital e degenera para o controle
 global, que é o relato correto quando não existe discriminador. A segunda é o
 perfil de fundo. Deriva moderada é tolerável (perfil com $\alpha = 2{,}0$ contra
-episódio com $\alpha = 1{,}5$: $90{,}3\%$ de cobertura, $0{,}45\%$ de colateral). Um
+episódio com $\alpha = 1{,}5$: $90{,}3\%$ de cobertura, sem colateral). Um
 perfil achatado ou ausente não é, já que toda impressão digital passa a parecer
 rara, a cabeça benigna pontua como enriquecida e o colateral salta para
-$81{,}2\%$. A qualidade do perfil governa a precisão e deixa a cobertura inalterada, de modo
-que manter o perfil atualizado é requisito de implantação. Disso decorre também um mecanismo
+$77{,}6\%$. A qualidade do perfil governa a precisão, e seu tamanho, a menor pilha
+que o teste consegue certificar, de modo que um perfil atualizado e amplo é
+requisito de implantação. Disso decorre também um mecanismo
 à prova de falhas: onde o perfil reprovar em uma verificação de frescor ou de
 deriva, a mitigação com escopo é suprimida e o veredicto emitido apenas como
 evidência, como o teste de enriquecimento faz quando nada
@@ -742,23 +755,20 @@ modo que $W$ pode ser tão pequeno quanto o tráfego permitir.
 \subsection{Significância Estatística}
 
 Testes de Wilcoxon pareados sobre as $n = 30$ execuções, com correção de
-Bonferroni e $d$ de Cohen, tornam ambos os contrastes significativos no regime
-distribuído ($K = 1000$) em $p_{\mathrm{Bonf}} = 7{,}5\times 10^{-9}$:
-\textbf{(d)$-$(c)} com $d = 13{,}5$ e \textbf{(d)$-$(a)} com $d = 22{,}4$. A
-correlação bisserial de postos por pares casados é $+1{,}00$ em ambos, com (d)
-vencendo as 30 execuções pareadas. As sementes são sorteios de um
-mesmo gerador, então os testes mostram que a diferença é estável entre sorteios
-desse processo, e efeitos dessa magnitude refletem a separação quase perfeita de
-tráfego sintético controlado. Nenhum dos dois deve ser lido como expectativa de
-desempenho em campo.
+Bonferroni e $d$ de Cohen, tornam ambos os contrastes significativos em
+$K = 1000$ ($p_{\mathrm{Bonf}} = 7{,}5\times 10^{-9}$): \textbf{(d)$-$(c)} com
+$d = 13{,}5$ e \textbf{(d)$-$(a)} com $d = 22{,}4$. A correlação bisserial de
+postos é $+1{,}00$ em ambos, com (d) vencendo os 30 pares. As sementes são
+sorteios de um mesmo gerador, então os testes mostram que a diferença é estável
+entre sorteios, e efeitos desse tamanho refletem a separação limpa de tráfego
+sintético. Nenhum dos dois prevê desempenho em campo.
 
 %% ====================================================================
 \section{Discussão e Limitações}
 \label{sec:discussion}
 
-Primeiro situamos o \textit{framework} em operação e discutimos como ele se
-particiona, depois enunciamos as cinco limitações que delimitam nossas
-afirmações. O Apêndice~\ref{app:limitations} lista outras.
+Discutimos o posicionamento e o particionamento do \textit{framework}, depois
+cinco limitações (outras no Apêndice~\ref{app:limitations}).
 
 \textbf{Posicionamento operacional.} O \textit{framework} fecha um ciclo de
 gestão: detecção, evidência e escopo saem de uma única passagem sobre o mesmo
@@ -777,34 +787,33 @@ condição de \textit{endpoint}. Nenhuma chave isolada preserva as seis
 sub-relações, e o Apêndice~\ref{app:cost} esboça um desenho em dois níveis.
 
 \textbf{O ganho é específico de regime.} Contra inundações de origem única,
-limiares por IP ou por sessão têm desempenho comparável, e nos ataques reais
-convencionais de conjuntos públicos um classificador forte por sessão já alcança
-$\mathrm{AUC} \geq 0{,}98$. A vantagem só se sustenta quando a campanha é
-distribuída \textit{e} furtiva, e o \textit{framework} complementa as defesas
-volumétricas.
+limiares por IP ou por sessão têm o mesmo desempenho, e nos ataques de conjuntos
+públicos um classificador forte por sessão alcança $\mathrm{AUC} \geq 0{,}98$. Só
+campanhas distribuídas \textit{e} furtivas precisam do \textit{framework}, que
+complementa as defesas volumétricas.
 
 \textbf{A avaliação sintética demonstra um mecanismo e não estabelece desempenho
-em campo.} No cenário sintético, a campanha carrega exatamente os sinais de
-coordenação que a configuração (d) mede, e as sessões do atacante tiram seus
+em campo.} No cenário sintético, a campanha carrega os sinais que a
+configuração (d) mede, e as sessões do atacante tiram seus
 atributos por sessão de distribuições benignas reais. A não separabilidade por
 sessão da Tabela~\ref{tab:ablation} não é, portanto, artefato de uma linha de base
-enfraquecida. A imitação, porém, é imposta por construção, de modo que o
-resultado mostra o mecanismo sob indistinguibilidade perfeita por sessão e não
-estabelece desempenho sobre uma captura real desse regime.
+enfraquecida. A imitação é imposta por construção, de modo que o resultado
+mostra o mecanismo sob indistinguibilidade perfeita por sessão e não estabelece
+desempenho sobre uma captura real desse regime. O gerador inicia a maioria das
+sessões benignas nos primeiros minutos de um cenário, de modo que a avaliação por
+janela as espalha por uma hora, um processo de chegada escolhido por nós.
 
 \textbf{Detecção e definição de escopo dependem ambas de um discriminador
 observável de peso alto.} Uma varredura de robustez ($n = 10$) torna a
 dependência explícita: à medida que a fração de origens que compartilham a
 impressão digital TLS cai, a $\mathrm{AUC}$(d) decresce monotonicamente de
-$1{,}00$ para $\approx 0{,}74$ sob aleatorização, resíduo deixado pelo conjunto
-finito de JA4 benignos, que a diversidade em escala de internet deveria levar ao
-acaso. A convergência de \textit{endpoint} \textit{não} compensa, porque usuários
+$1{,}00$ para $\approx 0{,}74$ sob aleatorização, resíduo do conjunto finito de
+JA4 benignos. A convergência de \textit{endpoint} \textit{não} compensa, porque usuários
 legítimos também convergem no \textit{endpoint}. A família ponderada tolera
 quebra parcial, já que os sinais de peso alto sobreviventes sustentam o
 agrupamento, mas um bot fora do modelo de ameaça que apresente o JA4 de um
-navegador enquanto introduz ruído temporal e rotaciona identidades a degrada em
-direção ao acaso. O Encrypted Client Hello~\cite{ietf2024ech} também pode tornar
-o JA4 inobservável.
+navegador enquanto introduz ruído temporal e rotaciona identidades a degrada até
+o acaso. O Encrypted Client Hello~\cite{ietf2024ech} também pode ocultar o JA4.
 
 \textbf{Escopo da ablação.} A configuração (d) exprime a evidência do grafo como
 atributos: um modelo linear sobre os mesmos três atributos entre sessões ainda
@@ -815,18 +824,16 @@ veredicto, sua decomposição por sub-relação e o escopo formam uma única
 derivação, exportada para STIX sem tradução (Listagem~\ref{lst:chain}), e um sinal
 novo entra como uma sub-propriedade ponderada que a agregação lê da ontologia.
 Chamamos o veredicto de \textit{explicável} nesse sentido de derivação
-inspecionável. Se ele encurta a decisão de um analista permanece não testado. A
+inspecionável, e se ele encurta a decisão de um analista permanece não testado. A
 Tabela~\ref{tab:symbolic} sustenta o caminho simbólico apenas em parte: ele fica
 atrás do modelo aprendido contra uma \textit{botnet} monolítica e toma a frente
-quando a fragmentação torna a distribuição de escores inutilizável para um limiar
-de zero falsos positivos.
+quando a fragmentação não deixa limiar utilizável de zero falsos positivos.
 
 \textbf{Cobertura de família de ataque, protocolo e conjunto de dados.} A
-ontologia e a avaliação cobrem a família Slow HTTP DoS sobre HTTP/1.1, e HTTP/2 ou
-outros protocolos exigem sub-relações adicionais. A validação em dados reais abrange seis
-ataques de laboratório em dois conjuntos, e a comparação de
-ataque único com o KLAGE difere em granularidade e protocolo, de modo que uma
-afirmação de superioridade exige reproduzir o KLAGE sob nosso protocolo.
+ontologia e a avaliação cobrem a família Slow HTTP DoS sobre HTTP/1.1. A
+validação em dados reais abrange seis ataques de laboratório em dois conjuntos, e
+uma afirmação de superioridade sobre o KLAGE exige reproduzi-lo sob nosso
+protocolo.
 
 %% ====================================================================
 \section{Conclusão e Trabalhos Futuros}
@@ -838,18 +845,18 @@ disparamos uma regra SPARQL/SWRL cuja derivação serve de veredicto, cadeia de
 evidência e escopo de mitigação.
 
 Contra campanhas furtivas de \textit{botnets} de dispositivos comprometidos, a
-detecção por sessão fica no acaso em quatro famílias de classificador, enquanto a
+detecção por sessão fica no acaso em quatro classificadores, enquanto a
 representação entre sessões alcança ROC AUC $0{,}98$, e em ataques reais
 convencionais basta um classificador forte por sessão. Definir o escopo pela
 propriedade que a maior parte do agrupamento compartilha seleciona uma impressão
-digital legítima assim que a \textit{botnet} se espalha por várias pilhas TLS, e o
-enriquecimento sobre um perfil de tráfego normal restaura de $85$ a $90\%$ de
-cobertura sem colateral observado. Como detector, o caminho simbólico recupera
-$90\%$ de uma campanha de 25 pilhas onde o modelo aprendido recupera $36\%$ com
-zero falsos positivos, diferença que a AUC esconde. As direções imediatas são
-ataques sobre HTTP/2, uma avaliação semi-sintética sobre tráfego de fundo de
-produção e uma campanha furtiva capturada, que nenhum \textit{benchmark} ainda
-fornece.
+digital legítima assim que a \textit{botnet} se espalha por várias pilhas TLS, ao
+passo que um teste binomial de enriquecimento sobre o tráfego normal restaura
+$90\%$ de cobertura sem colateral observado e não dispara em nenhum \textit{flash
+crowd}. Como detector, o caminho simbólico recupera $90\%$ de uma campanha de 25
+pilhas onde o modelo aprendido recupera $36\%$ com zero falsos positivos. As
+direções imediatas são ataques sobre HTTP/2, uma avaliação semi-sintética sobre
+tráfego de produção e uma campanha furtiva capturada, que nenhum
+\textit{benchmark} ainda fornece.
 
 \section*{Agradecimento}
 Agradecemos à Azion Technologies (\texttt{\url{https://www.azion.com/}}) por
@@ -1156,6 +1163,66 @@ escala de CDN. Com o modelo de custo acima, o particionamento por
 duas camadas lineares na janela, e a admissão leva bem menos de um microssegundo.
 Confirmar isso em escala de CDN permanece trabalho futuro.
 
+\section{A Regra por Janela}
+\label{app:window}
+
+A Seção~\ref{sec:symbolic-detector} avalia o escopo sobre o agrupamento que
+disparou. Aqui a regra inteira roda como implantada, por janela fixa de
+$W = 300$~s e \textit{endpoint}, e o limiar nunca vê ataque nem rótulo.
+$\tau_{\mathrm{cluster}}$ é o 99º percentil de $\Omega$ sobre as janelas de 30
+execuções livres de ataque, os falsos alarmes são contados em outras 30 com
+sementes distintas, e a detecção, nas campanhas canônicas ($\alpha = 1{,}5$,
+$M = 25$), sobre janelas com ao menos $k_{\min} = 5$ atacantes. Um \textit{flash
+crowd} reposiciona no tempo 25, 50 ou 100 sessões legítimas de uma terceira
+execução livre de ataque em uma janela do serviço atacado. O perfil de fundo
+agrega as execuções de calibração.
+
+\begin{table}[tb]
+\centering
+\caption{A regra por janela de cinco minutos, 30 execuções por linha.}
+\label{tab:perwindow}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrcccc@{}}
+\toprule
+ & & & \multicolumn{3}{c}{\textbf{$\Omega$ e enriquecimento}} \\
+\cmidrule(l){4-6}
+\textbf{Janelas} & $n_W$ & $\Omega \geq \tau$ & \textbf{Dispara} & \textbf{Cob.} & \textbf{Col.} \\
+\midrule
+Ataque, $K = 1000$          & 90  & 77,8\% & 77,8\% & 79,8\% & 0,0\% \\
+Ataque, $K = 50$            & 35  & 85,7\% & 85,7\% & 75,3\% & 0,0\% \\
+Limpas                      & 360 & 0,6\%  & 0,0\%  & -- & -- \\
+\textit{Flash crowd}, 25    & 30  & 80,0\% & 0,0\%  & -- & -- \\
+\textit{Flash crowd}, 50    & 30  & 100\%  & 0,0\%  & -- & -- \\
+\textit{Flash crowd}, 100   & 30  & 100\%  & 0,0\%  & -- & -- \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+{\footnotesize Cob.: fatia mediana dos atacantes da janela que o escopo bloqueia.
+Col.: maior fatia de suas sessões legítimas bloqueada.}
+\end{table}
+
+Dois ajustes tornam o teste informativo. O gerador inicia a maioria das sessões
+benignas de um cenário em seus primeiros minutos, o que deixaria uma única janela
+movimentada por execução, e por isso os inícios das sessões benignas são
+espalhados uniformemente por 60~min, preservadas as durações. A condição~(iv) é
+desativada, porque uma campanha furtiva mantém a taxa agregada no
+\textit{endpoint} em níveis benignos e um limiar de taxa nunca seria atingido.
+
+A Tabela~\ref{tab:perwindow} traz o resultado. $\Omega(S) \geq
+\tau_{\mathrm{cluster}}$ separa janelas de ataque das limpas, mas mede massa de
+coordenação, e um \textit{flash crowd} acrescenta massa como uma campanha
+acrescenta. O teste de enriquecimento distingue os dois, já que as impressões
+digitais de um surto de usuários reais seguem o perfil de fundo. Com ele, a regra
+não dispara em nenhuma janela limpa nem em nenhum \textit{flash crowd}, e ainda
+age em toda janela de ataque que $\Omega$ sinaliza, bloqueando em mediana $75$ a
+$80\%$ dos atacantes sem atingir nenhuma sessão legítima. Um piso fixo de suporte
+não consegue isso na escala da janela: com um piso de $0{,}2\%$ da janela no lugar
+do teste binomial, o escopo nomeia um filtro em toda janela limpa e em todo
+\textit{flash crowd}, bloqueando em mediana $12$ a $18\%$ de suas sessões
+legítimas.
+
 \section{Reprodutibilidade}
 \label{app:repro}
 
@@ -1172,9 +1239,12 @@ pesos são lidos da ontologia; e os módulos de evidência e mitigação.
 As duas derivações de escopo são distribuídas lado a lado: a regra por frequência
 que falha e a regra por enriquecimento que a substitui, de modo que o resultado
 negativo da Seção~\ref{sec:collateral} seja reprodutível e não apenas afirmado. O
-perfil de fundo de que o teste de enriquecimento precisa é produzido por uma
-execução do gerador livre de ataque, de modo que nenhum rótulo entra no caminho
-de decisão em momento algum.
+perfil de fundo de que o teste de enriquecimento precisa vem de execuções do
+gerador livres de ataque, de modo que o próprio teste não lê rótulo algum.
+Rótulos entram apenas na avaliação: os scripts por trás da
+Tabela~\ref{tab:symbolic} escolhem o agrupamento que disparou por sua fração de
+ataque, enquanto a avaliação por janela do Apêndice~\ref{app:window} não usa
+nenhum antes da pontuação.
 
 As sementes são fixas, a orquestração é conduzida por Makefiles e os artefatos são
 versionados, de modo que toda tabela e toda figura de dados se regeneram a partir

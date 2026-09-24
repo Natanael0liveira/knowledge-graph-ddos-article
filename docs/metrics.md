@@ -104,7 +104,7 @@ measure: it summarizes the whole curve and never commits to an operating point.
 That property is what makes it the right metric for the ablation. Configurations
 (a) through (d) are compared on how well the *representation* separates the two
 populations, independent of any threshold choice. The headline result — per-session
-features sit at AUC 0.471–0.502 while cross-session features reach ≥ 0.98 — is a
+features sit at AUC 0.471–0.503 while cross-session features reach ≥ 0.98 — is a
 statement about separability, not about a deployed detector.
 
 ## Recall at FPR = 0 — the number that matters operationally

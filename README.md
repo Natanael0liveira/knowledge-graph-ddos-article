@@ -39,7 +39,7 @@ STIX 2.1) and the scope of the mitigation.
 ## Headline results
 
 - **Stealthy distributed campaigns.** Per-session detection sits at chance across
-  four classifier families given the full flow-feature set (AUC 0.471–0.502),
+  four classifier families given the full flow-feature set (AUC 0.471–0.503),
   while the cross-session representation reaches **0.98 against 0.50**
   (Cohen's *d* = 22.4, all 30 paired runs in the same direction).
 - **A negative result on mitigation scope.** Scoping by the property most of the
@@ -71,7 +71,7 @@ experiments/
   sprint-6-noms/          experiments added for the submission
   pillar2-symbolic-reasoning/   verdict as derivation (SWRL + SPARQL)
   pillar4-evidence-mitigation/  evidence chain and derived mitigation scope
-docs/                     concepts, runtime, metrics, evaluation design, prior art
+docs/                     concepts, runtime, metrics, evaluation design, writing style
 ontology/                 ddos_ontology.owl
 shared/                   shared bibliography
 ```
@@ -91,7 +91,7 @@ the experiment behind, or a figure you want the source of.
 | c(f)/b(f) ≥ ρ, c(f) ≥ σ | Scope derivation by enrichment (ρ = 3, σ = 0.002) | §III-H | [`concepts.md`](docs/concepts.md) | [`evidence_mitigation.py`](experiments/pillar4-evidence-mitigation/scripts/evidence_mitigation.py) |
 | σ < 1/M | Why the support floor depends on botnet fragmentation | §III-H, §V-D | [`evaluation.md`](docs/evaluation.md) | — |
 | Per-pair decision procedures | JA4 near-match, identity overlap, DTW, cosine, prefix match | App. A | [`runtime.md`](docs/runtime.md) | see note below |
-| O(\|S_W\|·c) admission cost | Why the hot path is linear and the symbolic layer quadratic | §III-E, §V-E; App. D | [`runtime.md`](docs/runtime.md) | [`bench_latency.py`](experiments/sprint-6-noms/scripts/bench_latency.py) |
+| Σₖ C(nₖ, 2) class counting | Why admission is constant and the symbolic layer linear | §III-E, §V-E; App. D | [`runtime.md`](docs/runtime.md) | [`bench_latency.py`](experiments/sprint-6-noms/scripts/bench_latency.py) |
 | AUC, recall @ FPR = 0, collateral damage | The metrics every result is reported in | §IV-B | [`metrics.md`](docs/metrics.md) | — |
 
 > **Note on sub-relation coverage.** All six sub-relations are specified in

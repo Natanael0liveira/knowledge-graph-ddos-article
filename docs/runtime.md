@@ -9,9 +9,9 @@ keeping them separate is what makes the approach deployable.
 |---|---|---|
 | Runs | per request / per new session | once per operational window |
 | Path | hot path, in-memory, indexed | auditable path, RDF + SPARQL |
-| Produces | `relatedBy_*` candidate edges | Ω(S), the verdict and its derivation |
-| Measured cost | 14–19 ns per candidate pair | ~187 µs per materialized RDF edge |
-| Grows with | \|S_W\| (linear) | pairs in the fired cluster (quadratic) |
+| Produces | class counts (and candidate pairs for non-transitive relations) | Ω(S), the verdict and its derivation |
+| Measured cost, class counting | about 0.4 µs per session, constant | linear in \|S_W\| |
+| Measured cost, pair edges | 15–21 ns per candidate pair | about 200 µs per materialized RDF edge |
 
 Layer 1 decides *what is related*. Layer 2 decides *whether that adds up to a
 coordinated campaign*, and leaves behind the derivation that justifies the
@@ -27,12 +27,13 @@ background traffic profile the enrichment test needs (see
 
 The window is not a tuning knob for detection quality. Sweeping it over a 30×
 range (60 s to 1800 s) moves AUC by less than 0.002, while mean cluster occupancy
-grows 6.6× and the quadratic term of Layer 2 grows with it. The reason is that
+grows 6.6×. The reason is that
 the discriminative feature is a **fraction** — the share of the cluster carrying
 one JA4 — which is invariant to cluster scale.
 
 > **Operational rule: keep W as small as the traffic permits.** A larger window
-> buys no detection and costs roughly the square. W must only be large enough for
+> buys no detection and adds state. With class counting that cost is linear in
+> the window; with pair edges it was quadratic. W must only be large enough for
 > a cluster to form, which at W = 60 s already meant ~132 sessions in the
 > evaluated scenarios.
 
@@ -41,15 +42,18 @@ Full sweep in
 
 ## Layer 1 — admission
 
-Admitting a new session into a window holding `|S_W|` active sessions costs
-**O(|S_W| · c)**: the new session is tested against the sessions already in the
-window, and `c` is the per-pair cost of deciding every sub-relation. What grows
-with traffic is the number of *candidates*, not the cost of each decision.
+Three of the sub-relations, exact JA4, endpoint and /24 prefix, are
+**equivalence relations**: two sessions are related when they share a value. Each
+one therefore partitions a cluster S into classes, and the number of pairs it
+links follows from the class sizes alone, `|Eᵢ(S)| = Σₖ C(nₖ, 2)`. Admitting a
+session means incrementing one counter per such sub-relation. The cost does not
+depend on `|S_W|`, and no pair is ever enumerated. This is also how the evaluation
+computes Ω (`compute_coordination.py` groups by value and counts).
 
-Candidates are not drawn by scanning the window. Inverted indexes — a JA4
-bucket, an endpoint bucket, a /24 bucket — narrow the comparison set before any
-per-pair work happens. This is the difference between a hot path that costs
-microseconds and one that costs milliseconds.
+The non-transitive relations (near-variant JA4, temporal pattern, payload
+signature) still compare the new session with candidates. Inverted indexes and
+locality-sensitive hashing narrow that comparison set before any per-pair work
+happens, so the per-pair cost `c` stays O(1) and the candidate count is what grows.
 
 ### Per-pair decision procedures
 
@@ -79,25 +83,31 @@ version changes; unbounded fuzzy matching would merge unrelated ones.
 
 ### Measured cost
 
-Three repeats, one core, `rdflib` reference implementation:
+Three repeats, one core, on AC power, with the `rdflib` reference implementation.
+"Peers enumerated" is the pair path, as the rules are written; "class counters"
+is the path above.
 
-| \|S_W\| | admission p50 | edges/adm | ns/pair | sessions/s |
+| \|S_W\| | peers enumerated, p50 | edges/adm | ns/pair | class counters, p50 |
 |---|---|---|---|---|
-| 100 | 2.1 µs | 148 | 14.3 | 470,578 |
-| 500 | 6.1 µs | 396 | 15.3 | 164,950 |
-| 1,000 | 11.9 µs | 741 | 16.0 | 84,207 |
-| 5,000 | 61.7 µs | 3,373 | 18.3 | 16,205 |
-| 10,000 | 122.1 µs | 6,495 | 18.8 | 8,188 |
+| 100 | 2.3 µs | 148 | 15.3 | 0.42 µs |
+| 250 | 3.8 µs | 239 | 15.9 | 0.38 µs |
+| 500 | 6.7 µs | 396 | 17.0 | 0.38 µs |
+| 1,000 | 12.0 µs | 741 | 16.2 | 0.37 µs |
+| 2,500 | 31.0 µs | 1,660 | 18.7 | 0.38 µs |
+| 5,000 | 64.2 µs | 3,373 | 19.0 | 0.33 µs |
+| 10,000 | 126.9 µs | 6,495 | 19.5 | 0.37 µs |
+| 25,000 | 293.9 µs | 16,321 | 18.0 | 0.33 µs |
+| 50,000 | 608.8 µs | 32,156 | 18.9 | 0.33 µs |
+| 100,000 | 1364.6 µs | 65,020 | 21.0 | 0.38 µs |
 
-**Per-pair cost is flat at 14–19 ns across a 100× range of window occupancy**,
-which is the empirical confirmation that `c` is genuinely O(1). Admission
-latency grows because the candidate count grows, exactly as O(|S_W| · c)
-predicts.
+**Class admission is flat at 0.33–0.42 µs from 100 to 100,000 sessions.** The pair
+path is linear in `|S_W|` at a constant 15–21 ns per candidate pair, which confirms
+that `c` is O(1) and that the growth comes from the candidate count.
 
 ## Layer 2 — symbolic evaluation
 
-Once per window, the edges materialize in RDF via SPARQL `CONSTRUCT` and the
-weighted aggregation runs:
+Once per window, class membership (and, for the non-transitive relations, pair
+edges) materializes in RDF and the weighted aggregation runs:
 
 > **Ω(S) = Σᵢ wᵢ · |Eᵢ(S)|**
 
@@ -107,34 +117,42 @@ pairs in S linked by sub-relation *i*. The rule fires when Ω(S) clears
 coherent `BotBehavior` profile). Calibration of `τ_cluster` and the weights is in
 [`concepts.md`](concepts.md).
 
-The split between the two languages is forced, not stylistic: **SWRL is Horn and
-cannot aggregate**, so it instantiates the sub-relations one pair at a time,
-while the summation and the comparison against `τ_cluster` are expressed in
-SPARQL, which reads the weights from the ontology itself. See
+The split between the two languages is forced by what each can express. **SWRL
+is Horn and cannot aggregate**, so it defines the sub-relations one pair at a
+time, while the summation and the comparison against `τ_cluster` are written in
+SPARQL, which reads the weights from the ontology. For the equality-based
+sub-relations the query counts pairs from class membership (`kg:inClass`,
+`kg:ofRelation`), so no pair edge is materialized. See Listing 1 of the paper and
 [`../experiments/pillar2-symbolic-reasoning/`](../experiments/pillar2-symbolic-reasoning/).
 
-### Measured cost, and where the quadratic term comes from
+### Measured cost
 
-| \|S_W\| | symbolic total | RDF edges | µs/edge |
-|---|---|---|---|
-| 100 | 0.56 s | 2,703 | 208 |
-| 250 | 3.10 s | 17,221 | 180 |
-| 500 | 12.09 s | 65,115 | 186 |
-| 1,000 | 49.69 s | 265,328 | 187 |
+| \|S_W\| | pair edges: total | RDF edges | per edge | class aggregation: total |
+|---|---|---|---|---|
+| 100 | 0.84 s | 2,703 | 309 µs | 0.07 s |
+| 250 | 3.67 s | 17,221 | 213 µs | 0.09 s |
+| 500 | 12.89 s | 65,115 | 198 µs | 0.16 s |
+| 1,000 | 52.78 s | 265,328 | 199 µs | 0.33 s |
+| 2,500 | 357.76 s | 1,641,169 | 218 µs | 0.81 s |
+| 5,000 | not run | |  | 1.38 s |
+| 10,000 | not run | |  | 2.86 s |
+| 25,000 | not run | |  | 6.77 s |
+| 50,000 | not run | |  | 13.22 s |
+| 100,000 | not run | |  | 26.37 s |
 
-Cost per materialized edge is flat at ~187 µs, so this layer is also linear **in
-its own unit of work**. What explodes is the edge count: 2,703 edges at 100
-sessions, 265,328 at 1,000.
+Both paths give the same Ω(S) for every endpoint, to within 7e-12.
 
-That quadratic growth belongs to **neither the implementation nor the backend**.
-Ω(S) is defined over *pairs*, so the number of edges grows with the square of
-|S_W| by construction. This is what makes the window a structural necessity
-rather than a convenience, and what forces the design consequence below.
+Materializing pair edges costs about 200 µs per edge, so that path is linear in
+edges, and the edge count grows with the square of `|S_W|`: 52.8 s at 1,000
+sessions and 358 s at 2,500. Class aggregation is linear in sessions: 0.33 s at
+1,000, 160 times faster, and 26.4 s at 100,000.
 
-> **Design consequence.** Detect on the indexed path (microseconds) and
-> materialize RDF only for the clusters that actually fire — which is exactly the
-> evidence-chain subset. Running Layer 2 over every window unconditionally is not
-> viable and was never the intent.
+An earlier version of this page, and of the paper, said the quadratic term
+belonged to the rule itself and that no backend could remove it. That was wrong
+for the equality-based sub-relations. The quadratic growth is real in the *value*
+of Ω(S), which counts pairs, and in the pair edges of the non-transitive
+relations. Computing Ω from class sizes avoids it, and the evidence chain needs
+only the per-relation pair counts, which the classes give directly.
 
 ## Backends
 

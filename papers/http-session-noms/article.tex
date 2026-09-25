@@ -584,8 +584,7 @@ That (b) sits at chance too shows per-session attributes are not enough: the
 clusters of the two laboratory captures, six attacks and the DoS-Other class of
 CICIDS2017, come from one to seven origins in one /24, floods within reach of a
 per-prefix limit; Listing~\ref{lst:chain} (Appendix~\ref{app:cost})
-gives the evidence chain of a canonical campaign, and a human-analyst study is
-future work.
+gives the evidence chain of a canonical campaign.
 
 \subsection{The Rule Itself as a Detector}
 \label{sec:symbolic-detector}
@@ -710,7 +709,7 @@ Appendix~\ref{app:limitations}).
 
 Mitigation is only meaningful as a pair, what the derived scope blocks and what
 it costs, which Fig.~\ref{fig:collateral} reports for the frequency and enrichment
-rules over $n = 15$ campaigns per configuration.
+rules over $n = 15$ campaigns each.
 
 For a monolithic botnet the two agree: $89.8\%$ of attacker sessions blocked with
 no collateral observed, where a global endpoint rate limit disconnects every
@@ -718,8 +717,7 @@ legitimate user; the frequency rule was validated in that regime, which is not
 representative.
 From five stacks on, the modal fingerprint of the cluster becomes a
 \textit{legitimate} one and the rule inverts: $0.0\%$ of the attack blocked and
-$39.0\%$ of legitimate traffic hit, a net loss that imposes the cost of
-mitigation without its benefit. A more concentrated benign
+$39.0\%$ of legitimate traffic hit, a net loss. A more concentrated benign
 population ($\alpha = 2.0$) raises that collateral to $61.1\%$.
 
 Enrichment removes the failure, blocking $90.0\%$ and $90.3\%$ of the attack at
@@ -750,7 +748,7 @@ Kept as classes (Appendix~\ref{app:cost}), the equality-based sub-relations make
 $0.37\,\mu$s per session and the symbolic layer linear, at $26.4$~s for
 $100\,000$ sessions against $52.8$~s for pair edges at $1\,000$: $\Omega(S)$ grows
 with the square of the cluster, computing it no longer does. The AUC of (d) is
-flat over a $30\times$ range of $W$; the rule ran at $W = 300$~s only.
+flat over a $30\times$ range of $W$; the rule ran at $W = 300$~s.
 
 \subsection{Statistical Significance}
 
@@ -816,9 +814,12 @@ wherever the WAF blocked no client, although the eight-day evaluation read the
 hand-written export. Given a binding of properties to columns, an equality signal
 added to the ontology as four triples reaches the query with no change to any
 code. The verdict, its decomposition and the scope (Listing~\ref{lst:chain})
-export as STIX~2.1 bundles, a \textit{course-of-action} parameterized by the
-scope, that pass the OASIS validator in strict mode; ingestion by a SOAR is
-untested. The verdict is
+export as STIX~2.1 bundles that pass the OASIS validator in strict mode and cross
+the OASIS reference TAXII~2.1 server unchanged, save the extension definition it
+fails to serve. MISP's importer keeps the \textit{course-of-action} and the
+endpoint but drops the fingerprints, which STIX~2.1 can carry only in an
+extension, so a MISP-fed playbook would scope the whole endpoint: JA4 needs a
+standard property. The verdict is
 \textit{explainable} in this sense of an inspectable derivation; whether it
 shortens an analyst's decision is untested.
 
@@ -1260,7 +1261,8 @@ ablation and baselines, the symbolic layer, and the evidence and mitigation
 modules.
 The count query is compiled from the ontology and checked on generated sessions,
 and the four exported bundles pass the OASIS STIX~2.1 validator in strict mode
-(\texttt{make compile-check stix-check}). Both scope derivations ship side by side, so the negative result of
+and are ingested over TAXII~2.1 and by MISP's importer (\texttt{make compile-check
+stix-ingest}). Both scope derivations ship side by side, so the negative result of
 Section~\ref{sec:collateral} is reproducible rather than asserted. Profiles and
 levels come from attack-free runs, and labels enter only the evaluation: the
 scripts behind Table~\ref{tab:symbolic} pick the largest-$\Omega$ cluster with no

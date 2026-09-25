@@ -573,8 +573,7 @@ Que (b) também fique no acaso mostra que atributos por sessão não bastam: é 
 agrupamentos de ataque das duas capturas de laboratório, seis ataques e a classe
 DoS-Other do CICIDS2017, vêm de uma a sete origens em um único /24, inundações ao
 alcance de um limite por prefixo; a Listagem~\ref{lst:chain}
-(Apêndice~\ref{app:cost}) traz a cadeia de evidência de uma campanha canônica, e um
-estudo com analistas humanos é trabalho futuro.
+(Apêndice~\ref{app:cost}) traz a cadeia de evidência de uma campanha canônica.
 
 \subsection{A Própria Regra como Detector}
 \label{sec:symbolic-detector}
@@ -703,15 +702,14 @@ Apêndice~\ref{app:limitations}).
 
 A mitigação só faz sentido como par, o que o escopo derivado bloqueia e quanto
 isso custa, que a Fig.~\ref{fig:collateral} reporta para as regras por frequência
-e por enriquecimento sobre $n = 15$ campanhas por configuração.
+e por enriquecimento sobre $n = 15$ campanhas cada.
 
 Para uma \textit{botnet} monolítica as duas concordam: $89{,}8\%$ das sessões do
 atacante bloqueadas sem colateral observado, onde um limite global de taxa no
 \textit{endpoint} desconecta todo usuário legítimo; a regra por frequência foi
 validada nesse regime, que não é representativo. A partir de cinco pilhas, a impressão digital modal do
 agrupamento passa a ser uma \textit{legítima} e a regra se inverte: $0{,}0\%$ do
-ataque bloqueado e $39{,}0\%$ do tráfego legítimo atingido, uma perda líquida que
-impõe o custo da mitigação sem o benefício dela. Uma população benigna mais
+ataque bloqueado e $39{,}0\%$ do tráfego legítimo atingido, uma perda líquida. Uma população benigna mais
 concentrada ($\alpha = 2{,}0$) eleva esse colateral a $61{,}1\%$.
 
 O enriquecimento elimina a falha, bloqueando $90{,}0\%$ e $90{,}3\%$ do ataque em
@@ -744,7 +742,7 @@ constante em cerca de $0{,}37\,\mu$s por sessão e a camada simbólica linear, c
 $26{,}4$~s para $100\,000$ sessões contra $52{,}8$~s com arestas de par em $1\,000$:
 $\Omega(S)$ cresce com o quadrado do agrupamento, e calculá-lo deixou de crescer
 assim. A AUC de (d) é plana ao longo de uma faixa de $30\times$ em $W$; a regra
-rodou apenas com $W = 300$~s.
+rodou com $W = 300$~s.
 
 \subsection{Significância Estatística}
 
@@ -817,9 +815,13 @@ não bloqueou cliente algum, embora a avaliação de oito dias tenha lido a
 exportação escrita à mão. Dado um vínculo de propriedades a colunas, um sinal de
 igualdade acrescentado à ontologia como quatro triplas chega à consulta sem
 mudança em código algum. O veredicto, sua decomposição e o escopo
-(Listagem~\ref{lst:chain}) são exportados como pacotes STIX~2.1, um
-\textit{course-of-action} parametrizado pelo escopo, que passam no validador da
-OASIS em modo estrito; a ingestão por um SOAR não foi testada. O veredicto é
+(Listagem~\ref{lst:chain}) são exportados como pacotes STIX~2.1 que passam no
+validador da OASIS em modo estrito e atravessam inalterados o servidor TAXII~2.1 de
+referência da OASIS, salvo a definição de extensão, que ele não consegue servir. O
+importador do MISP mantém o \textit{course-of-action} e o \textit{endpoint}, mas
+descarta as impressões digitais, que o STIX~2.1 só consegue levar numa extensão,
+de modo que um \textit{playbook} alimentado pelo MISP definiria o escopo como o
+\textit{endpoint} inteiro: o JA4 precisa de uma propriedade padrão. O veredicto é
 \textit{explicável} nesse sentido de derivação inspecionável; se ele encurta a
 decisão de um analista permanece não testado.
 
@@ -1283,7 +1285,8 @@ fluxos $\rightarrow$ sessões $\rightarrow$ grafo), o gerador calibrado, a abla�
 as linhas de base, a camada simbólica, e os módulos de evidência e mitigação.
 A consulta de contagens é compilada a partir da ontologia e conferida em sessões
 geradas, e os quatro pacotes exportados passam no validador STIX~2.1 da OASIS em
-modo estrito (\texttt{make compile-check stix-check}). As duas derivações de escopo são
+modo estrito e são ingeridos via TAXII~2.1 e pelo importador do MISP
+(\texttt{make compile-check stix-ingest}). As duas derivações de escopo são
 distribuídas lado a lado, de modo que o resultado
 negativo da Seção~\ref{sec:collateral} seja reprodutível e não apenas afirmado.
 Perfis e níveis vêm de execuções livres de ataque, e rótulos entram apenas na

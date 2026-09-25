@@ -13,9 +13,13 @@ rdflib==7.1.1
 sparqlwrapper==2.0.0
 requests==2.32.3
 
-# STIX 2.1 export, checked by the OASIS validator (sprint-6 stix_check.py)
-stix2==3.0.1
+# STIX 2.1 export, checked by the OASIS validator (sprint-6 stix_check.py) and
+# ingested over TAXII 2.1 and by MISP's importer (stix_ingest.py)
+stix2==3.0.2
 stix2-validator==3.2.0
+medallion==3.0.0
+taxii2-client==2.3.0
+misp-stix==2026.9.16
 
 # Machine learning baselines (Sprint 3+)
 scikit-learn==1.5.2

@@ -312,6 +312,17 @@ good = (sv["ok"] and sv["errors"] == 0 and sv["warnings"] == 0 and sv["strict_er
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} {sv['bundles']} STIX bundles valid, strict included "
       f"({sv['errors']} errors, {sv['warnings']} warnings, {sv['strict_errors']} strict errors)")
+si = json.load(open(R + "stix_ingest.json")); tx, mi = si["taxii"], si["misp"]
+good = (tx["accepted_all"] and all(tx["identical_by_type"][t] for t in ("indicator", "course-of-action",
+                                                                     "relationship", "identity"))
+        and not tx["identical_by_type"]["extension-definition"]
+        and "cross the OASIS reference TAXII~2.1 server unchanged, save the extension definition" in TEXN)
+ok += good; bad += not good
+print(f"{'OK ' if good else 'XX '} TAXII 2.1: accepted, identical by type {tx['identical_by_type']}")
+good = (mi["fingerprints_kept"] == 0 and mi["fingerprints_in_scope"] > 0 and mi["endpoint_kept_where_scoped"]
+        and mi["course_of_action_kept"] and "keeps the \\textit{course-of-action} and the endpoint but drops the fingerprints" in TEXN)
+ok += good; bad += not good
+print(f"{'OK ' if good else 'XX '} MISP import: CoA and endpoint kept, fingerprints kept {mi['fingerprints_kept']}/{mi['fingerprints_in_scope']}")
 print("== known-fleet profile (fleet_profile.json)")
 fp = json.load(open(R + "fleet_profile.json"))
 sh = float(fp["chosen_share"])

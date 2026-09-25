@@ -48,7 +48,7 @@ CLUSTERFLAG = $(if $(CLUSTER),--label-free-cluster)
 # Attack-free runs of rule_detection.py (calibration, test and flash-crowd donors).
 RULEWORK ?= $(DATA)/synth/sprint6_rule
 
-.PHONY: help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule rule-production production-summary audit compile-check stix-check rule-production-fleets fleet-selection
+.PHONY: help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule rule-production production-summary audit compile-check stix-check stix-ingest rule-production-fleets fleet-selection
 
 help:
 	@echo "make latency            # no external data required"
@@ -181,6 +181,11 @@ compile-check:
 # validator, strict mode included (no data).
 stix-check:
 	$(PY) scripts/stix_check.py --out $(RESULTS)/stix_validation.json
+
+# The same bundles through two consumers: the OASIS reference TAXII 2.1 server on
+# localhost, and MISP's STIX 2.1 importer (no data, no network beyond localhost).
+stix-ingest: stix-check
+	$(PY) scripts/stix_ingest.py --out $(RESULTS)/stix_ingest.json
 
 # Recompute every sprint-6 number of the paper from results/ and compare with the
 # text of article.tex. Needs no drive: it reads only the committed result files.

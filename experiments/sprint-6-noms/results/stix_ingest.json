@@ -1,0 +1,175 @@
+{
+  "versions": {
+    "medallion": "3.0.0",
+    "taxii2-client": "2.3.0",
+    "misp-stix": "2026.9.16",
+    "stix2": "3.0.2"
+  },
+  "taxii": {
+    "server": "medallion (OASIS TAXII 2.1 reference)",
+    "client": "taxii2-client (OASIS)",
+    "bundles": [
+      {
+        "bundle": "example_chain.jsonld",
+        "objects_sent": 5,
+        "success_count": 5,
+        "failure_count": 0,
+        "by_type": {
+          "identity": "identical",
+          "extension-definition": "server error: 500 Server Error: INTERNAL SERVER ERROR",
+          "indicator": "identical",
+          "course-of-action": "identical",
+          "relationship": "identical"
+        },
+        "round_trip_ms": 14.4
+      },
+      {
+        "bundle": "evidence.jsonld",
+        "objects_sent": 5,
+        "success_count": 5,
+        "failure_count": 0,
+        "by_type": {
+          "identity": "identical",
+          "extension-definition": "server error: 500 Server Error: INTERNAL SERVER ERROR",
+          "indicator": "identical",
+          "course-of-action": "identical",
+          "relationship": "identical"
+        },
+        "round_trip_ms": 7.7
+      },
+      {
+        "bundle": "chain_cicids2017_DoS-Other.jsonld",
+        "objects_sent": 5,
+        "success_count": 5,
+        "failure_count": 0,
+        "by_type": {
+          "identity": "identical",
+          "extension-definition": "server error: 500 Server Error: INTERNAL SERVER ERROR",
+          "indicator": "identical",
+          "course-of-action": "identical",
+          "relationship": "identical"
+        },
+        "round_trip_ms": 7.2
+      },
+      {
+        "bundle": "chain_cicids2017_GoldenEye.jsonld",
+        "objects_sent": 5,
+        "success_count": 5,
+        "failure_count": 0,
+        "by_type": {
+          "identity": "identical",
+          "extension-definition": "server error: 500 Server Error: INTERNAL SERVER ERROR",
+          "indicator": "identical",
+          "course-of-action": "identical",
+          "relationship": "identical"
+        },
+        "round_trip_ms": 9.5
+      }
+    ],
+    "accepted_all": true,
+    "identical_by_type": {
+      "course-of-action": true,
+      "extension-definition": false,
+      "identity": true,
+      "indicator": true,
+      "relationship": true
+    }
+  },
+  "misp": {
+    "importer": "misp-stix ExternalSTIX2toMISPParser",
+    "bundles": [
+      {
+        "bundle": "example_chain.jsonld",
+        "fingerprints_in_scope": 25,
+        "fingerprints_kept": 0,
+        "endpoint_kept": true,
+        "course_of_action_kept": true,
+        "coordination_score_kept": false,
+        "objects": [
+          {
+            "name": "network-traffic",
+            "attributes": {
+              "dst_ip": "10.0.0.1",
+              "dst_port": "443"
+            }
+          }
+        ],
+        "galaxies": [
+          "stix-2.1-course-of-action"
+        ],
+        "warnings": [
+          "Unmapped pattern part in indicator with id indicator--22b722a7-e392-49d6-8444-e94121501402: extensions.extension-definition--3a73e779-59a0-4b3b-be81-043372cbd484.ja4"
+        ]
+      },
+      {
+        "bundle": "evidence.jsonld",
+        "fingerprints_in_scope": 1,
+        "fingerprints_kept": 0,
+        "endpoint_kept": true,
+        "course_of_action_kept": true,
+        "coordination_score_kept": false,
+        "objects": [
+          {
+            "name": "network-traffic",
+            "attributes": {
+              "dst_ip": "10.0.0.1",
+              "dst_port": "443"
+            }
+          }
+        ],
+        "galaxies": [
+          "stix-2.1-course-of-action"
+        ],
+        "warnings": [
+          "Unmapped pattern part in indicator with id indicator--9cfe3d5a-81b8-4c6e-af13-e24aa4103ddd: extensions.extension-definition--3a73e779-59a0-4b3b-be81-043372cbd484.ja4"
+        ]
+      },
+      {
+        "bundle": "chain_cicids2017_DoS-Other.jsonld",
+        "fingerprints_in_scope": 0,
+        "fingerprints_kept": 0,
+        "endpoint_kept": false,
+        "course_of_action_kept": true,
+        "coordination_score_kept": true,
+        "objects": [
+          {
+            "name": "stix2-pattern",
+            "attributes": {
+              "version": "stix 2.1",
+              "stix2-pattern": "[network-traffic:dst_ref.value = '192.168.10.50' AND network-traffic:dst_port = 80 AND network-traffic:src_ref.value ISSUBSET '172.16.0.0/24']"
+            }
+          }
+        ],
+        "galaxies": [
+          "stix-2.1-course-of-action"
+        ],
+        "warnings": []
+      },
+      {
+        "bundle": "chain_cicids2017_GoldenEye.jsonld",
+        "fingerprints_in_scope": 0,
+        "fingerprints_kept": 0,
+        "endpoint_kept": false,
+        "course_of_action_kept": true,
+        "coordination_score_kept": true,
+        "objects": [
+          {
+            "name": "stix2-pattern",
+            "attributes": {
+              "version": "stix 2.1",
+              "stix2-pattern": "[network-traffic:dst_ref.value = '192.168.10.50' AND network-traffic:dst_port = 80 AND network-traffic:src_ref.value ISSUBSET '172.16.0.0/24']"
+            }
+          }
+        ],
+        "galaxies": [
+          "stix-2.1-course-of-action"
+        ],
+        "warnings": []
+      }
+    ],
+    "fingerprints_in_scope": 26,
+    "fingerprints_kept": 0,
+    "endpoint_kept_where_scoped": true,
+    "course_of_action_kept": true
+  }
+}

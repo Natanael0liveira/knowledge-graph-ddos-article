@@ -616,6 +616,29 @@ chains alone, pass the OASIS `stix2-validator` with no error or warning, in stri
 mode too, and parse with the `stix2` library. See the pillar-4 README for the
 format.
 
+**Two consumers ingest the bundles** (`make stix-ingest`, `scripts/stix_ingest.py`,
+`results/stix_ingest.json`), locally and with no attack traffic:
+
+- *TAXII 2.1.* The OASIS reference server (medallion 3.0.0, memory backend) runs
+  on localhost; each bundle is posted to a collection and read back by id with
+  the OASIS client (taxii2-client 2.3.0). All four bundles are accepted, and the
+  indicator (with its JA4 pattern and extension), the course-of-action, the
+  relationship and the identity come back identical, in 7–14 ms per bundle. The
+  extension-definition cannot be served: medallion reads any object's `version`
+  field as a timestamp (`common.find_att`), and STIX 2.1 requires a semantic
+  `version` ("1.0.0") on that object, so listing a collection that holds one, or
+  fetching it, returns HTTP 500. This is a bug of the reference server.
+- *MISP.* MISP's own STIX 2.1 importer (misp-stix 2026.9.16,
+  `ExternalSTIX2toMISPParser`) turns each bundle into an event: the
+  course-of-action becomes a galaxy cluster and the endpoint a network-traffic
+  object, but **all 26 fingerprints of the scopes are dropped**, with the warning
+  "Unmapped pattern part". STIX 2.1 has no JA4 property, so the exporter carries
+  it in an extension, and MISP has no JA4 attribute type either. A playbook fed
+  by MISP would therefore scope the whole endpoint, the harmful choice the paper
+  measures. A pattern holding only the JA4 clause is kept verbatim as a
+  `stix2-pattern` object, but not mapped to attributes. Keeping the scope across
+  consumers needs a standard JA4 property.
+
 The ontology also had `kg:targets` declared with domain `Attack` and range `Host`,
 so asserting a session's endpoint would have entailed that the session is an
 attack; the domain and range are now unions, as for `kg:originatesFrom`. It

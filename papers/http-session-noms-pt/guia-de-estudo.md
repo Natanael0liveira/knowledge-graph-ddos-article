@@ -619,7 +619,11 @@ são sorteios do mesmo gerador; os testes mostram estabilidade, não preveem o c
     janelas**, e as de JA4 onde o WAF não bloqueou ninguém (a avaliação de oito
     dias usou a exportação escrita à mão); dado um vínculo de colunas, um sinal
     de igualdade novo custa 4 triplas e 0 código; os quatro pacotes STIX 2.1
-    passam no validador da OASIS em modo estrito (ingestão num SOAR não testada).
+    passam no validador da OASIS em modo estrito e atravessam inalterados o
+    servidor TAXII 2.1 de referência (exceto a definição de extensão, por um bug
+    do servidor). **O importador do MISP mantém o curso de ação e o endpoint, mas
+    descarta os JA4**: o STIX 2.1 não tem propriedade para JA4, então um playbook
+    alimentado pelo MISP bloquearia o endpoint inteiro. É uma lacuna de padrão.
   - "Explicável" no sentido de derivação inspecionável; se encurta a decisão de um
     analista não foi testado.
 
@@ -862,6 +866,8 @@ menos φ das janelas de calibração (φ = 5%). Ela sai do escopo e da calibraç
 | Rapid Reset | Google 398 M rps; Cloudflare 201 M rps de ~20 mil máquinas |
 | Sinal novo na ontologia | 4 triplas, 0 linhas de código |
 | STIX 2.1 | 0 erros, 0 avisos, modo estrito |
+| TAXII 2.1 (servidor de referência da OASIS) | indicador, curso de ação e relação voltam idênticos, 7–14 ms |
+| Importador do MISP | mantém curso de ação e endpoint, perde 26 de 26 JA4 |
 | Custo | 0,37 µs por admissão; 26,4 s para 100 mil sessões |
 | Significância | p = 7,5 × 10⁻⁹; d de Cohen 13,5 e 22,4 |
 | Medição JA4 na Azion | 6,33 M requisições, 495 impressões, top-1 38,4%, top-10 93,8% |
@@ -869,6 +875,14 @@ menos φ das janelas de calibração (φ = 5%). Ela sai do escopo e da calibraç
 ---
 
 ## 18. Perguntas difíceis e como responder
+
+**"O STIX de vocês funciona num SOAR de verdade?"**
+Medimos dois consumidores reais. Pelo TAXII 2.1, o servidor de referência da OASIS
+aceita e devolve intactos o indicador, o curso de ação e a relação. O importador do
+MISP mantém o curso de ação e o endpoint, mas descarta os JA4, porque nem o STIX 2.1
+nem o MISP têm um campo padrão para JA4. É um achado: a interoperabilidade perde
+exatamente o discriminador, e um playbook alimentado pelo MISP bloquearia o
+endpoint inteiro. Não testamos a execução de um bloqueio de ponta a ponta.
 
 **"Se atributos resolvem a AUC, para que o grafo?"**
 Concordamos, e o artigo mede isso: um modelo linear sobre os mesmos atributos chega

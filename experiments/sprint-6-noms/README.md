@@ -633,7 +633,8 @@ presenting a known fleet's fingerprint is not scoped. The option consumes no
 random numbers, so the injected botnets are those of the base run, paired.
 
 **Protocol, fixed on 2026-09-25 before any fleet run was looked at**
-(`scripts/fleet_selection.py`):
+(`scripts/fleet_selection.py`). It was committed together with the results
+(e2e09a7), so the order is not verifiable from git alone:
 
 - design days: the first three test days (2026-09-20 to 09-22); held-out days:
   the last two (09-23, 09-24);
@@ -664,7 +665,12 @@ On E1 five or six fingerprints, 7% of the profile, are known fleets, and the lev
 rises from about 10⁻⁶⁰ to 10⁻²¹; E2 and E4 have none at 5% (their recurring
 fingerprints are named in under 2.5% of the windows), and E3 has one or two, so
 their numbers barely move. The z-score still stops more on E1 at 0.1× (12.5%), at
-5.1% of E1's clean windows. Computed after the choice and for transparency only
+5.1% of E1's clean windows; on the two held-out days alone the same cell gives
+6.5% for the unseen filter and 7.3% for the z-score (shared stacks: 0% and 7.1%),
+against 6.3% (4.4%) for the known-fleet profile (`held_out_E1_x0.1_baselines`).
+Only one of the four shares (5%) kept the design days' false alarms at or below the
+base rule's, so the rule's "largest mean blocked share" had a single candidate.
+Computed after the choice and for transparency only
 (`held_out_secondary_all_shares`), the smaller shares keep the same trade-off on
 the held-out days: 13–16 false alarms at a median 10.6–12.2% collateral, flash
 crowds of 100 fired on 6.6–11.0%, mean blocked 30.3–33.8%, E1 at 0.1× 6.5% /

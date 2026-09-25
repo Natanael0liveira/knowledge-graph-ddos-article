@@ -1,6 +1,6 @@
 %% references.bib -- NOMS submission
-%% "Session-Centric Knowledge Graphs for Explainable Detection and
-%%  Scoped Mitigation of Application-Layer DDoS"
+%% "Scoped Mitigation of Application-Layer DDoS with a Session-Centric
+%%  Knowledge Graph"
 %%
 %% Only entries actually cited in article.tex are kept here.
 
@@ -150,27 +150,46 @@
 %% =====================================================================
 
 @misc{cve202344487,
-  author       = {{MITRE Corporation}},
-  title        = {{CVE-2023-44487}: {HTTP/2} Rapid Reset Attack},
+  author       = {{National Institute of Standards and Technology}},
+  title        = {{CVE-2023-44487} Detail},
   year         = {2023},
   howpublished = {National Vulnerability Database},
-  url          = {https://nvd.nist.gov/vuln/detail/CVE-2023-44487}
+  url          = {https://nvd.nist.gov/vuln/detail/CVE-2023-44487},
+  note         = {Accessed Sep.~25, 2026}
 }
 
+%% Verified 2026-09-25: authors and date read from the post; it reports the
+%% 398M rps peak and no botnet size.
 @misc{google2023rapidreset,
-  author       = {{Google Cloud}},
+  author       = {Snellman, Juho and Iamartino, Daniele},
   title        = {How It Works: The Novel {HTTP/2} `{R}apid {R}eset' {DDoS} Attack},
   year         = {2023},
+  month        = oct,
   howpublished = {Google Cloud Blog},
-  url          = {https://cloud.google.com/blog/products/identity-security/how-it-works-the-novel-http2-rapid-reset-ddos-attack}
+  url          = {https://cloud.google.com/blog/products/identity-security/how-it-works-the-novel-http2-rapid-reset-ddos-attack},
+  note         = {Accessed Sep.~25, 2026}
 }
 
+%% Verified 2026-09-25: the 201M rps attack "with a botnet of merely 20,000 machines".
+@misc{pardue2023rapidreset,
+  author       = {Pardue, Lucas},
+  title        = {{HTTP/2} Rapid Reset: Deconstructing the Record-Breaking Attack},
+  year         = {2023},
+  month        = oct,
+  howpublished = {Cloudflare Blog},
+  url          = {https://blog.cloudflare.com/technical-breakdown-http2-rapid-reset-ddos-attack/},
+  note         = {Accessed Sep.~25, 2026}
+}
+
+%% Verified 2026-09-25: single byline; "over 6,500 hyper-volumetric DDoS attacks".
 @misc{cloudflare2025q2ddos,
-  author       = {{Cloudflare}},
+  author       = {Yoachimik, Omer},
   title        = {Hyper-Volumetric {DDoS} Attacks Skyrocket: {Cloudflare}'s 2025 {Q2} {DDoS} Threat Report},
   year         = {2025},
+  month        = jul,
   howpublished = {Cloudflare Blog},
-  url          = {https://blog.cloudflare.com/ddos-threat-report-for-2025-q2/}
+  url          = {https://blog.cloudflare.com/ddos-threat-report-for-2025-q2/},
+  note         = {Accessed Sep.~25, 2026}
 }
 
 %% Industrial practice of cross-session aggregation by JA4 (bot management, DDoS).
@@ -181,7 +200,8 @@
   year         = {2024},
   month        = aug,
   howpublished = {Cloudflare Blog},
-  url          = {https://blog.cloudflare.com/ja4-signals/}
+  url          = {https://blog.cloudflare.com/ja4-signals/},
+  note         = {Accessed Sep.~25, 2026}
 }
 
 %% =====================================================================
@@ -208,12 +228,15 @@
   doi     = {10.3390/s23135941}
 }
 
+%% Verified 2026-09-25: single byline, 26 September 2023.
 @misc{althouse2023ja4,
-  author       = {Althouse, John and Smart, Josh and Nunnally, Randy Jr. and Brady, Michael},
+  author       = {Althouse, John},
   title        = {{JA4+} Network Fingerprinting},
   year         = {2023},
-  howpublished = {FoxIO},
-  url          = {https://blog.foxio.io/ja4+-network-fingerprinting}
+  month        = sep,
+  howpublished = {FoxIO Blog},
+  url          = {https://blog.foxio.io/ja4+-network-fingerprinting},
+  note         = {Accessed Sep.~25, 2026}
 }
 
 @misc{oasis2021stix,
@@ -221,7 +244,8 @@
   title        = {{STIX} Version 2.1},
   year         = {2021},
   howpublished = {OASIS Standard},
-  url          = {https://docs.oasis-open.org/cti/stix/v2.1/stix-v2.1.html}
+  url          = {https://docs.oasis-open.org/cti/stix/v2.1/stix-v2.1.html},
+  note         = {Accessed Sep.~25, 2026}
 }
 
 @misc{w3c2012owl2profiles,
@@ -229,15 +253,20 @@
   title        = {{OWL 2} Web Ontology Language Profiles, 2nd ed.},
   year         = {2012},
   howpublished = {W3C Recommendation},
-  url          = {https://www.w3.org/TR/owl2-profiles/}
+  url          = {https://www.w3.org/TR/owl2-profiles/},
+  note         = {Accessed Sep.~25, 2026}
 }
 
-@misc{ietf2024ech,
+%% Verified 2026-09-25: published as RFC 9849, Proposed Standard, March 2026.
+@techreport{ietf2026ech,
   author       = {Rescorla, Eric and Oku, Kazuho and Sullivan, Nick and Wood, Christopher A.},
-  title        = {{TLS} Encrypted Client Hello},
-  year         = {2024},
-  howpublished = {IETF Internet-Draft draft-ietf-tls-esni},
-  url          = {https://datatracker.ietf.org/doc/draft-ietf-tls-esni/}
+  title        = {{TLS} {E}ncrypted {C}lient {H}ello},
+  institution  = {Internet Engineering Task Force},
+  type         = {RFC},
+  number       = {9849},
+  year         = {2026},
+  month        = mar,
+  url          = {https://www.rfc-editor.org/rfc/rfc9849}
 }
 
 @inproceedings{antonakakis2017mirai,
@@ -248,9 +277,19 @@
                Menscher, Damian and Seaman, Chad and Sullivan, Nick and
                Thomas, Kurt and Zhou, Yi},
   title     = {Understanding the {Mirai} Botnet},
-  booktitle = {Proc. 26th USENIX Security Symposium},
+  booktitle = {Proc. 26th USENIX Security Symp.},
   pages     = {1093--1110},
   year      = {2017}
+}
+
+%% Flash crowds against DDoS, at a CDN: the distinction the scope has to draw.
+@inproceedings{jung2002flash,
+  author    = {Jung, Jaeyeon and Krishnamurthy, Balachander and Rabinovich, Michael},
+  title     = {Flash Crowds and Denial of Service Attacks: Characterization and Implications for {CDNs} and Web Sites},
+  booktitle = {Proc. 11th Int. World Wide Web Conf. (WWW)},
+  pages     = {293--304},
+  year      = {2002},
+  doi       = {10.1145/511446.511485}
 }
 
 @article{shafi2024bccc,

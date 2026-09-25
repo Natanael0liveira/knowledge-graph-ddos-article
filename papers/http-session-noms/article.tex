@@ -10,7 +10,7 @@
 %%   - references and an optional appendix may add pages, 12 total maximum;
 %%   - single-blind review, so authors are named;
 %%   - over-length papers are rejected without review.
-%% Current layout: main text pp.1-7, references p.7-8, appendices pp.8-9.
+%% Current layout: main text pp.1-8, references p.9, appendices pp.9-12.
 
 \documentclass[conference,letterpaper,10pt]{IEEEtran}
 \IEEEoverridecommandlockouts
@@ -107,25 +107,25 @@ Luigi Carro, J\'eferson Campos Nobre, and Eder John Scheid}
 
 \begin{abstract}
 A distributed Slow HTTP DoS campaign keeps every source below any per-source
-threshold, so the operator of the attacked endpoint faces a scoping decision:
-which clients to block without blocking the service's own users. The natural
-choice, the cluster's most common TLS fingerprint, blocks $0\%$ of a botnet spread
-over several TLS stacks and $39\%$ of legitimate traffic. We derive the scope from a
-session-centric knowledge graph instead: an OWL ontology makes the HTTP session a
-first-class entity, linked to other sessions by six sub-properties weighted by
-evasion cost; one SPARQL/SWRL rule yields the verdict and its evidence, and a
-binomial enrichment test against normal traffic names the fingerprints to block.
-On generated stealthy campaigns, where per-session detection stays at chance, the
-test blocks $90\%$ of the attack with no collateral observed and no label, as much
-as a learned model given the same profile and the campaign's labels. On eight days
-of a CDN's traffic it names botnet stacks that real clients also present, which a
-filter of unseen fingerprints cannot, and fires on $4\%$ of flash crowds against
-$65\%$ for a $z$-score. Behind a distinct-origin trigger and joined with that
-filter, it fires on $0.1\%$ of clean windows, where it blocks a median $30\%$ of
-clients, and stops $38$--$78\%$ of 100 to 1\,000 injected attackers per window,
-$20$--$62\%$ on shared stacks. The count query compiled from the ontology matches
-the operator's export window for window, and the verdict exports as STIX~2.1 that
-passes the OASIS validator.
+threshold, so the operator faces a scoping decision: which clients to block without
+blocking the service's own users. On generated traffic, the natural choice, the
+cluster's most common TLS fingerprint, blocks $0\%$ of a botnet spread over several
+TLS stacks and $39\%$ of legitimate traffic. We derive the scope from a
+session-centric knowledge graph instead: an OWL ontology links HTTP sessions, as
+first-class entities, by six sub-properties weighted by evasion cost; a SPARQL/SWRL
+rule yields verdict and evidence, and a binomial enrichment test against normal
+traffic names the fingerprints to block. On those campaigns it blocks $90\%$ of a
+botnet of up to 25 stacks with no collateral observed and no label, matching a
+learned model given the profile and the campaign's labels. On eight days of CDN
+traffic it names botnet stacks real clients also present, which a filter of unseen
+fingerprints cannot, and fires on $4\%$ of flash crowds against $65\%$ for a
+$z$-score. Joined with that filter behind a distinct-origin trigger, both chosen on
+test days, it fires on $0.1\%$ of clean windows, where it blocks a median $30\%$ of
+clients, and stops $38$--$78\%$ of 100 to 1\,000 injected attackers per window
+($20$--$62\%$ on shared stacks), but about $20\%$ of one as large as the endpoint's
+typical window. The count query compiled from the ontology reproduces a production
+day's exported origin and /24 counts; the STIX~2.1 export passes the OASIS
+validator.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -137,7 +137,7 @@ automated reasoning, explainability, mitigation policy
 \section{Introduction}
 \label{sec:intro}
 
-Application-layer Distributed Denial of Service (DDoS) attacks continue to grow in volume and frequency. In August 2023, HTTP/2 Rapid Reset (CVE-2023-44487) pushed mitigation peaks to 398 million requests per second from roughly twenty thousand machines~\cite{cve202344487,google2023rapidreset}, and Cloudflare blocked more than 6500 hyper-volumetric attacks in Q2 2025 alone~\cite{cloudflare2025q2ddos}. Volumetric defenses are built to absorb attacks of this magnitude, and detection is harder at the low-rate end of the spectrum, where \textit{distributed Slow HTTP DoS} sits: Slowloris and its descendants, plus rate-based variants that still hold connections open, such as HULK and GoldenEye~\cite{cambiaso2013slowdos}, exhaust a server from several coordinated origins, each sending requests small enough that no per-source threshold is crossed. %Modern HTTP/2 attacks share that multi-origin exhaustion property, but they operate through distinct mechanisms, notably stream cancellation and header continuation abuse. Those call for sub-relations outside the scope we evaluate here, and we treat them as the immediate extension target (Section~\ref{sec:conclusion}) rather than as a claim of this paper.
+Application-layer Distributed Denial of Service (DDoS) attacks continue to grow in volume and frequency. In August 2023, HTTP/2 Rapid Reset (CVE-2023-44487) pushed mitigation peaks to 398 million requests per second~\cite{cve202344487,google2023rapidreset}, one of 201 million from about twenty thousand machines~\cite{pardue2023rapidreset}, and Cloudflare blocked more than 6500 hyper-volumetric attacks in Q2 2025~\cite{cloudflare2025q2ddos}. Volumetric defenses absorb attacks of this magnitude; detection is harder at the low-rate end of the spectrum, where \textit{distributed Slow HTTP DoS} sits: Slowloris and its descendants, plus rate-based variants that still hold connections open, such as HULK and GoldenEye~\cite{cambiaso2013slowdos}, exhaust a server from several coordinated origins, each sending requests small enough that no per-source threshold is crossed. %Modern HTTP/2 attacks share that multi-origin exhaustion property, but they operate through distinct mechanisms, notably stream cancellation and header continuation abuse. Those call for sub-relations outside the scope we evaluate here, and we treat them as the immediate extension target (Section~\ref{sec:conclusion}) rather than as a claim of this paper.
 
 A stealthy campaign also shapes each session to look legitimate on the per-session signals detectors rely on, such as connection duration and route entropy~\cite{kemp2023approach}. What remains discriminative lives in the structure \textit{between} sessions: the same client fingerprint recurring across many origins, and those origins converging on one endpoint. Framed this way, the problem belongs to network and service management as much as to detection, because acting on it requires a decision: \textit{which} clients to act on, on \textit{what} evidence, and with a filter narrow enough to spare the legitimate users of the attacked service.
 
@@ -181,14 +181,14 @@ Section~\ref{sec:related} reviews related work, Section~\ref{sec:approach} prese
 \label{sec:related}
 
 
-Table~\ref{tab:related} compares this work with prior art on four dimensions: the reasoning unit, the representation of relations between sessions, the form of the explanation, and whether a mitigation scope and its collateral cost follow from that representation. The subsections cover security knowledge graphs, Layer-7 detection, and how both treat sessions.
+Table~\ref{tab:related} compares this work with prior art on four dimensions: the reasoning unit, the representation of relations between sessions, the form of the explanation, and whether a mitigation scope and its collateral cost follow from that representation.
 
 
 \subsection{Knowledge Graphs for Security and Management}
 
 The first wave of security knowledge graphs was \textit{static}: entities extracted from Common Vulnerabilities and Exposures (CVE), reports and blogs, normalized and linked into a queryable base~\cite{jia2018practical,bonagiri2024practical}. In the words of a survey of the area~\cite{liu2022recent}, the resulting gap is that ``\textit{it is still unclear how to implement the knowledge graph to face real industrial difficulties in cyber attack and defense situations}''. Graphs built from threat intelligence text do not capture runtime traffic structure.
 
-More recent work populates graphs from the traffic itself, and KLAGE~\cite{belcastro2025klage} is the closest of these to the approach proposed here. Graph representations are also gaining ground in adjacent management tasks: one line identifies device dependencies through link prediction over network graphs~\cite{sadlek2024device}, another learns attack action sequences from testbed measurements~\cite{wang2024intrusion}. Both operate on network-level entities, and neither derives a mitigation scope from what it finds.
+More recent work populates graphs from the traffic itself, and KLAGE~\cite{belcastro2025klage} is the closest of these to the approach proposed here. Learned models are also gaining ground in adjacent management tasks: one line identifies device dependencies through link prediction over network graphs~\cite{sadlek2024device}, another learns attack action sequences from testbed measurements with statistical models~\cite{wang2024intrusion}. Both operate on network-level entities, and neither derives a mitigation scope from what it finds.
 
 \subsection{Layer-7 HTTP DDoS Detection}
 %, over a body of surveys that consolidate the domain~
@@ -413,7 +413,7 @@ discriminator exists.
 \section{Evaluation Methodology}
 \label{sec:method}
 
-This section details the evaluation methodology. Each traffic source answers one question. A generator calibrated on benign CICIDS2017 sessions and on JA4 measured at a production CDN carries the controlled campaigns of the main evaluation, laboratory captures test conventional attacks and the closest published system, and eight days of that CDN's traffic test the rule's false alarms and, with a botnet injected, its detection. We then present the baselines, the ablation configurations and the metrics.
+Each traffic source answers one question. A generator calibrated on benign CICIDS2017 sessions and on JA4 measured at a production CDN carries the controlled campaigns of the main evaluation, laboratory captures test conventional attacks and the closest published system, and eight days of that CDN's traffic test the rule's false alarms and, with a botnet injected, its detection. We then present the baselines, the ablation configurations and the metrics.
 
 \subsection{Scenarios and Datasets}
 
@@ -640,7 +640,7 @@ Table~\ref{tab:symbolic} takes the cluster of largest $\Omega$ as fired, with no
 threshold. Run per five-minute window over benign arrivals we spread across an
 hour (Table~\ref{tab:perwindow}), $\Omega(S) \geq \tau_{\mathrm{cluster}}$ alone
 fires on $78$--$86\%$ of attack windows and $0.6\%$ of clean ones, but also on
-$80$--$100\%$ of flash crowds, and requiring the enrichment test to name a
+$80$--$100\%$ of flash crowds~\cite{jung2002flash}, and requiring the enrichment test to name a
 fingerprint removes every false alarm and keeps the detection, with no collateral.
 
 \textbf{Production traffic} (Table~\ref{tab:production}) breaks two assumptions
@@ -653,13 +653,13 @@ origins fires on the same windows in $86$--$99.6\%$ of cases and, as the gate,
 halves the false alarms with no loss of detection (6 against 14 clean windows).
 The scope separates attack
 from surge. On botnet stacks that real clients also present, enrichment blocks
-$20.2\%$ and $61.6\%$ of 100 and 1\,000 attackers per window, where a filter of
+$20.2\%$ and $61.6\%$ of 100 and 1\,000 attackers, where a filter of
 unseen fingerprints blocks none, and it fires on $3.9\%$ of flash crowds of 100
 users, where a $z$-score fires on $64.5\%$. Joined with the unseen filter behind
 the origin gate, it fires on $0.1\%$ of clean windows and blocks $38.4\%$ and
 $77.7\%$ of those botnets on new stacks, but its false alarms block a median
-$29.9\%$ of the window's clients. We chose these two refinements on the same test
-days, where they hold on each of the five; fresh days must confirm them
+$29.9\%$ of the window's clients. We chose both refinements on these test days,
+where they hold on each of the five; fresh days must confirm them
 (Appendix~\ref{app:window}).
 
 \subsection{Laboratory Captures and Comparison with KLAGE}
@@ -749,17 +749,16 @@ mitigation is suppressed and the verdict emitted as evidence only.
 Kept as classes (Appendix~\ref{app:cost}), the equality-based sub-relations make admission constant at about
 $0.37\,\mu$s per session and the symbolic layer linear, at $26.4$~s for
 $100\,000$ sessions against $52.8$~s for pair edges at $1\,000$: $\Omega(S)$ grows
-with the square of the cluster, computing it no longer does. The AUC of (d) is flat over a $30\times$ range of $W$, so
-the representation tolerates any $W$ the traffic permits; the rule itself ran at
-$W = 300$~s only.
+with the square of the cluster, computing it no longer does. The AUC of (d) is
+flat over a $30\times$ range of $W$; the rule ran at $W = 300$~s only.
 
 \subsection{Statistical Significance}
 
 Paired Wilcoxon tests over the $n = 30$ runs, Bonferroni-corrected over four
 comparisons, make \textbf{(d)$-$(c)} and \textbf{(d)$-$(a)} significant at
 $K = 1000$ ($p_{\mathrm{Bonf}} = 7.5\times 10^{-9}$, Cohen's $d = 13.5$ and
-$22.4$). Seeds are draws from one generator, so the tests show a difference
-stable across draws and predict nothing about the field.
+$22.4$). Seeds come from one generator, so the tests show a stable difference and
+predict nothing about the field.
 
 %% ====================================================================
 \section{Discussion and Limitations}
@@ -776,29 +775,30 @@ the endpoint condition. No single key preserves all six sub-relations, and
 Appendix~\ref{app:cost} sketches a two-tier design.
 
 \textbf{The gain is regime-specific.} Per-IP thresholds handle single-source
-floods, and a strong per-session classifier reaches $\mathrm{AUC} \geq 0.98$ on
-public-dataset attacks. Only distributed \textit{and} stealthy campaigns need the
-framework, which complements volumetric defenses.
+floods and a strong per-session classifier reaches $\mathrm{AUC} \geq 0.98$ on
+public-dataset attacks; only distributed \textit{and} stealthy campaigns need the
+framework.
 
 \textbf{Each evaluation establishes one thing.} The generator shows the
 mechanism under a mimicry imposed by construction, attacker sessions drawing their
 attributes from real benign distributions, so the non-separability of
 Table~\ref{tab:ablation} is no artifact of a weakened baseline. Production traffic
 measures false alarms on real clients, and detection only for an injected botnet,
-over eight days of one operator; where its traffic matches the threat model (E1,
+over eight days of one operator. Where its traffic matches the threat model (E1,
 a botnet a tenth of the typical window), the calibrated level holds enrichment to
-$0.6\%$ of the attackers, and a profile that knows its fleets, tested on held-out
-days, $6.3\%$. No evaluation covers a captured stealthy campaign.
+$0.7\%$ of the attackers on two held-out days, and a profile that knows the
+endpoint's fleets lifts it to $6.3\%$, near the unseen filter ($6.5\%$) and the
+$z$-score ($7.3\%$); an attacker presenting a known fleet's fingerprint escapes it.
+No evaluation covers a captured stealthy campaign.
 
 \textbf{The representation and the scope depend on an observable high-weight
-discriminator.} A robustness sweep ($n = 10$, in the artifact) makes the dependency explicit: as
-the fraction of origins sharing the TLS fingerprint falls, $\mathrm{AUC}$(d)
-decreases monotonically from $1.00$ to $\approx 0.74$ under randomization, a
-residual of the finite benign JA4 pool, and endpoint convergence cannot
-compensate, since legitimate users converge there too. The volume trigger
+discriminator.} As the fraction of origins sharing the TLS fingerprint falls,
+$\mathrm{AUC}$(d) decreases monotonically from $1.00$ to $\approx 0.74$ under
+randomization (a sweep of $n = 10$ in the artifact), and endpoint convergence
+cannot compensate, since legitimate users converge there too. The volume trigger
 survives the loss of JA4, but the scope then finds no discriminator. Jittered
 timing and rotated identities leave the scope intact, since it rests on JA4; a bot outside the threat model that also presents a browser's JA4
-defeats it, and Encrypted Client Hello~\cite{ietf2024ech} could hide JA4.
+defeats it, and Encrypted Client Hello~\cite{ietf2026ech} could hide JA4.
 
 \textbf{What the graph adds.} Configuration (d) expresses the graph's evidence
 as features, and a linear model over the same three cross-session features still
@@ -809,14 +809,16 @@ a learned model that reads the rule's profile and the campaign's labels matches 
 exceeds the rule (Table~\ref{tab:symbolic}). What the graph adds is operational,
 and measurable. The ontology marks what each equality sub-relation equates, its
 weight, and the unit classes are counted in, and the query that counts the rule's
-classes is compiled from it: on generated sessions the compiled SQL reproduces
-$\Omega$ exactly, run in the operator's log store it returns the exported origin
-and /24-pair counts in all 1\,152 windows of a day, so no address leaves the
-store, and a signal added to the ontology as four triples reaches the query with
-no change to any code. The verdict, its decomposition and
-the scope (Listing~\ref{lst:chain}) export as one STIX~2.1 bundle that the OASIS
-validator accepts in strict mode, so a SOAR playbook receives a
-\textit{course-of-action} already parameterized by the scope. The verdict is
+classes is compiled from it. On generated sessions the compiled SQL reproduces
+$\Omega$ exactly; run in the operator's log store for one day, it returns the
+exported origin and /24-pair counts in all 1\,152 windows, and the JA4 class sizes
+wherever the WAF blocked no client, although the eight-day evaluation read the
+hand-written export. Given a binding of properties to columns, an equality signal
+added to the ontology as four triples reaches the query with no change to any
+code. The verdict, its decomposition and the scope (Listing~\ref{lst:chain})
+export as STIX~2.1 bundles, a \textit{course-of-action} parameterized by the
+scope, that pass the OASIS validator in strict mode; ingestion by a SOAR is
+untested. The verdict is
 \textit{explainable} in this sense of an inspectable derivation; whether it
 shortens an analyst's decision is untested.
 
@@ -829,8 +831,8 @@ six typed sub-properties weighted by evasion cost, and fired a SPARQL/SWRL rule
 whose derivation serves as verdict, evidence chain and mitigation scope.
 
 Against generated stealthy campaigns of compromised devices, per-session
-detection sits at chance across four classifiers while cross-session features
-reach ROC AUC $0.93$--$0.98$, and on conventional laboratory attacks a strong
+detection sits at chance while cross-session features reach ROC AUC
+$0.93$--$0.98$, and on conventional laboratory attacks a strong
 per-session classifier suffices. Scoping by the cluster's most common property
 selects a legitimate fingerprint once the botnet spans several TLS stacks,
 whereas a binomial enrichment test over normal traffic restores $90\%$ coverage
@@ -840,7 +842,7 @@ and the campaign's labels. On CDN traffic the trigger reduces to a count of
 distinct origins, and the calibrated test still names stacks shared with real
 clients while ignoring most flash crowds, though where the threat model holds it
 certifies few, a case a profile that knows the endpoint's fleets lifts from
-$0.7\%$ to $6.3\%$; richer fleet models, HTTP/2 attacks and a captured stealthy
+$0.7\%$ to $6.3\%$ on held-out days; richer fleet models, HTTP/2 attacks and a captured stealthy
 campaign come next.
 
 \section*{Acknowledgment}
@@ -898,9 +900,8 @@ normalized (trim, lower-case). Cost $O(1)$ amortized with an inverted index.
 \textbf{\texttt{TemporalPattern}.} With $\Delta(s)$ the inter-arrival times of a
 session of at least three requests, the edge holds when
 $\mathrm{DTW}(\Delta(s_a),\Delta(s_b)) / \max(|\Delta(s_a)|,|\Delta(s_b)|) \leq
-\tau_{\mathrm{DTW}}$. FastDTW under a Sakoe--Chiba band makes the cost linear per
-pair, and locality-sensitive hashing over summary vectors avoids all-pairs
-comparison.
+\tau_{\mathrm{DTW}}$. FastDTW under a Sakoe--Chiba band makes the cost linear, and
+hashing summary vectors avoids all-pairs comparison.
 
 \textbf{\texttt{PayloadSignature}.} Over the mean and deviation of body size and
 hashes of the dominant User-Agent and Content-Type, the edge holds when cosine
@@ -950,7 +951,7 @@ HAVING (SUM(?w * ?n * (?n - 1) / 2) >= ?tau)
 \section{Weight Calibration}
 \label{app:calibration}
 
-Empirical calibration depends critically on the realism of the traffic. On
+Calibration depends on the realism of the traffic. On
 laboratory datasets, with a few dozen distinct JA4 fingerprints, optimization
 even inverts the sign of the TLS signal, because benign sessions share
 fingerprints more than partially coordinated campaigns do, a testbed artifact of
@@ -980,22 +981,18 @@ evidence more than they drive detection.
 
 \subsection*{Generator Realism}
 
-Two caveats apply to the measurement: the log carries no connection identifier,
-so weighting is per request, which if anything \textit{overstates} concentration,
-and the sample is one point of presence over one window. The
-CICIDS2017 testbed~\cite{sharafaldin2018cicids} is more concentrated still
-($52.7\%$ head). The measured head matches $\alpha = 1.5$ ($38.9\%$ against
-$38.4\%$) and its top ten $\alpha = 2.0$ ($94.2\%$ against $93.8\%$), so the sweep
-brackets it.
+The measurement is weighted per request, which if anything \textit{overstates}
+concentration, and comes from one point of presence over one window; its head
+matches $\alpha = 1.5$ and its top ten $\alpha = 2.0$, so the sweep brackets it.
 
 \section{Additional Limitations}
 \label{app:limitations}
 
 \textbf{Session and identity instrumentation.} The approach assumes sessions,
-identities and TLS fingerprints can be extracted from traffic events; where that
-instrumentation is partial or noisy, performance degrades. Counting origins by
+identities and TLS fingerprints can be extracted from traffic events; partial or
+noisy instrumentation degrades it. Counting origins by
 source address undercounts users behind a CGN address and overcounts clients
-that rotate IPv6 privacy addresses, for which the /64 is the natural unit.
+that rotate IPv6 privacy addresses, whose natural unit is the /64.
 
 \textbf{Graph maintenance cost.} The symbolic figures of
 Appendix~\ref{app:cost} are an upper bound, for the reason given there, and
@@ -1006,8 +1003,8 @@ Section~\ref{sec:discussion}, which we did not implement.
 \textbf{Protocol coverage.} HTTP/2 attacks and other application protocols (DNS,
 gRPC) need sub-relations beyond the Slow HTTP DoS family over HTTP/1.1.
 
-\textbf{Sub-relation coverage.} The evaluated $\Omega(S)$ instantiates the three
-sub-relations the generator and public captures expose; identity reuse, temporal
+\textbf{Sub-relation coverage.} $\Omega(S)$ instantiates the three sub-relations
+the generator and captures expose; identity reuse, temporal
 pattern and payload signature are specified (Appendix~\ref{app:algorithms}) but
 not exercised, so their weights are untested.
 
@@ -1020,7 +1017,7 @@ BCCC-cPacket-Cloud-DDoS-2024~\cite{shafi2024bccc}, whose 17 DDoS scenarios are a
 TCP-based, and we found no independent capture of the stealthy Layer-7 regime.
 
 \textbf{Explanation validation.} The evidence chains of the seven laboratory
-clusters pass automated completeness and actionability checks ($7/7$) when counted
+clusters pass completeness and actionability checks ($7/7$) when counted
 in sessions; counted in origins, the five of CICIDS2017 hold one to three
 sources, below $k_{\min}$, and the two of CIC-IoT2023 hold seven; no user study
 tested them.
@@ -1049,8 +1046,8 @@ botnet JA4, benign JA4 from a pool of 2\,000, eight endpoints, dispersed /24s),
 with medians over three repeats on one core. Each layer runs in two ways: with
 pair edges, as the rules are written, and with class counts for the
 equality-based sub-relations. Both give the same $\Omega(S)$ for every endpoint,
-to within $7\times 10^{-12}$. This is a cost model of the algorithm: the symbolic
-layer runs on in-memory \texttt{rdflib} in place of Jena/TDB2, so its figures are
+to within $7\times 10^{-12}$. This is a cost model: the symbolic layer runs on
+\texttt{rdflib} in place of Jena/TDB2, so its figures are
 an upper bound, and counting origins adds one hash-set lookup per admission.
 
 With pair enumeration, median admission latency grows from
@@ -1235,15 +1232,16 @@ $z$-score stops any ($12.2\%$).
 
 A profile that knows the endpoint's fleets narrows this limit. Fingerprints the
 test names at the nominal level in at least $5\%$ of an endpoint's calibration
-windows become known fleets, which leave the scope and the level's calibration;
-on E1 five or six of them, $7\%$ of the profile, set the level, which rises from
-about $10^{-60}$ to $10^{-21}$. We fixed the rule for the share before running it:
-on the first three test days, the largest mean blocked share at no more false
-alarms. On the last two it lifts enrichment on E1 at a tenth of the typical window
-from $0.7\%$ to $6.3\%$ of the attackers ($0.2\%$ to $4.4\%$ on shared stacks), at
-7 false alarms against 8. Smaller shares block more but fire twice as often, on
-lighter filters and on more flash crowds, and an attacker presenting a known
-fleet's fingerprint escapes the scope. A profile per hour of day did not help, and $\rho = 2$ or $5$ moves no
+windows become known fleets, which leave the scope and the level's calibration.
+E1 has five or six of them, $7\%$ of the profile, and removing them raises its
+level from about $10^{-60}$ to $10^{-21}$. Of the four shares tried on the first
+three test days, $5\%$ was the only one that did not raise false alarms. On the
+last two it lifts enrichment on E1 at a tenth of the typical window from $0.7\%$
+to $6.3\%$ of the attackers ($0.2\%$ to $4.4\%$ on shared stacks, which the unseen
+filter never stops), at 7 false alarms against 8, and leaves E2 to E4 unchanged.
+On those days smaller shares block more but fire twice as often, on lighter filters
+(a median $11$--$12\%$ of clients against $51\%$) and on more flash crowds, so
+by collateral the chosen share is not the best one. A profile per hour of day did not help, and $\rho = 2$ or $5$ moves no
 pooled firing rate of the table by more than $0.3$ points, no blocked share by
 more than $4.5$, and a collateral median by up to $7.2$. Flash crowds of 1\,000 users
 trigger the rule in $21.8\%$ of windows and the $z$-score in $86.8\%$. On the full
@@ -1261,8 +1259,8 @@ flows $\rightarrow$ sessions $\rightarrow$ graph), the calibrated generator, the
 ablation and baselines, the symbolic layer, and the evidence and mitigation
 modules.
 The count query is compiled from the ontology and checked on generated sessions,
-and every exported bundle passes the OASIS STIX~2.1 validator (\texttt{make
-compile-check stix-check}). Both scope derivations ship side by side, so the negative result of
+and the four exported bundles pass the OASIS STIX~2.1 validator in strict mode
+(\texttt{make compile-check stix-check}). Both scope derivations ship side by side, so the negative result of
 Section~\ref{sec:collateral} is reproducible rather than asserted. Profiles and
 levels come from attack-free runs, and labels enter only the evaluation: the
 scripts behind Table~\ref{tab:symbolic} pick the largest-$\Omega$ cluster with no

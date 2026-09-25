@@ -413,5 +413,15 @@
       "E1_x0.1_shared": 0.04440600479700522
     }
   },
-  "held_out_secondary_note": "computed after the choice, for transparency; not used to select"
+  "held_out_secondary_note": "computed after the choice, for transparency; not used to select",
+  "held_out_E1_x0.1_baselines": {
+    "unseen": {
+      "fresh": 0.06495587465912717,
+      "tail": 0.0
+    },
+    "zscore": {
+      "fresh": 0.07291666666666667,
+      "tail": 0.07140015202660331
+    }
+  }
 }

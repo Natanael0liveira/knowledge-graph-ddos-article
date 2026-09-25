@@ -164,8 +164,8 @@ chk("abstract: origin gate + union, collateral", "median $30\\%$ of clients", c[
 chk("abstract: origin gate + union, shared stacks at 100 and 1,000", "$20$--$62\\%$ on shared", sh["100"]["origins_union_blocked"]*100, "{:.0f}--62 on shared")
 cp0 = json.load(open(R + "compile_production_check.json"))
 good = (cp0["origins_equal"] == cp0["net24_pairs_equal"] == cp0["windows"]
-        and "matches the operator's export window for window" in TEXN)
-ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract: compiled query matches the operator's export window for window")
+        and "reproduces a production day's exported origin and /24 counts" in TEXN)
+ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract: compiled query reproduces a production day's origin and /24 counts")
 chk("V-B: flash crowds of 100, enrichment", "3.9", fl["pipeline"]*100, pct)
 chk("V-B: flash crowds of 100, z-score", "64.5", fl["zscore_pipeline"]*100, pct)
 chk("V-B: origin gate + union, 100 new", "38.4", fr["100"]["origins_union_blocked"]*100, pct)
@@ -254,7 +254,11 @@ chk("abstract: origin gate + union, shared stacks, high end", "$20$--$62\\%$", s
 n_org, n_om = round(c["origins_enrichment_pipeline"] * c["windows"]), round(c["pipeline"] * c["windows"])
 good = f"({n_org} against {n_om} clean windows)" in TEXN; ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} V-B: origin gate {n_org} against {n_om} clean false alarms")
-chk("VI: E1 at 0.1x, enrichment", "enrichment to $0.6\\%$", t1["blocked_pipeline"]*100, "enrichment to {:.1f}")
+_fp = json.load(open(R + "fleet_profile.json"))
+_b = _fp["held_out_per_endpoint"]["E1"]["base"]; _x = _fp["held_out_E1_x0.1_baselines"]
+chk("VI: E1 at 0.1x on held-out days, enrichment", "enrichment to $0.7\\%$ of the attackers on two held-out", _b["fresh:x0.1"]*100, "enrichment to {:.1f} of the attackers on two held-out")
+chk("VI: same cell, unseen filter", "unseen filter ($6.5\\%$)", _x["unseen"]["fresh"]*100, "unseen filter ({:.1f})")
+chk("VI: same cell, z-score", "$z$-score ($7.3\\%$)", _x["zscore"]["fresh"]*100, "z-score ({:.1f})")
 chk("App. E: flash crowds of 1,000, z-score", "86.8", a["flash"]["1000"]["zscore_pipeline"]*100, pct)
 fps = [x for e in E for x in E[e]["profile_fingerprints"]]
 good = f"${min(fps)}$--${max(fps)}$" in TEXN; ok += good; bad += not good
@@ -295,13 +299,16 @@ ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} a new signal costs {x['triples_added']} triples and {x['code_lines_changed']} lines of code")
 cp = json.load(open(R + "compile_production_check.json"))
 good = (cp["origins_equal"] == cp["net24_pairs_equal"] == cp["windows"]
-        and f"in all {cp['windows']:,} windows of a day".replace(",", "\\,") in TEXN)
+        and f"counts in all {cp['windows']:,} windows".replace(",", "\\,") in TEXN
+        and cp["ja4_pairs_equal_without_waf_blocks"] == cp["windows_without_waf_blocks"]
+        and "and the JA4 class sizes wherever the WAF blocked no client" in TEXN)
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} compiled query in the operator's store: origins and /24 pairs equal the export "
       f"in {cp['origins_equal']}/{cp['windows']} windows")
 sv = json.load(open(R + "stix_validation.json"))
 good = (sv["ok"] and sv["errors"] == 0 and sv["warnings"] == 0 and sv["strict_errors"] == 0
-        and all(c["valid_strict"] for c in sv["chains"]) and "validator accepts in strict mode" in TEXN)
+        and all(c["valid_strict"] for c in sv["chains"]) and "pass the OASIS validator in strict mode" in TEXN
+        and sv["bundles"] == 4 and "the four exported bundles pass" in TEXN)
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} {sv['bundles']} STIX bundles valid, strict included "
       f"({sv['errors']} errors, {sv['warnings']} warnings, {sv['strict_errors']} strict errors)")
@@ -333,8 +340,18 @@ sec = {k: v for k, v in fp["held_out_secondary_all_shares"].items() if k != fp["
 c0 = fp["held_out_secondary_all_shares"][fp["chosen_share"]]
 good = all(v["false_alarms"] >= 1.8 * c0["false_alarms"] and v["collateral_median"] < c0["collateral_median"]
            and v["flash100"] > c0["flash100"] and v["mean_blocked"] > c0["mean_blocked"] for v in sec.values()) \
-    and "fire twice as often, on lighter filters and on more flash crowds" in TEXN
+    and "fire twice as often, on lighter filters" in TEXN
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} held out, smaller shares: more blocked, ~2x false alarms, lighter, more flash crowds")
+chk("held out, smaller shares' collateral, low end", "a median $11$--$12\\%$ of clients", min(v["collateral_median"] for v in sec.values())*100, "a median {:.0f}--12 of clients")
+chk("held out, smaller shares' collateral, high end", "a median $11$--$12\\%$ of clients", max(v["collateral_median"] for v in sec.values())*100, "a median 11--{:.0f} of clients")
+chk("held out, chosen share's collateral", "of clients against $51\\%$", c0["collateral_median"]*100, "of clients against {:.0f}")
+good = fp["eligible"] == [fp["chosen_share"]] and len(fp["design"]) == 5 and "was the only one that did not raise false alarms" in TEXN
+ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} only one of four shares kept false alarms at or below the base rule's")
+hp = fp["held_out_per_endpoint"]
+good = all(hp[e]["base"] == hp[e]["fleets"] for e in ("E2", "E3", "E4")) and "leaves E2 to E4 unchanged" in TEXN
+ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} held out: E2 to E4 unchanged by the known fleets")
+good = fp["held_out_E1_x0.1_baselines"]["unseen"]["tail"] == 0 and "which the unseen filter never stops" in TEXN
+ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} held out: the unseen filter stops no shared stack on E1 at 0.1x")
 print(f"\nTOTAL: {ok} OK, {bad} mismatches")
 sys.exit(1 if bad else 0)

@@ -119,6 +119,31 @@ def main():
                        "level": [F["folds"][f][h]["scope_level"] for f in folds if h in F["folds"].get(f, {})]}
             for h in hosts}
         out["self_check"] = F["self_check"]
+        # The simpler scopes in the same cell, on the same held-out days, for a
+        # like-for-like comparison (the base run carries them).
+        e1 = hosts[0]
+        Bb = pd.read_csv(args.results / args.base, dtype={"fold": str},
+                         usecols=lambda c: c in COLS + ["zscore_named", "zscore_recall",
+                                                        "unseen_named", "unseen_recall"])
+        Bb = Bb[Bb["size"] >= 5]
+        cal = Bb[Bb["kind"] == "calib"].groupby(["fold", "host"])
+        Bb["om"] = Bb["omega"].to_numpy() >= cal["omega"].quantile(0.99).reindex(
+            list(zip(Bb["fold"], Bb["host"]))).to_numpy()
+        cellx = Bb[(Bb["kind"] == "attack_rel") & (Bb["host"] == e1) & (Bb["fraction"] == 0.1)
+                   & Bb["fold"].isin(held)]
+        # Computed after the choice, for transparency only: every share on the
+        # held-out days, pooled and on E1 at a tenth of the typical window.
+        sec = {}
+        for sh, W2 in runs.items():
+            r, e = rates(sub(W2, held)), rates(sub(W2[W2["host"] == e1], held))
+            sec[sh] = {k: r[k] for k in ("false_alarms", "collateral_median", "flash100",
+                                         "mean_blocked", "tail:A1000")}
+            sec[sh].update({"E1_x0.1_new": e["fresh:x0.1"], "E1_x0.1_shared": e["tail:x0.1"]})
+        out["held_out_secondary_all_shares"] = sec
+        out["held_out_secondary_note"] = "computed after the choice, for transparency; not used to select"
+        out["held_out_E1_x0.1_baselines"] = {
+            b: {src: float((g[f"{b}_recall"] * (g["om"] & g[f"{b}_named"].astype(bool))).mean())
+                for src, g in cellx.groupby("source")} for b in ("unseen", "zscore")}
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(out, indent=2))
     print(json.dumps({k: v for k, v in out.items() if k != "held_out_per_endpoint"}, indent=2)[:6000])

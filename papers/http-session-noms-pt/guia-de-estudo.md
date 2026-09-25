@@ -157,37 +157,32 @@ Em ordem:
 Knowledge Graph.* A palavra que manda é **scoped**: a contribuição é o escopo da
 mitigação; o grafo é a camada onde a decisão é derivada e exportada.
 
-**O resumo, frase a frase.** Ele é contado do ponto de vista do operador: começa
-pela decisão que ele precisa tomar, mostra que a resposta óbvia é prejudicial, e só
-então apresenta o método, os resultados (com ganho e custo lado a lado) e o que o
-grafo acrescenta.
+**O resumo, frase a frase.** Ele é contado do ponto de vista do operador e traz,
+junto de cada ganho, o limite que o acompanha (rodada 5 do revisor).
 
 1. *Uma campanha de Slow HTTP DoS distribuída mantém cada origem abaixo de
    qualquer limiar por origem, e por isso o operador enfrenta uma decisão de
    escopo: quem bloquear sem bloquear os próprios usuários.* O problema, posto
-   como decisão de gerência (o que o NOMS valoriza).
-2. *A escolha natural, a impressão TLS mais comum do agrupamento, bloqueia 0% de
-   uma botnet espalhada em várias pilhas e 39% do tráfego legítimo.* O gancho: o
-   número que mais choca vem logo na segunda frase.
-3. *Derivamos o escopo de um grafo de conhecimento centrado na sessão: a ontologia
-   OWL faz da sessão entidade de primeira classe, com seis sub-propriedades
-   ponderadas pelo custo de evasão; uma regra SPARQL/SWRL dá o veredicto e a
-   evidência, e um teste binomial de enriquecimento nomeia as impressões a
-   bloquear.* O método.
-4. *Em campanhas furtivas geradas, onde a detecção por sessão fica no acaso, o
-   teste bloqueia 90% sem colateral e sem rótulo, tanto quanto um modelo aprendido
-   que recebe o mesmo perfil e os rótulos da campanha.* A solução, com a
-   comparação justa.
-5. *Em oito dias de CDN, ele nomeia pilhas que clientes reais também usam (o filtro
-   de inéditas não) e dispara em 4% dos flash crowds contra 65% do z-score.* Por
-   que o escopo importa em produção.
-6. *Atrás de um gatilho de origens e unido a esse filtro, dispara em 0,1% das
-   janelas limpas, onde bloqueia uma mediana de 30% dos clientes, e detém 38–78%
-   de 100 a 1.000 atacantes, 20–62% em pilhas compartilhadas.* O saldo
-   operacional, com o custo e o caso mais fraco à vista.
-7. *A consulta compilada da ontologia reproduz a exportação da operadora janela a
-   janela, e o veredicto sai como STIX 2.1 que passa no validador da OASIS.* O
-   fecho responde "por que um grafo?" com fatos medidos.
+   como decisão de gerência.
+2. *Em tráfego gerado, a escolha natural (a impressão TLS mais comum) bloqueia 0%
+   de uma botnet espalhada em várias pilhas e 39% do legítimo.* O gancho, com a
+   origem do dado dita.
+3. *Derivamos o escopo de um grafo de conhecimento centrado na sessão; uma regra
+   SPARQL/SWRL dá veredicto e evidência, e um teste binomial de enriquecimento
+   nomeia as impressões a bloquear.* O método.
+4. *Nessas campanhas ele bloqueia 90% de uma botnet de até 25 pilhas, sem colateral
+   e sem rótulo, igualando um modelo aprendido que recebe o perfil e os rótulos.*
+   A solução, com o limite (até 25 pilhas; com 100, 38,6%).
+5. *Em oito dias de CDN, nomeia pilhas que clientes reais também usam (o filtro de
+   inéditas não) e dispara em 4% dos flash crowds contra 65% do z-score.*
+6. *Unido a esse filtro atrás de um gatilho de origens, ambos escolhidos nos dias de
+   teste, dispara em 0,1% das janelas limpas (mediana de 30% dos clientes), detém
+   38–78% de 100 a 1.000 atacantes (20–62% em pilhas compartilhadas), mas só cerca
+   de 20% de uma botnet do tamanho da janela típica.* Ganho, custo, a ressalva da
+   escolha e o caso fraco, lado a lado.
+7. *A consulta compilada da ontologia reproduz as contagens exportadas de origens e
+   /24 de um dia de produção; o STIX 2.1 passa no validador da OASIS.* O fecho,
+   restrito ao que foi verificado.
 
 O resumo tem 249 palavras, dentro do limite de 250 do IEEE.
 
@@ -605,9 +600,10 @@ são sorteios do mesmo gerador; os testes mostram estabilidade, não preveem o c
 - **Cada avaliação estabelece uma coisa:** o gerador mostra o mecanismo (sob
   imitação imposta por construção); a produção mede falsos alarmes reais e
   detecção de botnet injetada. Onde o tráfego real casa com o modelo de ameaça
-  (E1 a 0,1×), o nível calibrado prende o enriquecimento em 0,6%, e o perfil com
-  frotas conhecidas, testado em dias reservados, em 6,3%. Não há campanha furtiva
-  capturada.
+  (E1 a 0,1×), nos dois dias reservados, o nível calibrado prende o enriquecimento
+  em 0,7%, e o perfil com frotas conhecidas o eleva a 6,3%, perto do filtro de
+  inéditas (6,5%) e do z-score (7,3%) na mesma célula; um atacante que use a
+  impressão de uma frota conhecida escapa. Não há campanha furtiva capturada.
 - **Dependência de um discriminador de peso alto:** a varredura de robustez mostra
   a AUC(d) caindo de 1,00 para ~0,74 quando o JA4 é aleatorizado. O gatilho de
   volume sobrevive, mas o escopo fica sem discriminador. Um bot que imita o JA4 de
@@ -618,10 +614,12 @@ são sorteios do mesmo gerador; os testes mostram estabilidade, não preveem o c
     rótulos iguala ou supera a regra.
   - *O que acrescenta, medido:* a ontologia marca o que cada relação de igualdade
     iguala, seu peso e a unidade de contagem; a consulta é **compilada** dela e
-    reproduz Ω exatamente em sessões geradas; **no armazém de logs da operadora
-    devolve as contagens exportadas nas 1.152 janelas de um dia**; um sinal novo
-    custa 4 triplas e 0 código; o pacote STIX 2.1 passa no validador da OASIS em
-    modo estrito, então o SOAR recebe um *course-of-action* já parametrizado.
+    reproduz Ω exatamente em sessões geradas; **no armazém de logs da operadora,
+    por um dia, devolve as contagens exportadas de origens e /24 nas 1.152
+    janelas**, e as de JA4 onde o WAF não bloqueou ninguém (a avaliação de oito
+    dias usou a exportação escrita à mão); dado um vínculo de colunas, um sinal
+    de igualdade novo custa 4 triplas e 0 código; os quatro pacotes STIX 2.1
+    passam no validador da OASIS em modo estrito (ingestão num SOAR não testada).
   - "Explicável" no sentido de derivação inspecionável; se encurta a decisão de um
     analista não foi testado.
 
@@ -735,12 +733,15 @@ endpoint: 33,3% e 0%. Porta de origens: 82,2% e 85,7%.
    pilhas de uma botnet desse tamanho têm uma ou duas origens, e nenhum nível
    calibrado as certifica. Com 0,1× só E1 tem mais de 100 atacantes: enriquecimento
    0,6%, inéditas 11,2%, z-score 12,5% (disparando em 5,1% das janelas limpas de E1).
-4. **Perfil com frotas conhecidas** (φ = 5%, escolhido nos 3 primeiros dias): em E1,
-   5 ou 6 frotas (7% do perfil) fixavam o nível, que sobe de ~10⁻⁶⁰ para 10⁻²¹. Nos
-   2 dias de reserva, E1 a 0,1× sobe de 0,7% para 6,3% (compartilhadas 0,2% → 4,4%),
-   com 7 falsos alarmes contra 8. Frações menores bloqueiam mais, mas disparam o
-   dobro, com filtros mais leves e em mais flash crowds; e um atacante que use a
-   impressão de uma frota conhecida escapa. Também: perfil por hora não ajudou; ρ = 2
+4. **Perfil com frotas conhecidas:** das quatro frações testadas nos 3 primeiros
+   dias, φ = 5% foi a única que não aumentou os falsos alarmes. Em E1, 5 ou 6 frotas
+   (7% do perfil); removê-las eleva o nível de ~10⁻⁶⁰ para 10⁻²¹. Nos 2 dias de
+   reserva, E1 a 0,1× sobe de 0,7% para 6,3% (compartilhadas 0,2% → 4,4%, que o
+   filtro de inéditas nunca detém), com 7 falsos alarmes contra 8; E2 a E4 não
+   mudam. Nesses dias, frações menores bloqueiam mais, mas disparam o dobro, com
+   filtros mais leves (11–12% dos clientes contra 51%) e em mais flash crowds: pelo
+   colateral, a escolhida não é a melhor. Um atacante que use a impressão de uma
+   frota conhecida escapa. Também: perfil por hora não ajudou; ρ = 2
    ou 5 move taxas de disparo em no máximo 0,3 ponto, bloqueios em 4,5 e colateral
    mediano em 7,2; flash crowds de 1.000 disparam a regra em 21,8% e o z-score em
    86,8%; o WAF concorda em 84% (E3) e 96% (E4), 1,5% em E2; E1 não tem WAF.
@@ -856,7 +857,9 @@ menos φ das janelas de calibração (φ = 5%). Ela sai do escopo e da calibraç
 | Níveis calibrados λ_e | E4 10⁻⁴, E3 10⁻¹⁴, E1 10⁻⁶⁰, E2 10⁻⁷³ |
 | E1 a 0,1×: enriquecimento / inéditas / z-score | 0,6% / 11,2% / 12,5% |
 | Frotas conhecidas, dias de reserva | E1 0,7% → 6,3% (compart. 0,2% → 4,4%), 7 vs 8 alarmes |
-| Consulta compilada no ClickHouse da Azion | 1.152 / 1.152 janelas idênticas |
+| Mesma célula, dias de reserva: inéditas / z-score | 6,5% / 7,3% (compartilhadas: 0% / 7,1%) |
+| Consulta compilada no ClickHouse da Azion | origens e /24: 1.152 / 1.152 janelas; JA4: 288 / 288 sem WAF |
+| Rapid Reset | Google 398 M rps; Cloudflare 201 M rps de ~20 mil máquinas |
 | Sinal novo na ontologia | 4 triplas, 0 linhas de código |
 | STIX 2.1 | 0 erros, 0 avisos, modo estrito |
 | Custo | 0,37 µs por admissão; 26,4 s para 100 mil sessões |
@@ -887,16 +890,18 @@ pilhas; em 100 pilhas, um perfil maior restaura 89,6%.
 
 **"Em produção a detecção é fraca."**
 Em parte, sim, e isso está declarado. O método detém bem botnets grandes diante do
-tráfego do endpoint. No regime furtivo (E1 a 0,1×), o nível calibrado prende o teste
-em 0,6%; o perfil com frotas conhecidas, validado em dias reservados, sobe para
-6,3%. O z-score detém mais (12,5%), mas dispara em 5% das janelas limpas de E1 e em
-64,5% dos flash crowds. A contribuição de produção é mostrar **o custo de cada
-escopo**, não vencer em detecção.
+tráfego do endpoint. No regime furtivo (E1 a 0,1×), nos dias reservados, o nível
+calibrado prende o teste em 0,7%; o perfil com frotas conhecidas sobe para 6,3%,
+perto do filtro de inéditas (6,5%) e do z-score (7,3%) na mesma célula, e com
+pilhas compartilhadas chega a 4,4%, onde o filtro de inéditas fica em 0%. O z-score
+dispara em 5% das janelas limpas de E1 e em 64,5% dos flash crowds. A contribuição
+de produção é mostrar o custo de cada escopo.
 
 **"Vocês escolheram a porta de origens e a união olhando os dados de teste."**
-Sim, e o artigo diz isso, com os números (6 contra 14) e a confirmação de que valem
-nos cinco dias. Para as frotas conhecidas, fizemos o certo: regra de escolha
-registrada antes, desenho em 3 dias, teste em 2 reservados.
+Sim, e o artigo e o resumo dizem isso, com os números (6 contra 14) e a confirmação
+de que valem nos cinco dias. Para as frotas conhecidas, a fração foi escolhida em 3
+dias e testada em 2 reservados. Ressalva honesta: o protocolo e os resultados
+entraram no mesmo commit, então a ordem não é verificável só pelo git.
 
 **"Uma operadora só, e tráfego sintético."**
 Cada fonte responde a uma pergunta: o gerador isola o mecanismo sob imitação

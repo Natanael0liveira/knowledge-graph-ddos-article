@@ -554,6 +554,39 @@
         <rdfs:comment>Links a session to its equivalence class under one equality-based sub-relation.</rdfs:comment>
     </owl:ObjectProperty>
 
+    <!-- What an equality-based sub-relation equates, so its classes, and the count
+         query a log store runs, can be derived from the ontology (compile_counts.py). -->
+    <owl:AnnotationProperty rdf:about="http://security.example.org/ontology/ddos#classKey">
+        <rdfs:label>class key</rdfs:label>
+        <rdfs:comment>On an equality-based relatedBy sub-property: the session property whose equal values define its equivalence classes. Sub-properties without a class key (near-variant JA4, temporal, payload, identity overlap) are not equivalences and need pairwise evaluation.</rdfs:comment>
+    </owl:AnnotationProperty>
+
+    <owl:AnnotationProperty rdf:about="http://security.example.org/ontology/ddos#countUnit">
+        <rdfs:label>count unit</rdfs:label>
+        <rdfs:comment>On relatedTo: the session property in whose distinct values classes are counted, so that one client's many sessions count once.</rdfs:comment>
+    </owl:AnnotationProperty>
+
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#tlsJa4">
+        <rdfs:label>TLS JA4</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>JA4 fingerprint of the session's TLS ClientHello.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#srcPrefix">
+        <rdfs:label>source prefix</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>The /24 (IPv4) or /48 (IPv6) prefix of the session's source address.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#tauCluster">
+        <rdfs:label>tau cluster</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Endpoint"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>Threshold on the coordination mass of an endpoint: the 99th percentile of Omega over its attack-free calibration windows.</rdfs:comment>
+    </owl:DatatypeProperty>
+
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#ofRelation">
         <rdfs:label>of relation</rdfs:label>
         <rdfs:comment>Names the relatedBy sub-property whose equivalence class the subject is, so the aggregation can read that sub-property's coordinationWeight.</rdfs:comment>
@@ -566,6 +599,7 @@
         <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <rdfs:label>related to</rdfs:label>
         <rdfs:comment>Liga duas sessões coordenadas. Abstrata: instanciada via suas seis sub-propriedades, nunca diretamente. Habilita o raciocínio cross-session.</rdfs:comment>
+        <countUnit rdf:resource="http://security.example.org/ontology/ddos#originatesFrom"/>
     </owl:ObjectProperty>
 
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByTLSFingerprint">
@@ -574,6 +608,7 @@
         <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">1.0</coordinationWeight>
+        <classKey rdf:resource="http://security.example.org/ontology/ddos#tlsJa4"/>
         <rdfs:label>related by TLS fingerprint</rdfs:label>
         <rdfs:comment>Sessões com JA4 igual ou quase igual (distância ≤ 1). Peso alto: trocar o stack TLS é caro para o atacante.</rdfs:comment>
     </owl:ObjectProperty>
@@ -614,6 +649,7 @@
         <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0.6</coordinationWeight>
+        <classKey rdf:resource="http://security.example.org/ontology/ddos#targets"/>
         <rdfs:label>related by endpoint convergence</rdfs:label>
         <rdfs:comment>Sessões que convergem no mesmo endpoint-alvo (match exato ou de padrão de path). Peso médio.</rdfs:comment>
     </owl:ObjectProperty>
@@ -624,6 +660,7 @@
         <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0.3</coordinationWeight>
+        <classKey rdf:resource="http://security.example.org/ontology/ddos#srcPrefix"/>
         <rdfs:label>related by network proximity</rdfs:label>
         <rdfs:comment>Sessões no mesmo /24 (ou /48, ou ASN). Peso baixo: botnets modernas distribuem agressivamente em prefixo/ASN, então o sinal é fraco por construção.</rdfs:comment>
     </owl:ObjectProperty>
@@ -730,13 +767,36 @@
     <!-- Legacy Relations -->
     
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#targets">
-        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
-        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Host"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://security.example.org/ontology/ddos#ApplicationSession"/>
+                    <rdf:Description rdf:about="http://security.example.org/ontology/ddos#Attack"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://security.example.org/ontology/ddos#Endpoint"/>
+                    <rdf:Description rdf:about="http://security.example.org/ontology/ddos#Host"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:range>
         <rdfs:label>targets</rdfs:label>
+        <rdfs:comment>The endpoint a session targets, or the host an attack targets. The domain and range are unions so that asserting a session's endpoint does not entail that the session is an Attack.</rdfs:comment>
     </owl:ObjectProperty>
     
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#originatesFrom">
-        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://security.example.org/ontology/ddos#ApplicationSession"/>
+                    <rdf:Description rdf:about="http://security.example.org/ontology/ddos#Attack"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:comment>Links a session, or an attack, to the source address it comes from. The aggregation counts each class in distinct origins, so the sessions of one client count once and the coordination mass measures coordination across sources.</rdfs:comment>
         <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#IPAddress"/>
         <rdfs:label>originates from</rdfs:label>
     </owl:ObjectProperty>

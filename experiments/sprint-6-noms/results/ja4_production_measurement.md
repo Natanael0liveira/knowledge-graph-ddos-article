@@ -6,10 +6,10 @@
 > list and point-of-presence volume were removed: none is used by the paper, and
 > exposing them buys nothing.
 >
-> ⚠️ **Check before camera-ready.** This file was written while formal
-> authorization was pending. The paper now carries an acknowledgment stating that
-> Azion Technologies authorized the measurement. Confirm which is current and
-> align the two.
+> Azion Technologies authorized this measurement and the aggregated traffic
+> statistics of the paper's Appendix E (confirmed 2026-09-24), which the
+> acknowledgment states. The per-endpoint results of that appendix live in
+> `production_summary.json`, anonymized (sprint-6 README, section 9).
 
 Measured on 2026-08-22 from an access log the platform already collects, at a
 production edge node. The extract holds only **client-software** fingerprints and
@@ -45,7 +45,7 @@ concentration.
    anything this **overstates** concentration, which is conservative for us.
 2. **One window, one point of presence.** A contiguous slice of the current file,
    not the full period.
-3. Publication use depends on formal authorization from the data owner.
+3. Publication is authorized by the data owner for these aggregates only.
 
 ## Reproduction
 

@@ -128,11 +128,51 @@ For a candidate set S of sessions active in the window, the coordination mass is
 
 > Ω(S) = Σᵢ wᵢ · |Eᵢ(S)|
 
-summed over the sub-relations, where Eᵢ(S) is the set of unordered session pairs
-in S linked by sub-relation *i*. A SPARQL/SWRL rule fires when Ω(S) clears a
-threshold τ_cluster and every session of S targets the same endpoint. The
-derivation that satisfied the rule *is* the verdict; nothing is explained after
-the fact.
+summed over the sub-relations, where Eᵢ(S) is the set of unordered pairs of
+distinct **origins** (source addresses) whose sessions in S are linked by
+sub-relation *i*. A SPARQL/SWRL rule fires when S spans at least k_min origins,
+Ω(S) clears a threshold τ_cluster and every session of S targets the same
+endpoint. The derivation that satisfied the rule *is* the verdict; nothing is
+explained after the fact.
+
+**What the weights do, and what they do not.** At window scale most of Ω is
+volume: under the one-endpoint condition the endpoint term is 0.6·C(n, 2) for n
+origins, 91% of Ω in the canonical campaign of Listing 2. With uniform weights the
+per-window rule detects as it does with (1.0, 0.6, 0.3), and without the endpoint
+term it misses most campaigns while still flagging flash crowds
+(`experiments/sprint-6-noms/README.md`, section 9). Ω ≥ τ therefore says that a
+window holds more coordination than normal traffic; the enrichment test of
+section 6 supplies the discriminator. The weights order the evidence chain, which
+reports each sub-relation's share of Ω, and keep network proximity auxiliary.
+
+**The trigger should not read the scope's evidence.** A plain threshold on the
+number of distinct origins in the window, calibrated as τ_cluster is (its 99th
+percentile over attack-free windows), gates the scope at least as well as Ω ≥ τ on
+both generated and production traffic, and on production it halves the false
+alarms (0.25% of clean windows to 0.11%) without losing a detection. The reason
+is instructive. A legitimate fleet concentrates on one fingerprint, which lifts
+Ω's TLS term (Σ_f C(n_f, 2)) exactly in the windows where the enrichment test
+names that fleet; the clean windows only Ω admits carry a third of their Ω outside
+the endpoint term, against an eighth elsewhere. A trigger that counts fingerprint
+sharing is therefore correlated with the scope's failure mode, while a trigger
+that counts origins is blind to it. A threshold on the aggregate request rate
+adds nothing either: each session of a Slow HTTP campaign keeps a legitimate rate,
+so a calibrated rate threshold is an origin count. This is why the rule's former
+conditions on rate and on a `BotBehavior` profile were dropped from the paper:
+neither was ever active in an experiment.
+
+**Why origins and not sessions.** Sessions stay the nodes of the graph, and the
+relations still link sessions; only the aggregation counts each class in
+distinct origins. The threat is a botnet of many devices, so coordination is
+coordination *across sources*. On production traffic a session is a connection,
+and one client opens many: on the busiest API endpoint of the CDN we measured,
+5.8 connections per client over eight days. Counted in sessions, one automated client posing
+dozens of connections with the same fingerprint looks like a coordinated set.
+Counted in origins, it is one participant. On the generator every session has its
+own origin, so the two counts give the same results there
+(`experiments/sprint-6-noms/README.md`, section 9). On the laboratory captures
+(CICIDS2017, CIC-IoT2023) the attacks come from one to seven origins in a single
+/24: floods within reach of a per-prefix limit.
 
 **Calibrating τ_cluster.** The threshold is neither tuned on labels nor guessed.
 It is fixed per scenario at the **99th percentile of Ω over legitimate
@@ -184,24 +224,60 @@ stacks, each attacker stack is smaller than the head of the benign distribution,
 so the modal value is a *legitimate* fingerprint and the filter blocks users and
 no attackers.
 
-The scope is therefore selected by **enrichment**. Let c(f) be the number of the
-n sessions of the fired cluster that carry fingerprint f, and b(f) the prevalence
-of f in a background profile of normal traffic maintained outside attack
-episodes. The scope admits every f that passes two tests:
+The scope is therefore selected by **enrichment**. Let c(f) be the number of
+distinct origins of the fired cluster that present fingerprint f, n = Σ_f c(f),
+and b(f) the prevalence of f among the origin-fingerprint pairs of a background
+profile of normal traffic maintained outside attack episodes. The scope admits
+every f that passes two tests:
 
 - **Effect size:** c(f)/n ≥ ρ · b(f), with **ρ = 3**. The fingerprint is at least
   three times more common in the cluster than in normal traffic.
-- **Significance:** P[X ≥ c(f)] < α / |F| for X ~ Bin(n, b(f)), with **α = 0.01**.
-  A count this high is improbable if the cluster drew fingerprints the way normal
-  traffic does. |F| is the number of fingerprints in the profile or the cluster,
+- **Significance:** P[X ≥ c(f)] < λ_e / |F| for X ~ Bin(n, b(f)), with the
+  level λ_e calibrated per endpoint (below) and never above **0.01**. A count this
+  high is improbable if the cluster drew fingerprints the way normal traffic does. |F| is the number of fingerprints in the profile or the cluster,
   a Bonferroni correction over every fingerprint that could have been tested.
   Counting only the fingerprints present in the cluster undercounts the family,
   because which ones appear is itself random; a first prototype did that and
   exceeded the nominal false-alarm level on the calibration windows.
 
 A fingerprint absent from the profile gets b(f) = 1/N, with N the profile's
-session count, so a single observation never becomes infinite enrichment. The
-result is a *set* of fingerprints, which is what covers a fragmented botnet.
+count of origin-fingerprint pairs, so a single observation never becomes infinite
+enrichment. The result is a *set* of fingerprints, which is what covers a
+fragmented botnet.
+
+**Calibrating the level λ_e.** The binomial model treats each origin as an
+independent draw from the profile. Generated traffic satisfies that; production
+traffic does not, because fleets of legitimate clients switch on together: a
+probe fleet of about twenty clients active only during business hours, a
+periodic job at fixed minutes of every hour. At the nominal level of 0.01 the
+scope named a filter in 26.9% of clean production windows even counting origins
+(60.1% counting connections). The level is therefore calibrated per endpoint exactly as τ_cluster is:
+over the endpoint's attack-free calibration windows, take for each window the
+smallest Bonferroni-adjusted p-value among its enriched fingerprints
+(`min_adjusted_p`), and set λ_e to the 1st percentile of those values, capped at
+0.01 (`calibrate_level` in `evidence_mitigation.py`). The scope then names a
+filter in at most 1% of the windows it was calibrated on. No label is used. On
+the generator the level stays at 0.01 in every scenario, so none of the synthetic
+results change. On the four production endpoints it falls to between 10⁻⁴ and
+10⁻⁷³, and the smallest botnet the test can certify grows with it: the endpoints
+with legitimate fleets need about a thousand attackers per window
+(`experiments/sprint-6-noms/results/production_summary.json`, Appendix E of the
+paper).
+
+**Fingerprints the profile never saw need no such level.** The fleets that set
+λ_e present fingerprints of the profile; no fleet presents one absent from it.
+Joining the enrichment test with a filter of fingerprints absent from the profile
+and seen in at least k_min origins therefore recovers the botnet stacks the strict
+level refuses, at almost no cost in false alarms: on production traffic the union
+fires on 0.3% of clean windows against 0.2%, blocks 37.5% of 100 attackers on new
+stacks against 26.1%, and on the one endpoint in the stealth regime (E1, a botnet
+a tenth of its typical window) 11.2% against 0.6%. On stacks real clients also
+present the union is the enrichment test, since the unseen filter names none.
+Behind a distinct-origin gate (section 4) it fires on 0.1% of clean windows.
+
+**ρ is an effect-size floor, and it barely matters.** Rerun at ρ = 2 and ρ = 5,
+no pooled production rate of the paper's Table VI moves by more than 4.5 points
+(7.2 for a collateral median over six windows). The level does the work.
 
 **Why a significance test instead of a support floor.** Earlier revisions
 required c(f)/n ≥ σ with σ = 0.002. A fixed fraction ignores n. On a cluster of
@@ -247,6 +323,27 @@ Security knowledge graphs have so far been *static*, built from CVEs, reports an
 threat-intelligence text. Graphs built from that text do not capture runtime
 traffic structure. Recent work populates graphs from traffic itself, but reasons
 at the network-node level and stops at a report.
+
+**What the graph adds, measured.** The ontology is where the numeric code reads
+its parameters, and the count query is compiled from it:
+
+- every coordinationWeight is read from `ontology/ddos_ontology.owl`
+  (`experiments/common/kg_ontology.py`); no script carries its own copy;
+- each equality sub-relation is annotated with its `kg:classKey`, the session
+  property it equates (`kg:tlsJa4`, `kg:targets`, `kg:srcPrefix`), and
+  `relatedTo` with `kg:countUnit` (`kg:originatesFrom`). From these,
+  `compile_counts.py` emits the SQL a log store runs to produce the class sizes
+  and Ω per window and endpoint, given only a binding of properties to columns.
+  On generated sessions the compiled query reproduces `decompose_omega` exactly;
+  adding a sub-relation (same User-Agent) to a copy of the ontology costs four
+  triples and no code, and the recompiled query carries it
+  (`results/compile_check.json`);
+- the exported STIX 2.1 bundle passes the OASIS validator in strict mode
+  (`results/stix_validation.json`).
+
+What the graph does not add is also measured: the AUC gain comes from the
+cross-session structure, which features express as well, and at window scale the
+trigger is a count of origins (section 4).
 
 This work differs on four axes, which are the columns of Table I in the paper:
 the reasoning unit is the application session; relations between sessions are

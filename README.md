@@ -139,7 +139,7 @@ its result file.
 | Symbolic rule vs learned model table | `sprint-6-noms/results/realistic_consolidated.csv` via [`symbolic_detector.py`](experiments/sprint-6-noms/scripts/symbolic_detector.py) |
 | Cost tables and window sweep | `sprint-6-noms/results/latency_summary.json` |
 | Listing 1 (SWRL + SPARQL) | [`relatedBy.swrl`](experiments/pillar2-symbolic-reasoning/rules/relatedBy.swrl), [`coordinatedHTTPFlood.rq`](experiments/sprint-1/queries/coordinatedHTTPFlood.rq) |
-| Listing 2 (evidence chain) | `pillar4-evidence-mitigation/results/chains/` |
+| Listing 2 (evidence chain) | [`example_chain.py`](experiments/sprint-6-noms/scripts/example_chain.py) → `experiments/sprint-6-noms/results/example_chain.jsonld` |
 
 Conventions for adding or redrawing a figure — including the scale rule that
 keeps text above the IEEE floor — are in

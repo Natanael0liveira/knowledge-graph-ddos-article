@@ -39,6 +39,19 @@ COLLATERAL (400 BENIGN):
 
 Outputs land in `--out-dir` as `evidence.jsonld` and `mitigation.stix.json`.
 
+**The STIX bundle is valid STIX 2.1** (`make stix-check` in `sprint-6-noms`, OASIS
+`stix2-validator`, strict mode included). It holds an `indicator` whose pattern is
+the derived scope, a `course-of-action`, the relationship `course-of-action
+mitigates indicator`, the producing `identity`, and one `extension-definition` of
+type property-extension. STIX has no JA4 property, so the fingerprint travels in
+that extension (`network-traffic:extensions.'extension-definition--…'.ja4 IN (…)`),
+and so do Ω(S), the cluster size and the decomposition per sub-relation.
+Identifiers are UUIDv4-formatted and deterministic in the cluster and the scope,
+so re-exporting a verdict does not duplicate it downstream. The earlier exporter
+failed the validator with 13 errors per bundle: identifiers not of the form
+`type--UUID`, no `created`, `modified` or `valid_from`, and a fingerprint set
+rendered as a Python list inside the pattern.
+
 > **The 0.00% in this demo is the monolithic scenario.** It does not hold against
 > a heterogeneous botnet under the modal heuristic. See below.
 

@@ -1,7 +1,7 @@
 # NOMS submission
 
-*Session-Centric Knowledge Graphs for Explainable Detection and Scoped Mitigation
-of Distributed Application-Layer DDoS.*
+*Scoped Mitigation of Application-Layer DDoS with a Session-Centric Knowledge
+Graph.*
 
 ## Layout
 

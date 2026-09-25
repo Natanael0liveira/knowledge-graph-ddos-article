@@ -43,14 +43,17 @@ HERE = Path(__file__).resolve()
 EXP = HERE.parents[2]
 S2 = EXP / "sprint-2" / "scripts"
 sys.path[:0] = [str(EXP / "sprint-1" / "scripts"),
-                str(EXP / "pillar4-evidence-mitigation" / "scripts")]
+                str(EXP / "pillar4-evidence-mitigation" / "scripts"), str(EXP / "common")]
 from compute_coordination import _is_attack  # noqa: E402
-from evidence_mitigation import derive_scope_enriched, matches_scope_multi  # noqa: E402
+from evidence_mitigation import (calibrate_level, derive_scope_enriched,  # noqa: E402
+                                 matches_scope_multi)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
 STEALTH_CFG = S2.parent / "configs" / "scenario_stealth.yaml"
-W_TLS, W_EP, W_NET = 1.0, 0.6, 0.3          # coordinationWeight, as in the ontology
+from kg_ontology import WEIGHTS  # noqa: E402  (coordinationWeight, read from the ontology)
+W_TLS, W_EP, W_NET = (WEIGHTS[r] for r in ("relatedByTLSFingerprint", "relatedByEndpointConvergence",
+                                           "relatedByNetworkProximity"))
 
 
 def pairs(counts):
@@ -84,19 +87,28 @@ def windows(df, w_s):
     return df
 
 
-def window_stats(g):
-    """Omega(S) and the aggregate rate of one window, from class sizes."""
+def window_stats(g, unit="session", weights=(W_TLS, W_EP, W_NET)):
+    """Omega(S) and the aggregate rate of one window, from class sizes.
+
+    ``unit="origin"`` counts every class, and |S|, in distinct source addresses.
+    """
     span = max(1.0, (g["end_ts"].max() - g["start_ts"].min()).total_seconds())
+    if unit == "origin":
+        tls = g.dropna(subset=["ja4"]).groupby("ja4")["src_ip_first"].nunique().values
+        net = g.groupby("net24")["src_ip_first"].nunique().values
+        size = int(g["src_ip_first"].nunique())
+    else:
+        tls = g["ja4"].dropna().value_counts().values
+        net = g["net24"].value_counts().values
+        size = len(g)
     return {
-        "size": len(g),
-        "omega": (W_TLS * pairs(g["ja4"].dropna().value_counts().values)
-                  + W_EP * pairs([len(g)])
-                  + W_NET * pairs(g["net24"].value_counts().values)),
+        "size": size, "sessions": len(g),
+        "omega": weights[0] * pairs(tls) + weights[1] * pairs([size]) + weights[2] * pairs(net),
         "rate": float(g["n_requests"].sum()) / span,
     }
 
 
-def scope_of(g, profile, min_count=0, significance=None):
+def scope_of(g, profile, min_count=0, significance=None, unit="session"):
     """Enrichment scope and the fraction of the window it would block.
 
     ``min_count`` adds an absolute floor to the relative one: a fingerprint must
@@ -111,7 +123,7 @@ def scope_of(g, profile, min_count=0, significance=None):
     if significance is not None:
         sigma = min_count / len(g) if min_count else 0.0
     scope = derive_scope_enriched(g, profile, min_support=sigma, max_values=256,
-                                  significance=significance)
+                                  significance=significance, unit=unit)
     if not scope.get("tlsJa4"):
         return False, 0.0, 0.0
     hit = matches_scope_multi(g, scope).values
@@ -139,12 +151,14 @@ def steady(df, minutes, rng):
     return df
 
 
-def evaluate(df, kind, scen, w_s, profile, k_min, min_count=0, significance=None):
+def evaluate(df, kind, scen, w_s, profile, k_min, min_count=0, significance=None,
+             unit="session", weights=(W_TLS, W_EP, W_NET)):
     rows = []
     for (ep, win), g in windows(df, w_s).groupby(["endpoint", "win"]):
-        st = window_stats(g)
-        n_att = int(_is_attack(g["label_first"]).sum())
-        named, recall, coll = (scope_of(g, profile, min_count, significance)
+        st = window_stats(g, unit, weights)
+        att = _is_attack(g["label_first"])
+        n_att = int(g.loc[att, "src_ip_first"].nunique() if unit == "origin" else att.sum())
+        named, recall, coll = (scope_of(g, profile, min_count, significance, unit)
                                if st["size"] >= k_min
                                else (False, 0.0, 0.0))
         rows.append({"kind": kind, "scenario": scen, "endpoint": ep, "win": win,
@@ -193,8 +207,20 @@ def main():
     ap.add_argument("--significance", type=float, default=None,
                     help="replace sigma by a binomial over-representation test at "
                          "this family-wise level (e.g. 0.01); default: sigma")
+    ap.add_argument("--unit", choices=["session", "origin"], default="session",
+                    help="what Omega, |S| and the scope count: sessions, or distinct source "
+                         "addresses (the paper's method)")
+    ap.add_argument("--calibrate-level", action="store_true",
+                    help="calibrate the scope's test level on the calibration windows, as "
+                         "tau is, so that it names a filter in at most 1%% of them "
+                         "(never above --significance)")
+    ap.add_argument("--weights", type=float, nargs=3, default=[W_TLS, W_EP, W_NET],
+                    metavar=("TLS", "EP", "NET"),
+                    help="coordinationWeight of the three sub-relations in Omega (ablation)")
     ap.add_argument("--tag", default="", help="suffix for the output files")
     args = ap.parse_args()
+    if args.calibrate_level and args.significance is None:
+        raise SystemExit("--calibrate-level needs --significance")
     args.clean_work.mkdir(parents=True, exist_ok=True)
     args.out_dir.mkdir(parents=True, exist_ok=True)
     py, rng = sys.executable, np.random.default_rng(20260924)
@@ -205,10 +231,26 @@ def main():
                                                      args.alpha, s)) for s in calib_seeds])
     else:
         bg = pd.read_parquet(args.work / f"baseline_a{args.alpha}.parquet")
+    if args.unit == "origin":
+        bg = bg.drop_duplicates(["src_ip_first", "ja4"])
     profile = bg["ja4"].value_counts(normalize=True)
     profile.attrs["n"] = len(bg)
-    log.info("background profile: %s, %d sessions, %d fingerprints",
+    log.info("background profile: %s, %d units, %d fingerprints",
              args.profile, len(bg), profile.size)
+
+    level = args.significance
+    if args.calibrate_level:
+        # The calibration windows exactly as the main pass builds them: a generator
+        # with the same seed spreads the same runs the same way.
+        pre, wins = np.random.default_rng(20260924), []
+        for s in calib_seeds:
+            dfc = windows(steady(pd.read_parquet(ensure_clean(py, args.dist_dir, args.clean_work,
+                                                              args.alpha, s)),
+                                 args.steady_minutes, pre), args.window_s)
+            wins += [g for _, g in dfc.groupby(["endpoint", "win"])
+                     if window_stats(g, args.unit)["size"] >= args.k_min]
+        level = calibrate_level(wins, profile, cap=args.significance, unit=args.unit)
+        log.info("scope level calibrated on %d windows: %.3g", len(wins), level)
 
     test_seeds = range(6001, 6001 + args.seeds)
     donor_seeds = range(7001, 7001 + args.seeds)
@@ -217,19 +259,19 @@ def main():
         rows += evaluate(steady(pd.read_parquet(ensure_clean(py, args.dist_dir, args.clean_work, args.alpha, s)),
                                 args.steady_minutes, rng),
                          "calib", s, args.window_s, profile, args.k_min, args.min_count,
-                         args.significance)
+                         level, args.unit, args.weights)
     for s in test_seeds:
         rows += evaluate(steady(pd.read_parquet(ensure_clean(py, args.dist_dir, args.clean_work, args.alpha, s)),
                                 args.steady_minutes, rng),
                          "clean", s, args.window_s, profile, args.k_min, args.min_count,
-                         args.significance)
+                         level, args.unit, args.weights)
     log.info("attack-free windows evaluated")
     for K in args.K:
         for s in range(1, args.seeds + 1):
             pq = args.work / f"a{args.alpha}_m{args.stacks}_adv0_K{K}_seed{s}.parquet"
             rows += evaluate(steady(pd.read_parquet(pq), args.steady_minutes, rng),
                              f"attack_K{K}", s, args.window_s, profile, args.k_min,
-                             args.min_count, args.significance)
+                             args.min_count, level, args.unit, args.weights)
         log.info("attack K=%d evaluated", K)
     for n in args.flash:
         for s, dn in zip(test_seeds, donor_seeds):
@@ -238,7 +280,7 @@ def main():
             donor = pd.read_parquet(ensure_clean(py, args.dist_dir, args.clean_work, args.alpha, dn))
             fc, win = flash_crowd(base, donor, n, args.window_s, rng)
             for r in evaluate(fc, f"flash_{n}", s, args.window_s, profile, args.k_min,
-                              args.min_count, args.significance):
+                              args.min_count, level, args.unit, args.weights):
                 if r["win"] == win:            # only the surge window
                     rows.append(r)
         log.info("flash crowd N=%d evaluated", n)
@@ -249,7 +291,7 @@ def main():
     eligible = lambda d: d[(d["size"] >= args.k_min) & (d["rate"] >= args.tau_rate)]
     calib = eligible(df[df["kind"] == "calib"])
     out = {"config": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
-           "calibration_windows": int(len(calib)), "by_percentile": {}}
+           "calibration_windows": int(len(calib)), "scope_level": level, "by_percentile": {}}
     for p in args.percentiles:
         tau = float(np.percentile(calib["omega"], p)) if len(calib) else float("inf")
         res = {"tau": tau}

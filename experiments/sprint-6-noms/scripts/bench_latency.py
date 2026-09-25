@@ -46,12 +46,12 @@ from statistics import median
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
 
-# Weights as declared in the ontology (coordinationWeight).
-WEIGHTS = {
-    "relatedByTLSFingerprint": 1.0,
-    "relatedByEndpointConvergence": 0.6,
-    "relatedByNetworkProximity": 0.3,
-}
+# Weights of the three equality-based sub-relations, read from the ontology.
+import sys as _sys  # noqa: E402
+_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "common"))
+from kg_ontology import WEIGHTS as _ALL  # noqa: E402
+WEIGHTS = {r: _ALL[r] for r in ("relatedByTLSFingerprint", "relatedByEndpointConvergence",
+                                "relatedByNetworkProximity")}
 
 
 # --------------------------------------------------------------------------- mix

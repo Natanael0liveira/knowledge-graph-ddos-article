@@ -24,8 +24,10 @@ Uso:
 import argparse
 import json
 import logging
+import uuid
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from scipy.stats import binom
 
@@ -33,15 +35,9 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 log = logging.getLogger(__name__)
 
 ONT = "http://security.example.org/ontology/ddos#"
-# Pesos da família relatedTo (espelham coordinationWeight no .owl)
-WEIGHTS = {
-    "relatedByTLSFingerprint": 1.0,
-    "relatedByReusedIdentity": 1.0,
-    "relatedByTemporalPattern": 0.9,
-    "relatedByPayloadSignature": 0.6,
-    "relatedByEndpointConvergence": 0.6,
-    "relatedByNetworkProximity": 0.3,
-}
+import sys as _sys
+_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "common"))
+from kg_ontology import WEIGHTS  # noqa: E402  (coordinationWeight, read from the ontology)
 
 
 def _pairs(n):
@@ -52,26 +48,34 @@ def _net24(ip):
     return str(ip).rsplit(".", 1)[0]
 
 
-def decompose_omega(cluster: pd.DataFrame) -> dict:
+def decompose_omega(cluster: pd.DataFrame, unit: str = "session") -> dict:
     """Ω(S) decomposto por sub-relação: pares ligados × peso. Só as sub-relações
-    com dado disponível a nível de sessão (TLS/JA4, endpoint, rede)."""
+    com dado disponível a nível de sessão (TLS/JA4, endpoint, rede).
+
+    ``unit="origin"`` counts each class in distinct source addresses, so pairs
+    link origins and ``size`` is the number of origins (the paper's method).
+    """
     cluster = cluster.copy()
     cluster["endpoint"] = cluster["dst_ip_first"].astype(str) + ":" + cluster["dst_port_first"].astype(str)
     cluster["net24"] = cluster["src_ip_first"].map(_net24)
 
+    def classes(key, frame=cluster):
+        grp = frame.groupby(key)
+        return grp["src_ip_first"].nunique() if unit == "origin" else grp.size()
+
     contrib = {}
     # TLSFingerprint: pares que compartilham JA4 (não-nulo)
-    ja4 = cluster["ja4"].dropna()
-    contrib["relatedByTLSFingerprint"] = int(ja4.value_counts().map(_pairs).sum())
+    contrib["relatedByTLSFingerprint"] = int(classes("ja4", cluster.dropna(subset=["ja4"])).map(_pairs).sum())
     # EndpointConvergence: pares no mesmo endpoint
-    contrib["relatedByEndpointConvergence"] = int(cluster["endpoint"].value_counts().map(_pairs).sum())
+    contrib["relatedByEndpointConvergence"] = int(classes("endpoint").map(_pairs).sum())
     # NetworkProximity: pares no mesmo /24
-    contrib["relatedByNetworkProximity"] = int(cluster["net24"].value_counts().map(_pairs).sum())
+    contrib["relatedByNetworkProximity"] = int(classes("net24").map(_pairs).sum())
 
     activated = {k: {"pairs": v, "weight": WEIGHTS[k], "weighted": WEIGHTS[k] * v}
                  for k, v in contrib.items() if v > 0}
     omega = sum(a["weighted"] for a in activated.values())
-    return {"omega": omega, "activated": activated, "size": len(cluster)}
+    size = int(cluster["src_ip_first"].nunique()) if unit == "origin" else len(cluster)
+    return {"omega": omega, "activated": activated, "size": size}
 
 
 def derive_scope(cluster: pd.DataFrame, coverage: float = 0.9) -> dict:
@@ -145,34 +149,106 @@ def evidence_chain_jsonld(decomp: dict, scope: dict, cluster_id: str) -> dict:
     }
 
 
-def stix_bundle(decomp: dict, scope: dict, cluster_id: str) -> dict:
-    """STIX 2.1 (representativo): Indicator (padrão do escopo) + Course-of-Action."""
-    pat = []
-    if "tlsJa4" in scope:
-        pat.append(f"[x-tls:ja4 = '{scope['tlsJa4']}']")
+# Namespace of the deterministic STIX identifiers: the same verdict always yields
+# the same objects, so re-exporting a chain does not duplicate it downstream. The
+# identifiers are well-formed UUIDv4, as STIX 2.1 recommends for SDOs and SROs,
+# derived from a hash of the verdict instead of drawn at random.
+STIX_NAMESPACE = uuid.UUID("0d3f8a52-6c1e-5b7a-9e4f-2a7c1b9d5e30")
+ONTOLOGY_URL = ("https://github.com/Natanael0liveira/knowledge-graph-ddos-article/"
+                "blob/main/ontology/ddos_ontology.owl")
+
+
+def _stix_id(kind, *parts):
+    h = uuid.uuid5(STIX_NAMESPACE, "|".join(map(str, (kind,) + parts))).bytes
+    return f"{kind}--{uuid.UUID(bytes=h, version=4)}"
+
+
+STIX_IDENTITY = _stix_id("identity", "knowledge-graph-ddos-article")
+# One property extension carries what STIX has no property for: the TLS JA4 of a
+# network-traffic object, and the derivation behind an indicator.
+STIX_EXTENSION = _stix_id("extension-definition", "kg-ddos-evidence", "1.0.0")
+
+
+def _stix_str(v):
+    return "'" + str(v).replace("\\", "\\\\").replace("'", "\\'") + "'"
+
+
+def stix_pattern(scope: dict) -> str:
+    """The derived scope as one STIX 2.1 observation expression.
+
+    Endpoint, fingerprints and prefix constrain the same network-traffic object.
+    The fingerprint travels in the property extension (STIX has no JA4 property),
+    and a fragmented botnet's set of fingerprints becomes an IN clause.
+    """
+    terms = []
     if "endpoint" in scope:
-        ip, _, port = scope["endpoint"].rpartition(":")
-        pat.append(f"[network-traffic:dst_ref.value = '{ip}' AND network-traffic:dst_port = {port}]")
+        ip, _, port = str(scope["endpoint"]).rpartition(":")
+        terms += [f"network-traffic:dst_ref.value = {_stix_str(ip)}",
+                  f"network-traffic:dst_port = {int(port)}"]
+    ja4 = scope.get("tlsJa4")
+    if ja4:
+        vals = sorted(ja4) if isinstance(ja4, (list, set, tuple)) else [ja4]
+        path = f"network-traffic:extensions.'{STIX_EXTENSION}'.ja4"
+        terms.append(f"{path} = {_stix_str(vals[0])}" if len(vals) == 1 else
+                     f"{path} IN ({', '.join(_stix_str(v) for v in vals)})")
     if "srcNet24" in scope:
-        pat.append(f"[ipv4-addr:value ISSUBSET '{scope['srcNet24']}']")
-    ind_id = f"indicator--coord-{cluster_id}"
-    coa_id = f"course-of-action--coord-{cluster_id}"
+        net = str(scope["srcNet24"])
+        terms.append(f"network-traffic:src_ref.value ISSUBSET {_stix_str(net if '/' in net else net + '.0/24')}")
+    return "[" + " AND ".join(terms or ["network-traffic:protocols[*] = 'http'"]) + "]"
+
+
+def stix_bundle(decomp: dict, scope: dict, cluster_id: str,
+                created: str = "2026-09-24T00:00:00.000Z") -> dict:
+    """STIX 2.1: an Indicator whose pattern is the scope, a Course-of-Action, and
+    the Relationship ``course-of-action mitigates indicator``, with the identity
+    and the property-extension definition they reference.
+
+    The objects come from the derivation alone: the extension carries Omega(S),
+    the cluster size and the decomposition per sub-relation, so a SIEM or SOAR
+    ingests the evidence chain with no translation step. ``created`` is the
+    verdict's time; identifiers are deterministic in the cluster and the scope.
+    """
+    key = json.dumps({"cluster": cluster_id, "scope": scope}, sort_keys=True, default=sorted)
+    ind_id = _stix_id("indicator", key)
+    coa_id = _stix_id("course-of-action", key)
+    subrel = {name: {"linked_pairs": int(a["pairs"]), "coordination_weight": float(a["weight"])}
+              for name, a in decomp["activated"].items()}
     return {
-        "type": "bundle", "id": f"bundle--coord-{cluster_id}",
+        "type": "bundle", "id": _stix_id("bundle", key),
         "objects": [
-            {"type": "indicator", "id": ind_id, "spec_version": "2.1",
-             "name": f"Coordinated HTTP Flood (cluster {cluster_id})",
+            {"type": "identity", "spec_version": "2.1", "id": STIX_IDENTITY,
+             "created": created, "modified": created, "name": "knowledge-graph-ddos-article",
+             "description": "Session-centric knowledge graph that derives the verdict and the "
+                            "mitigation scope of coordinated application-layer DDoS.",
+             "identity_class": "system"},
+            {"type": "extension-definition", "spec_version": "2.1", "id": STIX_EXTENSION,
+             "created_by_ref": STIX_IDENTITY, "created": created, "modified": created,
+             "name": "kg-ddos-evidence",
+             "description": "The TLS JA4 fingerprint of a network-traffic object, and the "
+                            "derivation behind an indicator: coordination mass, cluster size "
+                            "and the weighted relatedBy sub-relations, as the ontology defines them.",
+             "schema": ONTOLOGY_URL, "version": "1.0.0",
+             "extension_types": ["property-extension"]},
+            {"type": "indicator", "spec_version": "2.1", "id": ind_id, "created_by_ref": STIX_IDENTITY,
+             "created": created, "modified": created, "valid_from": created,
+             "name": f"Coordinated HTTP flood, cluster {cluster_id}",
+             "description": f"CoordinatedHTTPFlood: Omega(S) = {decomp['omega']:.1f} over "
+                            f"{decomp['size']} origins; sub-relations: {', '.join(decomp['activated'])}.",
              "indicator_types": ["malicious-activity"],
-             "pattern_type": "stix", "pattern": " AND ".join(pat) or "[network-traffic:protocols[*] = 'http']",
-             "description": f"Ω(S)={decomp['omega']:.1f}, {decomp['size']} sessões; "
-                            f"sub-relações: {', '.join(decomp['activated'])}"},
-            {"type": "course-of-action", "id": coa_id, "spec_version": "2.1",
-             "name": "Mitigação cirúrgica de escopo derivado",
-             "description": "Filtrar/desafiar apenas o tráfego que casa com o discriminador "
-                            f"do cluster: {json.dumps(scope, ensure_ascii=False)}"},
-            {"type": "relationship", "id": f"relationship--coord-{cluster_id}",
-             "spec_version": "2.1", "relationship_type": "mitigates",
-             "source_ref": coa_id, "target_ref": ind_id},
+             "pattern_type": "stix", "pattern": stix_pattern(scope),
+             "extensions": {STIX_EXTENSION: {"extension_type": "property-extension",
+                                             "coordination_score": round(float(decomp["omega"]), 3),
+                                             "cluster_size": int(decomp["size"]),
+                                             "subrelations": subrel}}},
+            {"type": "course-of-action", "spec_version": "2.1", "id": coa_id,
+             "created_by_ref": STIX_IDENTITY, "created": created, "modified": created,
+             "name": "Scoped mitigation of a coordinated HTTP flood",
+             "description": "Filter or challenge only the traffic that matches the indicator's "
+                            "pattern, the discriminator the verdict derived; the endpoint's other "
+                            "clients are left alone."},
+            {"type": "relationship", "spec_version": "2.1", "id": _stix_id("relationship", key),
+             "created_by_ref": STIX_IDENTITY, "created": created, "modified": created,
+             "relationship_type": "mitigates", "source_ref": coa_id, "target_ref": ind_id},
         ],
     }
 
@@ -286,11 +362,66 @@ if __name__ == "__main__":
 # discriminador, em vez de emitir um filtro que só machuca legítimos.
 # =====================================================================
 
+def _origin_units(df: pd.DataFrame) -> pd.DataFrame:
+    """One row per (origin, fingerprint): the sessions of one client count once."""
+    return df.drop_duplicates(["src_ip_first", "ja4"])
+
+
+def _enrichment_inputs(cluster: pd.DataFrame, background, unit: str):
+    """Fingerprint shares of the cluster, the profile, its prior and the test family."""
+    units = _origin_units(cluster) if unit == "origin" else cluster
+    c_freq = units["ja4"].value_counts(normalize=True)
+    if isinstance(background, pd.Series):
+        b_freq, n_bg = background, int(background.attrs.get("n", 1000))
+    else:
+        bg = _origin_units(background) if unit == "origin" else background
+        b_freq, n_bg = bg["ja4"].value_counts(normalize=True), len(bg)
+    # weak prior on the background: a fingerprint absent from the profile does
+    # not become infinitely enriched on a single observation.
+    eps = 1.0 / max(n_bg, 1)
+    n_ja4 = int(units["ja4"].notna().sum())
+    family = len(set(b_freq.index) | set(c_freq.index))
+    return c_freq, b_freq, eps, n_ja4, family
+
+
+def min_adjusted_p(cluster: pd.DataFrame, background, min_enrichment: float = 3.0,
+                   unit: str = "session") -> float:
+    """Smallest Bonferroni-adjusted binomial p-value among the enriched fingerprints.
+
+    ``derive_scope_enriched(..., significance=a)`` names a fingerprint exactly when
+    this value is below ``a``; ``inf`` when no fingerprint is enriched.
+    """
+    if not cluster["ja4"].notna().any() or not len(background):
+        return float("inf")
+    c_freq, b_freq, eps, n_ja4, family = _enrichment_inputs(cluster, background, unit)
+    bf = b_freq.reindex(c_freq.index).fillna(0.0).to_numpy() + eps
+    cf = c_freq.to_numpy()
+    p = binom.sf(np.round(cf * n_ja4) - 1, n_ja4, np.minimum(bf, 1.0)) * family
+    p = p[cf / bf >= min_enrichment]
+    return float(p.min()) if len(p) else float("inf")
+
+
+def calibrate_level(clean_clusters, background, min_enrichment: float = 3.0,
+                    cap: float = 0.01, max_rate: float = 0.01, unit: str = "session") -> float:
+    """Test level at which the scope names a filter in at most ``max_rate`` of clean clusters.
+
+    The nominal level assumes each unit draws its fingerprint independently from
+    the profile. Production traffic breaks that: legitimate fleets switch on
+    together. The level is therefore calibrated per endpoint on attack-free
+    clusters, as tau_cluster is, and never exceeds ``cap``. No label is used.
+    """
+    t = [min_adjusted_p(c, background, min_enrichment, unit) for c in clean_clusters]
+    if not t:
+        return cap
+    return min(cap, float(np.percentile(t, 100 * max_rate, method="lower")))
+
+
 def derive_scope_enriched(cluster: pd.DataFrame, background: pd.DataFrame,
                           min_enrichment: float = 3.0,
                           min_support: float = 0.01,
                           max_values: int = 32,
-                          significance: float | None = None) -> dict:
+                          significance: float | None = None,
+                          unit: str = "session") -> dict:
     """Escopo cujo discriminador é escolhido por enriquecimento, não por frequência.
 
     ``cluster``    sessões do cluster que disparou a regra.
@@ -321,6 +452,11 @@ def derive_scope_enriched(cluster: pd.DataFrame, background: pd.DataFrame,
                        question, whether f is over-represented against the
                        background, with the sample size in it. ``min_enrichment``
                        still applies as the effect size.
+    ``unit``           "origin" counts each (source address, fingerprint) pair
+                       once, in the cluster and in a background DataFrame, so a
+                       client opening many sessions is one draw of the test; the
+                       endpoint and /24 conjuncts then count origins too.
+                       "session" is the count of earlier revisions.
 
     Retorna um escopo em que ``tlsJa4`` pode ser um CONJUNTO de fingerprints — é
     o que permite cobrir uma botnet fragmentada em vários stacks.
@@ -333,16 +469,7 @@ def derive_scope_enriched(cluster: pd.DataFrame, background: pd.DataFrame,
     scope = {}
 
     if cluster["ja4"].notna().any() and len(background):
-        c_freq = cluster["ja4"].value_counts(normalize=True)
-        if isinstance(background, pd.Series):
-            b_freq, n_bg = background, int(background.attrs.get("n", 1000))
-        else:
-            b_freq, n_bg = background["ja4"].value_counts(normalize=True), len(background)
-        # prior fraco no fundo: um fingerprint ausente do perfil não vira
-        # enriquecimento infinito por conta de uma única observação.
-        eps = 1.0 / max(n_bg, 1)
-        n_ja4 = int(cluster["ja4"].notna().sum())
-        family = len(set(b_freq.index) | set(c_freq.index))
+        c_freq, b_freq, eps, n_ja4, family = _enrichment_inputs(cluster, background, unit)
         cut = significance / family if significance is not None else None
         picked = []
         for ja4, cf in c_freq.items():
@@ -363,6 +490,9 @@ def derive_scope_enriched(cluster: pd.DataFrame, background: pd.DataFrame,
                  "enrichment": round(p[2], 1)} for p in picked
             ]
 
+    if unit == "origin":
+        cluster = cluster.drop_duplicates("src_ip_first")
+        n = len(cluster)
     top_ep = cluster["endpoint"].value_counts()
     if len(top_ep) and top_ep.iloc[0] / n >= 0.5:
         scope["endpoint"] = top_ep.index[0]

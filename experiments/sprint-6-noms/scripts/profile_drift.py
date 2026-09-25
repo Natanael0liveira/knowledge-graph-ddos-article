@@ -34,6 +34,7 @@ sys.path[:0] = [str(EXP / "sprint-1" / "scripts"),
 from compute_coordination import (_is_attack, assign_detection_clusters,  # noqa: E402
                                   compute_omega)
 from evidence_mitigation import derive_scope_enriched, matches_scope_multi  # noqa: E402
+from level_calibration import add_arguments, fired_cluster, level_for  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
@@ -53,18 +54,17 @@ def pooled_profile(pooled_work, alpha, seeds=range(5001, 5031)):
     return p
 
 
-def evaluate(raw, profile, significance=None):
+def evaluate(raw, profile, significance=None, unit="session", label_free=False):
     d = raw.copy()
     d["start_ts"] = pd.to_datetime(d["start_ts"]); d["end_ts"] = pd.to_datetime(d["end_ts"])
     d = assign_detection_clusters(d, 300)
-    cl = compute_omega(d)
-    atk = cl[cl["attack_frac"] >= 0.5]
-    if not len(atk):
+    cl = compute_omega(d, unit=unit)
+    cid = fired_cluster(cl, label_free)
+    if cid is None:
         return None
-    cid = atk.sort_values("omega", ascending=False).iloc[0]["det_cluster"]
     scope = derive_scope_enriched(d[d["det_cluster"] == cid], profile,
                                   min_support=0.0 if significance else 0.002,
-                                  max_values=256, significance=significance)
+                                  max_values=256, significance=significance, unit=unit)
     y = _is_attack(raw["label_first"]).astype(int).values
     flagged = matches_scope_multi(raw, scope).values
     tp = int((flagged & (y == 1)).sum()); fp = int((flagged & (y == 0)).sum())
@@ -88,6 +88,7 @@ def main():
                     help="cache of attack-free runs (rule_detection.py --clean-work); "
                          "adds the pooled profile")
     ap.add_argument("--tag", default="", help="suffix for the output files")
+    add_arguments(ap)
     a = ap.parse_args(); a.out_dir.mkdir(parents=True, exist_ok=True)
 
     PROFILES = [("matched", a.alpha), ("drifted", 2.0), ("flat", 0.0)]
@@ -95,6 +96,10 @@ def main():
     if a.pooled_work:
         PROFILES.append(("pooled", a.alpha))
         profs["pooled"] = pooled_profile(a.pooled_work, a.alpha)
+    # Each profile is calibrated on attack-free runs of its own benign mix: the
+    # operator builds the profile and sets the level in the same normal period.
+    levels = {name: level_for(profs[name], al, a) for name, al in PROFILES}
+    log.info("scope levels: %s", levels)
     rows = []
     for seed in range(1, a.seeds + 1):
         f = a.work / f"a{a.alpha}_m{a.stacks}_adv0_K{a.K}_seed{seed}.parquet"
@@ -102,7 +107,7 @@ def main():
             continue
         raw = pd.read_parquet(f)
         for name, al in PROFILES:
-            r = evaluate(raw, profs[name], a.significance)
+            r = evaluate(raw, profs[name], levels[name], a.unit, a.label_free_cluster)
             if r:
                 r.update({"profile": name, "profile_alpha": al, "seed": seed})
                 rows.append(r)
@@ -131,7 +136,9 @@ def main():
     (a.out_dir / f"profile_drift{a.tag}.json").write_text(json.dumps(
         {"episode_alpha": a.alpha, "stacks": a.stacks, "K": a.K, "seeds": a.seeds,
          "min_support": None if a.significance else 0.002,
-         "significance": a.significance, "min_enrichment": 3.0, "aggregate": agg}, indent=2))
+         "significance": a.significance, "unit": a.unit, "calibrate_level": a.calibrate_level,
+         "level": levels, "label_free_cluster": a.label_free_cluster,
+         "min_enrichment": 3.0, "aggregate": agg}, indent=2))
     print(f"\nOK: {a.out_dir}/profile_drift{a.tag}.json")
 
 

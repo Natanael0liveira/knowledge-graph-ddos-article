@@ -36,12 +36,16 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+import sys as _sys
+_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "common"))
+from kg_ontology import WEIGHTS  # noqa: E402  (coordinationWeight, read from the ontology)
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
 
-W_TLS = 1.0
-W_ENDPOINT = 0.6
-W_NET = 0.3
+W_TLS = WEIGHTS["relatedByTLSFingerprint"]
+W_ENDPOINT = WEIGHTS["relatedByEndpointConvergence"]
+W_NET = WEIGHTS["relatedByNetworkProximity"]
 
 # Dataset-agnostic: attack = any labeled session that is not benign. Works for
 # cic-iot-2023 (HTTP-Flood/Slowloris) and cicids2017 (Hulk/GoldenEye/Slow*/DoS-Other).
@@ -74,29 +78,40 @@ def assign_detection_clusters(df: pd.DataFrame, window_s: int) -> pd.DataFrame:
     return df
 
 
-def compute_omega(df: pd.DataFrame) -> pd.DataFrame:
-    """Per detection-cluster Ω(S) + descriptive fields (for G4 + evaluation)."""
+def compute_omega(df: pd.DataFrame, unit: str = "session") -> pd.DataFrame:
+    """Per detection-cluster Ω(S) + descriptive fields (for G4 + evaluation).
+
+    ``unit="origin"`` counts every class in distinct source addresses, so the
+    sessions of one client count once and Ω measures coordination across origins
+    (the paper's method). ``unit="session"`` is the count of earlier revisions.
+    ``size`` stays the number of sessions; ``origins`` is added alongside.
+    """
     g = df.groupby("det_cluster")
 
     size = g.size().rename("size")
+    origins = g["src_ip_first"].nunique().rename("origins")
 
-    # pairs sharing endpoint = C(size,2), since cluster IS one endpoint
-    pairs_ep = _pairs(size).rename("pairs_endpoint")
+    def members(frame, keys):
+        grp = frame.groupby(keys)
+        return grp["src_ip_first"].nunique() if unit == "origin" else grp.size()
+
+    # pairs sharing endpoint = C(n,2), since cluster IS one endpoint
+    pairs_ep = _pairs(members(df, "det_cluster")).rename("pairs_endpoint")
 
     # pairs sharing JA4 (non-null only)
     ja4 = df.dropna(subset=["ja4"])
     pairs_ja4 = (
-        ja4.groupby(["det_cluster", "ja4"]).size().pipe(_pairs)
+        members(ja4, ["det_cluster", "ja4"]).pipe(_pairs)
         .groupby(level=0).sum().rename("pairs_ja4")
     )
 
     # pairs sharing src /24
     pairs_net = (
-        df.groupby(["det_cluster", "net24"]).size().pipe(_pairs)
+        members(df, ["det_cluster", "net24"]).pipe(_pairs)
         .groupby(level=0).sum().rename("pairs_net")
     )
 
-    out = pd.concat([size, pairs_ep, pairs_ja4, pairs_net], axis=1).fillna(0)
+    out = pd.concat([size, origins, pairs_ep, pairs_ja4, pairs_net], axis=1).fillna(0)
     out["omega"] = (
         W_TLS * out["pairs_ja4"]
         + W_ENDPOINT * out["pairs_endpoint"]

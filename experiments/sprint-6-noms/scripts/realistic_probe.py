@@ -52,6 +52,7 @@ from compute_coordination import (_is_attack, assign_detection_clusters,  # noqa
                                   compute_omega)
 from evidence_mitigation import (derive_scope, matches_scope,  # noqa: E402
                                  derive_scope_enriched, matches_scope_multi)
+from level_calibration import add_arguments, fired_cluster, level_for  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
@@ -101,7 +102,7 @@ def ensure(py, dist_dir, work, alpha, stacks, adv, K, seed):
     return pq
 
 
-def evaluate(pq, profile, significance=None):
+def evaluate(pq, profile, significance=None, unit="session", label_free=False):
     raw = pd.read_parquet(pq)
     df = build_features(raw)
     y = _is_attack(df["label_first"]).astype(int).values
@@ -121,10 +122,9 @@ def evaluate(pq, profile, significance=None):
     d = raw.copy()
     d["start_ts"] = pd.to_datetime(d["start_ts"]); d["end_ts"] = pd.to_datetime(d["end_ts"])
     d = assign_detection_clusters(d, 300)
-    cl = compute_omega(d)
-    atk_cl = cl[cl["attack_frac"] >= 0.5]
-    if len(atk_cl):
-        cid = atk_cl.sort_values("omega", ascending=False).iloc[0]["det_cluster"]
+    cl = compute_omega(d, unit=unit)
+    cid = fired_cluster(cl, label_free)
+    if cid is not None:
         cluster = d[d["det_cluster"] == cid]
         A = raw[raw["label_first"] == "ATTACK"]
         B = raw[raw["label_first"] == "BENIGN"]
@@ -136,7 +136,8 @@ def evaluate(pq, profile, significance=None):
         # (ii) proposta: discriminador escolhido por enriquecimento sobre o fundo
         scope_e = derive_scope_enriched(cluster, profile,
                                         min_support=0.0 if significance else 0.002,
-                                        max_values=256, significance=significance)
+                                        max_values=256, significance=significance,
+                                        unit=unit)
         out["enr_attack_cov"] = float(matches_scope_multi(A, scope_e).mean())
         out["enr_collateral"] = float(matches_scope_multi(B, scope_e).mean())
         out["enr_ja4_in_scope"] = "tlsJa4" in scope_e
@@ -174,19 +175,21 @@ def main():
     ap.add_argument("--significance", type=float, default=None,
                     help="binomial over-representation test for the scope at this "
                          "family-wise level; default: the fixed floor sigma = 0.002")
+    add_arguments(ap)
     args = ap.parse_args()
     args.work.mkdir(parents=True, exist_ok=True)
     args.out_dir.mkdir(parents=True, exist_ok=True)
     py = sys.executable
 
-    rows = []
+    rows, levels = [], {}
     for point in args.grid:
         alpha, stacks, adv = point.split(":")
         alpha, stacks, adv = float(alpha), int(stacks), bool(int(adv))
         profile = ensure_baseline(py, args.dist_dir, args.work, alpha)
+        level = levels[point] = level_for(profile, alpha, args)
         for seed in range(1, args.seeds + 1):
             pq = ensure(py, args.dist_dir, args.work, alpha, stacks, adv, args.K, seed)
-            r = evaluate(pq, profile, args.significance)
+            r = evaluate(pq, profile, level, args.unit, args.label_free_cluster)
             if r:
                 r.update({"alpha": alpha, "stacks": stacks, "adversarial": adv,
                           "K": args.K, "seed": seed})
@@ -222,7 +225,10 @@ def main():
                 f" {sub.enr_n_ja4.mean():>4.1f} {sub.mit_global_collateral.mean()*100:>6.1f}%")
     (args.out_dir / f"realistic_{args.tag}.json").write_text(
         json.dumps({"grid": args.grid, "K": args.K, "seeds": args.seeds,
-                    "significance": args.significance, "rows": rows}, indent=2, default=str))
+                    "significance": args.significance, "unit": args.unit,
+                    "calibrate_level": args.calibrate_level, "level": levels,
+                    "label_free_cluster": args.label_free_cluster,
+                    "rows": rows}, indent=2, default=str))
     # One row per grid point: the input of Fig. 3 (make_figures_en.py).
     cons = (df.assign(adv=df.adversarial.astype(int))
               .groupby(["alpha", "stacks", "adv"], sort=False)

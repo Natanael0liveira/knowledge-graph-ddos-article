@@ -13,6 +13,10 @@ rdflib==7.1.1
 sparqlwrapper==2.0.0
 requests==2.32.3
 
+# STIX 2.1 export, checked by the OASIS validator (sprint-6 stix_check.py)
+stix2==3.0.1
+stix2-validator==3.2.0
+
 # Machine learning baselines (Sprint 3+)
 scikit-learn==1.5.2
 xgboost==2.1.3

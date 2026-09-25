@@ -1,0 +1,46 @@
+{
+  "sessions": 6000,
+  "origins": 3871,
+  "windows_x_endpoints": 12,
+  "plan": {
+    "unit": "originatesFrom",
+    "partition": {
+      "relation": "relatedByEndpointConvergence",
+      "key": "targets",
+      "weight": 0.6
+    },
+    "classes": [
+      {
+        "relation": "relatedByTLSFingerprint",
+        "key": "tlsJa4",
+        "weight": 1.0
+      },
+      {
+        "relation": "relatedByNetworkProximity",
+        "key": "srcPrefix",
+        "weight": 0.3
+      }
+    ],
+    "pairwise": [
+      "relatedByPayloadSignature",
+      "relatedByReusedIdentity",
+      "relatedByTemporalPattern"
+    ]
+  },
+  "omega_max_abs_diff": 0.0,
+  "omega_max": 321086.7,
+  "extension": {
+    "relation": "relatedBySameUserAgent",
+    "triples_added": 4,
+    "code_lines_changed": 0,
+    "compiled_classes": [
+      "relatedByTLSFingerprint",
+      "relatedByNetworkProximity",
+      "relatedBySameUserAgent"
+    ],
+    "omega_max_abs_diff": 0.0,
+    "omega_changed": true
+  },
+  "duckdb_sql": "WITH s AS (SELECT time_bucket(INTERVAL 300 SECOND, start_ts) AS w, dst_ip_first || ':' || CAST(dst_port_first AS VARCHAR) AS e, src_ip_first AS o, ja4 AS k0, regexp_replace(src_ip_first, '\\.[0-9]+$', '') AS k1 FROM sessions),\n     tot AS (SELECT w, e, COUNT(DISTINCT o) AS cnt FROM s GROUP BY w, e),\n     c0 AS (SELECT w, e, k0 AS v, COUNT(DISTINCT o) AS cnt FROM s WHERE k0 IS NOT NULL GROUP BY w, e, k0),\n     p0 AS (SELECT w, e, SUM(cnt * (cnt - 1) / 2) AS pairs FROM c0 GROUP BY w, e),\n     c1 AS (SELECT w, e, k1 AS v, COUNT(DISTINCT o) AS cnt FROM s WHERE k1 IS NOT NULL GROUP BY w, e, k1),\n     p1 AS (SELECT w, e, SUM(cnt * (cnt - 1) / 2) AS pairs FROM c1 GROUP BY w, e)\nSELECT tot.w AS win, tot.e AS endpoint, tot.cnt AS origins,\n       COALESCE(p0.pairs, 0) AS pairs_relatedByTLSFingerprint,\n       COALESCE(p1.pairs, 0) AS pairs_relatedByNetworkProximity,\n       0.6 * tot.cnt * (tot.cnt - 1) / 2\n     + 1.0 * COALESCE(p0.pairs, 0)\n     + 0.3 * COALESCE(p1.pairs, 0) AS omega\nFROM tot LEFT JOIN p0 ON p0.w = tot.w AND p0.e = tot.e LEFT JOIN p1 ON p1.w = tot.w AND p1.e = tot.e\nORDER BY 1, 2",
+  "ok": true
+}

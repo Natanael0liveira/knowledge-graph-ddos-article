@@ -1,0 +1,58 @@
+{
+  "validator": "stix2-validator (OASIS), STIX 2.1",
+  "bundles": 4,
+  "ok": true,
+  "errors": 0,
+  "warnings": 0,
+  "strict_errors": 0,
+  "chains": [
+    {
+      "chain": "example_chain.jsonld",
+      "objects": 5,
+      "fingerprints_in_scope": 25,
+      "pattern_names_every_fingerprint": true,
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "valid_strict": true,
+      "strict_errors": [],
+      "parsed_objects": 5
+    },
+    {
+      "chain": "evidence.jsonld",
+      "objects": 5,
+      "fingerprints_in_scope": 1,
+      "pattern_names_every_fingerprint": true,
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "valid_strict": true,
+      "strict_errors": [],
+      "parsed_objects": 5
+    },
+    {
+      "chain": "chain_cicids2017_DoS-Other.jsonld",
+      "objects": 5,
+      "fingerprints_in_scope": 0,
+      "pattern_names_every_fingerprint": true,
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "valid_strict": true,
+      "strict_errors": [],
+      "parsed_objects": 5
+    },
+    {
+      "chain": "chain_cicids2017_GoldenEye.jsonld",
+      "objects": 5,
+      "fingerprints_in_scope": 0,
+      "pattern_names_every_fingerprint": true,
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "valid_strict": true,
+      "strict_errors": [],
+      "parsed_objects": 5
+    }
+  ]
+}

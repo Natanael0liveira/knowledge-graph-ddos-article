@@ -26,9 +26,12 @@
     "steady_minutes": 60.0,
     "profile": "baseline",
     "significance": 0.01,
+    "unit": "origin",
+    "calibrate_level": true,
     "tag": "_steady60_rate0_binom"
   },
   "calibration_windows": 360,
+  "scope_level": 0.01,
   "by_percentile": {
     "99.0": {
       "tau": 4322.590000000004,

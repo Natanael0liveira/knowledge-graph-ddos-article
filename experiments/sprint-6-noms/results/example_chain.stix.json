@@ -1,6 +1,6 @@
 {
   "type": "bundle",
-  "id": "bundle--925297aa-6533-49ab-a889-407b523de9d1",
+  "id": "bundle--819fe2a8-a373-462e-ab55-c3cbc49128a4",
   "objects": [
     {
       "type": "identity",
@@ -30,30 +30,34 @@
     {
       "type": "indicator",
       "spec_version": "2.1",
-      "id": "indicator--66064b4a-b8f8-4a99-8a7a-138b6167b915",
+      "id": "indicator--22b722a7-e392-49d6-8444-e94121501402",
       "created_by_ref": "identity--48459393-98b8-4e85-a23a-88263bfdfe55",
       "created": "2026-09-24T00:00:00.000Z",
       "modified": "2026-09-24T00:00:00.000Z",
       "valid_from": "2026-09-24T00:00:00.000Z",
-      "name": "Coordinated HTTP flood, cluster cicids2017-GoldenEye",
-      "description": "CoordinatedHTTPFlood: Omega(S) = 25133942.7 over 7475 origins; sub-relations: relatedByEndpointConvergence, relatedByNetworkProximity.",
+      "name": "Coordinated HTTP flood, cluster a1.5_m25_adv0_K1000_seed1",
+      "description": "CoordinatedHTTPFlood: Omega(S) = 1303422.8 over 1991 origins; sub-relations: relatedByTLSFingerprint, relatedByEndpointConvergence, relatedByNetworkProximity.",
       "indicator_types": [
         "malicious-activity"
       ],
       "pattern_type": "stix",
-      "pattern": "[network-traffic:dst_ref.value = '192.168.10.50' AND network-traffic:dst_port = 80 AND network-traffic:src_ref.value ISSUBSET '172.16.0.0/24']",
+      "pattern": "[network-traffic:dst_ref.value = '10.0.0.1' AND network-traffic:dst_port = 443 AND network-traffic:extensions.'extension-definition--3a73e779-59a0-4b3b-be81-043372cbd484'.ja4 IN ('t13d1516h2_synth_0001_00', 't13d1516h2_synth_0001_01', 't13d1516h2_synth_0001_02', 't13d1516h2_synth_0001_03', 't13d1516h2_synth_0001_04', 't13d1516h2_synth_0001_05', 't13d1516h2_synth_0001_06', 't13d1516h2_synth_0001_07', 't13d1516h2_synth_0001_08', 't13d1516h2_synth_0001_09', 't13d1516h2_synth_0001_10', 't13d1516h2_synth_0001_11', 't13d1516h2_synth_0001_12', 't13d1516h2_synth_0001_13', 't13d1516h2_synth_0001_14', 't13d1516h2_synth_0001_15', 't13d1516h2_synth_0001_16', 't13d1516h2_synth_0001_17', 't13d1516h2_synth_0001_18', 't13d1516h2_synth_0001_19', 't13d1516h2_synth_0001_20', 't13d1516h2_synth_0001_21', 't13d1516h2_synth_0001_22', 't13d1516h2_synth_0001_23', 't13d1516h2_synth_0001_24')]",
       "extensions": {
         "extension-definition--3a73e779-59a0-4b3b-be81-043372cbd484": {
           "extension_type": "property-extension",
-          "coordination_score": 25133942.7,
-          "cluster_size": 7475,
+          "coordination_score": 1303422.8,
+          "cluster_size": 1991,
           "subrelations": {
+            "relatedByTLSFingerprint": {
+              "linked_pairs": 114710,
+              "coordination_weight": 1.0
+            },
             "relatedByEndpointConvergence": {
-              "linked_pairs": 27934075,
+              "linked_pairs": 1981045,
               "coordination_weight": 0.6
             },
             "relatedByNetworkProximity": {
-              "linked_pairs": 27911659,
+              "linked_pairs": 286,
               "coordination_weight": 0.3
             }
           }
@@ -63,7 +67,7 @@
     {
       "type": "course-of-action",
       "spec_version": "2.1",
-      "id": "course-of-action--1d77cb71-9da3-4afb-9eb3-a7f1d879715c",
+      "id": "course-of-action--da0e1904-9c68-4487-b758-0eb44cc3fc34",
       "created_by_ref": "identity--48459393-98b8-4e85-a23a-88263bfdfe55",
       "created": "2026-09-24T00:00:00.000Z",
       "modified": "2026-09-24T00:00:00.000Z",
@@ -73,13 +77,13 @@
     {
       "type": "relationship",
       "spec_version": "2.1",
-      "id": "relationship--7928c623-904f-40c8-a0f2-1640abcff6f7",
+      "id": "relationship--0fdad5f4-5e12-445d-906c-c19ccc244450",
       "created_by_ref": "identity--48459393-98b8-4e85-a23a-88263bfdfe55",
       "created": "2026-09-24T00:00:00.000Z",
       "modified": "2026-09-24T00:00:00.000Z",
       "relationship_type": "mitigates",
-      "source_ref": "course-of-action--1d77cb71-9da3-4afb-9eb3-a7f1d879715c",
-      "target_ref": "indicator--66064b4a-b8f8-4a99-8a7a-138b6167b915"
+      "source_ref": "course-of-action--da0e1904-9c68-4487-b758-0eb44cc3fc34",
+      "target_ref": "indicator--22b722a7-e392-49d6-8444-e94121501402"
     }
   ]
 }

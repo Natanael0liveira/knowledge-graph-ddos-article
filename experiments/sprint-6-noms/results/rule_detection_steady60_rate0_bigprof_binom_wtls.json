@@ -28,37 +28,42 @@
     "significance": 0.01,
     "unit": "origin",
     "calibrate_level": true,
-    "tag": "_steady60_rate0_bigprof_binom"
+    "weights": [
+      1.0,
+      0.0,
+      0.0
+    ],
+    "tag": "_steady60_rate0_bigprof_binom_wtls"
   },
   "calibration_windows": 360,
   "scope_level": 0.01,
   "by_percentile": {
     "99.0": {
-      "tau": 4322.590000000004,
+      "tau": 1156.1000000000004,
       "attack_K1000": {
         "windows": 90,
-        "omega": 0.7777777777777778,
-        "pipeline": 0.7777777777777778,
+        "omega": 0.3333333333333333,
+        "pipeline": 0.3333333333333333,
         "enrichment": 1.0,
-        "median_omega": 7387.0,
+        "median_omega": 807.0,
         "median_size": 147.5,
         "collateral_when_filtered": 0.0
       },
       "attack_K50": {
         "windows": 35,
-        "omega": 0.8571428571428571,
-        "pipeline": 0.8571428571428571,
+        "omega": 0.0,
+        "pipeline": 0.0,
         "enrichment": 0.8857142857142857,
-        "median_omega": 5601.599999999999,
+        "median_omega": 693.0,
         "median_size": 129.0,
         "collateral_when_filtered": 0.0
       },
       "clean": {
         "windows": 360,
-        "omega": 0.005555555555555556,
+        "omega": 0.013888888888888888,
         "pipeline": 0.0,
         "enrichment": 0.002777777777777778,
-        "median_omega": 2657.5,
+        "median_omega": 627.5,
         "median_size": 83.0,
         "collateral_when_filtered": 0.0
       },
@@ -67,25 +72,25 @@
         "omega": 1.0,
         "pipeline": 0.0,
         "enrichment": 0.0,
-        "median_omega": 12823.15,
+        "median_omega": 3003.0,
         "median_size": 182.0,
         "collateral_when_filtered": 0.0
       },
       "flash_25": {
         "windows": 30,
-        "omega": 0.8,
+        "omega": 0.5333333333333333,
         "pipeline": 0.0,
         "enrichment": 0.0,
-        "median_omega": 4811.050000000001,
+        "median_omega": 1202.0,
         "median_size": 110.0,
         "collateral_when_filtered": 0.0
       },
       "flash_50": {
         "windows": 30,
-        "omega": 1.0,
+        "omega": 0.9666666666666667,
         "pipeline": 0.0,
         "enrichment": 0.0,
-        "median_omega": 6992.65,
+        "median_omega": 1696.5,
         "median_size": 135.0,
         "collateral_when_filtered": 0.0
       }

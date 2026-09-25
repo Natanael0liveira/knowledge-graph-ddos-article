@@ -28,19 +28,24 @@
     "significance": 0.01,
     "unit": "origin",
     "calibrate_level": true,
-    "tag": "_steady60_rate0_bigprof_binom"
+    "weights": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "tag": "_steady60_rate0_bigprof_binom_wuniform"
   },
   "calibration_windows": 360,
   "scope_level": 0.01,
   "by_percentile": {
     "99.0": {
-      "tau": 4322.590000000004,
+      "tau": 6456.740000000001,
       "attack_K1000": {
         "windows": 90,
-        "omega": 0.7777777777777778,
-        "pipeline": 0.7777777777777778,
+        "omega": 0.7888888888888889,
+        "pipeline": 0.7888888888888889,
         "enrichment": 1.0,
-        "median_omega": 7387.0,
+        "median_omega": 11652.0,
         "median_size": 147.5,
         "collateral_when_filtered": 0.0
       },
@@ -49,7 +54,7 @@
         "omega": 0.8571428571428571,
         "pipeline": 0.8571428571428571,
         "enrichment": 0.8857142857142857,
-        "median_omega": 5601.599999999999,
+        "median_omega": 8887.0,
         "median_size": 129.0,
         "collateral_when_filtered": 0.0
       },
@@ -58,7 +63,7 @@
         "omega": 0.005555555555555556,
         "pipeline": 0.0,
         "enrichment": 0.002777777777777778,
-        "median_omega": 2657.5,
+        "median_omega": 4028.0,
         "median_size": 83.0,
         "collateral_when_filtered": 0.0
       },
@@ -67,16 +72,16 @@
         "omega": 1.0,
         "pipeline": 0.0,
         "enrichment": 0.0,
-        "median_omega": 12823.15,
+        "median_omega": 19303.5,
         "median_size": 182.0,
         "collateral_when_filtered": 0.0
       },
       "flash_25": {
         "windows": 30,
-        "omega": 0.8,
+        "omega": 0.8333333333333334,
         "pipeline": 0.0,
         "enrichment": 0.0,
-        "median_omega": 4811.050000000001,
+        "median_omega": 7186.5,
         "median_size": 110.0,
         "collateral_when_filtered": 0.0
       },
@@ -85,7 +90,7 @@
         "omega": 1.0,
         "pipeline": 0.0,
         "enrichment": 0.0,
-        "median_omega": 6992.65,
+        "median_omega": 10563.0,
         "median_size": 135.0,
         "collateral_when_filtered": 0.0
       }

@@ -1,0 +1,11 @@
+{
+  "source": "compiled query (compile_counts.py) run in the operator's log store for one day, against the hand-written exports of that day; counts only",
+  "days": 1,
+  "windows": 1152,
+  "origins_equal": 1152,
+  "net24_pairs_equal": 1152,
+  "ja4_pairs_within_export_bounds": 1152,
+  "windows_without_waf_blocks": 288,
+  "ja4_pairs_equal_without_waf_blocks": 288,
+  "note": "JA4 class sizes differ only where the WAF blocked part of a client's requests: the export drops such clients from the clean count, the compiled filter keeps them."
+}

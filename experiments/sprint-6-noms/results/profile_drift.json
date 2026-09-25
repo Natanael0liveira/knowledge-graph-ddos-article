@@ -5,6 +5,14 @@
   "seeds": 15,
   "min_support": null,
   "significance": 0.01,
+  "unit": "origin",
+  "calibrate_level": true,
+  "level": {
+    "matched": 0.01,
+    "drifted": 0.01,
+    "flat": 0.01
+  },
+  "label_free_cluster": true,
   "min_enrichment": 3.0,
   "aggregate": {
     "matched": {

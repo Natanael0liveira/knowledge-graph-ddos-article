@@ -1,33 +1,85 @@
 {
   "type": "bundle",
-  "id": "bundle--coord-cicids2017-DoS-Other",
+  "id": "bundle--627ab050-1933-4e90-ac3f-e985e5ec861b",
   "objects": [
     {
-      "type": "indicator",
-      "id": "indicator--coord-cicids2017-DoS-Other",
+      "type": "identity",
       "spec_version": "2.1",
-      "name": "Coordinated HTTP Flood (cluster cicids2017-DoS-Other)",
+      "id": "identity--48459393-98b8-4e85-a23a-88263bfdfe55",
+      "created": "2026-09-24T00:00:00.000Z",
+      "modified": "2026-09-24T00:00:00.000Z",
+      "name": "knowledge-graph-ddos-article",
+      "description": "Session-centric knowledge graph that derives the verdict and the mitigation scope of coordinated application-layer DDoS.",
+      "identity_class": "system"
+    },
+    {
+      "type": "extension-definition",
+      "spec_version": "2.1",
+      "id": "extension-definition--3a73e779-59a0-4b3b-be81-043372cbd484",
+      "created_by_ref": "identity--48459393-98b8-4e85-a23a-88263bfdfe55",
+      "created": "2026-09-24T00:00:00.000Z",
+      "modified": "2026-09-24T00:00:00.000Z",
+      "name": "kg-ddos-evidence",
+      "description": "The TLS JA4 fingerprint of a network-traffic object, and the derivation behind an indicator: coordination mass, cluster size and the weighted relatedBy sub-relations, as the ontology defines them.",
+      "schema": "https://github.com/Natanael0liveira/knowledge-graph-ddos-article/blob/main/ontology/ddos_ontology.owl",
+      "version": "1.0.0",
+      "extension_types": [
+        "property-extension"
+      ]
+    },
+    {
+      "type": "indicator",
+      "spec_version": "2.1",
+      "id": "indicator--2f39f1ea-2850-4c50-ac6f-166369e6ca9d",
+      "created_by_ref": "identity--48459393-98b8-4e85-a23a-88263bfdfe55",
+      "created": "2026-09-24T00:00:00.000Z",
+      "modified": "2026-09-24T00:00:00.000Z",
+      "valid_from": "2026-09-24T00:00:00.000Z",
+      "name": "Coordinated HTTP flood, cluster cicids2017-DoS-Other",
+      "description": "CoordinatedHTTPFlood: Omega(S) = 10.8 over 6 origins; sub-relations: relatedByEndpointConvergence, relatedByNetworkProximity.",
       "indicator_types": [
         "malicious-activity"
       ],
       "pattern_type": "stix",
-      "pattern": "[network-traffic:dst_ref.value = '192.168.10.50' AND network-traffic:dst_port = 80] AND [ipv4-addr:value ISSUBSET '172.16.0.0/24']",
-      "description": "Ω(S)=10.8, 6 sessões; sub-relações: relatedByEndpointConvergence, relatedByNetworkProximity"
+      "pattern": "[network-traffic:dst_ref.value = '192.168.10.50' AND network-traffic:dst_port = 80 AND network-traffic:src_ref.value ISSUBSET '172.16.0.0/24']",
+      "extensions": {
+        "extension-definition--3a73e779-59a0-4b3b-be81-043372cbd484": {
+          "extension_type": "property-extension",
+          "coordination_score": 10.8,
+          "cluster_size": 6,
+          "subrelations": {
+            "relatedByEndpointConvergence": {
+              "linked_pairs": 15,
+              "coordination_weight": 0.6
+            },
+            "relatedByNetworkProximity": {
+              "linked_pairs": 6,
+              "coordination_weight": 0.3
+            }
+          }
+        }
+      }
     },
     {
       "type": "course-of-action",
-      "id": "course-of-action--coord-cicids2017-DoS-Other",
       "spec_version": "2.1",
-      "name": "Mitigação cirúrgica de escopo derivado",
-      "description": "Filtrar/desafiar apenas o tráfego que casa com o discriminador do cluster: {\"endpoint\": \"192.168.10.50:80\", \"srcNet24\": \"172.16.0.0/24\"}"
+      "id": "course-of-action--c97bb761-9698-4148-95ac-a11171f9d1f4",
+      "created_by_ref": "identity--48459393-98b8-4e85-a23a-88263bfdfe55",
+      "created": "2026-09-24T00:00:00.000Z",
+      "modified": "2026-09-24T00:00:00.000Z",
+      "name": "Scoped mitigation of a coordinated HTTP flood",
+      "description": "Filter or challenge only the traffic that matches the indicator's pattern, the discriminator the verdict derived; the endpoint's other clients are left alone."
     },
     {
       "type": "relationship",
-      "id": "relationship--coord-cicids2017-DoS-Other",
       "spec_version": "2.1",
+      "id": "relationship--1fd25f22-f8f8-45bf-bc87-b1833a58569a",
+      "created_by_ref": "identity--48459393-98b8-4e85-a23a-88263bfdfe55",
+      "created": "2026-09-24T00:00:00.000Z",
+      "modified": "2026-09-24T00:00:00.000Z",
       "relationship_type": "mitigates",
-      "source_ref": "course-of-action--coord-cicids2017-DoS-Other",
-      "target_ref": "indicator--coord-cicids2017-DoS-Other"
+      "source_ref": "course-of-action--c97bb761-9698-4148-95ac-a11171f9d1f4",
+      "target_ref": "indicator--2f39f1ea-2850-4c50-ac6f-166369e6ca9d"
     }
   ]
 }

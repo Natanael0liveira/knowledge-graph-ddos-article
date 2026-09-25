@@ -1,0 +1,62 @@
+{
+  "@context": {
+    "kg": "http://security.example.org/ontology/ddos#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "kg:cluster/a1.5_m25_adv0_K1000_seed1",
+  "@type": "kg:CoordinatedHTTPFlood",
+  "kg:clusterSize": 1991,
+  "kg:coordinationScore": 1303422.8,
+  "kg:verdict": "coordinated-campaign",
+  "kg:activatedSubRelations": [
+    {
+      "@type": "kg:relatedByTLSFingerprint",
+      "kg:coordinationWeight": 1.0,
+      "kg:linkedPairs": 114710,
+      "kg:weightedContribution": 114710.0
+    },
+    {
+      "@type": "kg:relatedByEndpointConvergence",
+      "kg:coordinationWeight": 0.6,
+      "kg:linkedPairs": 1981045,
+      "kg:weightedContribution": 1188627.0
+    },
+    {
+      "@type": "kg:relatedByNetworkProximity",
+      "kg:coordinationWeight": 0.3,
+      "kg:linkedPairs": 286,
+      "kg:weightedContribution": 85.8
+    }
+  ],
+  "kg:derivedMitigationScope": {
+    "kg:tlsJa4": [
+      "t13d1516h2_synth_0001_00",
+      "t13d1516h2_synth_0001_01",
+      "t13d1516h2_synth_0001_02",
+      "t13d1516h2_synth_0001_03",
+      "t13d1516h2_synth_0001_04",
+      "t13d1516h2_synth_0001_05",
+      "t13d1516h2_synth_0001_06",
+      "t13d1516h2_synth_0001_07",
+      "t13d1516h2_synth_0001_08",
+      "t13d1516h2_synth_0001_09",
+      "t13d1516h2_synth_0001_10",
+      "t13d1516h2_synth_0001_11",
+      "t13d1516h2_synth_0001_12",
+      "t13d1516h2_synth_0001_13",
+      "t13d1516h2_synth_0001_14",
+      "t13d1516h2_synth_0001_15",
+      "t13d1516h2_synth_0001_16",
+      "t13d1516h2_synth_0001_17",
+      "t13d1516h2_synth_0001_18",
+      "t13d1516h2_synth_0001_19",
+      "t13d1516h2_synth_0001_20",
+      "t13d1516h2_synth_0001_21",
+      "t13d1516h2_synth_0001_22",
+      "t13d1516h2_synth_0001_23",
+      "t13d1516h2_synth_0001_24"
+    ],
+    "kg:endpoint": "10.0.0.1:443"
+  },
+  "kg:scopeLevel": 0.01
+}

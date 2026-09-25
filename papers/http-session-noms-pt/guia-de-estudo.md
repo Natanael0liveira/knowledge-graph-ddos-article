@@ -157,38 +157,39 @@ Em ordem:
 Knowledge Graph.* A palavra que manda é **scoped**: a contribuição é o escopo da
 mitigação; o grafo é a camada onde a decisão é derivada e exportada.
 
-**O resumo, frase a frase.** Ele segue um arco: problema, virada, método,
-resultado negativo, solução, produção (com o custo à vista) e, no fecho, a resposta
-a "por que um grafo?".
+**O resumo, frase a frase.** Ele é contado do ponto de vista do operador: começa
+pela decisão que ele precisa tomar, mostra que a resposta óbvia é prejudicial, e só
+então apresenta o método, os resultados (com ganho e custo lado a lado) e o que o
+grafo acrescenta.
 
-1. *Um Slow HTTP DoS distribuído mantém cada origem abaixo de qualquer limiar por
-   origem.* O problema.
-2. *Sinalizar o endpoint atacado exige pouco mais que contar origens; a decisão
-   difícil é quem bloquear sem bloquear os próprios usuários, e a resposta natural
-   é prejudicial.* A tese e o suspense: a "resposta natural" é o escopo pela
-   impressão mais comum, que o artigo mostra ser prejudicial.
-3. *Modelamos a sessão HTTP como entidade de primeira classe de um grafo OWL, com
-   seis sub-propriedades ponderadas pelo custo de evasão; uma regra SPARQL/SWRL
-   deriva veredicto, evidência e escopo.* O método.
-4. *Em campanhas furtivas geradas, a detecção por sessão fica no acaso; atributos
-   entre sessões chegam a AUC 0,93–0,98.* Resultado 1.
-5. *O escopo pela impressão TLS mais comum bloqueia 0% do ataque e 39% do legítimo;
-   o teste de enriquecimento bloqueia 90% sem colateral e sem rótulo, igualando um
-   modelo aprendido que recebe o perfil e os rótulos da campanha.* O resultado
-   negativo e a solução, com a comparação justa.
-6. *Em oito dias de CDN, o teste nomeia pilhas que clientes reais também usam (o
-   filtro de inéditas não) e dispara em 4% dos flash crowds contra 65% do
-   z-score.* Por que o escopo importa em produção.
-7. *Unido a esse filtro atrás de um gatilho de origens, detém 38–78% de 100 a 1.000
-   atacantes (20–62% em pilhas compartilhadas) e dispara em 0,1% das janelas limpas,
-   onde bloqueia uma mediana de 30% dos clientes.* O saldo operacional, com o
-   ganho e o custo lado a lado.
-8. *O grafo justifica seu lugar: a consulta compilada reproduz janela a janela a
-   exportação de um dia de produção, um sinal novo custa 4 triplas e nenhum código,
-   e o STIX 2.1 passa no validador da OASIS em modo estrito.* O fecho responde à
-   principal objeção dos revisores com três fatos medidos.
+1. *Uma campanha de Slow HTTP DoS distribuída mantém cada origem abaixo de
+   qualquer limiar por origem, e por isso o operador enfrenta uma decisão de
+   escopo: quem bloquear sem bloquear os próprios usuários.* O problema, posto
+   como decisão de gerência (o que o NOMS valoriza).
+2. *A escolha natural, a impressão TLS mais comum do agrupamento, bloqueia 0% de
+   uma botnet espalhada em várias pilhas e 39% do tráfego legítimo.* O gancho: o
+   número que mais choca vem logo na segunda frase.
+3. *Derivamos o escopo de um grafo de conhecimento centrado na sessão: a ontologia
+   OWL faz da sessão entidade de primeira classe, com seis sub-propriedades
+   ponderadas pelo custo de evasão; uma regra SPARQL/SWRL dá o veredicto e a
+   evidência, e um teste binomial de enriquecimento nomeia as impressões a
+   bloquear.* O método.
+4. *Em campanhas furtivas geradas, onde a detecção por sessão fica no acaso, o
+   teste bloqueia 90% sem colateral e sem rótulo, tanto quanto um modelo aprendido
+   que recebe o mesmo perfil e os rótulos da campanha.* A solução, com a
+   comparação justa.
+5. *Em oito dias de CDN, ele nomeia pilhas que clientes reais também usam (o filtro
+   de inéditas não) e dispara em 4% dos flash crowds contra 65% do z-score.* Por
+   que o escopo importa em produção.
+6. *Atrás de um gatilho de origens e unido a esse filtro, dispara em 0,1% das
+   janelas limpas, onde bloqueia uma mediana de 30% dos clientes, e detém 38–78%
+   de 100 a 1.000 atacantes, 20–62% em pilhas compartilhadas.* O saldo
+   operacional, com o custo e o caso mais fraco à vista.
+7. *A consulta compilada da ontologia reproduz a exportação da operadora janela a
+   janela, e o veredicto sai como STIX 2.1 que passa no validador da OASIS.* O
+   fecho responde "por que um grafo?" com fatos medidos.
 
-O resumo tem 250 palavras, no limite do IEEE.
+O resumo tem 249 palavras, dentro do limite de 250 do IEEE.
 
 ---
 

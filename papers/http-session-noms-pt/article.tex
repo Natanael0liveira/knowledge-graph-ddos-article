@@ -93,29 +93,28 @@ Luigi Carro, J\'eferson Campos Nobre e Eder John Scheid}
 \maketitle
 
 \begin{abstract}
-Um Slow HTTP DoS distribuído mantém cada origem abaixo de qualquer limiar por
-origem. Sinalizar o \textit{endpoint} atacado exige pouco mais que contar origens;
-a decisão difícil é quais clientes bloquear sem bloquear os próprios usuários do
-serviço, e a resposta natural é prejudicial. Modelamos a sessão HTTP como entidade
-de primeira classe de um grafo de conhecimento OWL, ligada a outras sessões por
-seis sub-propriedades ponderadas pelo custo de evasão; uma única regra SPARQL/SWRL
-deriva veredicto, evidência e escopo. Em campanhas furtivas geradas, a detecção
-por sessão fica no acaso, enquanto atributos entre sessões alcançam ROC AUC
-$0{,}93$--$0{,}98$. Definir o escopo pela impressão digital TLS mais comum do
-agrupamento bloqueia $0\%$ de uma \textit{botnet} espalhada por várias pilhas e
-$39\%$ do tráfego legítimo; um teste binomial de enriquecimento contra o tráfego
-normal bloqueia $90\%$ sem colateral observado e sem rótulo, igualando um modelo
-aprendido que recebe o perfil e os rótulos da campanha. Em oito dias de tráfego de
-uma CDN o teste nomeia pilhas da \textit{botnet} que clientes reais também
-apresentam, o que um filtro de impressões digitais inéditas não consegue, e
-dispara em $4\%$ dos \textit{flash crowds} contra $65\%$ de um $z$-score. Unido a
-esse filtro atrás de um gatilho de origens distintas, detém $38$ a $78\%$ de 100 a
-1\,000 atacantes injetados por janela ($20$ a $62\%$ em pilhas compartilhadas) e
-dispara em $0{,}1\%$ das janelas limpas, onde bloqueia uma mediana de $30\%$ dos
-clientes. O grafo justifica seu lugar: sua consulta de contagens compilada
-reproduz, janela a janela, a exportação de um dia de produção, um sinal novo custa
-quatro triplas e nenhum código, e a exportação STIX~2.1 passa no validador da
-OASIS em modo estrito.
+Uma campanha distribuída de Slow HTTP DoS mantém cada origem abaixo de qualquer
+limiar por origem, e por isso o operador do \textit{endpoint} atacado enfrenta uma
+decisão de escopo: quais clientes bloquear sem bloquear os próprios usuários do
+serviço. A escolha natural, a impressão digital TLS mais comum do agrupamento,
+bloqueia $0\%$ de uma \textit{botnet} espalhada por várias pilhas TLS e $39\%$ do
+tráfego legítimo. Derivamos o escopo, em vez disso, de um grafo de conhecimento
+centrado na sessão: uma ontologia OWL faz da sessão HTTP uma entidade de primeira
+classe, ligada a outras sessões por seis sub-propriedades ponderadas pelo custo de
+evasão; uma regra SPARQL/SWRL produz o veredicto e sua evidência, e um teste
+binomial de enriquecimento contra o tráfego normal nomeia as impressões digitais a
+bloquear. Em campanhas furtivas geradas, onde a detecção por sessão fica no acaso,
+o teste bloqueia $90\%$ do ataque sem colateral observado e sem rótulo, tanto
+quanto um modelo aprendido que recebe o mesmo perfil e os rótulos da campanha. Em
+oito dias de tráfego de uma CDN ele nomeia pilhas da \textit{botnet} que clientes
+reais também apresentam, o que um filtro de impressões digitais inéditas não
+consegue, e dispara em $4\%$ dos \textit{flash crowds} contra $65\%$ de um
+$z$-score. Atrás de um gatilho de origens distintas e unido a esse filtro, dispara
+em $0{,}1\%$ das janelas limpas, onde bloqueia uma mediana de $30\%$ dos clientes,
+e detém $38$ a $78\%$ de 100 a 1\,000 atacantes injetados por janela, $20$ a $62\%$
+em pilhas compartilhadas. A consulta de contagens compilada a partir da ontologia
+reproduz a exportação da operadora janela a janela, e o veredicto é exportado como
+STIX~2.1 que passa no validador da OASIS.
 \end{abstract}
 
 \begin{IEEEkeywords}

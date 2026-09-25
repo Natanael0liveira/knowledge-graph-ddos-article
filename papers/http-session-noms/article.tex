@@ -106,26 +106,26 @@ Luigi Carro, J\'eferson Campos Nobre, and Eder John Scheid}
 \maketitle
 
 \begin{abstract}
-Distributed Slow HTTP DoS keeps every source below any per-source threshold.
-Flagging the attacked endpoint takes little more than an origin count; the hard
-decision is which clients to block without blocking the service's own users, and
-the natural answer is harmful. We model the HTTP session as a first-class entity of
-an OWL knowledge graph, linked to other sessions by six sub-properties weighted by
-evasion cost; one SPARQL/SWRL rule derives verdict, evidence and scope. On
-generated stealthy campaigns, per-session detection stays at chance while
-cross-session features reach ROC AUC $0.93$--$0.98$. Scoping by the cluster's most
-common TLS fingerprint blocks $0\%$ of a botnet spread over several stacks and
-$39\%$ of legitimate traffic; a binomial enrichment test against normal traffic
-blocks $90\%$ with no collateral observed and no label, matching a learned model
-given the profile and the campaign's labels. On eight days of CDN traffic the test
-names botnet stacks real clients also present, which a filter of unseen
-fingerprints cannot, and fires on $4\%$ of flash crowds against $65\%$ for a
-$z$-score. Joined with that filter behind a distinct-origin trigger, it stops
-$38$--$78\%$ of 100 to 1\,000 injected attackers per window ($20$--$62\%$ on shared
-stacks) and fires on $0.1\%$ of clean windows, where it blocks a median $30\%$ of
-clients. The graph earns its place: its compiled count query matches a
-production day's export window for window, a new signal costs four triples and no
-code, and the STIX~2.1 export passes the OASIS validator in strict mode.
+A distributed Slow HTTP DoS campaign keeps every source below any per-source
+threshold, so the operator of the attacked endpoint faces a scoping decision:
+which clients to block without blocking the service's own users. The natural
+choice, the cluster's most common TLS fingerprint, blocks $0\%$ of a botnet spread
+over several TLS stacks and $39\%$ of legitimate traffic. We derive the scope from a
+session-centric knowledge graph instead: an OWL ontology makes the HTTP session a
+first-class entity, linked to other sessions by six sub-properties weighted by
+evasion cost; one SPARQL/SWRL rule yields the verdict and its evidence, and a
+binomial enrichment test against normal traffic names the fingerprints to block.
+On generated stealthy campaigns, where per-session detection stays at chance, the
+test blocks $90\%$ of the attack with no collateral observed and no label, as much
+as a learned model given the same profile and the campaign's labels. On eight days
+of a CDN's traffic it names botnet stacks that real clients also present, which a
+filter of unseen fingerprints cannot, and fires on $4\%$ of flash crowds against
+$65\%$ for a $z$-score. Behind a distinct-origin trigger and joined with that
+filter, it fires on $0.1\%$ of clean windows, where it blocks a median $30\%$ of
+clients, and stops $38$--$78\%$ of 100 to 1\,000 injected attackers per window,
+$20$--$62\%$ on shared stacks. The count query compiled from the ontology matches
+the operator's export window for window, and the verdict exports as STIX~2.1 that
+passes the OASIS validator.
 \end{abstract}
 
 \begin{IEEEkeywords}

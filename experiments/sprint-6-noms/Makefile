@@ -35,10 +35,20 @@ K        ?= 50 1000
 # sigma = 0.002 of earlier revisions.
 SIG      ?= 0.01
 SIGFLAG   = $(if $(SIG),--significance $(SIG))
+# The paper's method (Section III-H): Omega and the scope count distinct origins
+# (source addresses), and the scope's test level is calibrated per endpoint on
+# attack-free traffic, as tau is, never above SIG. `make METHOD= <target>` reruns
+# with the session count and nominal level of earlier revisions.
+METHOD   ?= origin
+METHODFLAG = $(if $(METHOD),--unit $(METHOD) --calibrate-level)
+# The per-cluster experiments evaluate the cluster of largest Omega, chosen with no
+# label; `make CLUSTER= <target>` restores the attack-share choice of earlier revisions.
+CLUSTER  ?= label-free
+CLUSTERFLAG = $(if $(CLUSTER),--label-free-cluster)
 # Attack-free runs of rule_detection.py (calibration, test and flash-crowd donors).
 RULEWORK ?= $(DATA)/synth/sprint6_rule
 
-.PHONY: help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule audit
+.PHONY: help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule rule-production production-summary audit compile-check stix-check rule-production-fleets fleet-selection
 
 help:
 	@echo "make latency            # no external data required"
@@ -78,7 +88,8 @@ REALWORK ?= $(DATA)/synth/sprint6_realistic
 realistic: check-data
 	nice -n 10 $(PY) scripts/realistic_probe.py \
 	  --grid 0:1:0 1.5:1:0 1.5:5:0 1.5:25:0 1.5:100:0 2.0:25:0 1.5:5:1 1.5:25:1 2.0:25:1 \
-	  --seeds 15 --dist-dir $(DIST) --work $(REALWORK) --out-dir $(RESULTS) --tag final $(SIGFLAG)
+	  --seeds 15 --dist-dir $(DIST) --work $(REALWORK) --out-dir $(RESULTS) --tag final $(SIGFLAG) \
+	  $(METHODFLAG) --clean-work $(RULEWORK) $(CLUSTERFLAG)
 
 canonical: check-data
 	nice -n 10 $(PY) scripts/run_canonical_realistic.py --seeds $(SEEDS) --K $(K) \
@@ -94,13 +105,16 @@ symbolic: check-data
 	nice -n 10 $(PY) scripts/symbolic_detector.py --work $(REALWORK) \
 	  --grid 0.0:1:0 1.5:1:0 1.5:5:0 1.5:25:0 1.5:100:0 2.0:25:0 \
 	         1.5:5:1 1.5:25:1 2.0:25:1 \
-	  --K 1000 --seeds 15 --out-dir $(RESULTS) $(SIGFLAG)
+	  --K 1000 --seeds 15 --out-dir $(RESULTS) $(SIGFLAG) \
+	  $(METHODFLAG) $(CLUSTERFLAG) --clean-work $(RULEWORK) --dist-dir $(DIST)
 
 drift: check-data
 	nice -n 10 $(PY) scripts/profile_drift.py --work $(REALWORK) \
-	  --alpha 1.5 --stacks 25 --K 1000 --seeds 15 --out-dir $(RESULTS) $(SIGFLAG)
+	  --alpha 1.5 --stacks 25 --K 1000 --seeds 15 --out-dir $(RESULTS) $(SIGFLAG) \
+	  $(METHODFLAG) $(CLUSTERFLAG) --clean-work $(RULEWORK) --dist-dir $(DIST)
 	nice -n 10 $(PY) scripts/profile_drift.py --work $(REALWORK) --pooled-work $(RULEWORK) \
-	  --alpha 1.5 --stacks 100 --K 1000 --seeds 15 --out-dir $(RESULTS) $(SIGFLAG) --tag _m100
+	  --alpha 1.5 --stacks 100 --K 1000 --seeds 15 --out-dir $(RESULTS) $(SIGFLAG) --tag _m100 \
+	  $(METHODFLAG) $(CLUSTERFLAG) --clean-work $(RULEWORK) --dist-dir $(DIST)
 
 all-hd: ml window realistic canonical purity symbolic drift
 
@@ -114,11 +128,59 @@ baselines: check-data
 # The rule Omega >= tau as a window-level detector, with flash crowds. Benign
 # traffic is spread over 60 min, since the generator packs it into one window;
 # the stealth campaign does not raise the aggregate rate, so condition (iv) is off;
-# the background profile pools the 30 attack-free calibration runs.
+# the background profile pools the 30 attack-free calibration runs. The second
+# run repeats it with the 1,000-session profile of the cluster-level experiments.
 rule: check-data
 	nice -n 10 $(PY) scripts/rule_detection.py --work $(REALWORK) --clean-work $(RULEWORK) \
 	  --dist-dir $(DIST) --out-dir $(RESULTS) --percentiles 99 --steady-minutes 60 \
-	  --tau-rate 0 --profile calib $(SIGFLAG) --tag _steady60_rate0_bigprof_binom
+	  --tau-rate 0 --profile calib $(SIGFLAG) $(METHODFLAG) --tag _steady60_rate0_bigprof_binom
+	nice -n 10 $(PY) scripts/rule_detection.py --work $(REALWORK) --clean-work $(RULEWORK) \
+	  --dist-dir $(DIST) --out-dir $(RESULTS) --percentiles 99 --steady-minutes 60 \
+	  --tau-rate 0 --profile baseline $(SIGFLAG) $(METHODFLAG) --tag _steady60_rate0_binom
+
+# The rule per window on production traffic, with the canonical botnet injected
+# into the counts. The exports are aggregates of a CDN's access log, kept on the
+# data drive (one YYYY-MM-DD directory per day) and never in the repository; the
+# results go next to them for the same reason. The origin count needs the E3/E4
+# exports; SPLIT=rolling tests each day on a profile, tau and level calibrated on
+# the days before it, as the rule would run.
+PRODDATA ?= $(DATA)/azion
+SPLIT    ?= rolling
+
+rule-production:
+	@test -d "$(PRODDATA)" || { \
+	  echo "ERROR: $(PRODDATA) not found (production exports live on the data drive)."; \
+	  exit 1; }
+	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
+	  --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) \
+	  $(if $(METHOD),$(METHODFLAG),--unit session) --tag _$(SPLIT)_$(or $(METHOD),session)
+
+# The known-fleet profile (README section 11): the grid of shares, then the choice
+# on the first three test days and the held-out test on the last two.
+FLEETS ?= 0.005 0.01 0.02 0.05
+rule-production-fleets:
+	for s in $(FLEETS); do nice -n 10 $(PY) scripts/rule_detection_production.py \
+	  --data-dir $(PRODDATA) --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) \
+	  $(METHODFLAG) --fleets $$s --tag _$(SPLIT)_$(METHOD)_fleets$$s & done; wait
+fleet-selection:
+	$(PY) scripts/fleet_selection.py --results $(PRODDATA)/results --roles $(PRODDATA)/roles.json \
+	  --shares $(FLEETS) --out $(RESULTS)/fleet_profile.json
+
+# The anonymized summary of rule-production that the paper and `make audit` read:
+# E1..E4 with generic roles (from roles.json on the drive), rates only.
+production-summary:
+	$(PY) scripts/production_summary.py --results $(PRODDATA)/results \
+	  --roles $(PRODDATA)/roles.json --out $(RESULTS)/production_summary.json
+
+# The count query compiled from the ontology, checked against decompose_omega on
+# generated sessions, plus a sub-relation added to a copy of the ontology (no data).
+compile-check:
+	$(PY) scripts/compile_counts.py --check --out $(RESULTS)/compile_check.json
+
+# Every committed evidence chain exported as STIX 2.1 and checked by the OASIS
+# validator, strict mode included (no data).
+stix-check:
+	$(PY) scripts/stix_check.py --out $(RESULTS)/stix_validation.json
 
 # Recompute every sprint-6 number of the paper from results/ and compare with the
 # text of article.tex. Needs no drive: it reads only the committed result files.

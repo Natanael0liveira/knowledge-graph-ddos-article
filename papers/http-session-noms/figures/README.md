@@ -8,8 +8,9 @@ Sources in `src-drawio/*.drawio`.
 
 | Figure | Source | Canvas |
 |---|---|---|
-| `fig1_ontology` | `src-drawio/fig1_ontology.drawio` | 1032 × 396, included at 0.95`\textwidth` |
-| `fig2_pipeline` | `src-drawio/fig_pipeline.drawio` | 1032 × 346, included at 0.93`\textwidth` |
+| `fig1_ontology` | `src-drawio/fig1_ontology.drawio` | 1032 × 396, included at 0.9`\textwidth` |
+
+`fig2_pipeline` (`src-drawio/fig_pipeline.drawio`) left the paper in round 7.
 
 **Workflow.** Open the `.drawio` at [app.diagrams.net](https://app.diagrams.net)
 or in the desktop app, edit, then *File ▸ Export as ▸ PDF* with **Crop** on and
@@ -51,15 +52,17 @@ Colour only when it carries meaning, never for emphasis.
 
 ## 2. Data plots — generated from code
 
-`fig3_collateral`, `fig4_regime` and `fig5_latency` come from
+`fig3_collateral`, `fig4_operating` and `fig5_latency` come from
 `make_figures_en.py`, reading the results in
-`experiments/sprint-6-noms/results/`.
+`experiments/sprint-6-noms/results/` (`unseen_synth_summary.csv`,
+`production_tables.json`, `latency_summary.json`). `fig4_regime` is no longer in
+the paper.
 
 ```bash
 python make_figures_en.py
 ```
 
-**Do not redraw these by hand.** Appendix E of the paper promises that every
+**Do not redraw these by hand.** Appendix F of the paper promises that every
 figure regenerates from one command; drawing them would turn a measured number
 into an illustration and break that promise. To bring them closer to the
 schematics, change matplotlib settings — font family, line weight, palette — not
@@ -80,18 +83,20 @@ In `make_figures_en.py` the constants keep their historical names (`NAVY`,
 `BAR_GRAY`, `CHANCE`) so the function bodies did not have to change; only the
 values did.
 
-### Numbering: filename matches the printed number
+### Numbering: printed number and file
+
+The filenames no longer match the printed numbers since the pipeline figure left;
+they will be renamed once the figure set settles. Until then this table is the
+mapping:
 
 | Printed | Source | Type |
 |---|---|---|
 | Fig. 1 | `src-drawio/fig1_ontology.drawio` | draw.io schematic |
-| Fig. 2 | `src-drawio/fig_pipeline.drawio` | draw.io schematic |
-| Fig. 3 | `fig3_collateral.png` | generated |
-| Fig. 4 | `fig4_regime.png` | generated |
-| Fig. 5 | `fig5_latency.png` | generated |
+| Fig. 2 | `fig3_collateral.png` | generated |
+| Fig. 3 | `fig5_latency.png` | generated |
+| Fig. 4 | `fig4_operating.png` | generated |
 | Listing 1 | `verbatim` block, Appendix A | SWRL / SPARQL rules |
 | Listing 2 | `verbatim` block, Appendix D | evidence chain |
 
-**If you add or remove a float, check the numbering in the PDF and rename the
-files to match.** The mapping above is the only thing keeping the two categories
-navigable.
+**If you add or remove a float, check the numbering in the PDF and update this
+table.**

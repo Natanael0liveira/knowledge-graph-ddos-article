@@ -45,8 +45,8 @@ CONSTRUCTS = {
                 ?b a kg:ApplicationSession ; kg:targets ?e . FILTER(STR(?a) < STR(?b)) }""",
     "relatedByNetworkProximity": """
         CONSTRUCT { ?a kg:relatedByNetworkProximity ?b }
-        WHERE { ?a a kg:ApplicationSession ; kg:srcNet24 ?n .
-                ?b a kg:ApplicationSession ; kg:srcNet24 ?n . FILTER(STR(?a) < STR(?b)) }""",
+        WHERE { ?a a kg:ApplicationSession ; kg:srcPrefix ?n .
+                ?b a kg:ApplicationSession ; kg:srcPrefix ?n . FILTER(STR(?a) < STR(?b)) }""",
 }
 
 
@@ -108,7 +108,7 @@ def toy_graph() -> Graph:
         s = KG[f"session/{sid}"]
         g.add((s, RDF.type, KG.ApplicationSession))
         g.add((s, KG.tlsJa4, Literal(ja4)))
-        g.add((s, KG.srcNet24, Literal(net24)))
+        g.add((s, KG.srcPrefix, Literal(net24)))
         g.add((s, KG.targets, KG[f"endpoint/{ep}"]))
     # 5 atacantes furtivos: MESMO JA4, /24 dispersos, MESMO endpoint :443
     for i in range(5):

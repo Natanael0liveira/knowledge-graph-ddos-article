@@ -39,7 +39,11 @@ Protocol:
   host's median calibration window, on a separate random stream;
 - baseline scopes, under the same Omega >= tau: a per-fingerprint z-score against
   the profile (z > 3), a filter of fingerprints absent from the profile, and the
-  union of that filter with the enrichment test;
+  union of that filter with the enrichment test; and two baselines calibrated to
+  the enrichment test's budget (a filter in at most 1% of the endpoint's
+  attack-free calibration windows): the same z-score with its threshold raised to
+  that budget (``zcal``), and a z-score of each fingerprint against its own counts
+  over the calibration windows (``zhist``);
 - a second trigger, the number of distinct origins at or above its 99th percentile
   over the calibration windows, under which every scope is reported again;
 - flash crowd: N legitimate sessions drawn from the host's own test traffic added
@@ -76,7 +80,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.stats import binom
+from scipy.stats import betabinom, binom
 
 HERE = Path(__file__).resolve()
 EXP = HERE.parents[2]
@@ -168,7 +172,9 @@ def adjusted_p(counts, profile, rho, exclude=frozenset()):
     ``counts`` holds a window's TLS sessions per fingerprint, most common first;
     ``profile`` the host's prevalence per fingerprint, with its session count in
     ``attrs["n"]``. A fingerprint below the enrichment ratio ``rho``, or in
-    ``exclude`` (the host's known fleets), gets inf.
+    ``exclude`` (the host's known fleets), gets inf. With ``profile.attrs["phi"]``
+    (``--overdispersion``), a fingerprint of the profile with intra-window
+    correlation phi > 0 is tested against a beta-binomial of the same mean instead.
     """
     counts = counts[counts > 0]
     n = int(counts.sum())
@@ -179,6 +185,14 @@ def adjusted_p(counts, profile, rho, exclude=frozenset()):
     bf = profile.reindex(counts.index).fillna(0.0).to_numpy() + eps
     c = counts.to_numpy(dtype=float)
     p = binom.sf(c - 1, n, np.minimum(bf, 1.0))
+    phi = profile.attrs.get("phi")
+    if phi is not None:
+        ph = phi.reindex(counts.index).fillna(0.0).to_numpy()
+        od = ph > 1e-9
+        if od.any():
+            bb = np.minimum(bf[od], 1.0 - 1e-12)
+            shape = (1.0 - ph[od]) / ph[od]
+            p[od] = betabinom.sf(c[od] - 1, n, bb * shape, (1.0 - bb) * shape)
     adj = np.where(c / n / bf >= rho, p * family, np.inf)
     if exclude:
         adj = np.where(counts.index.isin(list(exclude)), np.inf, adj)
@@ -210,7 +224,7 @@ def known_fleets(cal, prof, args):
     return frozenset(f for f, c in named.items() if el and c / len(el) >= args.fleets)
 
 
-def judge(legit, n_legit, p24, profile, args, bot=None, alpha=None, exclude=frozenset()):
+def judge(legit, n_legit, p24, profile, args, bot=None, alpha=None, exclude=frozenset(), cal=None):
     """Omega, scope, coverage and collateral of one window.
 
     ``legit`` counts the TLS sessions of legitimate users per fingerprint and
@@ -228,7 +242,7 @@ def judge(legit, n_legit, p24, profile, args, bot=None, alpha=None, exclude=froz
            if bot is not None and named else 0.0)
     out = {"size": n, "omega": omega, "scope_named": bool(named), "n_named": len(named),
            "scope_recall": cov, "scope_collateral": coll}
-    picks = baseline_scopes(total, profile, args)
+    picks = baseline_scopes(total, profile, args, cal)
     # The union of the enrichment test and the unseen filter: the calibrated level is
     # set by fleets, which present fingerprints of the profile, and no fleet presents
     # one absent from it.
@@ -242,23 +256,65 @@ def judge(legit, n_legit, p24, profile, args, bot=None, alpha=None, exclude=froz
     return out, total, named
 
 
-def baseline_scopes(counts, profile, args):
-    """Two simple scopes an operator could derive instead of the enrichment test.
+def baseline_scopes(counts, profile, args, cal=None):
+    """Simple scopes an operator could derive instead of the enrichment test.
 
     ``zscore``  every fingerprint whose count exceeds its expectation under the
                 profile by more than three standard deviations (normal approximation,
                 no multiple-testing correction, no calibration);
     ``unseen``  every fingerprint absent from the profile seen in at least k_min
-                units, the case the injected botnet stacks fall in.
+                units, the case the injected botnet stacks fall in;
+    ``zcal``    the ``zscore`` scope with its threshold calibrated per endpoint to the
+                enrichment test's budget (``cal["zcal"]``, see calibrate_baselines);
+    ``zhist``   every fingerprint whose count exceeds its own mean over the calibration
+                windows by more than ``cal["zhist"]`` of its own standard deviations
+                (at least one unit), the same budget.
     """
     counts = counts[counts > 0]
     n = float(counts.sum())
+    empty = {"zscore": set(), "unseen": set()} | ({"zcal": set(), "zhist": set()} if cal else {})
     if not n:
-        return {"zscore": set(), "unseen": set()}
+        return empty
     b = profile.reindex(counts.index).fillna(0.0).to_numpy() + 1.0 / max(profile.attrs["n"], 1)
     z = (counts.to_numpy(dtype=float) - n * b) / np.sqrt(n * b * (1 - np.minimum(b, 0.999999)))
     unseen = ~counts.index.isin(profile.index) & (counts.to_numpy() >= args.k_min)
-    return {"zscore": set(counts.index[z > 3]), "unseen": set(counts.index[unseen])}
+    out = {"zscore": set(counts.index[z > 3]), "unseen": set(counts.index[unseen])}
+    if cal:
+        out["zcal"] = set(counts.index[z > cal["zcal"]])
+        out["zhist"] = set(counts.index[history_z(counts, cal) > cal["zhist"]])
+    return out
+
+
+def history_z(counts, cal):
+    """z of each fingerprint's count against its own calibration history."""
+    mu = cal["mu"].reindex(counts.index).fillna(0.0).to_numpy()
+    sd = cal["sd"].reindex(counts.index).fillna(0.0).to_numpy()
+    return (counts.to_numpy(dtype=float) - mu) / np.maximum(sd, 1.0)
+
+
+def calibrate_baselines(cal, prof, args):
+    """Thresholds of the two calibrated baselines, at the enrichment test's budget.
+
+    Over the endpoint's attack-free calibration windows of at least k_min units, the
+    threshold is the p-th percentile (p the first --percentiles value) of the window's
+    largest z, so either scope names a filter in at most (100 - p)% of them, as the
+    test's level is set; never below 3, the uncalibrated threshold.
+    """
+    el = [r for r in cal if r["n"] >= args.k_min and r["clean"].sum() > 0]
+    hist = pd.DataFrame([r["clean"] for r in el]).fillna(0.0)
+    out = {"mu": hist.mean(), "sd": hist.std(ddof=0)}
+    zmax, hmax = [], []
+    for r in el:
+        c = r["clean"][r["clean"] > 0]
+        n, P = float(c.sum()), prof(r)
+        b = P.reindex(c.index).fillna(0.0).to_numpy() + 1.0 / max(P.attrs["n"], 1)
+        zmax.append(float(((c.to_numpy(dtype=float) - n * b)
+                           / np.sqrt(n * b * (1 - np.minimum(b, 0.999999)))).max()))
+        hmax.append(float(history_z(c, out).max()))
+    p = args.percentiles[0]
+    out["zcal"] = max(3.0, float(np.percentile(zmax, p, method="higher")))
+    out["zhist"] = max(3.0, float(np.percentile(hmax, p, method="higher")))
+    return out
 
 
 def botnet(A, stacks, args, rng):
@@ -280,7 +336,13 @@ def stacks_for(source, M, profile, rng):
 
 
 def self_check(samples, args):
-    """The count-based scope against derive_scope_enriched on expanded windows."""
+    """The count-based scope against derive_scope_enriched on expanded windows.
+
+    derive_scope_enriched implements the binomial only, so the check is skipped
+    under --overdispersion.
+    """
+    if args.overdispersion:
+        return {"windows": 0, "mismatches": 0, "skipped": "overdispersion"}
     bad = 0
     for total, n_nontls, profile, alpha, named, fleets in samples:
         ja4 = np.repeat(total.index.to_numpy(dtype=object), total.to_numpy().astype(int))
@@ -312,6 +374,28 @@ def dispersion(cal, profile, k_min, lo=0, hi=20):
             "min": float(phi.min()), "max": float(phi.max())}
 
 
+def intra_window_correlation(cal, profile, k_min, cap=0.99):
+    """Moment estimate of each profile fingerprint's intra-window correlation phi.
+
+    Under a beta-binomial with mean b and correlation phi, a fingerprint's count
+    among a window's n units has Var[c] = n b (1 - b) (1 + (n - 1) phi). Over the
+    calibration windows of at least k_min units,
+        phi = sum[(c - n b)^2 - n b (1 - b)] / sum[n (n - 1) b (1 - b)],
+    clipped to [0, cap]. A fleet of clients that switch on together gets a large
+    phi; a fingerprint absent from the profile gets none (the binomial).
+    """
+    el = [r for r in cal if r["n"] >= k_min and r["clean"].sum() > 0]
+    if not el:
+        return pd.Series(0.0, index=profile.index)
+    n = np.array([r["clean"].sum() for r in el], dtype=float)[:, None]
+    c = np.array([r["clean"].reindex(profile.index).fillna(0).to_numpy(dtype=float) for r in el])
+    b = profile.to_numpy(dtype=float)[None, :]
+    num = ((c - n * b) ** 2 - n * b * (1 - b)).sum(axis=0)
+    den = (n * (n - 1) * b * (1 - b)).sum(axis=0)
+    phi = np.clip(np.divide(num, den, out=np.zeros_like(num), where=den > 0), 0.0, cap)
+    return pd.Series(phi, index=profile.index)
+
+
 def summarize(d, k_min):
     """Fire rates of the three rules, and coverage and collateral where they fire.
 
@@ -334,7 +418,7 @@ def summarize(d, k_min):
         out[f"coverage_{rule}"] = float(x["scope_recall"].median()) if len(x) else None
         out[f"collateral_{rule}_median"] = float(x["scope_collateral"].median()) if len(x) else None
         out[f"collateral_{rule}_max"] = float(x["scope_collateral"].max()) if len(x) else None
-    for base in ("zscore", "unseen", "union"):
+    for base in ("zscore", "unseen", "union", "zcal", "zhist"):
         if f"{base}_named" not in d:
             continue
         f = om & d[f"{base}_named"].astype(bool)
@@ -347,7 +431,7 @@ def summarize(d, k_min):
         org = d["size"] >= d["tau_origins"]
         out["origins"] = float(org.mean()) if len(d) else None
         for base, col in (("enrichment", "scope"), ("zscore", "zscore"), ("unseen", "unseen"),
-                          ("union", "union")):
+                          ("union", "union"), ("zcal", "zcal"), ("zhist", "zhist")):
             if f"{col}_named" not in d:
                 continue
             f = org & d[f"{col}_named"].astype(bool)
@@ -383,6 +467,8 @@ def prepare_hosts(recs, part, args):
             continue
         profile = (bg / bg.sum()).sort_values(ascending=False)
         profile.attrs["n"] = int(bg.sum())
+        if args.overdispersion:
+            profile.attrs["phi"] = intra_window_correlation(cal, profile, args.k_min)
         hourly = None
         if args.profile_by_hour is not None:
             # One profile per UTC hour, from the calibration windows within
@@ -420,29 +506,33 @@ def evaluate_host(host, H, fold, args, rng, add):
              for r in H["calib"] if r["n"] >= args.k_min]
         a = min(a, float(np.percentile(t, 100 - args.percentiles[0], method="lower")))
     H["alpha"] = a
+    cb = H["baselines"] = calibrate_baselines(H["calib"], prof, args)
     base = {"fold": fold, "host": host, "alpha": a}
     for r in H["calib"]:
-        res, total, named = judge(r["clean"], r["n"], r["p24"], prof(r), args, alpha=a, exclude=fl)
+        res, total, named = judge(r["clean"], r["n"], r["p24"], prof(r), args, alpha=a, exclude=fl, cal=cb)
         add({"kind": "calib", **base, "window": r["window"], **res}, total, named, prof(r), r["n_nontls"])
     for r in H["test"]:
         base = {"fold": fold, "host": host, "alpha": a, "window": r["window"]}
         Pr = prof(r)
-        res, total, named = judge(r["clean"], r["n"], r["p24"], Pr, args, alpha=a, exclude=fl)
+        res, total, named = judge(r["clean"], r["n"], r["p24"], Pr, args, alpha=a, exclude=fl, cal=cb)
         add({"kind": "clean", **base, **res, "named": ";".join(sorted(named))},
             total, named, Pr, r["n_nontls"])
         # WAF diagnostic: every session, blocked or not; P_24 still clean-only.
-        res, total, named = judge(r["all"], r["n_all"], r["p24"], Pr, args, alpha=a, exclude=fl)
+        res, total, named = judge(r["all"], r["n_all"], r["p24"], Pr, args, alpha=a, exclude=fl, cal=cb)
         hit = r["all"].index.isin(named)
+        hit_u = r["all"].index.isin(named | baseline_scopes(total, Pr, args)["unseen"])
         add({"kind": "waf", **base, **res, "named": ";".join(sorted(named)),
              "waf_sessions": int(r["waf"].sum()), "matched": int(r["all"][hit].sum()),
-             "matched_waf": int(r["waf"][hit].sum())}, total, named, Pr)
+             "matched_waf": int(r["waf"][hit].sum()),
+             "matched_union": int(r["all"][hit_u].sum()),
+             "matched_waf_union": int(r["waf"][hit_u].sum())}, total, named, Pr)
         for N in args.flash:
             idx, p = H["pool"]
             drawn = pd.Series(np.bincount(rng.choice(len(idx), N, p=p), minlength=len(idx)), index=idx)
             crowd = drawn.drop(NO_TLS, errors="ignore")
             legit = r["clean"].add(crowd[crowd > 0], fill_value=0)
             p24 = r["p24"] + H["pair_rate"] * (c2([r["n"] + N]) - c2([r["n"]]))
-            res, total, named = judge(legit, r["n"] + N, p24, Pr, args, alpha=a, exclude=fl)
+            res, total, named = judge(legit, r["n"] + N, p24, Pr, args, alpha=a, exclude=fl, cal=cb)
             add({"kind": "flash", **base, "flash": N, **res, "named": ";".join(sorted(named))},
                 total, named, Pr, r["n_nontls"] + int(drawn.get(NO_TLS, 0)))
         for source in args.sources:
@@ -453,7 +543,7 @@ def evaluate_host(host, H, fold, args, rng, add):
                 for A in args.attackers:
                     bot, bot_p24 = botnet(A, stacks, args, rng)
                     res, total, named = judge(r["clean"], r["n"], r["p24"] + bot_p24, Pr, args,
-                                              bot, alpha=a, exclude=fl)
+                                              bot, alpha=a, exclude=fl, cal=cb)
                     add({"kind": "attack", **base, "source": source, "stacks": M,
                          "attackers": A, **res}, total, named, Pr, r["n_nontls"])
         # Botnets sized as a fraction of the endpoint's typical window, so a small
@@ -467,7 +557,7 @@ def evaluate_host(host, H, fold, args, rng, add):
                 A = max(1, int(round(frac * H["median_origins"])))
                 bot, bot_p24 = botnet(A, stacks, args, H["rng_rel"])
                 res, total, named = judge(r["clean"], r["n"], r["p24"] + bot_p24, Pr, args,
-                                          bot, alpha=a, exclude=fl)
+                                          bot, alpha=a, exclude=fl, cal=cb)
                 add({"kind": "attack_rel", **base, "source": source, "stacks": 25,
                      "fraction": frac, "attackers": A, **res}, total, named, Pr, r["n_nontls"])
 
@@ -499,6 +589,10 @@ def main():
     ap.add_argument("--fleets", type=float, default=None, metavar="SHARE",
                     help="known fleets: fingerprints the test names at the nominal level in at least "
                          "SHARE of the calibration windows leave the scope and the level's calibration")
+    ap.add_argument("--overdispersion", action="store_true",
+                    help="test each fingerprint of the profile against a beta-binomial whose "
+                         "intra-window correlation is estimated on the calibration windows, "
+                         "instead of the binomial (a fingerprint absent from the profile keeps the binomial)")
     ap.add_argument("--calibrate-level", action="store_true",
                     help="lower each host's test level until the scope names a filter in at "
                          "most (100 - p)%% of its calibration windows, p the first percentile, "
@@ -522,6 +616,8 @@ def main():
     ap.add_argument("--checks", type=int, default=60, help="windows in the scope self-check")
     ap.add_argument("--tag", default="", help="suffix for the output files")
     args = ap.parse_args()
+    if args.overdispersion and args.profile_by_hour is not None:
+        raise SystemExit("--overdispersion is implemented for one profile per host only")
     args.out_dir.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(20260924)
 
@@ -601,8 +697,16 @@ def main():
                 "top1_share": float(H["profile"].iloc[0]), "pair_rate": H["pair_rate"],
                 "dispersion": H["dispersion"], "scope_level": H["alpha"],
                 "fleets": len(H["fleets"]),
+                "phi_head_median": (float(H["profile"].attrs["phi"].iloc[:20].median())
+                                    if "phi" in H["profile"].attrs else None),
+                "phi_fleets_median": (float(H["profile"].attrs["phi"].reindex(list(H["fleets"])).median())
+                                      if "phi" in H["profile"].attrs and H["fleets"] else None),
                 "fleet_share": float(H["profile"].reindex(list(H["fleets"])).fillna(0).sum()),
                 "scope_named_calibration": float(c["scope_named"].mean()),
+                "median_origins": H["median_origins"],
+                "tail_prevalence_median": (float(H["profile"].iloc[10:].median())
+                                           if len(H["profile"]) > 10 else None),
+                "zcal_threshold": H["baselines"]["zcal"], "zhist_threshold": H["baselines"]["zhist"],
                 "tau": {str(p): float(np.percentile(c["omega"], p)) for p in args.percentiles},
                 "tau_origins": {str(p): float(np.percentile(c["size"], p)) for p in args.percentiles}}
     for host in sorted({h for f in out["folds"].values() for h in f}):
@@ -642,6 +746,14 @@ def main():
                 if m["matched"].sum() else None,
                 "waf_covered_share": float(m["matched_waf"].sum() / w["waf_sessions"].sum())
                 if w["waf_sessions"].sum() else None}
+            if "matched_union" in w:
+                mu_ = w[w["union_named"].astype(bool)]
+                res["waf"][h].update({
+                    "union": float(w["union_named"].astype(bool).mean()) if len(w) else None,
+                    "union_matched_waf_share": (float(mu_["matched_waf_union"].sum() / mu_["matched_union"].sum())
+                                                if mu_["matched_union"].sum() else None),
+                    "union_waf_covered_share": (float(mu_["matched_waf_union"].sum() / w["waf_sessions"].sum())
+                                                if w["waf_sessions"].sum() else None)})
             for N, g in dh[dh["kind"] == "flash"].groupby("flash"):
                 res["flash"].setdefault(str(N), {})[h] = summarize(g, args.k_min)
             for (s, M, A), g in dh[dh["kind"] == "attack"].groupby(["source", "stacks", "attackers"]):

@@ -22,20 +22,22 @@ DATA     ?= ../data
 # Calibrated generator distributions (aggregates of public CICIDS2017), versioned
 # in sprint-2/distributions so scenario generation does not need the data drive.
 DIST     ?= ../sprint-2/distributions
-# Canonical scenario cache: the REALISTIC same-service run that produced the
-# paper's Table III. NOT synth/sprint4 (pre-flow-feature cache, missing columns)
-# and NOT synth/sprint4_strong_work (still carries the target-port artefact,
-# where config (b) reaches 0.888 instead of collapsing to chance).
+# Scenario cache of the sprint-4 reproduction (same-service, near-uniform benign
+# pool, monolithic botnet), read by `ml`, `window` and `purity`. The paper's
+# canonical scenarios (alpha = 1.5, 25 TLS stacks) are REALWORK below. NOT
+# synth/sprint4 (pre-flow-feature cache, missing columns) and NOT
+# synth/sprint4_strong_work (still carries the target-port artefact, where
+# config (b) reaches 0.888 instead of collapsing to chance).
 WORK     ?= $(DATA)/synth/sprint4_realistic_work
 RESULTS  ?= results
 SEEDS    ?= 30
 K        ?= 50 1000
 # Family-wise level of the binomial over-representation test that selects the
-# fingerprints of the enrichment scope (Section III-H). Empty = the fixed floor
+# fingerprints of the enrichment scope (Section III-G). Empty = the fixed floor
 # sigma = 0.002 of earlier revisions.
 SIG      ?= 0.01
 SIGFLAG   = $(if $(SIG),--significance $(SIG))
-# The paper's method (Section III-H): Omega and the scope count distinct origins
+# The paper's method (Section III-G): Omega and the scope count distinct origins
 # (source addresses), and the scope's test level is calibrated per endpoint on
 # attack-free traffic, as tau is, never above SIG. `make METHOD= <target>` reruns
 # with the session count and nominal level of earlier revisions.
@@ -48,16 +50,23 @@ CLUSTERFLAG = $(if $(CLUSTER),--label-free-cluster)
 # Attack-free runs of rule_detection.py (calibration, test and flash-crowd donors).
 RULEWORK ?= $(DATA)/synth/sprint6_rule
 
-.PHONY: help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule rule-production production-summary audit compile-check stix-check stix-ingest rule-production-fleets fleet-selection
+.PHONY: rule-production-od help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule rule-production production-summary audit compile-check stix-check stix-ingest rule-production-fleets fleet-selection rule-production-fresh production-tables unseen-synth cross-m
 
 help:
-	@echo "make latency            # no external data required"
-	@echo "make ml                 # needs the HD (reuses the sprint-4 scenario cache)"
-	@echo "make window             # needs the HD"
-	@echo "make realistic          # needs the HD"
-	@echo "make canonical          # needs the HD — gera a tabela do paper"
-	@echo "make purity             # needs the HD"
-	@echo "make all-hd             # tudo que precisa do HD"
+	@echo "No external data required:"
+	@echo "  make audit              # every sprint-6 number of the paper against results/"
+	@echo "  make compile-check      # the count query compiled from the ontology, on generated sessions"
+	@echo "  make stix-check         # the exported STIX 2.1 bundles, OASIS validator in strict mode"
+	@echo "  make stix-ingest        # the same bundles through TAXII 2.1 and MISP's importer"
+	@echo "  make latency            # cost of both layers (Fig. 3; the full sweep takes long)"
+	@echo "Needs the data drive (synthetic scenario caches):"
+	@echo "  make canonical          # the ablation of Section V-A"
+	@echo "  make realistic symbolic unseen-synth   # Section V-C, Table II and Fig. 2"
+	@echo "  make drift rule baselines cross-m"
+	@echo "  make ml window purity   # sprint-4 reproduction cache"
+	@echo "Needs the operator's exports on the drive (PRODDATA):"
+	@echo "  make rule-production rule-production-fresh rule-production-od"
+	@echo "  make production-tables  # Tables III and IV, anonymized to results/"
 	@echo ""
 	@echo "Vars: SEEDS=$(SEEDS)  K='$(K)'  DATA=$(DATA)"
 
@@ -70,8 +79,8 @@ check-data:
 
 latency:
 	$(PY) scripts/bench_latency.py \
-	  --sizes 100 250 500 1000 2500 5000 10000 \
-	  --repeats 3 --probes 200 --pair-cap 400000 \
+	  --sizes 100 250 500 1000 2500 5000 10000 25000 50000 100000 \
+	  --repeats 3 --probes 200 --pair-cap 3000000 \
 	  --out $(RESULTS)
 
 ml: check-data
@@ -121,7 +130,7 @@ all-hd: ml window realistic canonical purity symbolic drift
 clean:
 	rm -rf $(RESULTS)/*.csv $(RESULTS)/*.json
 
-# Academic baselines on the canonical scenarios: the source of Table II's baseline rows.
+# Academic baselines on the canonical scenarios: the source of Section V-A's baseline numbers.
 baselines: check-data
 	nice -n 10 $(PY) scripts/run_canonical_baselines.py --work $(REALWORK) --out-dir $(RESULTS)
 
@@ -146,13 +155,16 @@ rule: check-data
 # the days before it, as the rule would run.
 PRODDATA ?= $(DATA)/azion
 SPLIT    ?= rolling
+# The eight days behind Tables III and IV and Appendix E (five test folds); the fresh day
+# 2026-09-25 is evaluated apart (rule-production-fresh, fresh_day_protocol.md).
+TESTDAYS ?= 2026-09-17_2026-09-24 2026-09-23
 
 rule-production:
 	@test -d "$(PRODDATA)" || { \
 	  echo "ERROR: $(PRODDATA) not found (production exports live on the data drive)."; \
 	  exit 1; }
 	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
-	  --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) \
+	  --days $(TESTDAYS) --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) \
 	  $(if $(METHOD),$(METHODFLAG),--unit session) --tag _$(SPLIT)_$(or $(METHOD),session)
 
 # The known-fleet profile (README section 11): the grid of shares, then the choice
@@ -160,11 +172,58 @@ rule-production:
 FLEETS ?= 0.005 0.01 0.02 0.05
 rule-production-fleets:
 	for s in $(FLEETS); do nice -n 10 $(PY) scripts/rule_detection_production.py \
-	  --data-dir $(PRODDATA) --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) \
+	  --data-dir $(PRODDATA) --days $(TESTDAYS) --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) \
 	  $(METHODFLAG) --fleets $$s --tag _$(SPLIT)_$(METHOD)_fleets$$s & done; wait
 fleet-selection:
 	$(PY) scripts/fleet_selection.py --results $(PRODDATA)/results --roles $(PRODDATA)/roles.json \
 	  --shares $(FLEETS) --out $(RESULTS)/fleet_profile.json
+
+# Every day, the fresh one included, with the base rule and with the chosen known-fleet
+# share (5%): the fresh day is a sixth test fold calibrated on all earlier days. The
+# first five folds reproduce rule-production and rule-production-fleets exactly.
+rule-production-fresh:
+	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
+	  --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) $(METHODFLAG) \
+	  --tag _$(SPLIT)_$(METHOD)_v2 & \
+	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
+	  --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) $(METHODFLAG) \
+	  --fleets 0.05 --tag _$(SPLIT)_$(METHOD)_fleets0.05_v2 & wait
+
+# The same two runs with the overdispersed background (--overdispersion): each profile
+# fingerprint is tested against a beta-binomial whose intra-window correlation is
+# estimated on the calibration windows, so that fleets of clients that switch on
+# together no longer force the level down (README section 13).
+rule-production-od:
+	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
+	  --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) $(METHODFLAG) --overdispersion \
+	  --tag _$(SPLIT)_$(METHOD)_od_v2 & \
+	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
+	  --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) $(METHODFLAG) --overdispersion \
+	  --fleets 0.05 --tag _$(SPLIT)_$(METHOD)_od_fleets0.05_v2 & wait
+
+# The production numbers of Tables III and IV (test days and fresh day apart), with
+# the baselines calibrated to the scope's budget, attack-window collateral, the WAF
+# cross-check and the calibration floor; anonymized, read by the paper's audit.
+production-tables:
+	$(PY) scripts/production_tables.py --results $(PRODDATA)/results --roles $(PRODDATA)/roles.json \
+	  --base rule_production_windows_$(SPLIT)_$(METHOD)_v2.csv \
+	  --fleets rule_production_windows_$(SPLIT)_$(METHOD)_fleets0.05_v2.csv \
+	  --od rule_production_windows_$(SPLIT)_$(METHOD)_od_v2.csv \
+	  --od-fleets rule_production_windows_$(SPLIT)_$(METHOD)_od_fleets0.05_v2.csv \
+	  --test-folds 2026-09-20 2026-09-21 2026-09-22 2026-09-23 2026-09-24 \
+	  --fresh-folds 2026-09-25 --out $(RESULTS)/production_tables.json
+
+# The unseen-fingerprint filter on the synthetic scenarios of Table II and Fig. 2,
+# and botnet stacks drawn from the profile's tail, shared with real clients.
+unseen-synth: check-data
+	$(PY) scripts/unseen_synth.py --out-dir $(RESULTS)
+
+# Does configuration (d) learn coordination or the generator's stack-size band? Train
+# on campaigns with M botnet TLS stacks and test on campaigns with another M (5 -> 25,
+# 100; 25 -> 5, 100), at alpha 1.5 and K 1,000, on disjoint seeds, since scenarios that
+# share a seed share their benign sessions. Reads the cached scenarios, generates none.
+cross-m: check-data
+	nice -n 10 $(PY) scripts/cross_m_generalization.py --work $(REALWORK) --out-dir $(RESULTS)
 
 # The anonymized summary of rule-production that the paper and `make audit` read:
 # E1..E4 with generic roles (from roles.json on the drive), rates only.

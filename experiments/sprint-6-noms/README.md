@@ -10,17 +10,25 @@ existing result; all are additive and Sprints 1–5 stay intact.
 | `scripts/window_sweep.py` | Sensitivity to *W* was declared uncharacterized | Yes |
 | `scripts/run_canonical_realistic.py` | The generator had three realism defects, all favourable to us | Yes |
 | `scripts/profile_drift.py` | How much background-profile staleness the enrichment test tolerates | No |
-| `scripts/run_canonical_baselines.py` | Table II's baseline rows had **no result file** behind them | Yes |
+| `scripts/run_canonical_baselines.py` | The ablation's academic baselines (Section V-A, a table until round 8) had **no result file** behind them | Yes |
 | `scripts/rule_detection.py` | The rule Ω(S) ≥ τ had **never been evaluated on its own**, nor against flash crowds | Yes |
 | `scripts/rule_detection_production.py` | The rule had **never met production traffic**: every window so far came from the generator | Yes, and the production exports |
+| `scripts/production_tables.py` | Tables III and IV of the paper (per endpoint, test days and fresh day apart, calibrated baselines, the beta-binomial background, calibration floor, WAF agreement) | Yes, the per-window results |
+| `scripts/unseen_synth.py` | The unseen-fingerprint filter had been run on production only, and generated stacks never occur in the benign vocabulary | Yes |
+| `scripts/cross_m_generalization.py` | Configuration (d) had only been scored on the botnet structure it was trained on | Yes |
 
 ```bash
 make latency      # runs anywhere
 make all-hd       # ml + window, needs the drive mounted
 make drift        # profile drift, plus the M = 100 run with a pooled profile
-make baselines    # Table II baseline rows
+make baselines    # the ablation's academic baselines (Section V-A)
 make rule         # the rule as a window-level detector (Appendix E)
 make rule-production  # the same rule on production traffic, botnet injected (section 9)
+make rule-production-fresh  # the fresh day, 2026-09-25, analyzed as fixed in advance (section 12)
+make rule-production-od     # the beta-binomial background, without and with known fleets (section 13)
+make production-tables      # Tables III and IV from the per-window results (sections 12 and 13)
+make unseen-synth     # the unseen filter and shared stacks on generated traffic (section 12)
+make cross-m      # configuration (d) trained on one stack count, tested on another (section 14)
 make audit        # every sprint-6 number of the paper against results/ (no drive)
 ```
 
@@ -42,7 +50,7 @@ mislead:
 > `results/canonical_realistic.json`** (α = 1.5, 25 TLS stacks), not from the
 > earlier reproduction on `sprint4_realistic_work`. The earlier run gives (d) at
 > 0.968 / 0.976 with Cohen's *d* of +12.2 and +19.6; the canonical run gives
-> 0.927 / 0.982 with *d* of +13.5 and +22.4 at p_bonf = 7.5 × 10⁻⁹. Use the
+> 0.927 / 0.982 with *d* of +13.5 and +22.3 at p_bonf = 7.5 × 10⁻⁹. Use the
 > canonical artifact when checking the paper.
 
 ## 1. Latency
@@ -126,14 +134,25 @@ family without a new dependency.
 > |---|---|---|
 > | `rf` | 0.976 | 0.982 |
 > | `hgb` | 0.979 | 0.990 |
-> | `mlp` | 0.956 | **0.803** |
+> | `mlp` | 0.956 | **0.952** |
 > | `logreg` | 0.961 | **0.799** |
 >
-> The collapse of `mlp` and `logreg` in the canonical scenario **is a finding, not
-> a bug**: fragmenting the botnet across 25 stacks makes cross-session evidence
-> non-monotonic in the label, and monotonic-response models cannot carve out the
-> middle band. It is what the paper discusses, and it argues for the symbolic
-> path. With a monolithic botnet the effect simply does not exist.
+> The drop of `logreg` in the canonical scenario **is a finding, not a bug**:
+> fragmenting the botnet across 25 stacks makes cross-session evidence
+> non-monotonic in the label, and a model whose response to each attribute is
+> monotone cannot carve out the middle band. With a monolithic botnet the effect
+> does not exist.
+>
+> **The `mlp` row was a bug, fixed on 2026-09-26.** It used scikit-learn's early
+> stopping, which scores a held-out 10% of the training set by *accuracy*. At 4.8%
+> attack prevalence (K = 50) calling every session benign is already the best
+> accuracy, so training stopped and restored the weights of epoch 7, before the
+> network had learned a ranking: AUC 0.235 at K = 50 (below chance on its own
+> training distribution) and 0.803 at K = 1000. With `early_stopping=False` the
+> perceptron reaches 0.862 and 0.952 in configuration (d), and 0.493 and 0.494 in
+> (a); `make canonical` was rerun and only the `mlp` entries of
+> `results/canonical_realistic.json` changed. The paper's former sentence that
+> the perceptron "inverts the ordering" was removed.
 
 Configuration (a) sits at chance for all four families in both scenarios, which
 is what the central thesis needed: the collapse is a property of the
@@ -154,9 +173,11 @@ sides are reported: effect on detection and cost in cluster occupancy.
 | 1800 | 3 | 867 | 0.505 | 0.508 | 0.664 | 0.978 |
 
 **Detection is insensitive to W over a 30× range** while mean cluster occupancy
-grows 6.6×. The reason: the discriminative
-feature is a *fraction* (the share of the cluster carrying one JA4), invariant to
-cluster scale. Cluster size alone carries little, which is why (c) stays at 0.664
+grows 6.6×. The reason: the campaign's own cluster barely changes (the largest
+cluster holds 1,977–1,998 sessions at every W, `max_cluster_size` in
+`window_sweep.json`), and the discriminative feature is a *fraction* (the share of
+that cluster carrying one JA4). The insensitivity is therefore a property of the
+generator's steady campaigns, not a claim about production traffic. Cluster size alone carries little, which is why (c) stays at 0.664
 throughout.
 
 Operational rule: **keep W as small as the traffic permits.** A larger window buys
@@ -165,7 +186,7 @@ pair edges, Section 1).
 
 Two bounds: the scenarios target a single endpoint, so W is the only clustering
 knob and a multi-endpoint deployment may behave differently; and W must still be
-large enough for a cluster to form, which at W = 60 s already means ~132 sessions.
+large enough for a cluster to form (the mean cluster holds ~132 sessions at W = 60 s).
 
 ## 4. Realism corrections to the generator
 
@@ -186,7 +207,7 @@ Three defects, all favourable to us, all corrected and backward-compatible
 > Watch out: `--param x=false` arrives as the **string** `"false"`, and
 > `bool("false")` is `True` in Python. Fixed for both boolean keys.
 
-## 5. Table II baselines
+## 5. The ablation's academic baselines
 
 `run_canonical_baselines.py` runs the academic baselines of
 `sprint-3/scripts/baselines.py` on the cached canonical scenarios (α = 1.5,
@@ -201,7 +222,7 @@ configuration (b): `test_size = 0.3`, `random_state = 42`, stratified. Output:
 | `bharathi2012_pca` (published structure, in the paper) | 0.499 | 0.495 |
 | `kemp2018` | 0.499 | 0.503 |
 
-The earlier rows of Table II are reproduced to three decimals, so they were
+The rows of the former Table II (now in the text of Section V-A) are reproduced to three decimals, so they were
 right and only lacked a committed source. Bharathi et al. describe PCA over a
 behavior matrix, k-means on the retained components and a per-cluster threshold.
 Their threshold (eq. 8) is under-specified; `bharathi2012_pca` scores a session
@@ -266,7 +287,7 @@ the attackers, since 25 stacks leave few sessions per stack in one window. A
 background profile from 30 runs instead of one does not help, so the cause is
 the fixed ratio, which ignores window size.
 
-The paper's report of no collateral holds at the cluster sizes of Table III
+The paper's report of no collateral holds at the cluster sizes of Table II
 (about 1,000–2,000 sessions), where σ = 0.002 already means several sessions.
 Section 7 replaces the fixed floor by a significance test.
 
@@ -317,7 +338,7 @@ generator, so their fingerprints follow the profile by construction. A surge
 concentrated on one client type would be enriched and filtered; that case is not
 evaluated.
 
-**Per cluster** (Table III, Fig. 3, the drift paragraph), with the paper's
+**Per cluster** (Table II, Fig. 2, the drift paragraph), with the paper's
 1,000-session profile, the test reproduces every row except two:
 
 | Configuration | σ = 0.002 | binomial |
@@ -331,10 +352,10 @@ evaluated.
 At M = 100 a stack holds about ten of some 2,000 cluster sessions, and a
 1,000-session profile cannot tell it from its own tail. A profile pooled over the
 30 attack-free calibration runs restores 89.6% with no collateral
-(`results/profile_drift_m100.json`). The Random Forest columns of Table III do not
+(`results/profile_drift_m100.json`). The Random Forest columns of Table II do not
 change.
 
-**Fig. 3 now has a source.** It used to read `results/realistic_consolidated.csv`,
+**Fig. 2 (collateral) now has a source.** It used to read `results/realistic_consolidated.csv`,
 which no script wrote: its enrichment bars came from a σ = 0.002 run, while
 `realistic_probe.py` called the scope with its default σ = 0.01, which at
 M = 100 names no fingerprint and falls back to the whole endpoint (93% collateral).
@@ -345,11 +366,14 @@ orphan file was removed.
 ## 8. Audit of the paper's numbers
 
 `make audit` runs `scripts/audit_paper.py`, which recomputes every number this
-sprint contributes to the paper (Table III rows as printed, Section V-B and V-D
-text, Fig. 3 bars, the drift figures, Table VI and Appendix E) from the committed
-files in `results/`, and compares them with the literal text of
-`papers/http-session-noms/article.tex`. It also checks that Table III
-(`symbolic_detector.py`) and Fig. 3 (`realistic_probe.py`), two independent
+sprint contributes to the paper (the ablation and cross-M numbers of Section V-A,
+Tables II to V as printed, the abstract and conclusion, Sections V-B to V-D, the
+collateral figure's bars, the drift figures and Appendices C to E) from the
+committed files in `results/`, and compares them with the literal text of
+`papers/http-session-noms/article.tex` (221 checks as of 2026-09-26). Tables are
+named by their LaTeX labels (`tab:symbolic`, `tab:production`, `tab:floor`,
+`tab:perwindow`), since their numbers shift between revisions. It also checks that
+Table II (`symbolic_detector.py`) and Fig. 2 (`realistic_probe.py`), two independent
 scripts, agree on the enrichment coverage. It exits with status 1 on any
 mismatch; a negative test that altered two numbers of the text was caught.
 
@@ -458,7 +482,7 @@ on E3, where the scope also named a fleet).
 **What a fair injection shows** (reviewer pass, 2026-09-24). Sized against each
 endpoint, a botnet as large as the typical window is stopped on the busiest
 endpoint (67.6%) and hardly on the three small ones (≤ 1%): its stacks then hold
-one or two origins, which no calibrated level certifies, and Ω stays within the
+one or two origins, which no calibrated level names, and Ω stays within the
 daily variation. Pooled, 17.2% at 1×. Stacks drawn from fingerprints real clients
 use (`tail`) lower the blocked share to 20.2% / 61.6% at 100 / 1,000 attackers.
 When the rule fires on a clean window of E2 or E3 it names a fleet and blocks
@@ -515,7 +539,7 @@ days must confirm: the design is now fixed, and days exported after 2026-09-24
 would be a true out-of-sample test. Two limits bind detection: on E1 at 1,000
 attackers and on E4 at 1× the scope names botnet stacks in most windows but
 Ω < τ; on E2 and E3 a 1× botnet puts one or two origins on each stack, which no
-calibrated level certifies (0.0% / 3.9% blocked by the scope alone).
+calibrated level names (0.0% / 3.9% blocked by the scope alone).
 
 **At a tenth of the typical window only E1 is in the stealth regime** (over 100
 attackers; the others get fewer than ten). There the calibrated level (10⁻⁶⁰)
@@ -525,7 +549,7 @@ with shared stacks only the z-score stops any (12.2%). Pooled, no scope passes 5
 which is why the paper reports E1 separately.
 
 **ρ barely matters** (`--rho 2`, `--rho 5`, tags `_rolling_origin_rho2/5`, in
-`variants.rho2/rho5`). No pooled entry of Table VI that depends on ρ moves by more
+`variants.rho2/rho5`). No pooled entry of the production table of that revision that depends on ρ moves by more
 than 7.2 points (a collateral median over six windows); fire and block rates move
 by at most 4.5. The level does the work, and ρ = 3 stays as an effect-size floor.
 
@@ -552,7 +576,7 @@ and the enrichment test the discrimination; the paper now frames it that way
 **The per-cluster experiments choose the cluster without labels** (`CLUSTER ?=
 label-free`, `--label-free-cluster`): the cluster of largest Ω. It is the
 attack-dominant one in 148 of 150 scenarios; in the other two (M = 1, seed 3) the
-attack-share choice had picked a one-session cluster. Table III and Fig. 3 move
+attack-share choice had picked a one-session cluster. Table II and Fig. 2 move
 at M = 1 only, from 84.0% to 89.8% blocked.
 
 **Synthetic results are otherwise unchanged.** On the generator every session has its own
@@ -574,7 +598,7 @@ origins, which the origin count does not read as a distributed campaign. That
 host is below k_min origins per window and is not evaluated.
 
 **A learned model given the profile** (`symbolic_detector.py`, `rfp_*` columns).
-The Random Forest of Table III reads no profile of normal traffic; given it as two
+The Random Forest of Table II reads no profile of normal traffic; given it as two
 per-session features, the log prevalence of the session's JA4 and its enrichment
 in the detection cluster (`profile_features`), it recovers at FPR = 0 85.9 / 91.7 /
 87.4 / 86.9% at M = 1 / 5 / 25 / 100, against 89.8 / 90.0 / 90.3 / 38.6% for the
@@ -603,12 +627,15 @@ ontology with one more equality sub-relation (same User-Agent, weight 0.5) costs
 four triples; the recompiled query carries the new term and still matches the
 reference, with no code changed. The production binding (table, filters) is the
 operator's and stays on the drive (`$DATA_ROOT/azion/queries/`). **Run in the
-operator's ClickHouse (21.8) for 2026-09-23, the compiled query returned the
-exported origin and /24-pair counts in all 1,152 windows** (`--compare`,
-`results/compile_production_check.json`). Its JA4 class sizes lie between the
-export's clean and total counts in every window and equal the clean ones in all
-288 windows without a WAF-blocked client: the export drops a client the WAF
-blocked part of the time, the compiled filter (requests the WAF did not block) keeps it.
+operator's log store for 2026-09-23, the compiled query returned the
+exported origin and /24-pair counts in all 1,152 windows**
+(`results/compile_production_check.json`; the fresh day is in
+`compile_production_check_fresh.json`). `--compare` reproduces the origin and
+/24-pair match. Its JA4 class sizes lie between the export's clean and total counts
+in every window and equal the clean ones in all 288 windows without a WAF-blocked
+client: the export drops a client the WAF blocked part of the time, the compiled
+filter (requests the WAF did not block) keeps it. That JA4 comparison was run ad hoc
+against the per-JA4 export and is not yet part of `--compare`.
 
 **The STIX export is valid STIX 2.1** (`make stix-check`, `scripts/stix_check.py`,
 `results/stix_validation.json`): four bundles, built from the committed JSON-LD
@@ -699,3 +726,181 @@ the held-out days: 13–16 false alarms at a median 10.6–12.2% collateral, fla
 crowds of 100 fired on 6.6–11.0%, mean blocked 30.3–33.8%, E1 at 0.1× 6.5% /
 5.7–5.9%. The control rerun without `--fleets` reproduces the base per-window CSV
 byte for byte.
+
+## 12. Baselines at the test's budget, the calibration floor and a fresh day
+
+A holistic review against strong NOMS papers (2026-09-25) asked for four things:
+baselines on equal terms, the limit of calibration stated and measured, a test
+on data that no choice had seen, and the unseen filter on generated traffic. Each
+is now in the paper: Section V-D with Tables III and IV, and Table II.
+
+**Calibrated baselines** (`rule_detection_production.py`, `calibrate_baselines`).
+The uncalibrated z-score (z > 3) fires on 2.6% of clean windows, so comparing its
+detection with the test's is unfair. Two baselines now get the test's budget, a
+filter in at most 1% of attack-free calibration windows:
+
+- `zcal`: the per-fingerprint z-score against the profile, with its threshold set
+  to the 99th percentile of the window's largest z over the calibration windows,
+  never below 3;
+- `zhist`: the z-score of each fingerprint's count against its own calibration
+  history (mean, and standard deviation floored at 1), thresholded the same way.
+
+Both run under the distinct-origin gate. The regression check passed: the five
+test folds of the earlier scopes are unchanged.
+
+**The union and the unseen filter on generated traffic** (`unseen_synth.py`). The
+unseen filter (fingerprints absent from the profile, seen in at least k_min
+origins) matches enrichment up to 25 stacks on generated traffic, because the
+generator's stacks never occur in the benign vocabulary, and does better at 100
+(88.1% against 38.6%). The `profile_tail` shared mode relabels each cached scenario
+with stacks drawn from the profile outside its ten most common fingerprints, as the
+production injection's `tail` source does: there the unseen filter blocks 0%,
+enrichment 85.4% at 2.23% collateral, and the uncalibrated z-score 89.9% at 3.37%
+(K = 1000, n = 15). `vocab_tail` is a sensitivity variant, not in the paper.
+
+**The calibration floor** (`production_tables.py`, `floor`). Among n origins the
+test names a stack only past the smallest count c with P[Bin(n, b) ≥ c]·|F| < λ_e.
+A 25-stack botnet of A attackers puts about 0.9·A/25 origins on each stack, so the
+floor is the smallest A whose stacks reach that count in the endpoint's median
+calibration window, reported as a multiple of that window (median over the five
+test days, stacks new to the profile, b = 1/N):
+
+| Endpoint | λ_e | Floor, base profile | Floor, known fleets |
+|---|---|---|---|
+| E1, RUM beacons | 10⁻⁶⁰ | 0.16 | 0.07 |
+| E2, web console | 10⁻⁷³ | 11.6 | 11.6 |
+| E3, API | 10⁻¹⁴ | 4.1 | 3.5 |
+| E4, SSO | 10⁻⁴ | 4.2 | 4.2 |
+
+On E1 a stack is named only past 15 to 18 origins. On the three small endpoints no
+botnet that fits in a window can be named. Each floor record also carries the number
+of known fleets its fold exempted (`known_fleets`): 5 or 6 on E1 and 0 to 2 on E3
+with the 5% share, and 0 on every endpoint and fold under the beta-binomial.
+
+**The fresh day** (`make rule-production-fresh`). The protocol,
+`results/fresh_day_protocol.md`, was written before 2026-09-25 was read, with the
+SHA-256 of the three exports: the frozen configuration (known fleets at 5%, the
+enrichment test united with the unseen filter, the distinct-origin gate), the
+metrics in the order they would be reported, and the decision rule: the day is
+consistent with the test days (5 false alarms in 5,643 clean windows) if
+P[Bin(n_day, 5/5,643) ≥ x_day] ≥ 0.05. The day is a sixth rolling fold,
+calibrated on 2026-09-17 to 24.
+
+- 2 false alarms in 1,152 clean windows, P = 0.27: consistent. Both fall on the web
+  console and block a median 41.2% of their window's clients.
+- Blocked: 38.9% and 73.4% of 100 and 1,000 attackers on new stacks, 21.5% and 60.9%
+  on shared ones; at a tenth of E1's window the gate never fired.
+- The calibrated z-score fired on the same two windows (`overlap_frozen_zcal` in
+  `production_tables.json`) and stopped more at 100 attackers (58.3% and 26.7%); on
+  the test days it fired on 20 clean windows, 4 of them among the frozen
+  configuration's 5.
+- The ontology-compiled count query, run in the operator's store for the day,
+  returned distinct origins and /24 pairs equal to the export in all 1,152 windows
+  and the JA4 class sizes in the 288 windows where the WAF blocked no client
+  (`results/compile_production_check_fresh.json`).
+
+**The stealthy regime, per day** (`stealth_E1` in `production_tables.json`). With
+known fleets, a botnet a tenth of E1's window is named in every window, on new and
+shared stacks alike, but the distinct-origin gate fires in 0.7% to 41.7% of those
+windows depending on the day (0% on the fresh day), so 11.8% of the attackers on
+new stacks are stopped. A trigger on the scope alone, examined after the fact,
+would stop 89.6% (new) and 61.1% (shared) at 1.0% of E1's clean windows; it is
+reported as exploratory.
+
+**WAF agreement.** Of the clients the scope would block on the full traffic, the
+WAF also blocked 84% on E3 and 96% on E4, where the scope names no fleet, and 1.5%
+on E2, where it does; the scope matches 16.7% of all clients the WAF blocked. E1 has
+no WAF activity.
+
+`production_tables.py` recomputes every production number of the paper from the
+per-window CSVs on the drive and writes only rates and counts to
+`results/production_tables.json`; `make audit` checks Tables III and IV, the abstract,
+Section V-D and Appendix E against it.
+
+## 13. An overdispersed background (beta-binomial)
+
+The binomial the enrichment test assumes treats each origin as an independent draw
+from the profile. Fleets of legitimate clients that switch on together break that,
+which is why the calibrated level falls to 10⁻⁶⁰ (RUM) and 10⁻⁷³ (console): at such
+levels the p-value is only a score with an empirical threshold, as the review of
+2026-09-26 pointed out, and the calibration floor of section 12 is partly set by
+the misspecification.
+
+`rule_detection_production.py --overdispersion` tests each fingerprint of the profile
+against a beta-binomial of the same mean instead. Its intra-window correlation φ is a
+moment estimate over the calibration windows of at least k_min origins,
+
+    φ = Σ[(c − n b)² − n b (1 − b)] / Σ[n (n − 1) b (1 − b)],  clipped to [0, 0.99],
+
+from Var[c] = n b (1 − b) (1 + (n − 1) φ). A fingerprint absent from the profile keeps
+the binomial (φ = 0). The level is calibrated exactly as before, and the scope
+self-check is skipped, since `derive_scope_enriched` implements the binomial only. On
+simulated beta-binomial counts the estimator recovers φ = 0.102 for a true 0.1, 0.020
+for 0.02 and about 0 for binomial counts (five repeats each).
+
+`make rule-production-od` runs it without and with the 5% known-fleet share, and
+`make production-tables` adds both runs (`od`, `od_fleets`) to
+`results/production_tables.json`. Test days (five folds), union scope:
+
+| Endpoint | Level, binomial → beta-binomial | Floor (× window) | Distinct-origin gate: false alarms | Blocked, 1× window (new stacks) |
+|---|---|---|---|---|
+| E1, RUM beacons | 10⁻⁶⁰ → 7 × 10⁻⁵ | 0.16 → 0.03 | 0.14% → 0.14% | 70.8% → 70.8% |
+| E2, web console | 10⁻⁷³ → 0.01 (cap) | 11.6 → 0.90 | 0.28% → 1.32% | 5.0% → 25.9% |
+| E3, API | 10⁻¹⁴ → 0.01 (cap) | 4.1 → 1.37 | 0.07% → 0.00% | 1.9% → 22.7% |
+| E4, SSO | 10⁻⁴ → 0.01 (cap) | 4.2 → 2.8 | 0.00% → 0.08% | 2.1% → 6.0% |
+
+Pooled over the four endpoints, under the distinct-origin gate, the beta-binomial
+union fires on 0.39% of clean windows (22 of 5,643), a median 10.5% of their clients,
+and blocks 59.8% and 77.7% of 100 and 1,000 attackers on new stacks and 40.5% and
+63.2% on shared ones. The calibrated z-score of section 12 fires on 0.35% (20), 10.8%
+collateral, and blocks 54.7%, 77.7%, 23.7% and 62.3%. The two operating points almost
+coincide, with more blocked on shared stacks by the beta-binomial. Without a gate
+(the scope alone as trigger), the beta-binomial fires on 2.1% of E1's clean windows
+and stops 90.0% and 78.3% of a botnet a tenth of E1's window on new and shared
+stacks, against 89.6% and 61.1% at 1.0% for the binomial with known fleets.
+
+**Known fleets become unnecessary.** Under the beta-binomial no fingerprint is named
+at the nominal level in 5% of any endpoint's calibration windows, so the known-fleet
+set is empty on every endpoint and `od_fleets` equals `od` window for window: the
+fleets' synchrony is in φ, and the allow-list of section 11, with its evasion route,
+is not needed.
+
+**Caveats.** The level stays at the 0.01 cap on the three small endpoints, and on E2
+the test days' false alarms (1.32% under the gate, 10.8% as a scope-alone trigger)
+exceed the 1% the calibration windows promised. φ is fitted on the calibration days
+and the console's fleets vary from day to day, but the calibrated z-score, which
+fits no φ, also exceeds the budget there (1.11%), so the paper attributes the excess
+to the console's drift rather than to the fit alone. The variant was built after the fresh day of
+section 12 had been read, so its fresh-day numbers (0 false alarms in 1,152 windows
+under the gate; 1.6% as a scope-alone trigger) are post hoc and not covered by
+`fresh_day_protocol.md`.
+
+## 14. Does configuration (d) generalize across botnet structures?
+
+The ablation of Section V-A trains and tests configuration (d) on a 70/30 split of the sessions of one
+generated campaign. `scripts/cross_m_generalization.py` (`make cross-m`) trains the
+same Random Forest, on the same features, on campaigns with one number of stacks M
+and tests it on campaigns with another (K = 1000, α = 1.5, 15 seeds, halves of the
+seeds swapped between training and test).
+
+**Leakage check.** For a given seed the generator draws every benign session before
+anything that depends on M, so the benign session table is identical across M = 5,
+25 and 100, and the attack sessions of M = 25 and M = 100 differ only in their stack
+label. A same-seed design would score the per-session control (a) at 0.88–0.94 from
+memorized copies alone; the disjoint-seed protocol has no test session in any
+training scenario.
+
+| Train → test | (a) cross-M | (d) in distribution | (d) same M, other seeds | (d) cross-M |
+|---|---|---|---|---|
+| 5 → 25 | 0.498 | 0.979 | 0.949 | **0.614** [0.593, 0.633] |
+| 5 → 100 | 0.498 | 0.961 | 0.956 | **0.626** [0.604, 0.645] |
+| 25 → 5 | 0.498 | 0.996 | 0.995 | **0.481** [0.469, 0.492] |
+| 25 → 100 | 0.489 | 0.961 | 0.956 | **0.748** [0.739, 0.758] |
+
+(d) keeps 0.95–0.995 on unseen campaigns with the same M but falls to 0.48–0.75 when
+M changes: `share_ja4`, which carries 64–77% of its feature importance, has a median
+of 179 among attackers at M = 5, 35 at M = 25 and 8 at M = 100, against 133 among
+benign sessions, so the forest learns the band the training M produces. The
+ablation's 0.93–0.98 measures separability within one generator setting. The
+enrichment rule trains on nothing and keeps about 90% at every M up to 25 (Table II).
+

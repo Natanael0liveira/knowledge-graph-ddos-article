@@ -98,7 +98,7 @@ structure:
 ### The weighted `relatedTo` family
 
 Cross-session relatedness is not one relation but a structured family, declared
-with `rdfs:subPropertyOf` under a transitive `relatedTo` and annotated with a
+with `rdfs:subPropertyOf` under a symmetric `relatedTo` and annotated with a
 `coordinationWeight` in [0, 1]. Each sub-property is instantiated independently
 from its own evidence, so two sessions may be linked by one, several or all six.
 
@@ -192,14 +192,15 @@ combination of high-weight signals is present.
 
 ## 5. Coordinated attack classes
 
-All are subclasses of `ApplicationLayerAttack` carrying
-`exhibitsCrossSessionStructure`, and all map to MITRE ATT&CK **T1498.001**.
+All are subclasses of `ApplicationLayerAttack` defined by cross-session
+structure (the ontology states it in each class comment; it is not a declared
+property), and all map to MITRE ATT&CK **T1498.001**.
 
 - **`CoordinatedHTTPFlood`** — sessions linked by `relatedTo` converging on one
   endpoint with high aggregate rate. Instantiated experimentally by distributed
   Slow HTTP DoS (Slowloris, slowhttptest, HULK, GoldenEye). This is the class the
   paper evaluates.
-- **`CredentialStuffing`** — linked sessions targeting an `AuthEndpoint` with
+- **`CredentialStuffing`** — linked sessions targeting a `LoginEndpoint` with
   high aggregate authentication failure.
 - **`CoordinatedAPIAbuse`** — sessions with distinct identities but linked by TLS
   fingerprint or prefix, hitting one `APIEndpoint`, whose summed rate exceeds the
@@ -259,25 +260,84 @@ smallest Bonferroni-adjusted p-value among its enriched fingerprints
 filter in at most 1% of the windows it was calibrated on. No label is used. On
 the generator the level stays at 0.01 in every scenario, so none of the synthetic
 results change. On the four production endpoints it falls to between 10⁻⁴ and
-10⁻⁷³, and the smallest botnet the test can certify grows with it: the endpoints
-with legitimate fleets need about a thousand attackers per window
-(`experiments/sprint-6-noms/results/production_summary.json`, Appendix E of the
-paper).
+10⁻⁷³, and the smallest botnet the test can name grows with it (the
+calibration floor, below).
+
+**The calibration floor.** A calibrated level has a price, and it can be
+computed before any attack. Among n origins, the test names a stack only past the
+smallest count c with P[Bin(n, b) ≥ c] · |F| < λ_e (and c/n ≥ ρ·b). A botnet of A
+attackers spread over 25 stacks, 90% of it on the stacks, puts about 0.9·A/25
+origins on each stack in a window of n₀ + A origins. The floor is the smallest A
+whose stacks reach that count, divided by the endpoint's median window n₀. A
+hypothetical endpoint with 2,000 origins per window, a profile of 200,000
+origin-fingerprint pairs and |F| = 300 shows the mechanism:
+
+| λ_e | Smallest nameable count per stack | Smallest botnet A | Floor (share of the window) |
+|---|---|---|---|
+| 10⁻² | 3 | 84 | 4% |
+| 10⁻²¹ | 10 | 278 | 14% |
+| 10⁻⁶⁰ | 22 | 612 | 31% |
+
+On production traffic the floor is 16% of the typical window on the busiest
+endpoint, where a stack is named only past 15 to 18 origins, and 4 to 12 times the
+whole window on the three small ones, where no botnet that fits in a window can
+be named (paper, Table IV). Exempting the endpoint's known fleets from the scope
+and from the level's calibration (below) lowers the busiest endpoint's floor to 7%.
+The exemption is an allow-list: a fingerprint on it is never scoped. For an operator the floor is a
+planning quantity: above it the scope can be a fingerprint filter; below it the
+fallback is a rate limit or a challenge.
+
+**A background that models the fleets lowers the floor.** Fleets break the
+binomial's independence because their clients switch on together, which makes a
+fingerprint's count overdispersed: its variance across windows exceeds n·b·(1 − b).
+The beta-binomial variant (`--overdispersion` in `rule_detection_production.py`)
+estimates, for each fingerprint of the profile, an intra-window correlation φ from
+the calibration windows by the method of moments, Var[c] = n·b·(1 − b)·(1 + (n − 1)·φ),
+clipped to [0, 0.99], and tests the count against a beta-binomial with the same
+mean. A fingerprint absent from the profile keeps the binomial, since there is
+nothing to estimate φ from, and λ_e is calibrated as before. A fleet's surge now
+falls within what the background expects, so the calibrated level rises: to 7 × 10⁻⁵ on the busiest endpoint,
+where three origins name a stack, and to the 0.01 cap on the three small ones. The
+floor falls to 3% of the busiest window and to 0.9–2.8 windows elsewhere, and no
+fingerprint qualifies as a known fleet, so the allow-list is no longer needed
+(paper, Section V-D and Table IV). The price is a higher false-alarm rate: 22 of
+5,643 clean windows (0.4%) against 5 for the binomial configuration, and 1.3% on
+the web console, above the 1% budget (the calibrated z-score is at 1.1% there
+too). The beta-binomial was built after the fresh day was read, so its result on
+that day (no false alarm) is post hoc; the binomial configuration is the one the
+protocol fixed (sprint-6 README, section 13).
 
 **Fingerprints the profile never saw need no such level.** The fleets that set
 λ_e present fingerprints of the profile; no fleet presents one absent from it.
 Joining the enrichment test with a filter of fingerprints absent from the profile
-and seen in at least k_min origins therefore recovers the botnet stacks the strict
-level refuses, at almost no cost in false alarms: on production traffic the union
-fires on 0.3% of clean windows against 0.2%, blocks 37.5% of 100 attackers on new
-stacks against 26.1%, and on the one endpoint in the stealth regime (E1, a botnet
-a tenth of its typical window) 11.2% against 0.6%. On stacks real clients also
-present the union is the enrichment test, since the unseen filter names none.
-Behind a distinct-origin gate (section 4) it fires on 0.1% of clean windows.
+and seen in at least k_min origins therefore recovers the new botnet stacks the
+strict level refuses, at almost no cost in false alarms. Behind a distinct-origin
+gate (section 4) the union fires on 0.1% of clean production windows and blocks
+38.4% and 77.7% of 100 and 1,000 attackers on new stacks (paper, Section V-D). On
+stacks real clients also present the union is the enrichment test, since the
+unseen filter names none. On generated traffic the unseen filter alone matches the
+test up to 25 stacks, because the generator's stacks never occur in the benign
+vocabulary; with stacks drawn from the profile's tail it blocks none, where the
+test blocks 85.4% (paper, Table II).
+
+**Baselines at the same budget.** A per-fingerprint z-score, z = (c − n·b) /
+√(n·b·(1 − b)) with z > 3, fires on 2.6% of clean production windows, so its
+detection is not comparable with a test held to 1%. Calibrated as λ_e is, with its
+threshold at the 99th percentile of each calibration window's largest z (never
+below 3), it blocks as much as the binomial configuration or more above the floor, at
+0.4% of clean windows against 0.1% and with lighter alarms, and the beta-binomial
+lands on the same operating point. On the fresh day, analyzed as fixed in advance,
+the binomial configuration and the z-score fire on the same two windows. The
+binomial buys its lower false-alarm rate on the test days with a higher floor. A
+z-score of each fingerprint against its own calibration history, calibrated the same
+way, fires on half of the flash crowds (sprint-6 README, section 12). Above the
+floor every calibrated scope stops 67–71% of a botnet the size of the busiest
+endpoint's typical window.
 
 **ρ is an effect-size floor, and it barely matters.** Rerun at ρ = 2 and ρ = 5,
-no pooled production rate of the paper's Table VI moves by more than 4.5 points
-(7.2 for a collateral median over six windows). The level does the work.
+no pooled production firing rate moves by more than 0.3 points and no blocked
+share by more than 4.5, while a collateral median shifts by up to 7.2 (paper,
+Appendix E). The level does the work.
 
 **Why a significance test instead of a support floor.** Earlier revisions
 required c(f)/n ≥ σ with σ = 0.002. A fixed fraction ignores n. On a cluster of
@@ -301,14 +361,14 @@ is 0.01 / 900 ≈ 1.1 × 10⁻⁵):
 | Benign tail fingerprint, n = 86 | 0.0016 | 4 | ≈ 1.5 × 10⁻⁵ | no |
 | Benign fingerprint seen once, n = 86 | 1/30,000 | 1 | ≈ 2.9 × 10⁻³ | no |
 
-**The profile has to be large enough for the stacks it must certify.** With the
+**The profile has to be large enough for the stacks it must name.** With the
 1,000-session profile of the cluster-level experiments, b(f) of an unseen
 fingerprint is 0.001, and a stack of about ten sessions in a 2,000-session cluster
 (M = 100) is indistinguishable from the profile's own tail: coverage falls to
 38.6%, with no collateral. A profile pooled over 30 attack-free periods (30,000
 sessions) restores 89.6% (`experiments/sprint-6-noms/results/profile_drift_m100.json`).
 Profile quality governs precision, and profile size governs the smallest stack
-the test can certify.
+the test can name.
 
 The background must come from outside the attack episode: the campaign spans the
 whole window, so using the window itself makes cluster and background prevalences
@@ -338,12 +398,28 @@ its parameters, and the count query is compiled from it:
   adding a sub-relation (same User-Agent) to a copy of the ontology costs four
   triples and no code, and the recompiled query carries it
   (`results/compile_check.json`);
+- in the operator's log store, the compiled query returned the exported distinct
+  origins and same-/24 pairs in every window of two production days, and the JA4
+  class sizes wherever the WAF blocked no client
+  (`results/compile_production_check.json`, `compile_production_check_fresh.json`);
 - the exported STIX 2.1 bundle passes the OASIS validator in strict mode
-  (`results/stix_validation.json`).
+  (`results/stix_validation.json`) and crosses the reference TAXII 2.1 server
+  unchanged, save the extension definition. MISP's importer drops the fingerprints,
+  which STIX 2.1 carries only in an extension, and DOTS scopes a request by the
+  attacked resource and filters only on network and transport header fields (RFC 8783),
+  so both would widen a fingerprint scope to the endpoint or to address prefixes.
 
 What the graph does not add is also measured: the AUC gain comes from the
 cross-session structure, which features express as well, and at window scale the
-trigger is a count of origins (section 4).
+trigger is a count of origins (section 4). A learned model over those features does
+not generalize across botnet structures, though: trained on campaigns of 5 stacks
+and tested on 25 or 100, configuration (d) falls from 0.96–0.996 to 0.61 and 0.63,
+and trained on 25, to 0.48 on 5 and 0.75 on 100, because the forest learns the
+band of fingerprint sharing one stack count produces. The label-free rule keeps
+about 90% up to 25 stacks. These tests use disjoint seeds: the generator draws the
+benign sessions before anything that depends on M, so a same-seed split would let
+even per-session features score 0.88–0.94 by memorizing identical benign rows
+(sprint-6 README, section 14).
 
 This work differs on four axes, which are the columns of Table I in the paper:
 the reasoning unit is the application session; relations between sessions are

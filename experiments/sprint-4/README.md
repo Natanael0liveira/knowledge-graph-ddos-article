@@ -39,7 +39,7 @@ baseline is **strong**: 8–9 flow features, not a lean 3-feature strawman.
 | K = 1000, (d)−(c) | 7.4 × 10⁻⁹ | +12.2 |
 | K = 1000, (d)−(a) | 7.4 × 10⁻⁹ | +19.6 |
 
-In the canonical Sprint 6 run the same contrasts give *d* = 13.5 and *d* = 22.4
+In the canonical Sprint 6 run the same contrasts give *d* = 13.5 and *d* = 22.3
 at p_bonf = 7.5 × 10⁻⁹, with (d) at 0.927 and 0.982.
 
 **Reading.** With a strong per-session baseline, (a) sits at chance even with 8–9

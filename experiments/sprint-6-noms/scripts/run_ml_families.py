@@ -65,10 +65,14 @@ def models(seed):
                                      class_weight="balanced", n_jobs=-1),
         "hgb": HistGradientBoostingClassifier(random_state=seed,
                                               class_weight="balanced"),
+        # No early stopping: it scores a held-out 10% by accuracy, and at 4.8% attack
+        # prevalence (K = 50) calling every session benign is already the best
+        # accuracy, so it restored the weights of epoch 7, before the network had
+        # learned any ranking (AUC 0.235, below chance on its own training data).
         "mlp": make_pipeline(
             StandardScaler(),
             MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=600,
-                          random_state=seed, early_stopping=True)),
+                          random_state=seed, early_stopping=False)),
         "logreg": make_pipeline(
             StandardScaler(),
             LogisticRegression(max_iter=2000, class_weight="balanced",

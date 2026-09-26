@@ -18,7 +18,7 @@ ApplicationSession(?a) ^ ApplicationSession(?b) ^ differentFrom(?a, ?b) ^
 
 # (2) relatedByReusedIdentity (w=1.0): mesma identidade (cookie/token/username)
 ApplicationSession(?a) ^ ApplicationSession(?b) ^ differentFrom(?a, ?b) ^
-  hasIdentityValue(?a, ?id) ^ hasIdentityValue(?b, ?id)
+  hasIdentity(?a, ?id) ^ hasIdentity(?b, ?id)
   -> relatedByReusedIdentity(?a, ?b)
 
 # (3) relatedByEndpointConvergence (w=0.6): mesmo endpoint-alvo
@@ -28,7 +28,7 @@ ApplicationSession(?a) ^ ApplicationSession(?b) ^ differentFrom(?a, ?b) ^
 
 # (4) relatedByNetworkProximity (w=0.3): mesmo prefixo /24
 ApplicationSession(?a) ^ ApplicationSession(?b) ^ differentFrom(?a, ?b) ^
-  srcNet24(?a, ?n) ^ srcNet24(?b, ?n)
+  srcPrefix(?a, ?n) ^ srcPrefix(?b, ?n)
   -> relatedByNetworkProximity(?a, ?b)
 
 # (5) relatedByTemporalPattern (w=0.9) e (6) relatedByPayloadSignature (w=0.6)

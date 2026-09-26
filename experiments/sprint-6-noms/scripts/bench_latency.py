@@ -189,7 +189,7 @@ def bench_symbolic(sessions, tau, pair_cap):
         node = KG[f"session/{s['sid']}"]
         g.add((node, RDF.type, KG.ApplicationSession))
         g.add((node, KG.tlsJa4, Literal(s["ja4"])))
-        g.add((node, KG.srcNet24, Literal(s["net24"])))
+        g.add((node, KG.srcPrefix, Literal(s["net24"])))
         g.add((node, KG.targets, KG[f"endpoint/{s['endpoint'].replace(':', '_')}"]))
     t_build = time.perf_counter() - t0
 
@@ -206,8 +206,8 @@ def bench_symbolic(sessions, tau, pair_cap):
                     FILTER(STR(?a) < STR(?b)) }""",
         "relatedByNetworkProximity": """
             CONSTRUCT { ?a kg:relatedByNetworkProximity ?b }
-            WHERE { ?a a kg:ApplicationSession ; kg:srcNet24 ?n .
-                    ?b a kg:ApplicationSession ; kg:srcNet24 ?n .
+            WHERE { ?a a kg:ApplicationSession ; kg:srcPrefix ?n .
+                    ?b a kg:ApplicationSession ; kg:srcPrefix ?n .
                     FILTER(STR(?a) < STR(?b)) }""",
     }
     t0 = time.perf_counter()

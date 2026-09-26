@@ -1,3 +1,9 @@
+# LEGACY (Sprint 1, gate G4). This is not the query of the NOMS paper's Listing 1.
+# It reads the kg:DetectionCluster nodes that scripts/compute_coordination.py
+# materializes (that vocabulary is not declared in ontology/ddos_ontology.owl), with
+# the CIC-IoT2023 thresholds hard-coded. The paper's aggregation is Listing 1; the
+# form its cost model times is in experiments/sprint-6-noms/scripts/bench_latency.py.
+#
 # Gate G4 — coordinatedHTTPFlood (Sprint 1)
 #
 # Retorna clusters de detecção (label-agnósticos, agrupados por endpoint+janela)

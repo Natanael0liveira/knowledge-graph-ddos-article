@@ -10,8 +10,8 @@
     <owl:Ontology rdf:about="http://security.example.org/ontology/ddos">
         <dc:title>Layer 7 DDoS Attack Detection Ontology</dc:title>
         <dc:description>An ontology for modeling Layer 7 DDoS attacks in web applications using knowledge graphs</dc:description>
-        <dc:version>2.0</dc:version>
-        <rdfs:comment>This ontology supports semantic-based anomaly detection for Layer 7 DDoS attacks with focus on application behavior, endpoints, sessions, and explainability</rdfs:comment>
+        <dc:version>2.1</dc:version>
+        <rdfs:comment>This ontology supports semantic-based anomaly detection for Layer 7 DDoS attacks with focus on application behavior, endpoints, sessions, and explainability. Its namespace IRI, http://security.example.org/ontology/ddos#, is a placeholder under the documentation domain example.org and does not resolve. Version 2.1 renames belongsToIdentity to hasIdentity and removes the DetectionRule individuals of earlier versions.</rdfs:comment>
     </owl:Ontology>
 
     <!-- 
@@ -174,7 +174,7 @@
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#HTTPFlood">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ApplicationLayerAttack"/>
         <rdfs:label>HTTP Flood Attack</rdfs:label>
-        <rdfs:comment>Flood genérico de requisições HTTP (e.g. HTTP-Flood do CIC-IoT2023)</rdfs:comment>
+        <rdfs:comment>Generic flood of HTTP requests (e.g., HTTP-Flood in CIC-IoT2023)</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#LoginFlood">
@@ -186,26 +186,26 @@
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#CredentialStuffing">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#LoginFlood"/>
         <rdfs:label>Credential Stuffing</rdfs:label>
-        <rdfs:comment>Tentativas distribuídas de login com credenciais reaproveitadas; compartilha exhibitsCrossSessionStructure (identidade/credencial reaproveitada). Declarada; não operacionalizada experimentalmente.</rdfs:comment>
+        <rdfs:comment>Distributed login attempts with reused credentials; exhibits cross-session structure (reused identity or credential). Declared, but not operationalized in the experiments.</rdfs:comment>
     </owl:Class>
 
-    <!-- Família central deste trabalho: Slow HTTP DoS distribuído -->
+    <!-- The central family of this work: distributed Slow HTTP DoS -->
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#SlowHTTPDoSFamily">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ApplicationLayerAttack"/>
         <rdfs:label>Slow HTTP DoS Family</rdfs:label>
-        <rdfs:comment>Família de ataques distribuídos de Slow HTTP DoS. Especializa-se em ConnectionExhaustionAttack (connection-holding) e CoordinatedHTTPFlood (rate-based). Ambas exibem exhibitsCrossSessionStructure quando Ω(S) excede o limiar.</rdfs:comment>
+        <rdfs:comment>Family of distributed Slow HTTP DoS attacks. Specializes into ConnectionExhaustionAttack (connection-holding) and CoordinatedHTTPFlood (rate-based). Both exhibit cross-session structure when Ω(S) exceeds the threshold.</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#SlowHTTPDoSFamily"/>
         <rdfs:label>Connection Exhaustion Attack</rdfs:label>
-        <rdfs:comment>Variantes connection-holding: Slowloris, slow body, slow read.</rdfs:comment>
+        <rdfs:comment>Connection-holding variants: Slowloris, slow body, slow read.</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#CoordinatedHTTPFlood">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#SlowHTTPDoSFamily"/>
         <rdfs:label>Coordinated HTTP Flood</rdfs:label>
-        <rdfs:comment>Variantes rate-based que ainda usam conexões sustentadas (HULK, GoldenEye). Classe-alvo da regra de detecção central por soma ponderada Omega(S).</rdfs:comment>
+        <rdfs:comment>Rate-based variants that still use sustained connections (HULK, GoldenEye). Target class of the central detection rule, based on the weighted sum Omega(S).</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#Slowloris">
@@ -217,39 +217,39 @@
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#SlowBody">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack"/>
         <rdfs:label>Slow Body (Slow POST) Attack</rdfs:label>
-        <rdfs:comment>Envio lento do corpo da requisição para manter conexões abertas</rdfs:comment>
+        <rdfs:comment>Sends the request body slowly to keep connections open</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#SlowRead">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack"/>
         <rdfs:label>Slow Read Attack</rdfs:label>
-        <rdfs:comment>Leitura lenta da resposta para manter conexões abertas</rdfs:comment>
+        <rdfs:comment>Reads the response slowly to keep connections open</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#RUDY">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack"/>
         <rdfs:label>R-U-Dead-Yet Attack</rdfs:label>
-        <rdfs:comment>Slow POST attack (variante de slow body)</rdfs:comment>
+        <rdfs:comment>Slow POST attack (a slow-body variant)</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#HULK">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#CoordinatedHTTPFlood"/>
         <rdfs:label>HULK Attack</rdfs:label>
-        <rdfs:comment>HTTP Unbearable Load King: flood de alta taxa sobre conexões sustentadas</rdfs:comment>
+        <rdfs:comment>HTTP Unbearable Load King: high-rate flood over sustained connections</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#GoldenEye">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#CoordinatedHTTPFlood"/>
         <rdfs:label>GoldenEye Attack</rdfs:label>
-        <rdfs:comment>Flood de alta taxa mantendo conexões keep-alive</rdfs:comment>
+        <rdfs:comment>High-rate flood that holds keep-alive connections open</rdfs:comment>
     </owl:Class>
 
-    <!-- Alias legado (compatibilidade com regras anteriores): ver ConnectionExhaustionAttack -->
+    <!-- Legacy alias (compatibility with earlier rules): see ConnectionExhaustionAttack -->
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#SlowRequestAttack">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack"/>
         <owl:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</owl:deprecated>
         <rdfs:label>Slow Request Attack (legacy)</rdfs:label>
-        <rdfs:comment>Alias legado de ConnectionExhaustionAttack, mantido para compatibilidade.</rdfs:comment>
+        <rdfs:comment>Legacy alias of ConnectionExhaustionAttack, kept for compatibility.</rdfs:comment>
     </owl:Class>
     
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#APIAttack">
@@ -261,7 +261,7 @@
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#CoordinatedAPIAbuse">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#APIAttack"/>
         <rdfs:label>Coordinated API Abuse</rdfs:label>
-        <rdfs:comment>Abuso coordenado de endpoints de API por múltiplas sessões; compartilha exhibitsCrossSessionStructure (tokens distintos convergindo por relatedByTLSFingerprint). Declarada; não operacionalizada experimentalmente.</rdfs:comment>
+        <rdfs:comment>Coordinated abuse of API endpoints by multiple sessions; exhibits cross-session structure (distinct tokens converging through relatedByTLSFingerprint). Declared, but not operationalized in the experiments.</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#ScrapingAttack">
@@ -412,7 +412,7 @@
     
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#DetectionRule">
         <rdfs:label>Detection Rule</rdfs:label>
-        <rdfs:comment>A semantic rule for anomaly detection</rdfs:comment>
+        <rdfs:comment>A semantic rule for anomaly detection. The ontology declares no individuals of this class: its single rule, CoordinatedHTTPFlood over the coordination mass Omega(S), is compiled to a count query from the annotations of the relatedTo family (see the Detection Rule comment at the end of this file).</rdfs:comment>
     </owl:Class>
 
     <!-- Network Infrastructure Classes (Legacy Support) -->
@@ -511,29 +511,30 @@
         <rdfs:label>has cookie</rdfs:label>
     </owl:ObjectProperty>
     
-    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#belongsToIdentity">
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#hasIdentity">
         <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Identity"/>
-        <rdfs:label>belongs to identity</rdfs:label>
+        <rdfs:label>has identity</rdfs:label>
     </owl:ObjectProperty>
 
     <!--
     ///////////////////////////////////////////////////////////////////////////////////////
     //
-    // Cross-Session Coordination — família relatedTo ponderada (contribuição 1 do paper)
+    // Cross-Session Coordination — the weighted relatedTo family (contribution 1 of the paper)
     //
-    // relatedTo liga DUAS ApplicationSession e é especializada em seis sub-propriedades
-    // tipadas, cada uma instanciada a partir de um sinal específico de coordenação. A
-    // detecção opera por SOMA PONDERADA: Ω(S) = Σ_i coordinationWeight(i) · |pares ligados
-    // por relatedBy_i em S|. Os pesos refletem o custo de evasão para o atacante (alto =
-    // caro de falsificar). Ver CONCEITOS.md e papers/http-session/article.tex §3.3.
+    // relatedTo links TWO ApplicationSession individuals and is specialized into six typed
+    // sub-properties, each instantiated from one specific coordination signal. Detection
+    // works by a WEIGHTED SUM: Ω(S) = Σ_i coordinationWeight(i) · |pairs linked by
+    // relatedBy_i in S|. The weights reflect the attacker's cost of evasion (high = costly
+    // to forge). See docs/concepts.md, section 4, and Section III-D (sec:family) of
+    // papers/http-session-noms/article.tex.
     ///////////////////////////////////////////////////////////////////////////////////////
     -->
 
-    <!-- Propriedade de anotação que carrega o peso w_i de cada sub-relação -->
+    <!-- Annotation property that carries the weight w_i of each sub-relation -->
     <owl:AnnotationProperty rdf:about="http://security.example.org/ontology/ddos#coordinationWeight">
         <rdfs:label>coordination weight</rdfs:label>
-        <rdfs:comment>Peso w_i da sub-relação na soma ponderada Ω(S). Alto = sinal caro de falsificar (resistência à evasão).</rdfs:comment>
+        <rdfs:comment>Weight w_i of the sub-relation in the weighted sum Ω(S). High = a signal that is costly to forge (resistance to evasion).</rdfs:comment>
     </owl:AnnotationProperty>
 
     <!-- Class membership for the equality-based sub-relations.
@@ -592,13 +593,13 @@
         <rdfs:comment>Names the relatedBy sub-property whose equivalence class the subject is, so the aggregation can read that sub-property's coordinationWeight.</rdfs:comment>
     </owl:ObjectProperty>
 
-    <!-- Super-propriedade abstrata: coordenação entre sessões (mútua => simétrica) -->
+    <!-- Abstract super-property: coordination between sessions (mutual, hence symmetric) -->
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedTo">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
         <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <rdfs:label>related to</rdfs:label>
-        <rdfs:comment>Liga duas sessões coordenadas. Abstrata: instanciada via suas seis sub-propriedades, nunca diretamente. Habilita o raciocínio cross-session.</rdfs:comment>
+        <rdfs:comment>Links two coordinated sessions. Abstract: instantiated through its six sub-properties, never directly. Enables cross-session reasoning.</rdfs:comment>
         <countUnit rdf:resource="http://security.example.org/ontology/ddos#originatesFrom"/>
     </owl:ObjectProperty>
 
@@ -610,7 +611,7 @@
         <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">1.0</coordinationWeight>
         <classKey rdf:resource="http://security.example.org/ontology/ddos#tlsJa4"/>
         <rdfs:label>related by TLS fingerprint</rdfs:label>
-        <rdfs:comment>Sessões com JA4 igual ou quase igual (distância ≤ 1). Peso alto: trocar o stack TLS é caro para o atacante.</rdfs:comment>
+        <rdfs:comment>Sessions with an equal or near-equal JA4 (distance ≤ 1). High weight: changing the TLS stack is costly for the attacker.</rdfs:comment>
     </owl:ObjectProperty>
 
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByReusedIdentity">
@@ -620,7 +621,7 @@
         <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">1.0</coordinationWeight>
         <rdfs:label>related by reused identity</rdfs:label>
-        <rdfs:comment>Sessões com interseção de identidade (cookie, token JWT, username). Peso alto: adquirir identidades continuamente é caro.</rdfs:comment>
+        <rdfs:comment>Sessions whose identities overlap (cookie, JWT token, username). High weight: acquiring identities continuously is costly.</rdfs:comment>
     </owl:ObjectProperty>
 
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByTemporalPattern">
@@ -630,7 +631,7 @@
         <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0.9</coordinationWeight>
         <rdfs:label>related by temporal pattern</rdfs:label>
-        <rdfs:comment>Sessões com cadência de inter-chegada coerente (DTW normalizado ≤ τ). Emerge da coordenação operacional do botnet.</rdfs:comment>
+        <rdfs:comment>Sessions with a coherent inter-arrival cadence (normalized DTW ≤ τ). Emerges from the botnet's operational coordination.</rdfs:comment>
     </owl:ObjectProperty>
 
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByPayloadSignature">
@@ -640,7 +641,7 @@
         <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
         <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0.6</coordinationWeight>
         <rdfs:label>related by payload signature</rdfs:label>
-        <rdfs:comment>Sessões com estatísticas de payload similares (tamanho, User-Agent, Content-Type). Peso médio: randomizável, mas perde coerência de campanha.</rdfs:comment>
+        <rdfs:comment>Sessions with similar payload statistics (size, User-Agent, Content-Type). Medium weight: it can be randomized, at the cost of the campaign's coherence.</rdfs:comment>
     </owl:ObjectProperty>
 
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByEndpointConvergence">
@@ -651,7 +652,7 @@
         <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0.6</coordinationWeight>
         <classKey rdf:resource="http://security.example.org/ontology/ddos#targets"/>
         <rdfs:label>related by endpoint convergence</rdfs:label>
-        <rdfs:comment>Sessões que convergem no mesmo endpoint-alvo (match exato ou de padrão de path). Peso médio.</rdfs:comment>
+        <rdfs:comment>Sessions that converge on the same target endpoint (exact match or path-pattern match). Medium weight.</rdfs:comment>
     </owl:ObjectProperty>
 
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByNetworkProximity">
@@ -662,7 +663,7 @@
         <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">0.3</coordinationWeight>
         <classKey rdf:resource="http://security.example.org/ontology/ddos#srcPrefix"/>
         <rdfs:label>related by network proximity</rdfs:label>
-        <rdfs:comment>Sessões no mesmo /24 (ou /48, ou ASN). Peso baixo: botnets modernas distribuem agressivamente em prefixo/ASN, então o sinal é fraco por construção.</rdfs:comment>
+        <rdfs:comment>Sessions in the same /24 (or /48, or ASN). Low weight: modern botnets spread aggressively across prefixes and ASNs, so the signal is weak by construction.</rdfs:comment>
     </owl:ObjectProperty>
 
     <!-- Behavior Relations -->
@@ -1051,161 +1052,22 @@
         <rdfs:label>is known malicious</rdfs:label>
     </owl:DatatypeProperty>
 
-    <!-- 
+    <!--
     ///////////////////////////////////////////////////////////////////////////////////////
     //
-    // SWRL Rules (Semantic Web Rule Language) - Layer 7 Specific
+    // Detection Rule
+    //
+    // The detection rule is cross-session: CoordinatedHTTPFlood holds when the sessions to
+    // one endpoint span at least k_min origins and their Omega(S), summed over the weighted
+    // relatedTo family, reaches tauCluster, calibrated per endpoint on attack-free traffic
+    // (Section III-E, sec:rule, of papers/http-session-noms/article.tex). It is not stored
+    // here as DetectionRule individuals: the SWRL rules that instantiate the sub-relations
+    // are in experiments/pillar2-symbolic-reasoning/rules/relatedBy.swrl, and
+    // experiments/sprint-6-noms/scripts/compile_counts.py compiles the count query from the
+    // annotations of this file. The per-session, per-request and per-endpoint threshold
+    // rules of earlier versions, whose SWRL lived in rdfs:comment, were removed.
     //
     ///////////////////////////////////////////////////////////////////////////////////////
     -->
-
-    <!-- Rule: Login Flood Detection -->
-    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#LoginFloodRule">
-        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
-        <rdfs:comment>
-            Rule: High number of failed login attempts from same identity or session.
-            
-            SWRL representation:
-            ApplicationSession(?session) ^ belongsToIdentity(?session, ?identity) ^
-            failedLogins(?session, ?count) ^ greaterThan(?count, 10) ^
-            timestamp(?session, ?time) ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, LoginFlood) ^
-            triggeredBy(?anomaly, ?session) ^ anomalyScore(?anomaly, 0.85)
-        </rdfs:comment>
-    </owl:NamedIndividual>
-
-    <!-- Rule: HTTP Flood Detection -->
-    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#HTTPFloodRule">
-        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
-        <rdfs:comment>
-            Rule: Abnormal request rate per session or token targeting same endpoint.
-            
-            SWRL representation:
-            ApplicationSession(?session) ^ hasEndpoint(?request, ?endpoint) ^
-            requestCount(?session, ?count) ^ sessionAge(?session, ?age) ^
-            divide(?count, ?age, ?rate) ^ greaterThan(?rate, 100) ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, CoordinatedHTTPFlood) ^
-            triggeredBy(?anomaly, ?session) ^ anomalyScore(?anomaly, 0.8)
-        </rdfs:comment>
-    </owl:NamedIndividual>
-
-    <!-- Rule: Bot Behavior Detection -->
-    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#BotBehaviorRule">
-        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
-        <rdfs:comment>
-            Rule: Low variability in headers, fingerprint, or navigation patterns.
-            
-            SWRL representation:
-            Behavior(?behavior) ^ exhibitsBehavior(?session, ?behavior) ^
-            headerVariability(?behavior, ?hv) ^ lessThan(?hv, 0.1) ^
-            fingerprintVariability(?behavior, ?fv) ^ lessThan(?fv, 0.1) ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, BotBehavior) ^
-            triggeredBy(?anomaly, ?behavior) ^ anomalyScore(?anomaly, 0.75)
-        </rdfs:comment>
-    </owl:NamedIndividual>
-
-    <!-- Rule: Low Session Value Attack -->
-    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#LowSessionValueRule">
-        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
-        <rdfs:comment>
-            Rule: High request count with low session value indicates API abuse.
-            
-            SWRL representation:
-            ApplicationSession(?session) ^ requestCount(?session, ?count) ^
-            sessionValue(?session, ?value) ^ greaterThan(?count, 100) ^
-            lessThan(?value, 0.1) ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, APIAttack) ^
-            triggeredBy(?anomaly, ?session) ^ anomalyScore(?anomaly, 0.7)
-        </rdfs:comment>
-    </owl:NamedIndividual>
-
-    <!-- Rule: Expensive Endpoint Burst -->
-    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#ExpensiveEndpointBurstRule">
-        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
-        <rdfs:comment>
-            Rule: Burst of requests to computationally expensive endpoints.
-            
-            SWRL representation:
-            Endpoint(?endpoint) ^ computationalCost(?endpoint, ?cost) ^
-            greaterThan(?cost, 0.7) ^ hasEndpoint(?request, ?endpoint) ^
-            requestsPerSecond(?endpoint, ?rate) ^ greaterThan(?rate, 50) ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, ApplicationLayerAttack) ^
-            targetsEndpoint(?anomaly, ?endpoint) ^ anomalyScore(?anomaly, 0.9)
-        </rdfs:comment>
-    </owl:NamedIndividual>
-
-    <!-- Rule: Latency Increase Detection -->
-    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#LatencyIncreaseRule">
-        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
-        <rdfs:comment>
-            Rule: Significant latency increase on specific endpoint indicates attack impact.
-            
-            SWRL representation:
-            Endpoint(?endpoint) ^ averageResponseTime(?endpoint, ?avgTime) ^
-            responseTime(?request, ?actualTime) ^ hasEndpoint(?request, ?endpoint) ^
-            multiply(?avgTime, 3, ?threshold) ^ greaterThan(?actualTime, ?threshold) ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, ApplicationLayerAttack) ^
-            increasesLatency(?anomaly, ?endpoint) ^ anomalyScore(?anomaly, 0.6)
-        </rdfs:comment>
-    </owl:NamedIndividual>
-
-    <!-- Rule: Repetitive Route Pattern -->
-    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#RepetitiveRouteRule">
-        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
-        <rdfs:comment>
-            Rule: High repetition of same route with low navigation diversity.
-            
-            SWRL representation:
-            ApplicationSession(?session) ^ exhibitsBehavior(?session, ?behavior) ^
-            navigationDiversity(?behavior, ?div) ^ lessThan(?div, 0.2) ^
-            requestCount(?session, ?count) ^ greaterThan(?count, 50) ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, BotBehavior) ^
-            triggeredBy(?anomaly, ?behavior) ^ anomalyScore(?anomaly, 0.7)
-        </rdfs:comment>
-    </owl:NamedIndividual>
-
-    <!-- Rule: Cache Bypass Attack -->
-    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#CacheBypassRule">
-        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
-        <rdfs:comment>
-            Rule: Requests bypassing cache to hit origin on cacheable endpoints.
-            
-            SWRL representation:
-            Endpoint(?endpoint) ^ isCacheable(?endpoint, true) ^
-            cachedBy(?endpoint, ?cache) ^ hasEndpoint(?request, ?endpoint) ^
-            httpHeader(?request, "Cache-Control", "no-cache") ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, CacheBypassAttack) ^
-            targetsEndpoint(?anomaly, ?endpoint) ^ anomalyScore(?anomaly, 0.65)
-        </rdfs:comment>
-    </owl:NamedIndividual>
-
-    <!-- Rule: Slow Request Attack -->
-    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#SlowRequestRule">
-        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
-        <rdfs:comment>
-            Rule: Very slow requests consuming server resources.
-            
-            SWRL representation:
-            HTTPRequest(?request) ^ responseTime(?request, ?time) ^
-            greaterThan(?time, 30000) ^ httpMethod(?request, "POST") ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, ConnectionExhaustionAttack) ^
-            triggeredBy(?anomaly, ?request) ^ anomalyScore(?anomaly, 0.75)
-        </rdfs:comment>
-    </owl:NamedIndividual>
-
-    <!-- Rule: Scraping Detection -->
-    <owl:NamedIndividual rdf:about="http://security.example.org/ontology/ddos#ScrapingRule">
-        <rdf:type rdf:resource="http://security.example.org/ontology/ddos#DetectionRule"/>
-        <rdfs:comment>
-            Rule: Systematic access to multiple endpoints with bot-like patterns.
-            
-            SWRL representation:
-            ApplicationSession(?session) ^ uniqueEndpointsVisited(?session, ?endpoints) ^
-            greaterThan(?endpoints, 100) ^ exhibitsBehavior(?session, ?behavior) ^
-            isBotLike(?behavior, true) ->
-            Anomaly(?anomaly) ^ indicates(?anomaly, ScrapingAttack) ^
-            triggeredBy(?anomaly, ?session) ^ anomalyScore(?anomaly, 0.8)
-        </rdfs:comment>
-    </owl:NamedIndividual>
 
 </rdf:RDF>

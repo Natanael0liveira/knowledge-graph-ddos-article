@@ -116,9 +116,8 @@ sessions plus a BENIGN set as `--cluster` and `--benign`.
 
 - Demonstrated on a toy cluster; running over a real detected cluster needs the
   drive. The logic is validated, the real numbers come after.
-- The **STIX 2.1 output is representative**, with the correct structure
-  (bundle / indicator / course-of-action / relationship, `pattern_type: stix`),
-  but is not checked against a formal STIX validator. JA4 uses a custom
-  `x-tls:ja4` extension.
+- The scope's /24 key is written `srcNet24` in the JSON-LD chains, while the
+  ontology's property is `srcPrefix`. The key is kept so the committed chains and
+  the identifiers of their STIX bundles stay unchanged.
 - Only the three sub-relations with session-level data enter the decomposition,
   the same scope as the ablation: TLS/JA4, endpoint, /24.

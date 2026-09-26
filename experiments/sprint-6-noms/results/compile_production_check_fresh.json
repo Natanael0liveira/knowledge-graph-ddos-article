@@ -1,0 +1,11 @@
+{
+  "source": "compiled query (compile_counts.py) run in the operator's log store on the fresh day, against the hand-written exports of that day; counts only",
+  "days": 1,
+  "windows": 1152,
+  "origins_equal": 1152,
+  "net24_pairs_equal": 1152,
+  "ja4_pairs_within_export_bounds": 1152,
+  "windows_without_waf_blocks": 288,
+  "ja4_pairs_equal_without_waf_blocks": 288,
+  "note": "the fresh day of fresh_day_protocol.md; the same check as compile_production_check.json"
+}

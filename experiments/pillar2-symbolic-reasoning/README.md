@@ -45,11 +45,19 @@ classifier was forced onto the **same operating point**:
 
 | Scenario | Rule: recall / FPR / F₁ | RF AUC | RF recall @ FPR = 0 |
 |---|---|---|---|
-| Monolithic (M = 1) | 84.0% / 0.00% / 0.885 | 0.997 | **91.7%** |
+| Monolithic (M = 1) | 89.8% / 0.00% / 0.946 | 0.997 | **91.7%** |
 | M = 5 | 90.0% / 0.00% / 0.948 | 0.996 | 88.6% |
 | M = 25 | 90.3% / 0.00% / **0.949** | 0.979 | **36.4%** |
-| M = 100 | 85.0% / 0.00% / 0.919 | 0.961 | **17.6%** |
+| M = 100 | 38.6% / 0.00% / 0.556 | 0.961 | **17.6%** |
 | M = 25, adversarial | 30.4% / 3.78% / 0.452 | 0.862 | **7.8%** |
+
+These are the paper's Table II values (`../sprint-6-noms/results/symbolic_detector.json`:
+the cluster of largest Ω chosen with no label, binomial enrichment test). At
+M = 100 the rule falls to 38.6% because stacks of about ten sessions cannot be told
+from the tail of a 1,000-session profile; a profile pooled over 30 attack-free runs
+restores 89.6% (sprint-6 README, section 7). A per-fingerprint z-score against the
+same profile matches the rule up to 25 stacks and reaches 80.4% at 100, also at zero
+FPR (`../sprint-6-noms/results/unseen_synth_summary.csv`).
 
 **This is not a uniform win.** In the monolithic regime the Random Forest ties or
 beats the rule; there is no symbolic advantage there. From 25 stacks on the

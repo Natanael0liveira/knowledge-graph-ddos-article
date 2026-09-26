@@ -244,6 +244,19 @@ several style passes had already been declared clean.
   every "we reimplement X" against the code.
 - **Numbers in a table with no artifact behind them.** Every value should trace
   to a committed results file; trace them before submission.
+- **A statistic attached to one item.** `each alarm blocking a median 30%`: a
+  median runs over the alarms, so write `its alarms blocking a median 30%`.
+- **A word that rounds the number next to it.** `three times as many pairs`
+  where the weights give 1/0.3 = 3.3; `the same windows` for 71 against 70 of 90.
+  Recompute every ratio and "same" the prose asserts.
+- **A pointer to where the claim is not.** An `(Appendix E)` attached to a
+  sentence the appendix never discusses. Check each pointer against the target.
+- **A symbol used before its definition, or two symbols for one set.** Read the
+  method section in order and note where each symbol first appears.
+- **A deliberate switch of polarity, "fixed" into a list.** `moves no rate by
+  more than 0.3, no share by more than 4.5, and a collateral median by up to 7.2`
+  flags the one quantity that does move; folding it into the negated list turns
+  a caveat into a robustness claim. Fix the grammar and keep the caveat.
 
 ## 10. Translated versions
 
@@ -255,6 +268,12 @@ translation is where you think it is. The Portuguese version here carried a
 commit message saying it had been resynced, yet had drifted in captions and ran
 13% longer. Regenerating from the current source was more reliable than patching
 a diff onto an unknown base.
+
+**Check meaning, not only numbers.** A number-by-number comparison of the two
+versions passed while a rewrite had turned "corroborates" into "confirms",
+dropped "observed" and "only", and added an explanation of DTW that credited it
+with what the use of inter-arrival intervals does. Read the translation against
+the source paragraph by paragraph for qualifiers and claims.
 
 **Page limits usually apply to one version only.** The widow compaction was
 applied to the English submission and deliberately skipped in the Portuguese

@@ -1,6 +1,6 @@
 # Guia de estudo do artigo NOMS
 
-*Scoped Mitigation of Application-Layer DDoS with a Session-Centric Knowledge Graph*
+*Calibrated Scoping of Application-Layer DDoS Mitigation with a Session-Centric Knowledge Graph*
 
 Este guia ensina o artigo bloco a bloco, na ordem em que ele aparece. Em cada
 bloco você encontra: o que o bloco diz, por que ele está ali, as fórmulas e siglas
@@ -21,21 +21,30 @@ Se o tempo for curto, leia nesta ordem: **seção 1** (o artigo em um minuto),
 3. Título e resumo
 4. I. Introdução
 5. II. Trabalhos relacionados (Tabela I)
-6. III. O grafo de conhecimento centrado na sessão (Fig. 1 e 2)
+6. III. O grafo de conhecimento centrado na sessão (Fig. 1)
 7. IV. Metodologia de avaliação
-8. V-A. Ablação (Tabela II)
-9. V-B. A regra como detector (Tabela III) e o tráfego de produção
-10. V-C. Capturas de laboratório e KLAGE (Tabela IV)
-11. V-D. Dano colateral (Fig. 3)
-12. V-E e V-F. Custo, janela W e significância estatística
+8. V-A. Ablação (sem tabela desde a rodada 8)
+9. V-B. A regra como detector (Tabela II)
+10. V-C. Dano colateral (Fig. 2)
+11. V-D. Tráfego de produção (Tabelas III e IV)
+12. V-E. Custo e a janela W
 13. VI. Discussão e limitações
 14. VII. Conclusão
-15. Apêndices A a F (Tabelas V e VI, Listagens 1 e 2)
+15. Apêndices A a F (Tabela V, Figs. 3 e 4, Listagens 1 e 2)
 16. As fórmulas, uma a uma, com exemplos numéricos
 17. Números para saber de cor
 18. Perguntas difíceis e como responder
 19. Glossário de siglas e símbolos
 20. Estado do trabalho e onde cada coisa está
+
+**Numeração dos elementos flutuantes (versão atual, rodada 8).** Fig. 1 = ontologia;
+Fig. 2 = colateral; Fig. 3 = custo (Apêndice D); Fig. 4 = pontos de operação em
+produção (Apêndice E). Tabela I = trabalhos relacionados; II = a regra como detector;
+III = o escopo em produção, por endpoint; IV = piso de calibração e WAF; V = a regra
+por janela (Apêndice E). Listagem 1 = regra SWRL e agregação SPARQL; Listagem 2 =
+cadeia de evidência. Na rodada 8 saíram a tabela da ablação (os números estão no
+texto de V-A) e a tabela do laboratório (os números estão no Apêndice C); antes já
+tinham saído a Fig. 2 do *pipeline* e a figura de regime.
 
 ---
 
@@ -46,417 +55,487 @@ Se o tempo for curto, leia nesta ordem: **seção 1** (o artigo em um minuto),
 pouco tráfego. Nenhuma origem cruza um limiar por origem, e cada sessão, olhada
 sozinha, parece legítima.
 
-**A virada do artigo.** Perceber que um endpoint está sob ataque é fácil: quase
+**A virada do artigo.** Perceber que um endpoint está sob ataque é quase fácil:
 basta contar quantas origens distintas chegaram nele na janela. O difícil é
 **decidir quem bloquear sem bloquear os próprios usuários do serviço**. O artigo
-é sobre essa decisão, o **escopo da mitigação**.
+trata essa decisão, o **escopo da mitigação**, como um **teste estatístico
+calibrado**: só entra no escopo a impressão digital TLS cuja presença no alarme é
+improvável sob o tráfego normal, num nível calibrado para um orçamento de falsos
+alarmes.
 
 **A proposta.** Um grafo de conhecimento (OWL) em que a sessão HTTP é entidade de
-primeira classe, ligada a outras sessões por seis relações tipadas, cada uma com
-um peso proporcional ao custo que o atacante teria para quebrá-la. Uma regra
-(SPARQL/SWRL) dispara sobre a "massa de coordenação" Ω, e o escopo vem de um
-**teste binomial de enriquecimento**: bloqueia as impressões digitais TLS (JA4)
-que estão sobre-representadas no agrupamento em relação ao tráfego normal.
+primeira classe, ligada a outras sessões por seis relações tipadas e ponderadas
+pelo custo de evasão. Uma regra (SPARQL/SWRL) dispara o alarme, e o escopo vem de
+um **teste binomial de enriquecimento** em relação a um perfil de tráfego normal.
 
-**Os quatro achados principais.**
+**Os achados principais.**
 
 1. Em campanhas furtivas geradas, a detecção por sessão fica no acaso (AUC ≈ 0,50)
-   em quatro famílias de classificador; atributos entre sessões chegam a 0,93–0,98.
-2. O escopo "natural" (a impressão digital mais comum do agrupamento) é
-   **prejudicial**: com a botnet espalhada em várias pilhas TLS, ele bloqueia 0% do
-   ataque e 39% do tráfego legítimo. O teste de enriquecimento bloqueia 90% sem
-   colateral e sem rótulo algum.
-3. Em oito dias de tráfego real da CDN da Azion, o teste nomeia pilhas da botnet
-   que clientes reais também usam (o que um filtro de "impressões inéditas" não
-   consegue) e raramente dispara em picos legítimos (4% contra 65% de um z-score).
-4. O que o grafo acrescenta é operacional e **medido**: a consulta de contagens é
-   compilada a partir da ontologia e reproduz exatamente as exportações da Azion;
-   a exportação STIX 2.1 passa no validador oficial em modo estrito.
+   em quatro famílias de classificador. Atributos entre sessões chegam a 0,93–0,98,
+   mas **só dentro de uma mesma estrutura de botnet**: treinado com 5 pilhas e
+   testado com 25 ou 100, o modelo cai para 0,61 e 0,63; treinado com 25, vai a 0,48
+   com 5 e 0,75 com 100.
+2. O escopo "natural" (a impressão mais comum do agrupamento) é **prejudicial**: com
+   a botnet em cinco ou mais pilhas TLS, bloqueia 0% do ataque e 39% do legítimo. O
+   teste bloqueia 90% até 25 pilhas sem colateral observado. Um filtro de
+   impressões **inéditas** faz o mesmo em pilhas novas (com 0,03% de colateral), mas
+   não bloqueia nenhuma pilha que clientes reais compartilham, onde o teste bloqueia
+   85% (a 2,23% de colateral).
+3. Em oito dias de tráfego da CDN da Azion, **frotas legítimas impõem um piso de
+   calibração**: a menor botnet que o teste binomial consegue apontar é 16% da
+   janela do endpoint mais movimentado (7% com as frotas conhecidas isentas) e 4 a
+   12 janelas inteiras nos endpoints pequenos. Uma **referência beta-binomial**, que
+   modela as frotas, rebaixa o piso para 3% e para 0,9–2,8 janelas e dispensa a
+   lista de frotas conhecidas.
+4. Acima do piso, **todo escopo calibrado** bloqueia 67–71% de uma botnet do tamanho
+   da janela do endpoint mais movimentado. A configuração binomial dispara em 0,1%
+   das janelas limpas; a beta-binomial e um **z-score calibrado para o mesmo
+   orçamento** disparam em 0,4% e bloqueiam tanto ou mais com 100 atacantes, com
+   alarmes mais leves. A binomial paga a taxa menor de falsos alarmes com um piso
+   mais alto. Num **dia novo analisado com o protocolo fixado de antemão**, a
+   configuração binomial dá 2 falsos alarmes em 1.152 janelas (compatível,
+   P = 0,27), nas mesmas janelas do z-score calibrado.
+5. No **regime furtivo** (botnet de um décimo da janela), o escopo aponta a botnet
+   em toda janela, mas o gatilho de volume deixa passar a maior parte dela (dispara
+   em 0,7–42% das janelas, conforme o dia).
+6. O que o grafo acrescenta é operacional e **medido**: a consulta de contagens é
+   compilada a partir da ontologia e reproduz as exportações da Azion em dois dias;
+   o STIX 2.1 exportado passa no validador em modo estrito.
 
-**A honestidade como argumento.** O artigo diz com todas as letras o que o grafo
-*não* acrescenta (a AUC e o gatilho), onde o método falha (regime furtivo em
-produção) e quais escolhas foram feitas depois de ver dados, com confirmação em
-dias reservados.
+**A honestidade como argumento.** O artigo diz o que o grafo *não* acrescenta (a
+AUC e o gatilho), que um z-score calibrado compete com o teste acima do piso, que o
+filtro de inéditas empata com o teste em pilhas geradas, que o modelo aprendido não
+se transfere entre números de pilhas, onde o método não alcança (abaixo do piso),
+que a decisão de ter um dia novo foi registrada antes de lê-lo e que a
+beta-binomial foi construída depois disso (*post hoc*).
 
 ---
 
 ## 2. O que mudou nas últimas rodadas, e por quê
 
-O artigo passou por quatro rodadas de revisão independente (weak reject → weak
-accept borderline → weak accept) e por dois blocos de trabalho novo (itens 2 e 3).
-Em ordem:
+O artigo passou por várias rodadas de revisão independente. As duas últimas
+(rodadas 7 e 8) foram leituras de conjunto comparadas com artigos excelentes do
+NOMS, e as duas deram *weak reject* (a 7, no quartil inferior; a 8, no terceiro
+quartil, com confiança 4 de 5). Os itens delas foram todos atacados, e é daí que
+vem a versão atual. As rodadas, em ordem:
 
 ### Rodada 1 e 2: o método de contagem e a produção
 
 - **Contar em origens, não em sessões.** Em produção uma "sessão" é uma conexão, e
   um cliente abre muitas (5,8 por cliente no endpoint de API). Contado em
-  conexões, o escopo nomeava filtro em 60,1% das janelas limpas. Agora Ω, o
+  conexões, o escopo produzia filtro em 60,1% das janelas limpas. Agora Ω, o
   mínimo k_min e o teste contam **origens distintas** (endereços de origem).
-- **Nível calibrado λ_e.** Frotas legítimas que ligam juntas quebram a
-  independência que o teste binomial assume. O nível do teste passou a ser
-  calibrado por endpoint nos dias anteriores, como τ.
-- **Tráfego de produção da Azion** (8 dias, 4 endpoints, anonimizados como E1–E4),
-  com botnet injetada, protocolo *rolling* (cada dia testado com o que os dias
-  anteriores ensinaram) e a Tabela VI.
-- **Fig. 1 redesenhada** em tons de cinza: espessura da linha segue o peso, e cada
-  sub-relação tem seu padrão de traço.
+- **Nível calibrado λ_e.** Frotas legítimas que entram em atividade ao mesmo tempo
+  quebram a independência que o teste binomial assume. O nível do teste passou a
+  ser calibrado por endpoint nos dias anteriores, como τ.
+- **Tráfego de produção da Azion** (4 endpoints, anonimizados como E1–E4), com
+  botnet injetada e protocolo *rolling* (cada dia testado com o que os dias
+  anteriores ensinaram).
+- **Fig. 1 redesenhada** em tons de cinza.
 
 ### Rodada 3: o enquadramento
 
-- **Título novo**, centrado na mitigação com escopo.
-- **O gatilho é volume.** Um limiar simples no número de origens distintas
-  concorda com Ω ≥ τ em 86–99,6% das janelas. O artigo passou a dizer isso.
-- **Tabela VI refeita** com três escopos (enriquecimento, z-score, JA4 inéditos),
-  pilhas novas e compartilhadas, coluna de *flash crowd*, a união
-  (enriquecimento ∪ inéditos) e a porta de origens.
-- **Modelo aprendido com o perfil.** Para a comparação ser justa, o modelo
-  aprendido também recebeu o perfil de tráfego normal. Ele passa a igualar ou
-  superar a regra, mas precisa dos rótulos da própria campanha. A antiga frase
-  "recupera mais que o dobro" saiu.
-- **Condições (iv) e (v) da regra removidas** (taxa agregada e perfil
-  BotBehavior): nunca estavam ativas em nenhum experimento.
+- **O gatilho é volume.** Um limiar no número de origens distintas concorda com
+  Ω ≥ τ em 86–99,6% das janelas.
+- **Modelo aprendido com o perfil**, para a comparação ser justa: ele iguala ou
+  supera a regra, mas precisa dos rótulos da própria campanha.
+- **Condições (iv) e (v) da regra removidas** (nunca estavam ativas).
 
-### Rodada 4: precisão das afirmações
+### Rodada 4 e itens 2 e 3
 
-- "Compila em contagens" virou "se reduz a contagens" até ser medido (e depois,
-  no item 3, foi medido de verdade).
-- A porta de origens e a união foram **declaradas como escolhidas nos mesmos dias
-  de teste**, com os números (6 contra 14 falsos alarmes) e a confirmação de que
-  valem em cada um dos cinco dias.
-- O resultado negativo do regime furtivo (E1 a 0,1×: 0,6%) entrou no corpo.
+- A porta de origens e a união foram declaradas como escolhidas nos dias de teste.
+- **Frotas conhecidas** (item 2): impressões que o teste aponta com frequência na
+  calibração saem do escopo e da calibração do nível. A fração de 5% das janelas foi
+  escolhida em três dias e testada em dois dias reservados.
+- **O valor do grafo, medido** (item 3): pesos lidos da ontologia; um compilador
+  gera o SQL de contagens a partir dela; no banco de logs da Azion, para 23/09, a
+  consulta devolveu exatamente as origens e os pares /24 exportados nas 1.152
+  janelas; o STIX 2.1 passou a ser válido em modo estrito.
 
-### Item 2: um perfil que conhece as frotas
+### Rodada 6: coerência matemática e linguística
 
-- Impressões digitais que o teste nomeia com frequência nos dias de calibração
-  viram **frotas conhecidas**: saem do escopo e da calibração do nível.
-- **Protocolo registrado antes de rodar**: escolha da fração φ nos três primeiros
-  dias de teste, pelo maior bloqueio sem mais falsos alarmes; os dois últimos
-  ficam de reserva.
-- Escolhido φ = 5%. Nos dias de reserva, E1 a 0,1× sobe de 0,7% para **6,3%**
-  (pilhas compartilhadas: 0,2% → 4,4%), com 7 falsos alarmes contra 8.
+Contas, notação e texto conferidos no EN e no PT ("3,3 vezes" em vez de "três
+vezes"; "pelo menos tantas janelas" em vez de "as mesmas"; a mediana dos alarmes;
+S_W como único nome do conjunto de sessões ativas; a regra antes da construção).
 
-### Item 3: o valor do grafo, medido
+### Rodada 7: o escopo como certificação
 
-- Os pesos passaram a ser **lidos da ontologia** em todos os scripts (antes eram
-  copiados à mão em cinco lugares).
-- A ontologia ganhou `kg:classKey` (o que cada relação de igualdade iguala),
-  `kg:countUnit`, `kg:tlsJa4`, `kg:srcPrefix`, e teve `kg:targets` corrigido (a
-  declaração antiga faria um raciocinador concluir que toda sessão é um ataque).
-- Um **compilador** gera o SQL de contagens a partir da ontologia. Em sessões
-  geradas, reproduz Ω com diferença 0,0. **No ClickHouse da Azion, para 23/09,
-  devolveu exatamente as origens e os pares /24 exportados nas 1.152 janelas.**
-- Uma sub-relação nova custa **4 triplas e 0 linhas de código**.
-- O STIX 2.1 exportado passou a ser **válido no validador da OASIS, inclusive em
-  modo estrito** (antes falhava com 13 erros por pacote).
+O revisor comparou o artigo com os melhores do NOMS e listou o que faltava. O que
+foi feito, item a item:
+
+- **Enquadramento.** Título novo (*Certified Scoping...*, trocado na rodada 8), resumo
+  e contribuições contados como certificação: o teste certifica impressões, e isso
+  tem um piso.
+- **Produção no corpo.** Virou a seção V-D, com duas tabelas (IV e V). Antes estava
+  no Apêndice E.
+- **Linhas de base em pé de igualdade.** Dois z-scores novos com o limiar calibrado
+  para o mesmo orçamento do teste (produzir filtro em no máximo 1% das janelas
+  livres de ataque): um contra o perfil e um contra o próprio histórico de cada
+  impressão. No sintético, o filtro de impressões inéditas entrou na Tabela III, e
+  um modo "compartilhado" sorteia as pilhas da botnet da cauda do perfil, como a
+  injeção de produção faz.
+- **O piso de certificação** (hoje piso de calibração, Tabela IV), dito em III-G.
+- **O WAF como verdade parcial**: a tabela do piso diz que fração dos clientes que o
+  escopo bloquearia o WAF também bloqueou.
+- **Um dia novo com o protocolo fixado de antemão** (25/09): configuração e métricas escritas antes de
+  abrir o dia, com os *hashes* das exportações
+  (`experiments/sprint-6-noms/results/fresh_day_protocol.md`). A consulta compilada
+  da ontologia também rodou nesse dia.
+- **O MLP corrigido.** O 0,235 abaixo do acaso era artefato: a parada antecipada
+  avaliava um *holdout* por acurácia, e com 4,8% de ataques "tudo benigno" já é a
+  melhor acurácia, então os pesos da época 7 eram restaurados. Sem parada
+  antecipada, o MLP fica em 0,862 (K = 50) e 0,952 (K = 1000).
+- **Fig. 2 (pipeline) removida**, a formulação simbólica fundida em III-F.
+- **Trabalhos relacionados**: DOTS (RFC 8811 e 9132), D3FEND e detecção de bots por
+  grafo (IM 2019).
+- **Orçamento de páginas mantido**: 12 páginas, corpo em 8.
+- **Passada final de estilo** no EN: resumo em 248 palavras; ponto e vírgula entre
+  orações virou ponto; frases acima de 45 palavras divididas (de 11,5% para 2,4%).
+- **Auditoria**: `make audit` confere 180 números e frases contra os resultados,
+  com 0 divergências.
+- **Versão em português** reconstruída na estrutura nova e revisada por duas
+  leituras independentes: fidelidade ao inglês (26 correções, entre elas "85% das
+  pilhas", que era "85% do ataque em pilhas compartilhadas") e língua (170
+  correções: "dano colateral" por extenso, "em relação a" no lugar de "contra",
+  palavras-chave do Algoritmo 1 em português, frases longas divididas).
+
+**Resultados honestos da rodada 7** (o que não saiu a favor do método):
+
+- No sintético, o filtro de inéditas **empata** com o teste até 25 pilhas, porque as
+  pilhas geradas nunca aparecem no vocabulário benigno. A vantagem do teste só
+  aparece em pilhas compartilhadas.
+- Em produção, o z-score calibrado bloqueia **tanto ou mais** que o teste, a quatro
+  vezes os falsos alarmes nos dias de teste (20 contra 5), e com alarmes mais
+  leves. No dia novo, os dois dão os **mesmos 2 falsos alarmes, nas mesmas
+  janelas**. A vantagem do teste é a taxa menor de falsos alarmes nos dias de teste
+  e o piso calculável.
+- No regime furtivo, o gargalo é o **gatilho**, não o escopo: com as frotas
+  conhecidas, o escopo aponta a botnet de 0,1× em toda janela, mas o gatilho de
+  origens só dispara em 0,7–42% delas. No dia novo, não disparou nenhuma vez.
+
+### Rodada 8: o escopo como teste calibrado
+
+Um revisor novo leu o artigo inteiro contra os melhores do NOMS e deu *weak reject*
+(confiança 4 de 5, terceiro quartil). Cada afirmação dele foi conferida antes de
+agir. O que mudou:
+
+- **Enquadramento e título.** *Certified* virou *Calibrated*: o nível do teste é
+  calibrado num orçamento de falsos alarmes, e num nível de 10⁻⁶⁰ o p-valor é um
+  escore com limiar empírico, não uma certificação. O piso passou a se chamar
+  **piso de calibração**.
+- **Referência beta-binomial** (`--overdispersion`). As frotas tornam as contagens
+  sobredispersas; uma beta-binomial ajustada por impressão digital (correlação φ
+  dentro da janela, pelo método dos momentos) rebaixa o piso várias vezes (E1: 16%
+  → 3% da janela; endpoints pequenos: 4–12 → 0,9–2,8 janelas), sobe o nível de E1
+  para 7 × 10⁻⁵ e dispensa as frotas conhecidas (nenhuma se qualifica). O custo: 22
+  falsos alarmes em 5.643 janelas (0,4%), o ponto de operação do z-score calibrado,
+  e 1,3% no console, acima do orçamento (o z-score calibrado também passa, 1,1%). Foi
+  construída **depois** de o dia novo ser lido: a configuração avaliada e registrada
+  continua sendo a binomial.
+- **Tabela III por endpoint.** Cada endpoint com binomial, beta-binomial e z-score
+  calibrado, com botnets do tamanho da janela (1×) e de um décimo dela (0,1×), mais o
+  agregado e o dia novo. Os números agregados de 100 e 1.000 atacantes foram para o
+  texto. A tabela do piso (IV) ganhou as colunas da beta-binomial.
+- **Generalização entre estruturas de botnet** (`cross_m_generalization.py`). O
+  modelo aprendido (d) cai para 0,48–0,75 quando o número de pilhas muda, contra
+  0,95–0,995 no mesmo número com outras sementes. Os testes usam metades disjuntas de
+  sementes: com a mesma semente, o gerador repete as sessões benignas, e até (a)
+  chegaria a 0,88–0,94 por memorização.
+- **Erros corrigidos.** O d de Cohen de (d)−(a) é 22,3, não 22,4 (o valor é 22,349);
+  o filtro de inéditas tem 0,03% de colateral, não zero; "o teste e o z-score
+  coincidem" virou "no ponto de operação de"; "todo escopo calibrado bloqueia 71%"
+  virou 67–71% (71% vale só em pilhas novas); a causa "a correlação é ajustada na
+  própria amostra" saiu, porque o z-score calibrado também passa do orçamento no
+  console; e o BCCC-cPacket-Cloud-DDoS-2024 aponta a fraca representação da camada de
+  aplicação como deficiência dos 16 conjuntos que analisa (o texto anterior atribuía
+  essa falha ao próprio BCCC, cujos 17 cenários de DDoS são todos baseados em TCP).
+- **Artefato.** A ontologia perdeu os 10 indivíduos `DetectionRule`, teve os
+  comentários traduzidos para o inglês, e `belongsToIdentity` virou `hasIdentity`;
+  os nomes da III-B agora batem com a OWL (`LoginEndpoint`, `APIEndpoint`,
+  `StaticEndpoint`, `Mitigation`). O protocolo do dia novo ganhou um adendo datado,
+  sem alterar o texto registrado (`fresh_day_protocol_addendum.md`).
+- **Trabalhos relacionados.** SynchroTrap (contas que agem em sincronia), Kill-Bots
+  e Speak-up (ataques que imitam picos legítimos), URCA e Hamsa (derivar um filtro de
+  um alarme) e a telemetria do DOTS (RFC 9244). Saíram três linhas da Tabela I, e as
+  tabelas da ablação e do laboratório viraram texto.
+- **Auditoria reescrita:** `make audit` confere 221 números e frases, com as tabelas
+  identificadas pelos rótulos LaTeX, e 0 divergências. EN: 12 páginas, corpo em 8,
+  resumo com 249 palavras.
 
 ---
 
-## 3. Título e resumo (linhas 99–129)
+## 3. Título e resumo (linhas 99–123)
 
-**Título.** *Scoped Mitigation of Application-Layer DDoS with a Session-Centric
-Knowledge Graph.* A palavra que manda é **scoped**: a contribuição é o escopo da
-mitigação; o grafo é a camada onde a decisão é derivada e exportada.
+**Título.** *Calibrated Scoping of Application-Layer DDoS Mitigation with a
+Session-Centric Knowledge Graph.* As palavras que mandam são **calibrated
+scoping**: a contribuição é o escopo da mitigação, decidido por um teste cujo nível
+é calibrado num orçamento de falsos alarmes; o grafo é a camada onde a decisão é
+derivada, especificada e exportada.
 
-**O resumo, frase a frase.** Ele é contado do ponto de vista do operador e traz,
-junto de cada ganho, o limite que o acompanha (rodada 5 do revisor).
+**O resumo, frase a frase** (249 palavras, dentro do limite de 250 do IEEE; o
+`pdftotext` conta 250 porque separa "1 152" em duas):
 
-1. *Uma campanha de Slow HTTP DoS distribuída mantém cada origem abaixo de
-   qualquer limiar por origem, e por isso o operador enfrenta uma decisão de
-   escopo: quem bloquear sem bloquear os próprios usuários.* O problema, posto
-   como decisão de gerência.
-2. *Em tráfego gerado, a escolha natural (a impressão TLS mais comum) bloqueia 0%
-   de uma botnet espalhada em várias pilhas e 39% do legítimo.* O gancho, com a
-   origem do dado dita.
-3. *Derivamos o escopo de um grafo de conhecimento centrado na sessão; uma regra
-   SPARQL/SWRL dá veredicto e evidência, e um teste binomial de enriquecimento
-   nomeia as impressões a bloquear.* O método.
-4. *Nessas campanhas ele bloqueia 90% de uma botnet de até 25 pilhas, sem colateral
-   e sem rótulo, igualando um modelo aprendido que recebe o perfil e os rótulos.*
-   A solução, com o limite (até 25 pilhas; com 100, 38,6%).
-5. *Em oito dias de CDN, nomeia pilhas que clientes reais também usam (o filtro de
-   inéditas não) e dispara em 4% dos flash crowds contra 65% do z-score.*
-6. *Unido a esse filtro atrás de um gatilho de origens, ambos escolhidos nos dias de
-   teste, dispara em 0,1% das janelas limpas (mediana de 30% dos clientes), detém
-   38–78% de 100 a 1.000 atacantes (20–62% em pilhas compartilhadas), mas só cerca
-   de 20% de uma botnet do tamanho da janela típica.* Ganho, custo, a ressalva da
-   escolha e o caso fraco, lado a lado.
-7. *A consulta compilada da ontologia reproduz as contagens exportadas de origens e
-   /24 de um dia de produção; o STIX 2.1 passa no validador da OASIS.* O fecho,
-   restrito ao que foi verificado.
+1. *Uma campanha distribuída de Slow HTTP DoS mantém cada origem abaixo dos limiares
+   por origem, e a mitigação passa a depender do escopo: quais clientes bloquear,
+   poupando os usuários legítimos.* O problema, posto como decisão de gerência.
+2. *Sobre um grafo de conhecimento centrado na sessão, um teste binomial de
+   enriquecimento só bloqueia uma impressão TLS quando a sua fração nas origens do
+   alarme é improvável sob o tráfego normal, num nível calibrado para um orçamento
+   de falsos alarmes.* O método e o enquadramento numa frase.
+3. *Em tráfego gerado, o escopo natural, a impressão mais comum do agrupamento,
+   bloqueia 0% de uma botnet em cinco ou mais pilhas e 39% do tráfego legítimo.* O
+   gancho.
+4. *O teste bloqueia 90% até 25 pilhas sem colateral observado, como um filtro de
+   impressões inéditas a 0,03%, e 85% a 2% de colateral em pilhas que clientes reais
+   compartilham, onde esse filtro não bloqueia nenhuma.* A solução, com o empate dito
+   e o colateral de cada um (85% é a fração do ataque, não das pilhas).
+5. *Um modelo aprendido entre sessões (AUC 0,98) cai para 0,48–0,75 com outro número
+   de pilhas.* Por que importa uma regra sem rótulos.
+6. *Em oito dias de quatro endpoints de uma CDN, frotas de clientes sincronizadas
+   impõem um piso de calibração: a menor botnet que a binomial aponta é 16% da janela
+   do endpoint mais movimentado e 4–12 janelas nos pequenos.* O limite, medido.
+7. *Uma beta-binomial que modela as frotas rebaixa o piso para 3% e 0,9–2,8 janelas,
+   no ponto de operação de um z-score calibrado para o mesmo orçamento, 0,4% das
+   janelas limpas.* A correção, com o seu preço.
+8. *Todo escopo calibrado bloqueia 67–71% de uma botnet do tamanho da janela do
+   endpoint mais movimentado.* Acima do piso, todos funcionam.
+9. *Um dia novo, analisado como planejado de antemão, dá à binomial 2 falsos alarmes
+   em 1.152 janelas.* A confirmação fora da amostra, da configuração registrada.
+10. *A ontologia é compilada numa consulta de contagens que reproduz as contagens de
+    origens e de pares /24 da operadora em dois dias, e o escopo sai em STIX 2.1.* O
+    fecho, restrito ao verificado.
 
-O resumo tem 249 palavras, dentro do limite de 250 do IEEE.
+O regime furtivo saiu do resumo na rodada 8 (está em V-D e na conclusão).
 
 ---
 
-## 4. I. Introdução (linhas 137–177)
+## 4. I. Introdução (linhas 131–173)
 
 **Parágrafo 1: o contexto.** Ataques de camada de aplicação crescem (HTTP/2 Rapid
-Reset, CVE-2023-44487: 398 milhões de requisições por segundo de ~20 mil
-máquinas; Cloudflare: 6.500 ataques hipervolumétricos no 2º trimestre de 2025).
-Defesas volumétricas absorvem o grande; o difícil é o lento e distribuído.
+Reset, CVE-2023-44487: 398 milhões de requisições por segundo; um pico de 201
+milhões de ~20 mil máquinas; Cloudflare: 6.500 ataques hipervolumétricos no 2º
+trimestre de 2025). Defesas volumétricas absorvem o grande; o difícil é o lento e
+distribuído.
 
-**Parágrafo 2: o que resta de discriminativo.** Uma campanha furtiva deixa cada
-sessão parecida com uma legítima. O que sobra está **entre** sessões: a mesma
-impressão digital recorrendo em muitas origens, convergindo num endpoint. Por isso
-o problema é de **gerência de rede e serviço** (NOMS), não só de detecção: agir
-exige decidir quem, com que evidência, com que filtro.
+**Parágrafo 2: o que resta de discriminativo.** O que sobra está **entre** sessões:
+a mesma impressão digital em muitas origens, convergindo num endpoint. Por isso o
+problema é de **gerência de rede e serviço** (NOMS): agir exige decidir quem, com
+que evidência, com que filtro.
 
-**Parágrafo 3: as três lacunas.** Uma meta-análise de 75 estudos: 47% dos
-detectores tiram atributos de sessões, mas as achatam num vetor. KLAGE usa grafo,
-mas (1) raciocina sobre nós de rede, não sessões; (2) a coordenação fica implícita
-em *embeddings*; (3) para num relatório, sem escopo de mitigação.
+**Parágrafo 3: as três lacunas.** A meta-análise de 75 estudos: 47% dos detectores
+tiram atributos de sessões, mas as achatam num vetor. O KLAGE usa grafo, mas
+(1) raciocina sobre nós de rede; (2) a coordenação fica implícita em *embeddings*;
+(3) para num relatório, sem escopo de mitigação.
 
-**Parágrafo 4: as quatro contribuições.**
+**Parágrafo 4: o enquadramento e as quatro contribuições.** O escopo é tratado como
+um teste estatístico calibrado, sobre um grafo de sessões HTTP.
 
-- **(i)** Ontologia OWL com a sessão como entidade e seis sub-propriedades
-  ponderadas por custo de evasão; proximidade de rede entra só como evidência
-  auxiliar.
-- **(ii)** Procedimento de decisão: a regra dispara sobre Ω(S), e o veredicto é a
-  derivação. Mostramos que na janela Ω age como gatilho de volume, que uma
-  contagem de origens distintas cumpre ao menos tão bem, com metade dos falsos
-  alarmes em produção.
-- **(iii)** Escopo derivado do grafo, exportado em JSON-LD e STIX 2.1. A escolha
-  natural (propriedade mais comum) é prejudicial; o teste binomial de
-  enriquecimento a substitui.
-- **(iv)** Avaliação contra linha de base forte por sessão e contra modelo
-  aprendido com o perfil, à medida que a campanha se distribui, mais oito dias de
-  produção, medindo o colateral.
+- **(i)** O escopo natural bloqueia usuários e nenhum atacante quando a botnet se
+  espalha; o escopo por enriquecimento, em relação a um perfil livre de ataque,
+  bloqueia o ataque, inclusive nas pilhas compartilhadas, que o filtro de inéditas
+  perde, e dispensa rótulos, enquanto um modelo aprendido falha com outro número de
+  pilhas.
+- **(ii)** Em oito dias de CDN, medimos até onde o escopo calibrado alcança: o piso
+  imposto pelas frotas, a referência beta-binomial que o rebaixa várias vezes, e o
+  regime furtivo em que o escopo aponta a botnet e o gatilho a deixa passar. Mais as
+  linhas de base calibradas no mesmo orçamento e o dia novo com a configuração
+  fixada de antemão.
+- **(iii)** A ontologia OWL com seis sub-propriedades (três exercitadas), da qual a
+  consulta de contagens é compilada; em dois dias de produção ela reproduz as
+  exportações janela a janela; o escopo sai em STIX 2.1.
+- **(iv)** O colateral reportado como taxa de falsos positivos do filtro, em janelas
+  limpas e de ataque.
 
-**Pergunta provável:** "Por que isso é NOMS e não segurança pura?" Resposta: porque
-a contribuição é a decisão operacional (o escopo, o custo em usuários legítimos, a
-exportação para SOAR), medida em tráfego de produção.
+**Pergunta provável:** "Por que isso é NOMS e não segurança pura?" Porque a
+contribuição é a decisão operacional (o escopo, o seu piso, o custo em usuários
+legítimos, a exportação para SOAR e DOTS), medida em tráfego de produção.
 
 ---
 
-## 5. II. Trabalhos relacionados (linhas 180–206, Tabela I)
+## 5. II. Trabalhos relacionados (linhas 174–202, Tabela I)
 
-**Tabela I** compara sete trabalhos em quatro dimensões: unidade de raciocínio,
-relação entre sessões, forma da explicação, e se há escopo de mitigação e
-colateral. Só "This Work" tem: sessão de aplicação, relação explícita (tipada e
-ponderada), explicação como derivação, escopo derivado, colateral reportado.
+**Tabela I** compara quatro trabalhos (PCA sobre sessões, o supervisionado de Kemp,
+os sinais JA4 da Cloudflare e o KLAGE) com este em quatro dimensões: unidade de
+raciocínio, relação entre sessões, forma da explicação, e se há escopo de
+mitigação e colateral. Só este trabalho tem todas as colunas preenchidas. Na
+rodada 8 saíram as linhas de três trabalhos que continuam citados no texto.
 
 - **Grafos de conhecimento em segurança:** a primeira onda era estática (CVE,
-  relatórios). Uma revisão diz que ainda não se sabe usar KG em problemas
-  industriais reais. KLAGE é o mais próximo (grafo a partir de logs).
-- **Detecção de DDoS L7:** perfilamento estatístico (PCA sobre fluxos ou sobre
-  matriz por sessão) e aprendizado supervisionado. Nenhum mantém relação entre
-  sessões.
-- **Modelagem de sessão:** nenhum dos 75 estudos mantém a sessão como objeto com
-  identidade e relações. Plataformas industriais (Cloudflare, sinais por JA4)
-  existem, mas são proprietárias e não publicam colateral.
+  relatórios). O **D3FEND** (MITRE) é um grafo OWL de contramedidas mapeado ao
+  ATT&CK, também estático. Uma revisão diz que ainda não se sabe usar KG em
+  problemas industriais reais. O KLAGE é o mais próximo (grafo a partir de logs).
+- **Modelos aprendidos em tarefas vizinhas:** dependências entre dispositivos,
+  sequências de ataque, e **detecção de bots por grafo** (IM 2019: classifica hosts
+  de um grafo de fluxos por grau, agrupamento e centralidade). Os três operam sobre
+  entidades de rede e nenhum deriva escopo. No nível de contas, o **SynchroTrap**
+  encontra coordenação agrupando contas que agem em sincronia.
+- **Detecção de DDoS L7:** perfilamento estatístico (PCA) e aprendizado
+  supervisionado. Nenhum mantém relação entre sessões. **Kill-Bots** e **Speak-up**
+  defendem de ataques que imitam picos legítimos admitindo clientes que resolvem um
+  desafio ou gastam banda, e medem o serviço que os legítimos conservam. **URCA**
+  (extração de anomalias) e **Hamsa** (assinaturas conferidas em tráfego normal)
+  derivam um filtro de um alarme, mas sobre atributos de fluxo ou de *payload*, sem
+  impressões de cliente.
+- **Modelagem de sessão:** nenhum dos 75 estudos mantém a sessão como objeto.
+  Plataformas industriais (sinais por JA4) são proprietárias.
+- **DOTS (IETF):** o canal de sinalização (RFC 9132, arquitetura na RFC 8811) leva
+  um pedido de mitigação do domínio atacado ao mitigador, com o escopo dado pelos
+  recursos atacados; o canal de dados (RFC 8783) instala filtros sobre campos de
+  rede e de transporte; a telemetria (RFC 9244) reporta os maiores emissores por
+  prefixo de origem. **Nenhum atributo expressa uma impressão digital de cliente da
+  camada de aplicação**, como o JA4. Isso reaparece na Discussão: pelo DOTS, o
+  escopo se alargaria para o endpoint ou para prefixos de endereço.
 - **Fronteira:** nenhum trabalho tem, junto, sessão como unidade, relações
   explícitas e escopo derivado com colateral.
 
 ---
 
-## 6. III. O grafo de conhecimento centrado na sessão (linhas 209–410)
+## 6. III. O grafo de conhecimento centrado na sessão (linhas 203–354)
 
-### Fig. 1 (a ontologia) e Fig. 2 (o pipeline)
+### Fig. 1 (a ontologia)
 
-A **Fig. 1** tem três colunas:
+Três colunas: **Session** (a `ApplicationSession` ligada a `Identity`, `Endpoint`,
+`IPAddress/ASN`, `Behavior`); **relatedTo** (sessões ligadas pelas seis
+sub-relações, com a espessura seguindo o peso e um traço por sub-relação);
+**Verdict** (`CoordinatedHTTPFlood` → cadeia de evidência → `CourseOfAction`). A
+convergência de endpoint liga todos os pares de sessões do endpoint; só alguns
+estão desenhados.
 
-- **Session:** a `ApplicationSession` ligada a `Identity` (cookie, token, JA4),
-  `Endpoint`, `IPAddress/ASN` e `Behavior`.
-- **relatedTo:** sessões S1–S7 ligadas pelas seis sub-relações. A espessura da
-  linha segue o peso; cada sub-relação tem um traço (TLS contínua preta grossa,
-  identidade tracejada, temporal traço-ponto, endpoint contínua cinza, carga útil
-  pontilhada, rede tracejada cinza-clara). S6–S7 ligadas só por rede ficam
-  "esparsas: abaixo de τ".
-- **Verdict:** `CoordinatedHTTPFlood` (≥ k_min origens, um endpoint, Ω ≥ τ) →
-  cadeia de evidência JSON-LD/STIX → `CourseOfAction`. O escopo são as impressões
-  digitais enriquecidas contra o tráfego normal.
-
-A **Fig. 2** mostra as duas camadas: admissão por requisição (rápida) e
-materialização/regra por janela.
-
-### III-A. Grafos de conhecimento (linha 232)
+### III-A. Grafos de conhecimento (linha 217)
 
 - **RDF:** fatos como triplas ⟨sujeito, predicado, objeto⟩.
-- **OWL 2:** declara classes e propriedades. Usamos o perfil **OWL 2 RL**, cuja
-  inferência por encadeamento para frente é polinomial, o que torna viável
-  materializar em tempo de execução (OWL 2 DL não é).
-- **SWRL:** regras de Horn (se todas as premissas valem, afirma uma tripla).
-- **SPARQL:** consulta e agrega.
-- **JA4:** hash do *ClientHello* do TLS, que identifica a pilha TLS do cliente.
-  Não depende do IP, então sobrevive à rotação de endereço.
+- **OWL 2 RL:** perfil com inferência polinomial por encadeamento para frente, o que
+  torna viável materializar por janela (OWL 2 DL não é).
+- **SWRL:** regras de Horn. **SPARQL:** consulta e agrega.
+- **JA4:** *hash* do *ClientHello* do TLS, identifica a pilha TLS do cliente e
+  sobrevive à rotação de IP.
 
-### III-B. A ontologia (linha 245)
+### III-B. A ontologia (linha 230)
 
-Classe central `ApplicationSession`, ligada por `hasIdentity`, `originatesFrom`
-(endereço de origem), `targets` (endpoint), `exhibitsBehavior`, `mitigatedBy`
-(política com atributo `scope`). Hierarquia de ataques:
-`ApplicationLayerAttack` → `SlowHTTPDoSFamily` → `ConnectionExhaustionAttack`
-(Slowloris, slow body, slow read) e `CoordinatedHTTPFlood` (HULK, GoldenEye).
-Alinhada a STIX 2.1 e MITRE ATT&CK.
+Classe central `ApplicationSession`, ligada por `hasIdentity` a uma `Identity`,
+`originatesFrom` ao `IPAddress`, `targets` a um `Endpoint` (`LoginEndpoint`,
+`APIEndpoint`, `StaticEndpoint`), `exhibitsBehavior` a um perfil e `mitigatedBy` a
+uma `Mitigation` (`RateLimitPolicy`, `ChallengeResponse`, `WAFRule`), cujo escopo a
+cadeia de evidência carrega. Desde a rodada 8 os nomes batem com a OWL.
+Hierarquia: `ApplicationLayerAttack` → `SlowHTTPDoSFamily` →
+`ConnectionExhaustionAttack` e `CoordinatedHTTPFlood` (a classe que a regra
+deriva). Alinhada a STIX 2.1 e ATT&CK.
 
-### III-C. Modelo de ameaça (linha 263)
+### III-C. Modelo de ameaça (linha 245)
 
-- O **defensor** opera a aplicação e vê, por requisição, o JA4, a origem, o
-  endpoint, o tempo e a identidade. Não vê o canal de controle da botnet, mas pode
-  perfilar o tráfego normal fora de ataques.
-- O **atacante** controla K dispositivos comprometidos e pode fazer cada sessão
-  estatisticamente igual a uma legítima (hipótese furtiva).
-- **O dano é capacidade esgotada:** cada sessão segura uma conexão e um *worker*
-  como uma legítima; nenhuma taxa por sessão sobe.
-- **Por que JA4 é difícil de mudar:** vem da biblioteca TLS de cada dispositivo
-  (roteadores, câmeras, DVRs da linhagem Mirai). Apresentar o *ClientHello* de um
-  navegador exigiria embarcar uma biblioteca de imitação em cada dispositivo.
-- **Fronteira:** bots que imitam navegador (fazendas de *headless browser*) ficam
-  fora do modelo e são avaliados como limite (modo adversarial).
+O defensor vê, por requisição, JA4, origem, endpoint, tempo e identidade, e pode
+perfilar o tráfego normal. O atacante controla K dispositivos e pode fazer cada
+sessão estatisticamente igual a uma legítima. O dano é capacidade esgotada. O JA4
+é difícil de mudar porque vem da biblioteca TLS do dispositivo (linhagem Mirai).
+Bots que imitam navegador ficam fora do modelo e são avaliados como fronteira.
 
-### III-D. A família `relatedTo` ponderada (linha 285)
+### III-D. A família `relatedTo` ponderada (linha 266)
 
-Seis sub-propriedades de `relatedTo` (simétrica), cada uma com
-`coordinationWeight` w_i:
+Seis sub-propriedades de `relatedTo`, cada uma com `coordinationWeight` w_i;
+**três delas são exercitadas** (TLS, endpoint, rede). O texto justifica só as duas
+pontas: a pilha TLS é fixada pela biblioteca de cada dispositivo, e o JA4 ordena as
+extensões, então sobrevive à aleatorização que quebra o JA3; as botnets se espalham
+por prefixos e o NAT de operadora torna o /24 um discriminador pobre, então a
+proximidade de rede é o elo mais fraco. Os pesos usados: TLS 1,0, endpoint 0,6,
+rede 0,3. O Apêndice B **corrobora a ordem**, não os valores absolutos.
 
-| Sub-relação | Peso | Por quê |
-|---|---|---|
-| TLSFingerprint | 1,0 | trocar a pilha TLS em todo dispositivo é caro |
-| ReusedIdentity | 1,0 | espalhar credenciais quebra a economia da campanha |
-| TemporalPattern | 0,9 | vem da operação da botnet; ruído quebra parcialmente |
-| PayloadSignature | 0,6 | randomizar é barato, mas custa coerência |
-| EndpointConvergence | 0,6 | idem |
-| NetworkProximity | 0,3 | botnets modernas se espalham por ASNs; CGN torna /24 fraco |
-
-A calibração do Apêndice B **corrobora a ordem**, não os valores absolutos.
-
-### III-E. Construção em tempo de execução (linha 309)
-
-Janela deslizante W = 5 min. JA4 exato, endpoint e prefixo são **relações de
-equivalência**: cada uma particiona S em classes. Então o número de pares ligados
-sai do tamanho das classes:
-
-> |E_i(S)| = Σ_k C(n_k, 2), com C(n, 2) = n(n−1)/2 e n_k o tamanho da classe k,
-> contado em origens.
-
-Consequência prática: admitir uma sessão é inserir sua origem numa classe
-(tempo constante), e Ω não precisa de nenhuma aresta de par. Só as relações não
-transitivas (JA4 quase igual, temporal, carga útil) comparam pares.
-
-### III-F. A regra de detecção (linhas 326–357)
-
-**A fórmula central:**
+### III-E. A regra de detecção (linhas 277–300)
 
 > Ω(S) = Σ_i w_i · |E_i(S)|
 
-E_i(S) é o conjunto de **pares de origens distintas** cujas sessões estão ligadas
-pela sub-relação i. Cada par conta uma vez, então um cliente com muitas sessões
-não se passa por coordenação.
+E_i(S) é o conjunto de **pares de origens distintas** ligadas pela sub-relação i.
+A regra `CoordinatedHTTPFlood` vale quando existe S com (i) ao menos k_min = 5
+origens, (ii) todas as sessões visando o mesmo endpoint e (iii) Ω(S) ≥ τ_cluster.
+Só **mitiga** quando o teste de enriquecimento aponta uma impressão.
 
-**A regra `CoordinatedHTTPFlood`** vale quando existe S com:
+**"Na escala da janela, Ω é volume."** O termo de endpoint, 0,6 · C(n, 2), é 91%
+de Ω na campanha da Listagem 2. Por isso um limiar em origens distintas, calibrado
+como τ, serve de gatilho ao menos tão bem, e o discriminador vem do teste.
 
-- (i) pelo menos k_min origens (k_min = 5);
-- (ii) todas as sessões visam o mesmo endpoint;
-- (iii) Ω(S) ≥ τ_cluster.
+### III-F. Construção em tempo de execução (linha 301)
 
-Ela só **mitiga** quando o teste de enriquecimento nomeia uma impressão digital.
-Por janela, S é toda sessão para o endpoint.
+Janela deslizante W = 5 min. JA4 exato, endpoint e prefixo são **relações de
+equivalência**: particionam S em classes, e |E_i(S)| = Σ_k C(n_k, 2). Admitir uma
+sessão é inserir sua origem numa classe (tempo constante), e Ω não precisa de
+aresta de par. Só as relações não transitivas comparam pares. **A formulação
+simbólica agora mora aqui:** o SWRL escreve cada sub-relação como regra de Horn (o
+DTW entra como comparação embutida com um limiar), e, como o SWRL não soma, uma
+consulta SPARQL agrega os tamanhos das classes com os pesos lidos das anotações
+(Listagem 1).
 
-**"Na escala da janela, Ω é volume."** Sob a condição (ii), o termo de endpoint é
-0,6 · C(n, 2) para n origens, e responde por 91% de Ω na campanha da Listagem 2.
-Com pesos uniformes a regra detecta igual. Um limiar sobre origens distintas serve
-de porta ao menos tão bem, e um limiar de taxa agregada nada acrescenta (cada
-sessão mantém taxa legítima). Os pesos ordenam a cadeia de evidência: um conjunto
-ligado **só** por rede precisa de ~3× mais pares (1,0/0,3) para chegar ao mesmo Ω.
+### III-G. Cadeia de evidência e escopo derivado (linhas 319–354)
 
-### III-G. Formulação simbólica (linha 359)
+Quando a regra dispara, sai a cadeia de evidência em JSON-LD e STIX 2.1.
 
-Dois estágios (Listagem 1): SWRL enuncia cada sub-relação como regra de Horn; a
-agregação (soma), que SWRL não expressa, é uma consulta SPARQL que lê os pesos das
-anotações `coordinationWeight`.
+**Por que o escopo por frequência falha:** a impressão mais comum do agrupamento é
+a da população legítima.
 
-### III-H. Cadeia de evidência e escopo derivado (linhas 372–410)
+**O teste de enriquecimento** (exemplo na seção 16). Admite toda impressão f que
+seja **enriquecida**, c(f)/n ≥ ρ · b(f), com ρ = 3, e **improvável sob a referência**,
+P[X ≥ c(f)] < λ_e / |F|, com X ~ Bin(n, b(f)).
 
-Quando a regra dispara: regra satisfeita, instâncias, decomposição de Ω por
-sub-relação e escopo. Exportado em JSON-LD e STIX 2.1 (*indicator* +
-*course-of-action* ligados por *mitigates*), para SIEM e SOAR.
+**λ_e calibrado:** o maior valor até 0,01 em que o escopo produz filtro em no
+máximo 1% das janelas sem ataque.
 
-**Por que o escopo por frequência falha.** A impressão digital mais comum do
-agrupamento é a da população legítima (a cabeça da distribuição). Contra uma
-botnet em várias pilhas, cada pilha é menor que a cabeça benigna, e o filtro
-bloqueia usuários e nenhum atacante.
+**O piso (frase nova):** entre n origens, o teste só aponta uma pilha a partir da
+menor contagem c com P[X ≥ c] < λ_e/|F|. Quanto menor o nível, maior essa contagem
+e maior a menor botnet que ele consegue apontar. É o **piso de calibração**,
+medido na seção V-D.
 
-**O teste de enriquecimento** (explicado com exemplo na seção 16). Admite toda
-impressão digital f que seja:
+**A variante (frase nova da rodada 8):** como as frotas também tornam as contagens
+sobredispersas, o artigo avalia uma variante cuja referência é uma beta-binomial
+ajustada por impressão nas janelas de calibração (seção 16).
 
-- **enriquecida:** c(f)/n ≥ ρ · b(f), com ρ = 3;
-- **improvável sob o fundo:** P[X ≥ c(f)] < λ_e / |F|, com X ~ Bin(n, b(f)).
-
-Onde c(f) = origens do agrupamento com a impressão f; n = Σ c(f); b(f) =
-prevalência de f no perfil de tráfego normal, mais 1/N; |F| = número de impressões
-do perfil e do agrupamento (divisor de Bonferroni). O resultado é um **conjunto**
-de impressões, o que cobre uma botnet fragmentada.
-
-**λ_e calibrado:** o maior valor até 0,01 em que o escopo nomeia filtro em no
-máximo 1% das janelas sem ataque. No gerador, λ_e fica em 0,01.
-
-**Sem rótulos:** o perfil é o que o defensor vê em operação normal. Se o
-adversário se esconde numa impressão popular, nada fica enriquecido e o sistema
-**recusa** o escopo (relata que não há discriminador).
+**Sem rótulos:** se o adversário se esconde numa impressão popular, nada fica
+enriquecido e o sistema recusa o escopo.
 
 ---
 
-## 7. IV. Metodologia de avaliação (linhas 413–517)
+## 7. IV. Metodologia de avaliação (linhas 355–437)
 
-**Cinco fontes, cada uma responde a uma pergunta:** gerador calibrado (mecanismo
-sob campanhas controladas), capturas de laboratório (ataques convencionais e
+**Cada fonte responde a uma pergunta:** o gerador calibrado (mecanismo sob
+campanhas controladas), as capturas de laboratório (ataques convencionais e
 KLAGE), oito dias de produção (falsos alarmes reais e detecção de botnet
-injetada).
+injetada) **e um nono dia analisado com todas as escolhas fixadas de antemão**.
 
-**Cenários por grau de distribuição K** (número de dispositivos):
+**Cenários por K:** reportamos K = 50 (botnet pequena, cada origem dentro do seu
+limite de taxa) e K = 1000 (campanha espalhada por centenas de ASNs e prefixos).
+Cada campanha é dividida 70/30 entre sessões de treino e de teste.
 
-- A (K = 1): inundação de origem única, resolvida por detectores volumétricos;
-- B (10 ≤ K ≤ 100): botnets pequenas, cada origem dentro do seu limite;
-- C (K ≥ 1000): espalhada em centenas de ASNs; é onde a contribuição tem de valer.
+**O gerador.** Popularidade das impressões benignas em Zipf de expoente α (medida
+na Azion: 6,33 M requisições, 495 impressões, top-1 38,4%, top-10 93,8%; α = 1,5 e
+2,0 cercam a curva; canônico 1,5). Composição da botnet: 90% em M pilhas (M = 25
+canônico), o resto em impressões únicas. Modo adversarial: a botnet usa as
+impressões benignas mais comuns. Sessões benignas calibradas no CICIDS2017 (KS:
+D = 0,003 e 0,002, p > 0,8).
 
-Reportamos B (K = 50) e C (K = 1000).
+**Linhas de base de detecção:** RF forte (8–9 atributos), repetida com HGB, MLP e
+regressão logística; três acadêmicas reimplementadas.
 
-**O gerador.** Dois parâmetros decidem o realismo:
+**Configurações da ablação:** (a) ML sem ontologia; (b) ontologia sem sub-relações;
+(c) só proximidade de rede; (d) representação completa, como atributos.
 
-- **Popularidade das impressões benignas:** curva de Zipf de expoente α (a
-  impressão de posto r tem probabilidade proporcional a r^(−α)). Medimos na Azion:
-  6,33 milhões de requisições TLS, 495 impressões distintas, a mais comum com
-  38,4% e as dez primeiras com 93,8%. α = 1,5 e 2,0 cercam a curva medida;
-  canônico α = 1,5.
-- **Composição da botnet:** 90% da campanha distribuída uniformemente em M pilhas
-  TLS (M = 25 canônico), o resto em impressões únicas. Modo **adversarial**: a
-  botnet adota as impressões benignas mais comuns (limite do modelo de ameaça).
+**Linhas de base de escopo (parágrafo novo):**
 
-**Realismo das sessões benignas:** calibradas em ~322 mil sessões benignas do
-CICIDS2017 e verificadas pelo teste de **Kolmogorov–Smirnov** (D = 0,003 para
-duração, 0,002 para número de requisições, p > 0,8). No modo **furtivo**, sessões
-de ataque saem das mesmas distribuições.
+- a impressão **modal** do agrupamento;
+- o filtro de **inéditas**: impressões ausentes do perfil e vistas em ao menos
+  k_min origens;
+- o **z-score** por impressão contra o perfil, z > 3, sem calibração;
+- em produção, dois z-scores **calibrados** para o orçamento do teste: o mesmo
+  z-score contra o perfil e um z-score de cada impressão contra o **próprio
+  histórico** de calibração;
+- o modo **compartilhado** no sintético: as pilhas da botnet sorteadas do perfil
+  fora das dez impressões mais comuns, como na injeção de produção.
 
-**Capturas de laboratório:** CICIDS2017 (Slowloris, Slowhttptest, HULK,
-GoldenEye) e CIC-IoT2023 (DDoS Slowloris, HTTP Flood), onde KLAGE reporta F1 =
-84,1%.
-
-**Linhas de base:** Random Forest forte (8–9 atributos de fluxo), repetida com
-gradient boosting, MLP e regressão logística; e três acadêmicas reimplementadas
-(PCA sobre fluxos, PCA + k-means sobre matriz de sessão, supervisionado RF/SVM).
-
-**As quatro configurações da ablação:**
-
-- (a) ML sem ontologia;
-- (b) ontologia sem nenhuma sub-relação (sessões isoladas);
-- (c) só proximidade de rede (detector ingênuo por prefixo/ASN);
-- (d) a representação completa entre sessões.
-
-Então (d)−(a) é a contribuição total; (d)−(b), o ganho de representar estrutura
-entre sessões; (d)−(c), o ganho dos sinais de peso alto sobre a rede. (d) usa a
-evidência como **atributos** (fração do agrupamento com o mesmo JA4 ou /24, e o
-tamanho), para todas as configurações terem os mesmos dados e classificador.
-
-**Métricas:** AUC, F1, precisão, revocação e **dano colateral**: a fração de
-tráfego legítimo que cai dentro do escopo derivado. É a taxa de falsos positivos
-do **filtro que o operador implantaria**, que pode ser muito diferente da do
-detector. Cadeias de evidência avaliadas por **completude** e **acionabilidade**.
+**Métricas:** AUC, F1, precisão, revocação e **dano colateral** (a taxa de falsos
+positivos do filtro que o operador implantaria).
 
 ---
 
-## 8. V-A. Ablação (linhas 525–588, Tabela II)
+## 8. V-A. Ablação (linhas 443–479, sem tabela)
 
-**Tabela II (AUC por sessão, α = 1,5, M = 25, 30 sementes):**
+A tabela da ablação saiu na rodada 8, para dar lugar à Tabela III por endpoint. Os
+números continuam os mesmos e estão no texto:
 
 | Configuração | K = 50 | K = 1000 |
 |---|---|---|
@@ -464,180 +543,264 @@ detector. Cadeias de evidência avaliadas por **completude** e **acionabilidade*
 | (b) ontologia sem relatedBy | 0,500 | 0,502 |
 | (c) só NetworkProximity | 0,499 | 0,659 |
 | **(d) entre sessões** | **0,927** | **0,982** |
+| HGB (a / d) | 0,502 / 0,921 | 0,501 / 0,990 |
+| **MLP (a / d)** | **0,493 / 0,862** | **0,494 / 0,952** |
+| Regressão logística (a / d) | 0,488 / 0,873 | 0,495 / 0,799 |
+| Três linhas de base acadêmicas | 0,499–0,518 | 0,495–0,509 |
 
 **Leitura:**
 
-- Por sessão, tudo fica no acaso (0,471–0,503 em todas as famílias). O colapso
-  está na **representação**, não no classificador.
-- (c) só chega a 0,66 porque a botnet é dispersa em prefixos.
-- Em (d) o modelo importa: com 25 pilhas a evidência é **não monotônica** (um
-  atacante divide a impressão com algumas dezenas de pares; um legítimo da cabeça,
-  com centenas). Árvores recortam a faixa do meio (0,92–0,99); regressão logística
-  cai para 0,80–0,87; o MLP **inverte** em K = 50 (0,235), porque aprendeu que
-  impressão muito compartilhada é benigna.
-- A regra não precisa de amostra rotulada, porque lê um perfil explícito.
-
-**As capturas de laboratório** vêm de 1 a 7 origens num único /24: inundações ao
-alcance de um limite por prefixo, fora do regime distribuído.
+- Por sessão, tudo fica no acaso (0,488–0,503 em todas as famílias; as acadêmicas
+  entre 0,495 e 0,518). O colapso está na **representação**.
+- **Wilcoxon:** (d)−(c) e (d)−(a) significativos em K = 1000 (p_Bonf = 7,5 × 10⁻⁹,
+  d de Cohen 13,5 e **22,3**; até a rodada 7 o artigo dizia 22,4, mas o valor é
+  22,349). Uma diferença estável entre sorteios de um gerador.
+- **Parágrafo novo da rodada 8: a separabilidade não se transfere.** Com M pilhas, a
+  evidência entre sessões é **não monotônica** (um atacante divide a impressão com
+  algumas dezenas de pares; um legítimo da cabeça, com centenas). Árvores recortam a
+  faixa do meio (0,92–0,99), o MLP chega a 0,86 e 0,95, e a regressão logística,
+  monotônica em cada atributo, fica em 0,87 e 0,80. **Treinado com 5 pilhas e
+  testado com 25 ou 100, (d) cai para 0,61 e 0,63; treinado com 25 e testado com 5,
+  para 0,48** (e 0,75 com 100, no Apêndice C): a floresta aprende a faixa que um M
+  produz. A regra não usa rótulos, lê um perfil de tráfego normal e mantém cerca de
+  90% até 25 pilhas.
+- **O cuidado com o vazamento.** Para uma mesma semente, o gerador sorteia todas as
+  sessões benignas antes de qualquer coisa que dependa de M, então a tabela benigna é
+  idêntica em M = 5, 25 e 100. Um teste com a mesma semente mediria memorização (até
+  (a), sem nenhum atributo entre sessões, chegaria a 0,88–0,94). Por isso o treino e o
+  teste usam metades disjuntas das sementes.
+- **Laboratório:** no CIC-IoT2023, um classificador forte por sessão já chega a F1
+  0,900 e a representação entre sessões a 0,911, ambos acima do 0,841 do KLAGE, numa
+  comparação não controlada (Apêndice C).
 
 ---
 
-## 9. V-B. A regra como detector e o tráfego de produção (linhas 590–663)
-
-### Tabela III: a regra como detector, contra modelos aprendidos
+## 9. V-B. A regra como detector (linhas 480–530, Tabela II)
 
 Aqui não há classificador: as sessões que casam com o escopo **são** o conjunto
-sinalizado. Como AUC ordena e a regra decide, o classificador é forçado ao ponto
-de operação da regra (zero falsos positivos). K = 1000, 15 sementes.
+sinalizado, e o classificador é forçado ao ponto de operação da regra.
 
-| Cenário | Regra (revocação) | FPR | F1 | Aprendido (d) | Aprendido + perfil |
-|---|---|---|---|---|---|
-| M = 1 | 89,8% | 0,00% | 0,946 | 91,7% | 85,9% |
-| M = 5 | 90,0% | 0,00% | 0,948 | 88,6% | 91,7% |
-| M = 25 | 90,3% | 0,00% | 0,949 | 36,4% | 87,4% |
-| M = 100 | 38,6% | 0,00% | 0,556 | 17,6% | 86,9% |
-| M = 25, adversarial | 30,4% | 3,78% | 0,452 | 7,8% | 6,6% |
+| Cenário | Regra | FPR | F1 | **Inéditas** | Aprendido (d) | + perfil |
+|---|---|---|---|---|---|---|
+| M = 1 | 89,8% | 0,00% | 0,946 | 89,8% | 91,7% | 85,9% |
+| M = 5 | 90,0% | 0,00% | 0,948 | 90,0% | 88,6% | 91,7% |
+| M = 25 | 90,3% | 0,00% | 0,949 | 90,3% | 36,4% | 87,4% |
+| M = 100 | 38,6% | 0,00% | 0,556 | 88,1% | 17,6% | 86,9% |
+| **M = 25, compartilhada** | **85,4%** | **2,23%** | **0,910** | **0,0%** | – | – |
+| M = 25, adversarial | 30,4% | 3,78% | 0,452 | 0,0% | 7,8% | 6,6% |
 
 **Leitura honesta:**
 
 - Contra botnet monolítica ou pouco fragmentada, o modelo aprendido compete.
 - Com 25 pilhas, a regra abre vantagem sobre o modelo sem perfil (90,3% contra
-  36,4%), apesar de esse modelo ter AUC 0,979: seus escores se sobrepõem aos
-  benignos na cauda.
-- **Dado o mesmo perfil** (prevalência da impressão da sessão e seu enriquecimento
-  no agrupamento), o modelo iguala a regra em 25 pilhas e a supera em 100.
-- **Mas ele treina com os rótulos da campanha que pontua**, que nenhum operador tem
-  durante um ataque. A vantagem da regra é não precisar de rótulo.
-- Em M = 100, pilhas pequenas demais para um perfil de mil sessões prendem a regra
-  em 38,6% (um perfil maior restaura 89,6%, seção V-D).
+  36,4%, e 66,8% com 1% de FPR). Com o perfil como atributos, o modelo iguala (87,4%)
+  e supera em 100 pilhas (86,9% contra 38,6%), mas **treina com os rótulos da
+  campanha**.
+- **O filtro de inéditas empata com a regra até 25 pilhas** (as pilhas geradas nunca
+  estão no vocabulário benigno) e ganha em 100 pilhas (88,1%). **Mas em pilhas
+  compartilhadas não bloqueia nenhuma**, onde a regra bloqueia 85,4% a 2,23% de
+  colateral, e um z-score sem calibração 89,9% a 3,37%.
+- A FPR do filtro de inéditas é de no máximo 0,03% (por isso o resumo diz "a 0,03%").
 
-### Por janela (Tabela V, no Apêndice E)
-
-Com as chegadas benignas espalhadas por uma hora: Ω ≥ τ sozinho dispara em 78–86%
-das janelas de ataque, 0,6% das limpas e **80–100% dos flash crowds**. Exigir que o
-teste nomeie uma impressão elimina todo falso alarme e mantém a detecção.
-
-### O parágrafo de produção
-
-1. **Duas suposições do gerador quebram:** um cliente abre muitas conexões
-   (contado em conexões, escopo em 60,1% das janelas limpas; em origens, 26,9%); e
-   frotas ligam juntas (por isso λ_e calibrado, levando a regra a 0,2%).
-2. **O gatilho é volume:** um limiar p99 sobre origens distintas concorda em
-   86–99,6% e, como porta, **reduz os falsos alarmes à metade** (6 contra 14
-   janelas limpas) sem perder detecção.
-3. **O escopo separa ataque de pico:** com pilhas compartilhadas, o enriquecimento
-   bloqueia 20,2% e 61,6% de 100 e 1.000 atacantes, onde o filtro de inéditas não
-   bloqueia nenhum; e dispara em 3,9% dos flash crowds de 100 usuários, onde o
-   z-score dispara em 64,5%.
-4. **Configuração combinada** (união atrás da porta de origens): 0,1% das janelas
-   limpas, bloqueia 38,4% e 77,7% em pilhas novas; seus falsos alarmes bloqueiam
-   uma mediana de 29,9% dos clientes.
-5. **Declaração:** essas duas melhorias foram escolhidas nos mesmos dias de teste;
-   valem em cada um dos cinco; dias novos precisam confirmá-las.
+**Por janela (Tabela V, Apêndice E):** Ω ≥ τ sozinho dispara em 78–86% das
+janelas de ataque, 0,6% das limpas e **80–100% dos flash crowds**. Exigir que o
+teste aponte uma impressão elimina todo falso alarme e mantém a detecção.
 
 ---
 
-## 10. V-C. Laboratório e KLAGE (linhas 665–699, Tabela IV)
+## 10. V-C. Dano colateral (linhas 531–568, Fig. 2)
 
-**Tabela IV (CIC-IoT2023, DDoS Slowloris):** KLAGE F1 0,841; (a) 3 atributos
-0,179; (a′) 8 atributos 0,900; (d) nosso 0,911.
+**Fig. 2** agora tem três escopos (frequência, inéditas, enriquecimento) em seis
+grupos, incluindo "M = 25, compartilhada".
 
-**Leitura:** o Slowloris real de laboratório deixa assinatura de fluxo por sessão,
-então uma linha de base forte já basta. A comparação com KLAGE é favorável mas
-**não controlada**: nossa linha de base forte também supera 0,841, então a margem
-não é da representação; e o código do KLAGE parte de um grafo pré-construído sem
-pesos publicados, então não dá para reexecutar. Datasets públicos só têm ataques
-com assinatura de fluxo óbvia (Fig. 4).
-
----
-
-## 11. V-D. Dano colateral (linhas 701–744, Fig. 3)
-
-**Fig. 3:** escopo por frequência contra escopo por enriquecimento, α = 1,5,
-15 campanhas por configuração.
-
-- **Botnet monolítica (M = 1):** os dois concordam, 89,8% bloqueado, sem colateral.
-  Um limite global no endpoint desconectaria todo usuário legítimo.
-- **A partir de 5 pilhas:** a impressão modal vira uma legítima e o escopo por
-  frequência **inverte**: 0,0% do ataque, 39,0% do legítimo. Com α = 2,0, 61,1%.
-- **Enriquecimento:** 90,0% e 90,3% em M = 5 e 25, **sem colateral observado**. Os
-  10% restantes são as impressões únicas (escopo troca completude por precisão).
-  Em M = 100: 38,6%, ainda sem colateral; perfil de 30 períodos restaura 89,6%.
-- **Dois limites:** (1) modo adversarial: 30,4% do ataque a 3,78% de colateral
-  (contra 3,6% e 39,0% da frequência); com ρ mais estrito o escopo se recusa. (2) O
-  perfil: deriva moderada é tolerável (perfil α = 2,0 contra episódio 1,5: 90,3%,
-  sem colateral); perfil plano ou ausente leva o colateral a 77,6%. **Perfil fresco
-  e amplo é requisito de implantação.**
+- **M = 1:** os dois primeiros concordam, 89,8% sem colateral. Um limite global
+  desconectaria todo usuário legítimo.
+- **A partir de 5 pilhas:** o escopo por frequência **inverte**: 0,0% do ataque,
+  39,0% do legítimo (61,1% com α = 2,0).
+- **Enriquecimento:** 90,0% e 90,3% em M = 5 e 25, **sem colateral observado**. O
+  filtro de inéditas repete isso nas pilhas geradas e perde nas compartilhadas.
+  M = 100: 38,6%, sem colateral; um perfil de 30 períodos restaura 89,6%.
+- **Dois limites:** o modo adversarial (30,4% a 3,78% de colateral; com ρ mais
+  estrito, o escopo se recusa) e o perfil (deriva moderada tolerável; perfil plano
+  leva o colateral a 77,6%). **Perfil fresco e amplo é requisito de implantação.**
 
 ---
 
-## 12. V-E e V-F. Custo, W e significância (linhas 746–762)
+## 11. V-D. Tráfego de produção (linhas 569–710, Tabelas III e IV)
 
-**Custo (Apêndice D, Fig. 5):** com as relações de igualdade como classes, a
-admissão fica constante em ~0,37 µs por sessão, e a camada simbólica linear: 26,4 s
-para 100 mil sessões, contra 52,8 s com arestas de par para apenas mil. O valor de
-Ω cresce com o quadrado do agrupamento; calculá-lo, não.
+É a seção de produção do corpo. Seis parágrafos em negrito, cada um com uma
+afirmação. Desde a rodada 8 as tabelas são por endpoint.
 
-**Janela W:** a AUC de (d) é plana numa faixa de 30× de W (60 a 1.800 s).
+### Tabela III (o escopo em produção, por endpoint, em %)
 
-**Significância:** testes de **Wilcoxon** pareados nas 30 execuções, com correção
-de **Bonferroni** para quatro comparações: (d)−(c) e (d)−(a) significativos em
-K = 1000 (p = 7,5 × 10⁻⁹), com **d de Cohen** de 13,5 e 22,4. Ressalva: sementes
-são sorteios do mesmo gerador; os testes mostram estabilidade, não preveem o campo.
+| Endpoint | Escopo | FA | Col. | Flash | Novas 0,1× | Novas 1× | Comp. 0,1× | Comp. 1× |
+|---|---|---|---|---|---|---|---|---|
+| E1 | binomial | 0,0 | – | 0,0 | 11,8 | 70,8 | 7,7 | 68,6 |
+| E1 | beta-binomial | 0,1 | 0,2 | 0,1 | 11,9 | 70,8 | 10,0 | 67,8 |
+| E1 | z-score calibrado | 0,2 | 0,2 | 0,3 | 11,9 | 70,8 | 9,0 | 67,1 |
+| E2 | binomial | 0,3 | 31,4 | 5,4 | 0,0 | 5,0 | 0,0 | 0,0 |
+| E2 | beta-binomial | 1,3 | 10,7 | 13,5 | 0,7 | 25,9 | 0,2 | 13,2 |
+| E2 | z-score calibrado | 1,1 | 11,0 | 14,2 | 0,1 | 18,3 | 0,0 | 2,5 |
+| E3 | binomial | 0,1 | 48,5 | 11,0 | 0,0 | 1,9 | 0,0 | 0,5 |
+| E3 | beta-binomial | 0,0 | – | 6,6 | 0,3 | 22,7 | 0,3 | 13,9 |
+| E3 | z-score calibrado | 0,1 | 48,5 | 2,0 | 0,3 | 20,3 | 0,0 | 4,8 |
+| E4 | binomial | 0,0 | – | 2,2 | 0,1 | 2,1 | 0,0 | 1,5 |
+| E4 | beta-binomial | 0,1 | 3,5 | 0,9 | 0,1 | 6,0 | 0,1 | 3,9 |
+| E4 | z-score calibrado | 0,0 | – | 0,3 | 0,1 | 6,0 | 0,0 | 1,2 |
+| Todos | binomial | 0,1 | 32,9 | 4,6 | 3,0 | 19,9 | 1,9 | 17,6 |
+| Todos | beta-binomial | 0,4 | 10,5 | 5,3 | 3,3 | 31,4 | 2,7 | 24,7 |
+| Todos | z-score calibrado | 0,4 | 10,8 | 4,2 | 3,1 | 28,8 | 2,3 | 18,9 |
+| Dia novo | regra básica (Ω ≥ τ) | 0,2 | 41,2 | 1,0 | 0,0 | 17,3 | 0,0 | 16,6 |
+| Dia novo | binomial | 0,2 | 41,2 | 1,1 | 0,0 | 20,4 | 0,0 | 17,0 |
+| Dia novo | beta-binomial* | 0,0 | – | 4,3 | 0,0 | 32,5 | 0,0 | 26,2 |
+| Dia novo | z-score calibrado | 0,2 | 41,2 | 0,4 | 0,0 | 31,4 | 0,0 | 19,7 |
+
+Como ler: **binomial** é a configuração avaliada (teste de enriquecimento unido ao
+filtro de inéditas, com as frotas conhecidas isentas); **beta-binomial** é o mesmo
+sobre a referência beta-binomial (\* = construída depois de o dia novo ser lido);
+**z-score calibrado** tem o limiar no mesmo orçamento; todos sob o gatilho de origens
+distintas. A **regra básica** usa o gatilho Ω ≥ τ, a referência do protocolo. **FA**
+é a fração das janelas limpas (5.643 nos dias de teste, 1.152 no dia novo) em que o
+escopo produz filtro; **Col.** é a fração mediana dos clientes que esses filtros
+bloqueiam; **Flash** é FA com um pico legítimo de 100 usuários; as colunas de
+bloqueio são a fração média de uma botnet de 25 pilhas do tamanho da janela mediana
+do endpoint (1×) ou de um décimo dela (0,1×), em pilhas novas ou compartilhadas. As
+impressões únicas limitam o bloqueio a cerca de 90%.
+
+### Tabela IV (piso de calibração e WAF)
+
+| Endpoint | Origens/janela | λ_e bin. | λ_e beta | Piso bin. | + frotas | Piso beta | WAF |
+|---|---|---|---|---|---|---|---|
+| E1, beacons de RUM | > 10³ | 10⁻⁶⁰ | 10⁻⁴ | 0,16 | 0,07 | 0,03 | – |
+| E2, console web | < 10² | 10⁻⁷³ | 10⁻² | 11,6 | 11,6 | 0,90 | 1,5% |
+| E3, API | < 10² | 10⁻¹⁴ | 10⁻² | 4,1 | 3,5 | 1,4 | 84% |
+| E4, SSO | < 10² | 10⁻⁴ | 10⁻² | 4,2 | 4,2 | 2,8 | 96% |
+
+O piso é a menor botnet de 25 pilhas novas cujas pilhas o nível consegue apontar,
+como múltiplo da janela mediana, em mediana sobre os cinco dias de teste. WAF é a
+fração dos clientes que o escopo bloquearia e que o WAF também bloqueou.
+
+### Os parágrafos
+
+1. **Protocolo e contagem.** Cada um dos cinco últimos dias é testado com perfil,
+   limiares e nível dos dias anteriores. Em conexões, o escopo produz filtro em
+   60,1% das janelas limpas; em origens, 26,9% no nível nominal. Calibrar λ_e leva a
+   regra a 0,2%, e o gatilho de origens reduz os falsos alarmes à metade (6 contra
+   14) sem perder detecção.
+2. **As frotas impõem um piso de calibração.** Em E1, λ_e vai a 10⁻⁶⁰, e o teste
+   binomial só aponta uma pilha a partir de 15 a 18 origens: a menor botnet de 25
+   pilhas é 16% da janela. Com as cinco ou seis frotas conhecidas isentas do escopo e
+   da calibração, λ_e sobe para ~10⁻²¹ e o piso cai para 7%; a isenção é uma lista de
+   exceções (um bot com a impressão de uma frota não entra no escopo). Nos três
+   endpoints pequenos, o piso é 4 a 12 vezes a janela inteira.
+3. **Uma referência que modela as frotas rebaixa o piso** (novo na rodada 8). Com a
+   beta-binomial, o nível de E1 sobe para 7 × 10⁻⁵ (três origens bastam para apontar
+   uma pilha) e o dos demais vai ao teto de 0,01. O piso cai para 3% da janela de E1
+   e para 0,9–2,8 janelas nos outros, e nenhuma impressão se qualifica como frota
+   conhecida, então a lista de exceções deixa de ser necessária. No console, os
+   falsos alarmes dos dias de teste passam do orçamento (1,3%), como os do z-score
+   calibrado (1,1%).
+4. **Acima do piso, um z-score calibrado iguala o teste.** Em E1, todo escopo
+   calibrado bloqueia 67–71% de uma botnet do tamanho da janela típica e 8–12% de uma
+   com um décimo (para a qual o gatilho raramente dispara). Nos endpoints pequenos,
+   uma botnet do tamanho da janela fica abaixo do piso da binomial, que bloqueia 2–5%
+   dela em pilhas novas, enquanto a beta-binomial e o z-score calibrado bloqueiam
+   6–26%. No agregado, a binomial dispara em 0,1% (5 de 5.643) e bloqueia 38,4% e
+   77,7% de 100 e 1.000 atacantes em pilhas novas, 21,7% e 63,3% em compartilhadas,
+   onde o filtro de inéditas sozinho não bloqueia nada. O z-score calibrado e a
+   beta-binomial disparam em 0,4% (20 e 22 janelas) e bloqueiam tanto ou mais com
+   100 atacantes (54,7% e 59,8% em pilhas novas; 23,7% e 40,5% em compartilhadas),
+   com alarmes mais leves (10,8% e 10,5% dos clientes, contra 32,9%). **A binomial
+   paga a taxa menor de falsos alarmes com um piso mais alto.** Em janelas de ataque,
+   todo escopo calibrado bloqueia mediana de 0% dos legítimos.
+5. **No regime furtivo, o gatilho deixa a botnet passar.** Botnet de 0,1× em E1:
+   acima do piso com frotas conhecidas, o escopo a aponta em toda janela (pilhas
+   novas e compartilhadas), mas o gatilho de origens dispara em só 0,7–42% das
+   janelas, conforme o dia, e só 11,8% dos atacantes em pilhas novas são bloqueados.
+   Um gatilho só pelo escopo, examinado a posteriori, bloquearia 89,6% (novas) e
+   61,1% (compartilhadas) a 1,0% das janelas limpas de E1, e 90,0% e 78,3% a 2,1% com
+   a beta-binomial.
+6. **O dia novo é compatível com a taxa de falsos alarmes.** 25/09, exportado depois
+   de todas as escolhas, com protocolo registrado antes: a configuração binomial dá 2
+   falsos alarmes em 1.152 janelas, consistente com os dias de teste (P = 0,27). Os
+   dois caem no console web e bloqueiam mediana de 41,2% dos clientes. A
+   configuração bloqueia 38,9% e 73,4% em pilhas novas, 21,5% e 60,9% em
+   compartilhadas; a 0,1× o gatilho não disparou nenhuma vez. O z-score calibrado e a
+   regra básica (a referência do protocolo) dispararam **nas mesmas duas janelas**, e
+   o z-score bloqueou mais com 100 atacantes (58,3% e 26,7%); nos dias de teste, ele
+   compartilhou 4 dos 5 falsos alarmes do teste. A beta-binomial, construída depois
+   da leitura do dia, não deu nenhum. A consulta compilada devolveu as origens e os
+   pares /24 iguais aos da exportação nas 1.152 janelas.
+
+A concordância com o WAF e as outras linhas de base (z-score sem calibração e o de
+histórico próprio) foram para o Apêndice E na rodada 8.
+
+**Pergunta provável:** "Então para que o teste, se o z-score calibrado faz o
+mesmo?" Veja a seção 18.
 
 ---
 
-## 13. VI. Discussão e limitações (linhas 765–821)
+## 12. V-E. Custo e a janela W (linhas 711–718)
 
-- **Particionamento:** a condição (ii) faz do endpoint a chave natural de
-  particionamento; a regra fica exata por partição. Uma campanha que espalha um JA4
-  por muitos endpoints acumula poucos pares em cada um. Apêndice D esboça um
-  desenho de dois níveis.
-- **O ganho é específico do regime:** limiares por IP resolvem origem única; um
+Com as relações de igualdade como classes, a admissão fica constante em ~0,37 µs
+por sessão, e a camada simbólica linear: 26,4 s para 100 mil sessões, contra 52,8 s
+com arestas de par para mil. O valor de Ω cresce com o quadrado do agrupamento;
+calculá-lo, não. A AUC de (d) é plana numa faixa de 30× de W, porque a campanha
+gerada forma um único agrupamento em qualquer W (1.977 a 1.998 sessões); é uma
+propriedade do gerador. A regra rodou com
+W = 300 s.
+
+---
+
+## 13. VI. Discussão e limitações (linhas 719–755)
+
+- **O ganho depende do regime:** limiares por IP resolvem origem única; um
   classificador forte por sessão chega a AUC ≥ 0,98 em datasets públicos. Só o
-  distribuído **e** furtivo precisa do método, que complementa as defesas
-  volumétricas.
-- **Cada avaliação estabelece uma coisa:** o gerador mostra o mecanismo (sob
-  imitação imposta por construção); a produção mede falsos alarmes reais e
-  detecção de botnet injetada. Onde o tráfego real casa com o modelo de ameaça
-  (E1 a 0,1×), nos dois dias reservados, o nível calibrado prende o enriquecimento
-  em 0,7%, e o perfil com frotas conhecidas o eleva a 6,3%, perto do filtro de
-  inéditas (6,5%) e do z-score (7,3%) na mesma célula; um atacante que use a
-  impressão de uma frota conhecida escapa. Não há campanha furtiva capturada.
-- **Dependência de um discriminador de peso alto:** a varredura de robustez mostra
-  a AUC(d) caindo de 1,00 para ~0,74 quando o JA4 é aleatorizado. O gatilho de
-  volume sobrevive, mas o escopo fica sem discriminador. Um bot que imita o JA4 de
-  navegador o derrota; o ECH poderia esconder o JA4.
-- **O que o grafo acrescenta (o parágrafo mais importante para a defesa):**
-  - *O que não acrescenta:* a AUC (um modelo linear sobre os mesmos três atributos
-    chega a 0,799) nem o gatilho (volume); e um modelo aprendido com perfil e
-    rótulos iguala ou supera a regra.
-  - *O que acrescenta, medido:* a ontologia marca o que cada relação de igualdade
-    iguala, seu peso e a unidade de contagem; a consulta é **compilada** dela e
-    reproduz Ω exatamente em sessões geradas; **no armazém de logs da operadora,
-    por um dia, devolve as contagens exportadas de origens e /24 nas 1.152
-    janelas**, e as de JA4 onde o WAF não bloqueou ninguém (a avaliação de oito
-    dias usou a exportação escrita à mão); dado um vínculo de colunas, um sinal
-    de igualdade novo custa 4 triplas e 0 código; os quatro pacotes STIX 2.1
-    passam no validador da OASIS em modo estrito e atravessam inalterados o
-    servidor TAXII 2.1 de referência (exceto a definição de extensão, por um bug
-    do servidor). **O importador do MISP mantém o curso de ação e o endpoint, mas
-    descarta os JA4**: o STIX 2.1 não tem propriedade para JA4, então um playbook
-    alimentado pelo MISP bloquearia o endpoint inteiro. É uma lacuna de padrão.
-  - "Explicável" no sentido de derivação inspecionável; se encurta a decisão de um
+  distribuído **e** furtivo precisa de evidência entre sessões, e **só botnets acima
+  do piso de calibração, que o modelo de referência determina, podem ter escopo por
+  impressão**. Abaixo dele, o recurso é limite de taxa ou desafio.
+- **Cada avaliação estabelece uma coisa:** o gerador mostra o mecanismo; como suas
+  pilhas nunca estão no vocabulário benigno, o filtro de inéditas empata ali, e um
+  modelo ajustado a um número de pilhas não se transfere para outro. A produção mede
+  falsos alarmes reais e detecção de botnet injetada, em nove dias de uma operadora.
+  Não há campanha furtiva capturada.
+- **Dependência de um discriminador de peso alto:** com o JA4 aleatorizado, a AUC(d)
+  cai de 1,00 para ~0,74 e o escopo perde o discriminador, enquanto o gatilho de
+  volume sobrevive. Um bot que imita o JA4 de navegador o derrota. O ECH esconde o
+  JA4 de quem observa no caminho, mas não de quem termina o TLS (o defensor do
+  modelo). A versão anterior do artigo dizia, errado, que o ECH poderia esconder o
+  JA4 do defensor.
+- **O que o grafo acrescenta:**
+  - *Não acrescenta:* a AUC (um modelo linear sobre os atributos chega a 0,799) nem
+    o gatilho; o teste do escopo é estatístico.
+  - *Acrescenta, medido:* a ontologia é a especificação que o operador implanta (o
+    que cada relação de igualdade iguala, seu peso, a unidade de contagem); a
+    consulta compilada dela devolve as contagens exportadas em todas as janelas de
+    **dois** dias de produção; um sinal novo custa 4 triplas e nenhum código; o STIX
+    2.1 passa no validador em modo estrito e atravessa o servidor TAXII de
+    referência (exceto a definição de extensão).
+  - *Lacuna de padrão:* o importador do MISP descarta os JA4, e os filtros do DOTS
+    só atuam sobre campos de rede e de transporte; os dois alargariam o escopo para o
+    endpoint ou para prefixos. A mitigação por impressão precisa de uma propriedade
+    padrão para JA4.
+  - Se a derivação, que torna o veredicto inspecionável, encurta a decisão de um
     analista não foi testado.
 
 ---
 
-## 14. VII. Conclusão (linhas 824–844)
+## 14. VII. Conclusão (linhas 756–771)
 
-Resumo dos achados, com as ressalvas: detecção por sessão no acaso contra 0,93–0,98;
-escopo por frequência prejudicial contra enriquecimento a 90% sem colateral e sem
-rótulo; modelo aprendido só iguala com perfil e rótulos; em produção o gatilho é
-contagem de origens e o teste nomeia pilhas compartilhadas e ignora a maioria dos
-picos, mas no regime furtivo certifica poucas, caso que as frotas conhecidas elevam
-de 0,7% para 6,3%. Próximos passos: modelos de frota mais ricos, HTTP/2 e uma
-campanha furtiva capturada.
+Um parágrafo só, desde a rodada 8. O escopo tratado como teste calibrado. Por sessão
+no acaso; entre sessões 0,93–0,98, **só dentro de uma estrutura de botnet**. O
+escopo por frequência seleciona uma impressão legítima; o teste bloqueia 90% até 25
+pilhas sem colateral observado nem rótulo e inclui no escopo as pilhas
+compartilhadas, que o filtro de inéditas não consegue. Em produção, as frotas impõem
+o piso: 16% da janela de E1 sob a binomial e 3% sob a beta-binomial, no ponto de
+operação de um z-score calibrado. O dia novo é compatível com a taxa de falsos
+alarmes da configuração binomial, e no regime furtivo o escopo aponta a botnet que o
+gatilho, em sua maior parte, deixa passar. **Próximos passos:** gatilhos acionados
+pelo escopo, HTTP/2 e uma campanha furtiva capturada (a referência com
+sobredispersão, que era trabalho futuro, entrou nesta rodada).
 
 **Agradecimento:** Azion autorizou a medição de impressões digitais e as
 estatísticas agregadas, exportadas sem endereços, portas ou URIs.
@@ -646,116 +809,101 @@ estatísticas agregadas, exportadas sem endereços, portas ou URIs.
 
 ## 15. Apêndices A a F
 
-### A. Construção e instanciação das sub-relações (linhas 855–949)
+### A. Construção e instanciação das sub-relações (linhas 781–851)
 
 **Algoritmo 1:** para cada requisição, resolve sessão, identidade e endpoint; liga
-no grafo; instancia cada sub-relação contra as sessões ativas; expurga o que sai
-da janela. (Enumera pares por clareza; na prática as relações de igualdade são
-classes.)
+no grafo; instancia cada sub-relação contra as sessões ativas; expurga o que sai da
+janela. Os procedimentos das seis sub-relações estão num só parágrafo: TLS
+(igualdade exata ou variante próxima), endpoint (normalização de caminho), rede
+(/24, /48 ou ASN), e, numa frase só, as três especificadas mas não exercitadas:
+identidade (cookie, token ou usuário; JWT pelo `sub`), temporal (DTW normalizado ≤
+τ_DTW, com FastDTW) e carga útil (cosseno). **Listagem 1:** a regra
+SWRL e a agregação SPARQL.
 
-Procedimento de cada sub-relação: TLS (igualdade exata ou variante próxima,
-distância ≤ 1), identidade (cookie, token ou usuário compartilhado; JWT pelo
-`sub`), temporal (DTW normalizado ≤ τ_DTW, com FastDTW e LSH), carga útil (cosseno
-> τ_payload), endpoint (normalização de caminho), rede (mesmo /24, /48 ou ASN).
+### B. Calibração dos pesos (linhas 852–868)
 
-**Listagem 1:** uma regra SWRL (dois `tlsJa4` iguais → `relatedByTLSFingerprint`)
-e a agregação SPARQL: conta origens distintas por classe (`COUNT(DISTINCT ?o)`),
-soma w · n(n−1)/2 por endpoint, e compara com o τ do endpoint (`kg:tauCluster`).
+Em laboratório, a otimização inverte o sinal do TLS (baixa diversidade de JA4). No
+cenário realista, grade {0,3…1,0}³ (125 combinações, 60 cenários, 91.500 sessões):
+melhor vetor (1,0; 0,3; 0,3); só o TLS discrimina sozinho (AUC 0,93 contra 0,50 e
+0,58). Os pesos do artigo (1,0; 0,6; 0,3) dão a mesma AUC ótima 0,943 e são
+insensíveis a ±20%. A calibração **corrobora a ordem**; os pesos médio e baixo não
+são identificáveis separadamente.
 
-### B. Calibração dos pesos (linhas 950–990)
+### C. Limitações adicionais (linhas 869–902)
 
-Em laboratório (poucas dezenas de JA4), a otimização até inverte o sinal do TLS:
-artefato de baixa diversidade. No cenário realista (conjunto de 2.000 impressões,
-maior que as 76–818 que cada endpoint de produção mostra), grade {0,3…1,0}³ (125
-combinações, 60 cenários, 91.500 sessões): o melhor vetor é (1,0; 0,3; 0,3), e o
-TLS é o único sinal individualmente discriminativo (AUC 0,93, contra 0,50 do
-endpoint e 0,58 da rede). Os pesos do artigo (1,0; 0,6; 0,3) dão a mesma AUC ótima
-0,943 e são insensíveis a ±20%. Conclusão: a calibração valida a **ordem**.
+Instrumentação de sessão (CGN subconta, IPv6 com endereços de privacidade
+sobreconta); custo de manutenção do grafo (números simbólicos são limite superior;
+a produção foi *offline*); cobertura (HTTP/2, outros protocolos; só 3 das 6
+sub-relações exercitadas); amplitude de datasets (nenhuma captura independente do
+regime furtivo).
 
-*Realismo do gerador:* a medição é ponderada por requisição (superestima a
-concentração) e vem de um ponto de presença; o CICIDS2017 é mais concentrado
-(52,7% na cabeça); a curva medida é cercada por α = 1,5 e 2,0.
+- **Laboratório e KLAGE** (a Tabela VI saiu na rodada 8; os números estão no texto):
+  no `DDoS Slowloris` do CIC-IoT2023, os agrupamentos de ataque concentram sete
+  origens num de 143 prefixos /24; (a) enxuta, 3 atributos: F1 0,179 (AUC 0,551);
+  forte, 8 atributos: 0,900 (AUC 0,987); (d): 0,911 (AUC 0,982). O KLAGE publica
+  0,841: comparação favorável mas não controlada, porque a nossa linha de base forte
+  também o supera e o código deles parte de um grafo de construção não publicada,
+  sem pesos.
+- **Representação aprendida** (parágrafo novo): (d) é treinada e testada numa
+  divisão 70/30 de uma campanha; treinada em 25 pilhas e testada em 100, AUC 0,75,
+  contra 0,95–0,995 no mesmo M com outras sementes; sementes disjuntas, porque com a
+  mesma semente (a) chegaria a 0,88–0,94 por memorização.
+- **Validação da explicação** sem estudo com usuários.
 
-### C. Limitações adicionais (linhas 991–1034, Fig. 4)
+### D. Modelo de custo e sensibilidade à janela (linhas 903–961, Fig. 3)
 
-Instrumentação de sessão; contar origens por endereço erra com CGN (subconta) e
-IPv6 com endereços de privacidade (sobreconta; o /64 seria a unidade natural);
-custo da manutenção do grafo; HTTP/2 e outros protocolos; só 3 das 6 sub-relações
-exercitadas; amplitude de datasets; validação da explicação sem estudo com
-usuários. A **Fig. 4** mostra onde a evidência entre sessões é necessária.
+Com pares, a admissão cresce de 2,3 µs (100 sessões) a 127 µs (10.000); com classes,
+fica entre 0,33 e 0,42 µs até 100 mil. Materializar arestas: 0,84 s (100) e 52,8 s
+(1.000); agregar por classes: 0,33 s em 1.000 (161× mais rápido) e 26,4 s em 100 mil.
+**Listagem 2:** a cadeia de evidência (1.991 origens, Ω = 1.303.422,8, endpoint
+91%). **A janela W:** no gerador, W é o intervalo que divide as sessões de um
+endpoint em agrupamentos de detecção; de 60 a 1.800 s a AUC de (d) fica em
+0,976–0,978, porque o agrupamento da campanha tem 1.977–1.998 sessões em qualquer W.
+**Particionamento em escala de CDN** (um parágrafo desde a rodada 8): o endpoint é a
+chave natural; uma campanha que espalha um JA4 por muitos endpoints escapa de cada
+partição; desenho em dois níveis, não implementado, cuja revocação precisa ser
+medida.
 
-### D. Modelo de custo e sensibilidade à janela (linhas 1035–1113, Fig. 5)
+### E. A regra por janela (linhas 962–1050, Tabela V e Fig. 4)
 
-Com enumeração de pares, a admissão cresce de 2,3 µs (100 sessões) para 127 µs
-(10.000); com contadores de classe, fica entre 0,33 e 0,42 µs de 100 a 100 mil.
-Materializar arestas: 0,84 s (100) e 52,8 s (1.000); agregar por classes: 0,33 s em
-1.000 (161× mais rápido) e 26,4 s em 100 mil. Os dois modos dão o mesmo Ω até
-7 × 10⁻¹².
+**Tabela V (sintético):** ataque K = 1000: 77,8% / 77,8% / cobertura 79,8% /
+colateral 0; K = 50: 85,7% / 85,7% / 75,3% / 0; limpas: Ω 0,6%, dispara 0%; flash
+crowds 25/50/100: Ω 80/100/100%, dispara 0%. Com o teste, nenhuma janela limpa
+(limite superior 0,8%) e nenhum flash crowd. Pesos uniformes: pelo menos tantas
+janelas de ataque; sem o termo de endpoint, 33,3% e nenhuma.
 
-**Listagem 2:** a cadeia de evidência de uma campanha canônica (M = 25, K = 1000),
-contada em origens: 1.991 origens, Ω = 1.303.422,8, das quais TLS 114.710, endpoint
-1.188.627 (91%), rede 85,8; o escopo lista 25 impressões.
+**Fig. 4:** pontos de operação em produção com 100 atacantes por janela, em dois
+painéis (pilhas novas e compartilhadas): eixo x = falsos alarmes em janelas limpas
+(escala log), eixo y = fração bloqueada. Dias de teste preenchidos, dia novo vazado;
+uma taxa zero é desenhada em 0,01%. Na rodada 8 entraram dois pontos da
+beta-binomial: unida ao filtro de inéditas sob o gatilho de origens, e sozinha como
+gatilho.
 
-Particionamento em escala de CDN: trabalhadores por endpoint mais um esboço global
-sobre identificadores de peso alto (não implementado).
+**Produção, em cinco blocos:** (1) exportações dos quatro endpoints, limpas sem os
+clientes bloqueados pelo WAF, escopo julgado só pelo JA4; botnet com /24 disjuntos
+dos reais; frotas levam λ_e aos níveis da Tabela IV; o escopo sozinho produz filtro
+em 1,5–6,3% das janelas do dia seguinte; por que o gatilho de origens corta os
+falsos alarmes (nas oito janelas que só Ω admite, 33% do Ω vem de fora do termo de
+endpoint, contra 12%). (2) **Concordância com o WAF** (veio de V-D): E3 84%, E4 96%,
+E2 1,5%; o escopo cobre 16,7% dos bloqueios do WAF. (3) **Outras linhas de base**
+(veio de V-D): o z-score sem calibração dispara em 2,6% das limpas e 64,5% dos flash
+crowds; o de histórico próprio, em metade deles. (4) **Referência sobredispersa**
+(novo): a correlação φ de cada impressão do perfil, estimada pelos momentos a partir
+de Var[c] = n·b(1 − b)(1 + (n − 1)φ), limitada a [0; 0,99]; impressão ausente do
+perfil mantém a binomial; nível calibrado como antes. (5) As frotas conhecidas (5%
+das janelas, escolhido em três dias; nos dois reservados, E1 a 0,1× de 0,7% para
+6,3%, com 7 falsos alarmes contra 8); o limiar dos z-scores calibrados; o gatilho
+só pelo escopo (2,2% das limpas com frotas, 0,5% no dia novo, contra 3,5% e 8,8% sem
+elas); sensibilidade a ρ; flash crowds de 1.000 (regra 21,8%, z-score 86,8%).
 
-### E. A regra por janela (linhas 1115–1252, Tabelas V e VI)
+### F. Reprodutibilidade (linhas 1051 em diante)
 
-**Tabela V (sintético, por janela de 5 min):** ataque K = 1000: Ω ≥ τ 77,8%,
-dispara 77,8%, cobertura 79,8%, colateral 0; K = 50: 85,7% / 85,7% / 75,3% / 0;
-limpas: Ω 0,6%, dispara 0,0%; flash crowds 25/50/100: Ω 80/100/100%, dispara 0%.
-Com o teste: nenhuma janela limpa (limite superior de 95% = 0,8%, pela "regra dos
-três": 3/360) e nenhum flash crowd. Pesos uniformes: mesma detecção; sem o termo de
-endpoint: 33,3% e 0%. Porta de origens: 82,2% e 85,7%.
-
-**Tabela VI (produção, 8 dias, 5 dias de teste, 5.643 janelas limpas):**
-
-- Por endpoint (regra do artigo): E1 (RUM, > 1.000 origens/janela), E2 (console),
-  E3 (API), E4 (SSO), todos < 100 origens/janela exceto E1.
-- Por escopo, com porta Ω ≥ τ: enriquecimento, z-score, JA4 inéditos, união.
-- Com porta de origens: enriquecimento e união.
-- Colunas: dispara em janelas limpas, colateral mediano, dispara em flash crowd de
-  100, e botnet bloqueada com A = 100, A = 1.000 e 1× (do tamanho da janela típica),
-  pilhas novas / compartilhadas.
-
-**Texto do Apêndice E, em quatro parágrafos:**
-
-1. **Protocolo:** exportações com contagens por impressão e janela, feitas dentro
-   do armazém de logs; cada dia testado com perfil, limiares e λ_e dos dias
-   anteriores; clientes bloqueados pelo WAF excluídos; botnet canônica injetada;
-   escopo julgado só pelo JA4 (as exportações não trazem prefixos).
-2. **Frotas e o nível:** λ_e vai a ~10⁻⁴ (E4), 10⁻¹⁴ (E3), 10⁻⁶⁰ (E1), 10⁻⁷³ (E2).
-   O escopo sozinho nomeia filtro em 1,5–6,3% das janelas do dia seguinte. Quando a
-   regra dispara em janela limpa de E2 ou E3, nomeia uma frota e bloqueia cerca de
-   metade dos clientes. **Por que a porta de origens reduz os falsos alarmes à
-   metade:** nas 8 janelas limpas que só Ω admite, 33% do Ω vem de fora do termo de
-   endpoint (contra 12% nas demais); uma frota se concentra numa impressão e infla
-   o termo TLS justamente onde o escopo erra. O gatilho não deve ler a mesma
-   evidência que o escopo.
-3. **Dois limites da detecção:** em E1 com 1.000 atacantes e E4 a 1×, o escopo
-   nomeia as pilhas mas Ω fica abaixo de τ em 57% e 94% das janelas; em E2 e E3 as
-   pilhas de uma botnet desse tamanho têm uma ou duas origens, e nenhum nível
-   calibrado as certifica. Com 0,1× só E1 tem mais de 100 atacantes: enriquecimento
-   0,6%, inéditas 11,2%, z-score 12,5% (disparando em 5,1% das janelas limpas de E1).
-4. **Perfil com frotas conhecidas:** das quatro frações testadas nos 3 primeiros
-   dias, φ = 5% foi a única que não aumentou os falsos alarmes. Em E1, 5 ou 6 frotas
-   (7% do perfil); removê-las eleva o nível de ~10⁻⁶⁰ para 10⁻²¹. Nos 2 dias de
-   reserva, E1 a 0,1× sobe de 0,7% para 6,3% (compartilhadas 0,2% → 4,4%, que o
-   filtro de inéditas nunca detém), com 7 falsos alarmes contra 8; E2 a E4 não
-   mudam. Nesses dias, frações menores bloqueiam mais, mas disparam o dobro, com
-   filtros mais leves (11–12% dos clientes contra 51%) e em mais flash crowds: pelo
-   colateral, a escolhida não é a melhor. Um atacante que use a impressão de uma
-   frota conhecida escapa. Também: perfil por hora não ajudou; ρ = 2
-   ou 5 move taxas de disparo em no máximo 0,3 ponto, bloqueios em 4,5 e colateral
-   mediano em 7,2; flash crowds de 1.000 disparam a regra em 21,8% e o z-score em
-   86,8%; o WAF concorda em 84% (E3) e 96% (E4), 1,5% em E2; E1 não tem WAF.
-
-### F. Reprodutibilidade (linhas 1254 em diante)
-
-Código público, Makefiles, sementes fixas, `make audit` confere cada número do
-artigo contra os resultados. As entradas da Tabela VI (agregados da operadora)
-não vão para o repositório; vai só o resumo anonimizado. `make compile-check` e
-`make stix-check` rodam sem dados.
+Código público, Makefiles, sementes fixas. `make compile-check stix-ingest` confere
+a consulta compilada e passa o STIX pelo validador, pelo TAXII e pelo MISP. O
+protocolo do dia novo foi registrado com os *hashes* antes de ler o dia
+(`fresh_day_protocol.md`), e `make production-tables` recalcula todo número de
+produção. As entradas das Tabelas III e IV (agregados da operadora) não vão para o
+repositório; vai o resumo anonimizado.
 
 ---
 
@@ -763,83 +911,133 @@ não vão para o repositório; vai só o resumo anonimizado. `make compile-check
 
 ### Pares de uma classe: C(n, 2) = n(n − 1)/2
 
-Cinco origens com o mesmo JA4 formam C(5, 2) = 10 pares. Mil origens formam
-499.500. É por isso que o termo de endpoint domina: todas as origens de uma janela
-estão no mesmo endpoint.
+Cinco origens com o mesmo JA4 formam C(5, 2) = 10 pares; mil origens, 499.500. É
+por isso que o termo de endpoint domina: todas as origens de uma janela estão no
+mesmo endpoint.
 
 ### A massa de coordenação: Ω(S) = Σ w_i · |E_i(S)|
 
-Exemplo da Listagem 2 (1.991 origens):
-
-- endpoint: C(1.991, 2) = 1.981.045 pares × 0,6 = 1.188.627,0
-- TLS: 114.710 pares × 1,0 = 114.710,0
-- rede (/24): 286 pares × 0,3 = 85,8
-- **Ω = 1.303.422,8**, dos quais o endpoint é 91%. Daí "na janela, Ω é volume".
+Listagem 2 (1.991 origens): endpoint C(1.991, 2) = 1.981.045 pares × 0,6 =
+1.188.627,0; TLS 114.710 × 1,0; rede 286 × 0,3 = 85,8. **Ω = 1.303.422,8**, com o
+endpoint em 91%.
 
 ### O teste de enriquecimento
 
-Exemplo: uma janela com n = 100 origens; uma impressão f com prevalência
-b(f) = 0,001 (0,1%) no perfil; c(f) = 5 origens do agrupamento com essa impressão;
-|F| = 500 impressões na família.
+Uma janela com n = 100 origens; uma impressão com b(f) = 0,001 no perfil; c(f) = 5
+origens com ela; |F| = 500.
 
-1. **Enriquecimento:** c/n = 5/100 = 0,05 ≥ ρ · b = 3 × 0,001 = 0,003. Passa.
-2. **Significância:** sob o fundo, esperaríamos n · b = 0,1 origem com f.
-   P[Bin(100; 0,001) ≥ 5] ≈ 7 × 10⁻⁸. Ajustado por Bonferroni (× 500): 3,5 × 10⁻⁵.
-   Com λ = 0,01, passa: **f entra no escopo**.
-3. Com λ = 0,01, bastariam **4** origens para certificar essa pilha. Com
-   λ = 10⁻⁶⁰ (o nível que as frotas impõem em E1), seriam precisas **30**. É isso
-   que "o nível calibrado prende o enriquecimento" quer dizer.
+1. **Enriquecimento:** c/n = 0,05 ≥ ρ · b = 0,003. Passa.
+2. **Significância:** P[Bin(100; 0,001) ≥ 5] ≈ 7 × 10⁻⁸; vezes 500 (Bonferroni),
+   3,5 × 10⁻⁵ < 0,01. **f entra no escopo.**
+3. Com λ = 0,01, bastariam 4 origens para apontar essa pilha; com λ = 10⁻⁶⁰,
+   seriam precisas 30.
 
-**Bonferroni** (dividir λ por |F|, ou multiplicar p por |F|) controla a chance de
-qualquer uma das |F| impressões passar por acaso.
+O prior 1/N em b(f) evita prevalência zero para uma impressão nunca vista.
 
-**O prior 1/N** em b(f) evita dividir por zero: uma impressão nunca vista teria
-prevalência 0 e enriquecimento infinito.
+### O piso de calibração
+
+A menor contagem que o nível aponta é c_min(n) = o menor c com P[Bin(n, b) ≥ c] · |F| <
+λ_e (e c/n ≥ ρ·b). Uma botnet de A atacantes em 25 pilhas, com 90% nas pilhas, põe
+cerca de 0,9 · A/25 origens em cada pilha, numa janela de n₀ + A origens. **O piso
+é o menor A com 0,9 · A/25 ≥ c_min(n₀ + A)**, dividido por n₀ para virar fração da
+janela.
+
+Exemplo hipotético (não é um endpoint real): janela de 2.000 origens, perfil com
+200.000 pares origem–impressão (b = 1/200.000 para uma pilha nova), |F| = 300.
+
+| Nível λ_e | c_min por pilha | Menor botnet A | Piso (fração da janela) |
+|---|---|---|---|
+| 10⁻² | 3 | 84 | 4% |
+| 10⁻²¹ | 10 | 278 | 14% |
+| 10⁻⁶⁰ | 22 | 612 | 31% |
+
+É o mecanismo da Tabela IV: as frotas empurram o nível para baixo, o nível empurra o
+piso para cima, e isentar as frotas conhecidas devolve parte do nível.
+
+### A referência beta-binomial
+
+A binomial supõe que cada origem é um sorteio independente do perfil. Uma frota que
+se ativa de uma vez põe várias origens na mesma janela, e a variância da contagem
+fica maior que n·b(1 − b). A beta-binomial acrescenta uma correlação φ dentro da
+janela:
+
+> Var[c] = n·b(1 − b)·(1 + (n − 1)·φ)
+
+Com φ = 0, é a binomial. Para cada impressão f do perfil, φ_f é estimado pelo
+método dos momentos nas janelas de calibração com ao menos k_min origens:
+
+> φ = Σ[(c − n·b)² − n·b(1 − b)] / Σ[n(n − 1)·b(1 − b)], limitado a [0; 0,99]
+
+O teste passa a usar P[X ≥ c] com X ~ BetaBin(n; b·(1 − φ)/φ; (1 − b)·(1 − φ)/φ),
+que tem a mesma média n·b. Uma impressão ausente do perfil mantém a binomial (não
+há de onde estimar φ), e o nível λ_e é calibrado como antes.
+
+Exemplo: n = 100 origens, b = 0,01 (em média, 1 origem na janela). Sob a binomial,
+P[X ≥ 5] ≈ 3,4 × 10⁻³ e P[X ≥ 8] ≈ 8,2 × 10⁻⁶. Com φ = 0,05, P[X ≥ 5] ≈ 0,069 e
+P[X ≥ 8] ≈ 0,030: uma frota que põe 8 origens na janela deixa de ser improvável. Por
+isso a calibração não precisa mais empurrar o nível para 10⁻⁶⁰ para calar as
+frotas, e o piso cai.
 
 ### O nível calibrado λ_e
 
 Em cada janela sem ataque dos dias anteriores, calcula-se o menor p-valor ajustado
 entre as impressões enriquecidas. λ_e é o 1º percentil desses valores, limitado a
-0,01. Por construção, o escopo nomearia filtro em no máximo 1% das janelas de
-calibração.
+0,01: o escopo produziria filtro em no máximo 1% das janelas de calibração.
 
-### τ_cluster e a porta de origens
+### τ_cluster e o gatilho de origens
 
-- τ_cluster = percentil 99 de Ω nas janelas (ou agrupamentos) sem ataque.
-- Porta de origens = percentil 99 do número de origens distintas nas mesmas janelas.
+- τ_cluster = percentil 99 de Ω nas janelas sem ataque.
+- Gatilho de origens = percentil 99 do número de origens distintas nas mesmas
+  janelas.
 
-### O z-score (linha de base)
+### Os z-scores (linhas de base)
 
-z = (c − n·b) / √(n·b·(1 − b)). Bloqueia toda impressão com z > 3, sem correção
-para múltiplos testes e sem calibração. No exemplo acima, z ≈ 15,5: o z-score
-também nomearia f. Sua fraqueza aparece nos flash crowds, onde dispara em 64,5%.
+- **z contra o perfil:** z = (c − n·b) / √(n·b·(1 − b)). Sem calibração, bloqueia
+  toda impressão com z > 3. No exemplo acima, z ≈ 15,5.
+- **z calibrado:** o limiar passa a ser o percentil 99 do maior z de cada janela de
+  calibração, nunca abaixo de 3. É o mesmo orçamento do teste.
+- **z contra o próprio histórico:** (c − média de f) / max(desvio de f; 1), com
+  média e desvio da contagem de f nas janelas de calibração, e o limiar calibrado da
+  mesma forma.
+
+### O filtro de inéditas e a união
+
+- **Inéditas:** impressões ausentes do perfil e vistas em ao menos k_min = 5
+  origens da janela.
+- **União:** o escopo é enriquecimento ∪ inéditas. A união recupera as pilhas novas
+  pequenas demais para o nível, e o enriquecimento cobre as compartilhadas.
 
 ### Frotas conhecidas
 
-Uma impressão é frota conhecida se o teste a nomeia, no nível nominal 0,01, em pelo
-menos φ das janelas de calibração (φ = 5%). Ela sai do escopo e da calibração de λ_e.
+Impressão que o teste aponta, no nível nominal 0,01, em pelo menos 5% das janelas de
+calibração. Sai do escopo e da calibração de λ_e (é uma lista de exceções). Sob a
+beta-binomial, nenhuma impressão se qualifica, em nenhum endpoint e em nenhum dia.
+
+### A regra de decisão do dia novo
+
+Nos dias de teste: 5 falsos alarmes em 5.643 janelas, r = 0,000886. Com 1.152
+janelas no dia novo, esperam-se 1,02 falsos alarmes. O protocolo dizia: o dia é
+**consistente** se P[Bin(1.152; r) ≥ x] ≥ 0,05. Com x = 2, P = 0,27: consistente.
+Com essa quantidade de janelas, o dia seria consistente até 3 falsos alarmes, e só
+consegue limitar a taxa perto de 0,26% (regra dos três: 3/1.152); não a estabelece.
 
 ### Métricas
 
-- **Revocação (recall):** atacantes bloqueados / atacantes.
-- **Precisão:** atacantes bloqueados / tudo o que foi bloqueado.
-- **F1:** 2 · P · R / (P + R).
-- **FPR (taxa de falsos positivos):** legítimos sinalizados / legítimos.
-- **AUC (área sob a curva ROC):** probabilidade de um ataque aleatório receber
-  escore maior que um benigno aleatório. 0,5 é o acaso; 1,0, perfeito. Mede
-  **ordenação**, não decisão; por isso a Tabela III força o ponto de operação.
-- **Colateral:** clientes legítimos bloqueados pelo escopo / clientes legítimos da
-  janela. Na Tabela VI, a mediana sobre as janelas limpas em que o escopo disparou.
-- **Bloqueio da botnet (Tabela VI):** fração dos atacantes injetados que o escopo
-  detém, média sobre **todas** as janelas (0 onde a regra não dispara).
-- **Limite superior de 95% com zero eventos ("regra dos três"):** 3/n; com 360
-  janelas limpas e nenhum disparo, 3/360 = 0,8%.
-- **Wilcoxon pareado:** teste não paramétrico sobre as diferenças par a par entre
-  duas configurações nas mesmas sementes.
-- **d de Cohen:** diferença média dividida pelo desvio padrão; acima de 0,8 já é
-  "grande"; 13,5 e 22,4 são enormes (o gerador separa muito bem).
-- **Kolmogorov–Smirnov (D):** maior distância entre duas distribuições acumuladas;
-  D = 0,003 quer dizer distribuições praticamente iguais.
+- **Revocação:** atacantes bloqueados / atacantes. **Precisão:** atacantes
+  bloqueados / tudo o que foi bloqueado. **F1:** 2PR/(P + R).
+- **FPR (TFP):** legítimos sinalizados / legítimos.
+- **AUC:** probabilidade de um ataque aleatório receber escore maior que um
+  benigno; mede ordenação, não decisão (por isso a Tabela II força o ponto de
+  operação).
+- **Colateral:** clientes legítimos bloqueados / clientes legítimos da janela. Na
+  Tabela III, a mediana sobre as janelas limpas em que o escopo disparou.
+- **Bloqueio da botnet (Tabela III):** fração dos atacantes injetados bloqueada,
+  média sobre **todas** as janelas (0 onde a regra não dispara).
+- **Regra dos três:** com zero eventos em n, o limite superior de 95% é ≈ 3/n
+  (3/360 = 0,8% na Tabela V).
+- **Wilcoxon pareado**, **d de Cohen**, **Kolmogorov–Smirnov (D)**: como antes.
+  Com n = 30, o menor p bilateral exato do Wilcoxon é 2/2³⁰ ≈ 1,86 × 10⁻⁹; vezes 4
+  (Bonferroni), 7,45 × 10⁻⁹: (d) venceu em todas as 30 sementes.
 
 ---
 
@@ -847,110 +1045,159 @@ menos φ das janelas de calibração (φ = 5%). Ela sai do escopo e da calibraç
 
 | O quê | Número |
 |---|---|
-| AUC por sessão (acaso) / entre sessões | ≈ 0,50 / 0,93–0,98 |
+| AUC por sessão (acaso) / entre sessões | ≈ 0,50 (0,488–0,503) / 0,93–0,98, só dentro de um M |
+| (d) com outro número de pilhas | 5 → 25 / 100: 0,61 / 0,63; 25 → 5 / 100: 0,48 / 0,75; mesmo M, outras sementes: 0,95–0,995 |
+| MLP (a / d) | 0,493 / 0,862 (K = 50); 0,494 / 0,952 (K = 1000) |
 | Escopo por frequência, 5+ pilhas | 0% do ataque, 39% do legítimo |
-| Enriquecimento, 25 pilhas | 90,3%, sem colateral, sem rótulo |
+| Enriquecimento, 25 pilhas | 90,3%, sem colateral observado, sem rótulo |
+| Inéditas, sintético | 90,3% (25 pilhas), 88,1% (100), 0% (compartilhadas); TFP 0,03% |
+| Enriquecimento em pilhas compartilhadas (sintético) | 85,4% a 2,23% de colateral |
 | Modelo aprendido + perfil, 25 / 100 pilhas | 87,4% / 86,9% (com rótulos) |
 | Termo de endpoint no Ω da Listagem 2 | 91% |
-| Produção | 8 dias, 4 endpoints (E1–E4), 5 dias de teste, 5.643 janelas limpas |
-| Regra do artigo em janelas limpas | 0,2%, colateral mediano 49,1% |
-| Porta de origens: falsos alarmes | 6 contra 14 (metade) |
-| Flash crowd de 100: enriquecimento / z-score / inéditas | 3,9% / 64,5% / 0,2% |
-| Pilhas compartilhadas, 100 / 1.000 atacantes | enriquecimento 20,2% / 61,6%; inéditas 0% |
-| Configuração combinada (porta + união) | 0,1% das limpas, 38,4% / 77,7% (novas) |
-| Níveis calibrados λ_e | E4 10⁻⁴, E3 10⁻¹⁴, E1 10⁻⁶⁰, E2 10⁻⁷³ |
-| E1 a 0,1×: enriquecimento / inéditas / z-score | 0,6% / 11,2% / 12,5% |
-| Frotas conhecidas, dias de reserva | E1 0,7% → 6,3% (compart. 0,2% → 4,4%), 7 vs 8 alarmes |
-| Mesma célula, dias de reserva: inéditas / z-score | 6,5% / 7,3% (compartilhadas: 0% / 7,1%) |
-| Consulta compilada no ClickHouse da Azion | origens e /24: 1.152 / 1.152 janelas; JA4: 288 / 288 sem WAF |
-| Rapid Reset | Google 398 M rps; Cloudflare 201 M rps de ~20 mil máquinas |
+| Produção | 8 dias + 1 dia novo; 4 endpoints; 5 dias de teste; 5.643 janelas limpas; 1.152 no dia novo |
+| Regra do artigo (gatilho Ω) | 0,2% das limpas, colateral mediano 49,1% |
+| Gatilho de origens: falsos alarmes | 6 contra 14 |
+| Piso de calibração, E1 | 16% da janela (binomial); 7% com frotas conhecidas; 3% (beta-binomial); 15–18 origens por pilha (3 na beta-binomial) |
+| Piso nos endpoints pequenos | 4 a 12 janelas (binomial); 0,9 a 2,8 (beta-binomial) |
+| Níveis λ_e | binomial: E4 10⁻⁴, E3 10⁻¹⁴, E1 10⁻⁶⁰ (10⁻²¹ com frotas), E2 10⁻⁷³; beta-binomial: E1 7 × 10⁻⁵, os demais 0,01 |
+| Configuração binomial (união, origens, frotas) | 0,1% (5 de 5.643); 38,4 / 77,7 (novas); 21,7 / 63,3 (compart.); colateral 32,9% |
+| Beta-binomial (união, origens) | 0,4% (22 de 5.643); 59,8 / 77,7; 40,5 / 63,2; colateral 10,5%; console 1,3%; dia novo 0 (*post hoc*) |
+| z-score calibrado | 0,4% (20 de 5.643); 54,7 / 77,7; 23,7 / 62,3; colateral 10,8%; console 1,1% |
+| Acima do piso, E1 | 67–71% de uma botnet de 1× com todo escopo calibrado; 8–12% com 0,1× |
+| Endpoints pequenos, 1× em pilhas novas | binomial 2–5%; beta-binomial e z-score 6–26% |
+| z-score sem calibração | 2,6% das limpas, 64,5% dos flash crowds |
+| z-score, histórico próprio | 0,9% das limpas, 50,6% dos flash crowds |
+| Regime furtivo (E1, 0,1×) | gatilho dispara em 0,7–42% das janelas; 11,8% bloqueado; só escopo: 89,6 / 61,1% a 1,0% (binomial), 90,0 / 78,3% a 2,1% (beta-binomial) |
+| WAF | E3 84%, E4 96%, E2 1,5%; o escopo cobre 16,7% dos bloqueios do WAF |
+| Dia novo | binomial 2 de 1.152 (P = 0,27); 38,9 / 73,4; 21,5 / 60,9; z-score e regra básica nas mesmas 2 janelas |
+| Frotas conhecidas, dias reservados | E1 0,1×: 0,7% → 6,3%, 7 contra 8 falsos alarmes |
+| Consulta compilada no banco de logs da operadora | 23/09 e 25/09: origens e /24 em 1.152 / 1.152 janelas cada |
 | Sinal novo na ontologia | 4 triplas, 0 linhas de código |
 | STIX 2.1 | 0 erros, 0 avisos, modo estrito |
-| TAXII 2.1 (servidor de referência da OASIS) | indicador, curso de ação e relação voltam idênticos, 7–14 ms |
 | Importador do MISP | mantém curso de ação e endpoint, perde 26 de 26 JA4 |
 | Custo | 0,37 µs por admissão; 26,4 s para 100 mil sessões |
-| Significância | p = 7,5 × 10⁻⁹; d de Cohen 13,5 e 22,4 |
+| Significância | p = 7,5 × 10⁻⁹; d de Cohen 13,5 e 22,3 |
 | Medição JA4 na Azion | 6,33 M requisições, 495 impressões, top-1 38,4%, top-10 93,8% |
+| Rapid Reset | 398 M rps; 201 M rps de ~20 mil máquinas |
 
 ---
 
 ## 18. Perguntas difíceis e como responder
 
-**"O STIX de vocês funciona num SOAR de verdade?"**
-Medimos dois consumidores reais. Pelo TAXII 2.1, o servidor de referência da OASIS
-aceita e devolve intactos o indicador, o curso de ação e a relação. O importador do
-MISP mantém o curso de ação e o endpoint, mas descarta os JA4, porque nem o STIX 2.1
-nem o MISP têm um campo padrão para JA4. É um achado: a interoperabilidade perde
-exatamente o discriminador, e um playbook alimentado pelo MISP bloquearia o
-endpoint inteiro. Não testamos a execução de um bloqueio de ponta a ponta.
+**"Por que não usar só um z-score calibrado?"**
+É uma alternativa legítima, e o artigo mostra isso na Tabela III: acima do piso, ele
+bloqueia tanto ou mais, com alarmes mais leves. Nos dias de teste, porém, dispara
+quatro vezes mais (20 contra 5 janelas limpas), e no dia novo os dois deram os
+mesmos 2 falsos alarmes. A binomial paga a taxa menor de falsos alarmes com um piso
+mais alto, e dá um nível do qual o **piso se calcula antes do ataque**: o operador
+sabe, por endpoint, que botnet consegue apontar e onde precisa de outro recurso. Com
+a referência beta-binomial, o teste chega ao ponto de operação do z-score com um
+piso várias vezes menor e bloqueia mais em pilhas compartilhadas (40,5% contra 23,7%
+com 100 atacantes). O artigo não afirma que o teste binomial bloqueia mais.
+
+**"A beta-binomial não foi feita depois de olhar o dia novo?"**
+Foi, e o artigo marca isso (asterisco na Tabela III). Por isso ela entra como
+correção, ao lado da binomial, que é a configuração avaliada e registrada no
+protocolo. O dia novo confirma a binomial (2 em 1.152, P = 0,27); o zero da
+beta-binomial nesse dia não conta como confirmação. Nos dias de teste ela passa do
+orçamento no console (1,3%), como o z-score calibrado (1,1%).
+
+**"Se o modelo aprendido chega a 0,98, para que a regra?"**
+Porque ele aprende a faixa de compartilhamento que um número de pilhas produz:
+treinado com 5 pilhas, cai para 0,61–0,63 com 25 ou 100; treinado com 25, vai a 0,48
+com 5. A regra lê um perfil de tráfego normal, não usa rótulos e mantém cerca de 90%
+até 25 pilhas. E o teste entre números de pilhas usou sementes disjuntas, porque com
+a mesma semente o gerador repete as sessões benignas e até (a) chegaria a 0,88–0,94.
+
+**"O dia novo prova alguma coisa?"**
+Prova que a taxa de falsos alarmes da configuração escolhida nos dias de teste não
+era sobreajuste: 2 em 1.152, consistente com 5 em 5.643 (P = 0,27). A configuração,
+as métricas e a regra de decisão foram registradas antes de ler o dia, com os
+*hashes* das exportações. Com 1.152 janelas, o dia só limita a taxa perto de 0,26%;
+não a estabelece sozinho.
+
+**"O que o operador faz com o piso?"**
+Decide o recurso por endpoint. Em E1, uma botnet acima de ~16% da janela (7% com
+frotas conhecidas, 3% com a beta-binomial) pode ser apontada e bloqueada por
+impressão. Nos endpoints pequenos, o piso da binomial é maior que a própria janela
+(4 a 12 janelas; 0,9 a 2,8 com a beta-binomial): ali o escopo por impressão quase não
+se aplica, e o recurso é limite de taxa ou desafio. É uma informação de gerência que
+vem antes do ataque.
+
+**"No sintético, o filtro de inéditas empata com vocês."**
+Empata, e o artigo diz por quê: as pilhas geradas nunca aparecem no vocabulário
+benigno. Por isso criamos o modo compartilhado, com pilhas tiradas do perfil, como
+na injeção de produção: ali o filtro de inéditas bloqueia 0% e o teste 85,4%. Em
+produção vale o mesmo (0% contra 20–63%).
+
+**"O MLP mudou de resultado?"**
+Mudou, e para melhor: o 0,235 era artefato da parada antecipada, que avaliava por
+acurácia com 4,8% de ataques e restaurava os pesos da época 7. Sem parada
+antecipada, 0,862 e 0,952. A conclusão (por sessão no acaso; entre sessões depende
+do modelo) não muda; a frase "o perceptron inverte" saiu.
+
+**"Por que o gatilho deixa passar a botnet no regime furtivo?"**
+Porque é volume: uma botnet de um décimo da janela acrescenta poucas origens para
+passar do percentil 99, na maior parte dos dias. O escopo, sozinho, a aponta em toda
+janela; um gatilho só pelo escopo, examinado a posteriori, bloquearia 89,6% a 1,0%
+das janelas limpas de E1. É o próximo passo declarado (gatilhos acionados pelo
+escopo), não uma afirmação do artigo.
 
 **"Se atributos resolvem a AUC, para que o grafo?"**
-Concordamos, e o artigo mede isso: um modelo linear sobre os mesmos atributos chega
-a 0,799, e o OWL não mexe na AUC. O grafo entra na **operação**: a consulta de
-contagens é compilada da ontologia e reproduz as exportações de produção nas 1.152
-janelas; um sinal novo custa 4 triplas e nenhum código; o veredicto sai como STIX
-2.1 válido, pronto para o SOAR, com a derivação junto.
+O artigo mede isso: um modelo linear sobre os atributos chega a 0,799, e o OWL não
+mexe na AUC nem no gatilho. O grafo entra na operação: a consulta de contagens é
+compilada da ontologia e reproduz as exportações de produção em dois dias; um sinal
+novo custa 4 triplas; o veredicto sai como STIX 2.1 válido com a derivação junto.
+
+**"O STIX de vocês funciona num SOAR de verdade? E o DOTS?"**
+Pelo TAXII 2.1, o servidor de referência devolve intactos o indicador, o curso de
+ação e a relação. O MISP descarta os JA4, e o DOTS define o escopo pelo alvo, só
+filtra por campos de rede e de transporte (RFC 8783) e só descreve origens por
+prefixo na telemetria (RFC 9244): nos dois casos, o escopo se alargaria para o
+endpoint ou para prefixos de endereço. É uma lacuna de padrão que o artigo aponta.
 
 **"Então Ω é só volume?"**
-Na janela, sim, e o artigo diz isso. O termo de endpoint é 91% de Ω, e uma contagem
-de origens serve de porta até melhor. O que discrimina ataque de pico é o **escopo**
-(o teste de enriquecimento). Ω continua útil como decomposição da evidência e é
-onde entrariam as relações não transitivas (temporal, carga útil).
+Na janela, sim, e o artigo diz isso: o termo de endpoint é 91% de Ω, e uma contagem
+de origens serve de gatilho até melhor. O que discrimina ataque de pico é o escopo.
 
-**"O modelo aprendido com perfil ganha de vocês em M = 100."**
-Ganha, e está na Tabela III. Mas ele treina com os rótulos da campanha que pontua,
-que nenhum operador tem durante o ataque. A regra chega a 90% sem rótulo até 25
-pilhas; em 100 pilhas, um perfil maior restaura 89,6%.
-
-**"Em produção a detecção é fraca."**
-Em parte, sim, e isso está declarado. O método detém bem botnets grandes diante do
-tráfego do endpoint. No regime furtivo (E1 a 0,1×), nos dias reservados, o nível
-calibrado prende o teste em 0,7%; o perfil com frotas conhecidas sobe para 6,3%,
-perto do filtro de inéditas (6,5%) e do z-score (7,3%) na mesma célula, e com
-pilhas compartilhadas chega a 4,4%, onde o filtro de inéditas fica em 0%. O z-score
-dispara em 5% das janelas limpas de E1 e em 64,5% dos flash crowds. A contribuição
-de produção é mostrar o custo de cada escopo.
+**"O modelo aprendido com perfil ganha em M = 100."**
+Ganha, e está na Tabela II, mas treina com os rótulos da campanha que pontua. A
+regra chega a 90% sem rótulo até 25 pilhas; em 100, um perfil maior restaura 89,6%.
 
 **"Vocês escolheram a porta de origens e a união olhando os dados de teste."**
-Sim, e o artigo e o resumo dizem isso, com os números (6 contra 14) e a confirmação
-de que valem nos cinco dias. Para as frotas conhecidas, a fração foi escolhida em 3
-dias e testada em 2 reservados. Ressalva honesta: o protocolo e os resultados
-entraram no mesmo commit, então a ordem não é verificável só pelo git.
+Sim, e o artigo diz isso. Depois, um dia novo, analisado com tudo fixado de antemão,
+confirmou a taxa de falsos alarmes. As frotas conhecidas foram escolhidas em três
+dias e testadas em dois reservados.
 
 **"Uma operadora só, e tráfego sintético."**
-Cada fonte responde a uma pergunta: o gerador isola o mecanismo sob imitação
-imposta; a produção mede falsos alarmes em clientes reais. Não existe dataset
-público do regime furtivo distribuído (verificamos, inclusive o
-BCCC-cPacket-Cloud-DDoS-2024). Uma campanha capturada é trabalho futuro.
+Cada fonte responde a uma pergunta. Não existe dataset público do regime furtivo
+distribuído (verificamos, inclusive o BCCC-cPacket-Cloud-DDoS-2024). Uma campanha
+capturada é trabalho futuro.
 
 **"E se o bot imitar o JA4 de um navegador? E o ECH?"**
-Fica fora do modelo de ameaça, e o modo adversarial mede isso: o escopo cai para
-30,4% com 3,78% de colateral, e com ρ mais estrito se recusa, que é o relato
-correto quando não há discriminador. O ECH pode esconder o JA4; é uma limitação
-declarada.
+Fora do modelo de ameaça; o modo adversarial mede isso (30,4% a 3,78% de colateral;
+com ρ mais estrito, o escopo se recusa). O ECH esconde o JA4 só de quem observa no
+caminho; uma CDN que termina o TLS continua vendo o ClientHello interno, então não
+é uma limitação no nosso modelo de ameaça.
 
-**"Os falsos alarmes bloqueiam metade dos clientes da janela."**
-Sim, porque o que eles nomeiam são frotas legítimas. Por isso a taxa é tão baixa
-(0,2%, ou 0,1% com a porta de origens), e o artigo reporta o colateral por falso
-alarme, que é a métrica que um operador precisa.
+**"Os falsos alarmes bloqueiam um terço dos clientes da janela."**
+Porque apontam frotas legítimas. Por isso a taxa é tão baixa (0,1%), e o artigo
+reporta o colateral por alarme, que é o que o operador precisa. O z-score calibrado e
+a beta-binomial têm alarmes mais leves (10,8% e 10,5%), mas quatro vezes mais
+frequentes nos dias de teste.
 
 **"Por que contar origens e não sessões?"**
-Porque um cliente abre muitas conexões (5,8 por cliente na API). Em conexões, o
-escopo dispararia em 60% das janelas limpas. Ressalva declarada: CGN subconta e IPv6
-com endereços de privacidade sobreconta (o /64 seria a unidade).
+Um cliente abre muitas conexões; em conexões, o escopo dispararia em 60% das
+janelas limpas. Ressalva: CGN subconta e IPv6 com endereços de privacidade
+sobreconta.
 
 **"Por que ρ = 3?"**
 É um piso de tamanho de efeito; quem faz o trabalho é o nível. Com ρ = 2 ou 5,
 nenhuma taxa de disparo muda mais de 0,3 ponto e nenhum bloqueio mais de 4,5.
 
 **"A comparação com o KLAGE é justa?"**
-Não é controlada, e dizemos isso. Nossa linha de base forte por sessão também supera
-o F1 publicado do KLAGE, então a margem não é da representação. O código deles não
-permite reexecutar.
-
-**"E HTTP/2?"**
-Rapid Reset e similares exigem outras sub-relações (cancelamento de stream, abuso de
-CONTINUATION). É o próximo passo, declarado.
+Não é controlada, e dizemos isso: nossa linha de base forte por sessão também supera
+o F1 publicado, e o código deles não permite reexecutar.
 
 ---
 
@@ -962,80 +1209,69 @@ CONTINUATION). É o próximo passo, declarado.
 |---|---|
 | AUC / ROC | Área sob a curva ROC (Receiver Operating Characteristic) |
 | API | Application Programming Interface (E3 é o endpoint de API) |
-| ASN | Autonomous System Number (identifica uma rede na internet) |
-| CDN | Content Delivery Network (rede de entrega, como a Azion) |
+| ASN | Autonomous System Number |
+| CDN | Content Delivery Network (como a Azion) |
 | CGN | Carrier-Grade NAT (muitos usuários atrás de um endereço) |
-| CI | Confidence Interval (intervalo de confiança) |
 | CICIDS2017, CIC-IoT2023 | Datasets de laboratório do Canadian Institute for Cybersecurity |
 | CVE | Common Vulnerabilities and Exposures |
+| D3FEND | Grafo OWL de contramedidas defensivas do MITRE, mapeado ao ATT&CK |
 | DDoS | Distributed Denial of Service |
-| DTW | Dynamic Time Warping (distância entre séries temporais) |
-| DVR | Digital Video Recorder (dispositivo típico de botnet Mirai) |
-| ECH | Encrypted Client Hello (TLS que cifra o ClientHello) |
+| DOTS | DDoS Open Threat Signaling (IETF; RFC 8811 arquitetura, RFC 9132 canal de sinalização, RFC 8783 canal de dados, RFC 9244 telemetria) |
+| DTW | Dynamic Time Warping |
+| ECH | Encrypted Client Hello |
 | F1 | Média harmônica de precisão e revocação |
-| FPR / TFP | False Positive Rate / taxa de falsos positivos |
+| FA | Falso alarme (coluna da Tabela III) |
+| FPR / TFP | Taxa de falsos positivos |
 | HGB | Histogram Gradient Boosting |
-| HTTP/2 | Segunda versão do HTTP (multiplexação de streams) |
-| IEEE / IFIP | Organizadores da conferência NOMS |
-| JA3 / JA4 | Impressões digitais do ClientHello TLS (JA4 ordena extensões antes do hash) |
-| JSON-LD | JSON para dados ligados (Linked Data) |
-| JWT | JSON Web Token (`sub` = identificador do sujeito) |
-| KG | Knowledge Graph (grafo de conhecimento) |
-| KLAGE | Trabalho relacionado mais próximo (grafos a partir de logs + Graph-BERT) |
+| IETF / RFC | Internet Engineering Task Force / Request for Comments |
+| IM | IFIP/IEEE Symposium on Integrated Network and Service Management |
+| JA3 / JA4 | Impressões digitais do ClientHello TLS |
+| JSON-LD | JSON para dados ligados |
+| JWT | JSON Web Token |
+| Kill-Bots / Speak-up | Defesas contra ataques que imitam picos legítimos (desafio computacional / gasto de banda) |
+| KLAGE | Trabalho relacionado mais próximo (classifica nós de grafos de conhecimento construídos a partir de logs de rede) |
 | KS | Teste de Kolmogorov–Smirnov |
-| L7 | Camada 7 (aplicação) do modelo OSI |
-| LIME / LLM | Explicação local de modelos / modelo de linguagem |
-| LR | Logistic Regression |
-| LSH | Locality-Sensitive Hashing |
-| MITRE ATT&CK | Base de táticas e técnicas de ataque (T1498.001 = inundação direta) |
-| ML | Machine Learning |
+| L7 | Camada 7 (aplicação) |
+| MISP | Plataforma aberta de compartilhamento de inteligência de ameaças |
 | MLP | Multilayer Perceptron |
-| NAT | Network Address Translation |
 | NOMS | Network Operations and Management Symposium |
-| OASIS | Consórcio que mantém o padrão STIX |
+| OASIS | Consórcio que mantém STIX e TAXII |
 | OWL 2 (RL, DL) | Web Ontology Language; RL = perfil com inferência polinomial |
 | PCA | Principal Component Analysis |
-| PoP | Point of Presence (ponto de presença da CDN) |
-| RDF | Resource Description Framework (triplas) |
+| RDF | Resource Description Framework |
 | RF | Random Forest |
-| RUM | Real User Monitoring (E1 são beacons de RUM) |
-| SIEM | Security Information and Event Management |
-| SOAR | Security Orchestration, Automation and Response |
+| RUM | Real User Monitoring (E1) |
+| SIEM / SOAR | Gestão de eventos / orquestração e resposta de segurança |
 | SPARQL | Linguagem de consulta para RDF |
 | SSO | Single Sign-On (E4) |
-| STIX 2.1 | Structured Threat Information Expression, formato de intercâmbio de inteligência |
-| SVM | Support Vector Machine |
-| SWRL | Semantic Web Rule Language (regras de Horn sobre OWL) |
-| TDB2 / Fuseki | Armazenamento e servidor SPARQL do Apache Jena |
-| TLS | Transport Layer Security |
-| UUID | Identificador único universal (STIX exige `tipo--UUID`) |
+| STIX 2.1 / TAXII 2.1 | Formato de intercâmbio de inteligência / protocolo de transporte |
+| SynchroTrap | Detector de contas que agem em sincronia (coordenação no nível de contas) |
+| SWRL | Semantic Web Rule Language |
+| URCA / Hamsa | Extração de anomalias em fluxos / geração de assinaturas conferidas em tráfego normal |
 | WAF | Web Application Firewall |
 
 ### Símbolos
 
 | Símbolo | Significado |
 |---|---|
-| S | conjunto candidato de sessões (por janela: todas as sessões do endpoint) |
+| S, S_W | conjunto candidato de sessões; sessões ativas na janela W |
 | W | janela deslizante (5 min) |
-| Ω(S) | massa de coordenação: soma ponderada de pares ligados |
+| Ω(S) | massa de coordenação |
 | w_i | peso (`coordinationWeight`) da sub-relação i |
 | E_i(S) | pares de origens distintas ligadas pela sub-relação i |
-| n_k | tamanho (em origens) da classe k de uma relação de igualdade |
 | τ_cluster | limiar de Ω: percentil 99 em tráfego sem ataque |
-| k_min | mínimo de origens para a regra (5) |
-| K | número de dispositivos da botnet (grau de distribuição) |
-| M | número de pilhas TLS da botnet |
-| A | atacantes injetados por janela (produção) |
+| k_min | mínimo de origens (5) |
+| K, M, A | dispositivos da botnet; pilhas TLS; atacantes injetados por janela |
 | 1×, 0,1× | botnet do tamanho da janela típica do endpoint, ou um décimo |
-| α | expoente de Zipf da popularidade das impressões benignas |
-| c(f) | origens do agrupamento com a impressão f |
-| n | total de origens do agrupamento (no teste) |
-| b(f) | prevalência de f no perfil normal (+ 1/N) |
-| N | pares origem–impressão do perfil |
+| α | expoente de Zipf das impressões benignas |
+| c(f), n, b(f), N | origens com f; total de origens; prevalência de f no perfil (+1/N); pares do perfil |
 | ρ | razão mínima de enriquecimento (3) |
-| λ_e | nível do teste binomial, calibrado por endpoint e |
-| \|F\| | tamanho da família de Bonferroni (impressões do perfil e do agrupamento) |
-| φ | fração de janelas de calibração para uma impressão virar frota conhecida (5%) |
+| λ_e | nível do teste, calibrado por endpoint e |
+| \|F\| | tamanho da família de Bonferroni |
+| c_min | menor contagem que o nível aponta (define o piso) |
+| φ | correlação dentro da janela de uma impressão do perfil (referência beta-binomial) |
+| BetaBin | distribuição beta-binomial, a referência sobredispersa |
+| 5% | fração das janelas de calibração em que o teste precisa apontar uma impressão para ela virar frota conhecida (sem símbolo) |
 | E1–E4 | endpoints de produção anonimizados (RUM, console, API, SSO) |
 
 ---
@@ -1043,16 +1279,23 @@ CONTINUATION). É o próximo passo, declarado.
 ## 20. Estado do trabalho e onde cada coisa está
 
 **Pronto para apresentar.** O artigo em inglês tem 12 páginas com o corpo em 8
-(limites do NOMS), compila sem avisos de estouro, e `make audit` confere 136
-números contra os resultados, com 0 divergências. A versão em português está
-sincronizada (14 páginas; não é a submetida).
+(limites do NOMS) e o resumo em 249 palavras; `make audit` confere 221 números e
+frases contra os resultados, com 0 divergências. A versão em português acompanha a
+estrutura da rodada 8, com os mesmos números (15 páginas; não é a submetida).
 
-**Pendências, nenhuma bloqueia a apresentação:**
+**Pendências:**
 
-- dia 25/09 da Azion (E3 e E4, depois das 21h de Brasília), como confirmação
-  extra fora da amostra;
-- uma rodada do revisor independente sobre os itens 2 e 3;
-- os commits (nada foi commitado ainda).
+- o reenquadramento da tese, decidido depois da revisão de 26/09: escopo calibrado
+  por impressão digital como contribuição, e a ontologia como camada de
+  especificação e de interoperabilidade;
+- antes da submissão: um arquivo LICENSE (o Apêndice F promete licença permissiva)
+  e o branch publicado, para a URL do artigo mostrar esta versão;
+- trabalho futuro declarado: gatilho acionado pelo escopo, HTTP/2, campanha furtiva
+  capturada.
+
+As regras de detecção removidas da ontologia ficam fora: nada depende delas, o SWRL
+delas era inválido e uma redefinia `CoordinatedHTTPFlood` por taxa por sessão, o que
+contradiz o artigo (revisão do artefato de 26/09). Estão no histórico do Git.
 
 **Onde está cada coisa:**
 
@@ -1061,7 +1304,13 @@ sincronizada (14 páginas; não é a submetida).
 | Artigo submetido | `papers/http-session-noms/article.tex` e `.pdf` |
 | Artigo em português | `papers/http-session-noms-pt/article.tex` e `.pdf` |
 | Conceitos explicados em detalhe | `docs/concepts.md` |
-| Resultados do sprint e protocolo das frotas | `experiments/sprint-6-noms/README.md` (seções 9 a 11) |
+| Resultados do sprint | `experiments/sprint-6-noms/README.md` |
+| Protocolo do dia novo | `experiments/sprint-6-noms/results/fresh_day_protocol.md` |
+| Tabelas de produção (III e IV) | `scripts/production_tables.py` → `results/production_tables.json` (`make production-tables`) |
+| Referência beta-binomial | `rule_detection_production.py --overdispersion` (`make rule-production-od`) |
+| Generalização entre números de pilhas | `scripts/cross_m_generalization.py` → `results/cross_m_generalization.json` (`make cross-m`) |
+| Adendo do protocolo do dia novo | `experiments/sprint-6-noms/results/fresh_day_protocol_addendum.md` |
+| Filtro de inéditas no sintético | `scripts/unseen_synth.py` → `results/unseen_synth_*.csv` (`make unseen-synth`) |
 | Auditoria dos números | `make audit` em `experiments/sprint-6-noms` |
 | Ontologia | `ontology/ddos_ontology.owl` |
 | Compilador e verificação STIX | `scripts/compile_counts.py`, `scripts/stix_check.py` |

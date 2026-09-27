@@ -147,7 +147,7 @@ fitted on labels.
 
 ## Collateral damage is FPR under another name
 
-The mitigation results (Fig. 3, and
+The mitigation results (Fig. 2, and
 [`../experiments/pillar4-evidence-mitigation/`](../experiments/pillar4-evidence-mitigation/))
 use two operational labels that map exactly onto the metrics above:
 
@@ -164,3 +164,125 @@ measured on the mitigation scope rather than on a classifier output.
 The renaming is deliberate: once a verdict drives an actual filter, a false
 positive is a disconnected customer, and the operational word carries that weight
 where "FPR" does not.
+
+## Metrics on production traffic
+
+Production traffic has no attack label for the clients it carries, so its metrics
+split in two: what the clean windows measure (false alarms and what they cost) and
+what an injected botnet measures (how much of it is stopped). All of them are
+computed by [`production_tables.py`](../experiments/sprint-6-noms/scripts/production_tables.py)
+into `results/production_tables.json`; the definitions of the floor and of the test
+are in [`concepts.md`](concepts.md), section 6.
+
+### False-alarm rate, with an exact interval
+
+A false alarm is a clean window in which the trigger fires *and* the scope names a
+filter. The rate is x/n over the clean windows, reported with the Clopper–Pearson
+95% interval, whose bounds are quantiles of beta distributions:
+
+    lower = Beta⁻¹(0.025; x, n − x + 1)        upper = Beta⁻¹(0.975; x + 1, n − x)
+
+The binomial configuration fires on 5 of 5,643 clean test-day windows: 0.089%, with
+interval 0.029–0.207%. The calibrated z-score fires on 20 (0.354%, up to 0.547%) and
+the beta-binomial on 22 (0.390%, up to 0.590%). The budget the level is calibrated to,
+1% of a day's 288 windows, is 2.9 misfires per endpoint and day.
+
+**Windows are not independent.** Misfires cluster: 13 of the beta-binomial's 22 and 13
+of the z-score's 20 fall on one day of the web console. The exact interval treats the
+5,643 windows as independent draws, so each rate also gets a percentile interval from a
+bootstrap over endpoint-days: the days of each endpoint are resampled with replacement
+(the endpoints stay fixed), the rate is recomputed as misfires over windows, and the
+2.5th and 97.5th percentiles of 10,000 draws bound it (`cluster_ci`). It widens the
+beta-binomial's upper bound from 0.59% to 0.82% and the z-score's from 0.55% to 0.81%,
+and narrows the binomial's to 0.02–0.16%, whose five misfires are spread over the days.
+With five days per endpoint the bootstrap is itself rough; both intervals are reported.
+
+The same rate is also reported for each component alone: the scope without the gate
+(the `|none` keys) and the gate without the scope (`gates_clean`). Each is calibrated
+to 1% and each exceeds it on the days after the calibration. The configuration's rate is
+low because it needs both, and the two are not independent. If they were, per endpoint
+
+    expected joint misfires = Σ_e (gate rate_e × scope rate_e × clean windows_e)
+
+which gives 3.5, 7.5 and 11.9 for the binomial, the beta-binomial and the z-score against
+5, 22 and 20 observed (`clean_joint_expected`): a fleet raises the origin count and
+enriches its own fingerprint in the same window.
+
+### What a false alarm costs
+
+The collateral of an alarm is the share of the window's clients the named filter
+would block. Reported as the median and the mean over the alarms, and combined with
+the rate into the **expected collateral per clean window**:
+
+    expected collateral = false-alarm rate × mean collateral per alarm
+
+| Configuration | False-alarm rate | Mean collateral per alarm | Expected collateral |
+|---|---|---|---|
+| Binomial | 0.089% | 30.6% | 0.027% |
+| Calibrated z-score | 0.354% | 11.44% | 0.041% |
+| Beta-binomial | 0.390% | 7.7% | 0.030% |
+
+A configuration that misfires rarely but broadly and one that misfires often but
+narrowly can cost legitimate users the same, which is what the table shows.
+
+The **flash-crowd rate** is the share of windows the configuration fires on once N
+legitimate users (N = 100 or 1,000) are added to a clean window; it measures how
+often a surge of real users would be challenged.
+
+### How much of an injected botnet is stopped
+
+Attackers are added to the counts of real windows, on stacks absent from the
+traffic (*new*) or drawn from the profile past its top ten (*shared*). The blocked
+share is the mean over the attack windows of
+
+    blocked = 1{gate fires} × 1{scope names a filter} × coverage
+
+where coverage is the share of the window's attackers the named filter matches. The
+three factors are reported apart (`gate`, `named`, and their product with the
+coverage), which is what shows *which* part fails. For 100 attackers on new stacks,
+the binomial configuration names a filter in every window, the gate fires in 68.4%
+of them, and 38.4% of the attackers are stopped. The collateral in attack windows is
+reported the same way as in clean windows.
+
+### A held-out day as a test of the rate
+
+With the configuration fixed in advance, the held-out day's false alarms are a test of
+the test-day rate r = 5/5,643. Under that rate the count X in its 1,152 windows is
+Bin(1152, r), with mean 1.02:
+
+| Alarms x | P[X ≥ x] |
+|---|---|
+| 2 (observed) | 0.27 |
+| 3 | 0.084 |
+| 4 | 0.020 |
+
+So up to 3 alarms would pass at the 5% level and 4 would reject the rate. The test's
+power against a rate three times higher, P[Bin(1152, 3r) ≥ 4], is only 0.37: a
+single held-out day can refute a gross error, not confirm the rate.
+
+The count also depends on how often the gate opened. On the held-out day it opened in
+3 clean windows (`clean_gate_windows`), against 168 on the test days (3.0%), and the scope
+misfired in 2 of them. Conditional on the gate, the test-day rate is 5/168, and
+
+    P[Bin(3, 5/168) ≥ 2] = 0.003
+
+so the unconditional count is consistent because the gate was quiet, not because the
+scope misfired less.
+
+### Scores against the WAF's verdicts
+
+`waf_labels.py` treats the clients the operator's WAF blocked as labels. Per
+configuration: **named**, the share of windows with a filter; **recall**, the share of
+blocked clients the filters match; **precision**, the share of the matched clients
+that were blocked; **lift**, precision divided by the window's blocked share (a random
+pick of clients has lift 1); and collateral, the share of unblocked clients matched.
+A **surge** is a run of consecutive windows with at least k_min blocked clients and at
+least the 99th percentile of the blocked count on the days before; it is *detected*
+when a filter matches a blocked client in one of its windows. Detection is compared
+with chance:
+
+    expected by chance = Σ over surges of 1 − (1 − p₀)^L
+
+with L the surge's length in windows and p₀ the rate at which the scope matches a
+blocked client outside surges. Why these scores cannot validate the scope is in
+[`concepts.md`](concepts.md), section 6.

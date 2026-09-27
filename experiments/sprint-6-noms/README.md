@@ -3,6 +3,16 @@
 Experiments closing gaps a NOMS reviewer would find unaided. None replaces an
 existing result; all are additive and Sprints 1–5 stay intact.
 
+> **Table numbers.** Each section below cites the paper's tables and sections as
+> they were numbered when it was written. Since round 12 the paper has Table II (the
+> configurations evaluated on production), Table III (the scope on generated traffic,
+> with the modal fingerprint's column that replaced the old collateral figure), Table IV
+> (production, pooled), Table V (the configurations' floor, in sample and cross-fitted),
+> Table VI (production per endpoint, in the body) and Table VII (the rule per window,
+> Appendix E). The production results are Section V-B, the post hoc analyses V-C, the
+> boundary and the WAF V-D, and the ablation and cross-M results Appendix C. Fig. 2 is
+> the cost (Appendix D) and Fig. 3 the operating points (Appendix E).
+
 | Script | Gap it closes | Needs the drive? |
 |---|---|---|
 | `scripts/bench_latency.py` | The paper claimed O(\|S_W\|·c) cost and near-linear OWL 2 RL behaviour, but **measured nothing** | No |
@@ -13,9 +23,12 @@ existing result; all are additive and Sprints 1–5 stay intact.
 | `scripts/run_canonical_baselines.py` | The ablation's academic baselines (Section V-A, a table until round 8) had **no result file** behind them | Yes |
 | `scripts/rule_detection.py` | The rule Ω(S) ≥ τ had **never been evaluated on its own**, nor against flash crowds | Yes |
 | `scripts/rule_detection_production.py` | The rule had **never met production traffic**: every window so far came from the generator | Yes, and the production exports |
-| `scripts/production_tables.py` | Tables III and IV of the paper (per endpoint, test days and fresh day apart, calibrated baselines, the beta-binomial background, calibration floor, WAF agreement) | Yes, the per-window results |
+| `scripts/production_tables.py` | Tables IV, V and VII of the paper (pooled and per endpoint, test days and fresh day apart, calibrated baselines, the beta-binomial background, the deployed floor, cross-fitted runs) | Yes, the per-window results |
 | `scripts/unseen_synth.py` | The unseen-fingerprint filter had been run on production only, and generated stacks never occur in the benign vocabulary | Yes |
 | `scripts/cross_m_generalization.py` | Configuration (d) had only been scored on the botnet structure it was trained on | Yes |
+| `scripts/ja4_churn.py` | How often the unseen filter would have a candidate: fingerprints the rolling profile never saw | Yes, the production exports |
+| `scripts/waf_labels.py` | The production evaluation had no real malicious population: the WAF's verdicts as labels | Yes, the production exports |
+| `scripts/floor_bands.py` | The floor on shared stacks used one prevalence and, under the beta-binomial, ignored the stack's correlation: floors by popularity band, at each band's correlation, and the ratio limit | Yes, the production exports |
 
 ```bash
 make latency      # runs anywhere
@@ -26,7 +39,10 @@ make rule         # the rule as a window-level detector (Appendix E)
 make rule-production  # the same rule on production traffic, botnet injected (section 9)
 make rule-production-fresh  # the fresh day, 2026-09-25, analyzed as fixed in advance (section 12)
 make rule-production-od     # the beta-binomial background, without and with known fleets (section 13)
-make production-tables      # Tables III and IV from the per-window results (sections 12 and 13)
+make rule-production-crossfit  # the four configurations with a cross-fitted calibration (section 15)
+make production-tables      # Tables IV and V from the per-window results (sections 12, 13 and 15)
+make waf-labels             # the WAF's verdicts as labels for the scope (section 16)
+make ja4-churn              # fingerprints the rolling profile never saw
 make unseen-synth     # the unseen filter and shared stacks on generated traffic (section 12)
 make cross-m      # configuration (d) trained on one stack count, tested on another (section 14)
 make audit        # every sprint-6 number of the paper against results/ (no drive)
@@ -370,7 +386,7 @@ sprint contributes to the paper (the ablation and cross-M numbers of Section V-A
 Tables II to V as printed, the abstract and conclusion, Sections V-B to V-D, the
 collateral figure's bars, the drift figures and Appendices C to E) from the
 committed files in `results/`, and compares them with the literal text of
-`papers/http-session-noms/article.tex` (221 checks as of 2026-09-26). Tables are
+`papers/http-session-noms/article.tex` (226 checks as of 2026-09-26, reframed version). Tables are
 named by their LaTeX labels (`tab:symbolic`, `tab:production`, `tab:floor`,
 `tab:perwindow`), since their numbers shift between revisions. It also checks that
 Table II (`symbolic_detector.py`) and Fig. 2 (`realistic_probe.py`), two independent
@@ -904,3 +920,234 @@ benign sessions, so the forest learns the band the training M produces. The
 ablation's 0.93–0.98 measures separability within one generator setting. The
 enrichment rule trains on nothing and keeps about 90% at every M up to 25 (Table II).
 
+
+## 15. Cross-fitted calibration
+
+The rolling split fits each endpoint's profile, its level λₑ, the calibrated z-score's
+threshold and its known fleets on the same windows: the days before the test day. A
+calibration window is then judged against a profile that already contains its own
+counts, so the level may be fitted to its own days, as the review of 2026-09-26
+pointed out. `rule_detection_production.py --split crossfit` keeps the test day, its
+profile, τ and the distinct-origin gate exactly as `rolling` does, but when it fits the
+level, the z threshold and the known fleets it judges each calibration day against a
+profile (and, under `--overdispersion`, a correlation φ) of the other calibration days:
+leave one day out. A first version fitted everything on the last calibration day
+alone; one day misses the rare fleet events that set the level, and it made the
+console's level *more* lenient, so it was dropped. `make rule-production-crossfit` runs
+the four configurations, and `make production-tables` reduces them as `xfit`,
+`xfit_fleets`, `xfit_od` and `xfit_od_fleets`. The rolling runs are unchanged: every
+decision column of their CSVs is identical with and without the option.
+
+**p-values in logs.** Cross-fitting exposed a numerical fault. A fleet absent from the
+other days' profile gets p-values below the smallest double, `binom.sf` returns 0,
+and in three folds the beta-binomial's calibrated level on E1 came out exactly 0,
+which names nothing. `adjusted_p` now works in natural logs (`log_tail`: the log of
+`sf` where that is a float, the tail summed from `logpmf` where it underflows, since
+`scipy`'s `logsf` is itself the log of `sf`), the level is carried as its log
+(`scope_log10_level` in the fold records), and `production_tables.floor` computes the
+floor in logs too. Decisions are unchanged wherever no p-value underflowed: the regression
+on one fold gave identical named, recall and collateral columns, with the stored float
+level differing in its 15th digit.
+
+Test days, pooled over the four endpoints, under the distinct-origin gate:
+
+| Configuration | False alarms (95% interval) | Collateral per alarm | Flash crowd 1,000 | 100 attackers, new / shared | Floor (attackers per window) |
+|---|---|---|---|---|---|
+| Binomial, in sample | 5 (0.03–0.21%) | 32.9% | 22.2% | 38.4% / 21.7% | 84–672 |
+| Binomial, cross-fitted | 6 (0.04–0.23%) | 31.4% | 20.7% | 36.9% / 17.8% | 84–641 |
+| Beta-binomial, in sample | 22 (0.24–0.59%) | 10.5% | 28.4% | 59.8% / 40.5% | 56–85 |
+| Beta-binomial, cross-fitted | 6 (0.04–0.23%) | 2.0% | 10.9% | 48.0% / 27.2% | 56–141 |
+| z-score, in sample | 20 (0.22–0.55%) | 10.8% | 13.1% | 54.7% / 23.7% | — |
+| z-score, cross-fitted | 13 (0.12–0.39%) | 11.0% | 5.5% | 33.6% / 9.0% | — |
+
+(The binomial's in-sample floor column is the binomial configuration's, known fleets
+exempted: 198 attackers on E1, 84–672 on the small endpoints.) The binomial
+configuration barely moves, so its calibration was not flattered by fitting in sample.
+The calibrated z-score's threshold rises by a median factor of 1.8 across endpoints
+and folds (1.2 to 6.0): its false alarms fall to 13, the console's within budget
+(0.90%), and its lead in detection disappears. The beta-binomial's levels fall from the
+0.01 cap to between 10⁻¹⁷ and 10⁻²; it then matches the binomial's false alarms with far
+lighter filters, fewer flash-crowd triggers, more detection at 100 attackers and a lower
+floor on every endpoint, and the console falls within budget (0.28%, flash crowds of
+1,000 in 16.1% of its windows against 74.4% in sample). The console's scope alone still
+names a filter in 4.4% of its test-day windows under either calibration: its fleets
+change from day to day. The option and the beta-binomial were both built after the
+fresh day was read, so these numbers are post hoc; only the binomial configuration was
+tested on a day it had not seen.
+
+## 16. The WAF's verdicts as labels
+
+The production evaluation injects its botnets. The only malicious populations the
+exports carry are the clients the operator's WAF blocked, so `scripts/waf_labels.py`
+(`make waf-labels`) takes those verdicts as labels and scores each configuration of
+Table II against them on the full test windows (blocked clients included), next to
+trivial filters on the same windows (the window's most common fingerprint, its three
+most common, the unseen filter alone) and to a random pick of clients. The WAF's rules
+are its own: a blocked client is whatever the WAF blocks, not necessarily a flood.
+
+It does so under two profiles:
+
+- **clean profile** (the paper's rolling runs): profile, level and thresholds come
+  from the clients the WAF did not block. A fingerprint the WAF blocks is then rare in
+  the profile *by construction*: with ratio ρ = 3, a stable fingerprint is enriched on
+  the full traffic only if its blocked share exceeds 1 − (1 − S)/3, about 0.88 on E3
+  (S = 63%) and 0.80 on E4 (S = 39%);
+- **all-client profile** (`--waf-in-profile`, `make rule-production-wafprof`, the
+  binomial configuration and the beta-binomial): profile, level and thresholds come from
+  every client, blocked ones included, as a scope in front of the WAF would see them.
+
+Test days, scope alone on the full traffic:
+
+| Endpoint | Profile | Named | Recall | Precision (random pick) | Lift | Surges detected (by chance) |
+|---|---|---|---|---|---|---|
+| E3, API | clean | 27–90% | 2–22% | 84–96% (63%) | 1.3–1.5 | 13–28 of 28 (10–26) |
+| | all clients | 2–3% | 0.01–0.2% | 4–33% (63%) | 0.06–0.53 | 1–2 of 28 (0.3–0.5) |
+| E4, SSO | clean | 58–100% | 8–14% | 96–99% (41%) | 2.3–2.4 | 2–10 of 10 (6–10) |
+| | all clients | 2% | 0.01–0.05% | 0.4–16% (41%) | 0.01–0.38 | 0 of 10 (under 0.1) |
+| E2, console | clean | 5–14% | 0.3–1% | 1–6% (10%) | 0.12–0.57 | 0–6 of 33 (0.1–2.2) |
+| | all clients | 4–11% | 0.2–0.4% | 1–2% (10%) | 0.10–0.20 | 0–5 of 33 (0.1–0.8) |
+
+(Ranges over the binomial configuration, the beta-binomial and the calibrated z-score.
+A surge is a run of windows with at least k_min blocked clients and at least the 99th
+percentile of the blocked count on the days before; it is detected when a filter the
+scope names matches a blocked client in one of its windows, and the chance column
+applies the rate at which the scope matches one outside surges.) Under the clean
+profile the high precision follows from the construction, and so do the surge
+detections: a surge on a fingerprint the profile lacks is enriched by design. Under the
+all-client profile the scopes name a filter in 2–3% of the API's and SSO's windows, do
+worse than a random pick on every endpoint, and catch those two endpoints' surges at
+chance. On the console the beta-binomial and the z-score each catch 5 of 33 surges
+against under 1 by chance, yet their filters match under 1% of the surges' blocked
+clients. The WAF's populations are part of every day's traffic: the scope, which reads
+deviations from normal traffic, rightly ignores them, and the WAF's verdicts cannot
+label floods. The paper reports this as a negative result (Section V-B) and states that
+its main analysis runs the scope behind the WAF. The trivial filters show why no
+fingerprint filter could do much better: only 25–37% of the blocked clients sit on
+fingerprints that no unblocked client of the same window presents.
+
+## 17. What the calibrated components do out of sample, and the deployed floor
+
+The level λₑ and the z-score's threshold are fitted so that the scope alone names a
+filter in at most 1% of the calibration windows, and the distinct-origin gate sits at
+its 99th percentile. On the test days (clean windows, pooled; `gates_clean` and the
+`|none` keys of `production_tables.json`):
+
+| Component | In sample | Cross-fitted |
+|---|---|---|
+| Binomial configuration's scope alone | 2.18% (console 4.38%) | 1.93% |
+| Beta-binomial's scope alone | 4.45% (console 10.8%) | 1.10% (console 1.46%; held-out day 1.22%) |
+| Calibrated z-score alone | 6.15% (console 11.5%) | 2.48% (console 5.83%) |
+| Distinct-origin gate alone | 2.98% (E1 5.4%) | — (unchanged) |
+
+Every calibrated component exceeds its 1% target on the days after calibration, and
+only the cross-fitted beta-binomial comes close. The configurations' end-to-end rates
+(0.09–0.39%) come from the conjunction of gate and scope, which seldom misfire together.
+The paper now says so and calls the level what it is: an empirical quantile of a
+misspecified score.
+
+**The deployed configuration's floor.** The floor of Table V used to be the test's alone
+on new stacks. Joined with the unseen filter, a stack absent from the profile is named
+once it holds k_min = 5 origins, from ⌈5M/0.9⌉ attackers whatever the level (28, 139
+and 556 for M = 5, 25, 100). `production_tables.floor_deployed` gives the configuration's
+floor on new and shared stacks for M = 5, 25, 100, per run (in sample and cross-fitted).
+For M = 25, in attackers per window, in sample / cross-fitted:
+
+| Endpoint | Binomial, new | Binomial, shared | Beta-binomial, new | Beta-binomial, shared |
+|---|---|---|---|---|
+| E1 | 139 / 139 | 254 / 286 | 85 / 139 | 86 / 167 |
+| E2 | 139 / 139 | 1,090 / 1,041 | 56 / 114 | 84 / 168 |
+| E3 | 139 / 139 | 168 / 227 | 56 / 114 | 56 / 140 |
+| E4 | 84 / 84 | 84 / 114 | 56 / 56 | 84 / 84 |
+
+The level binds on shared stacks: the binomial configuration names them only past 8% of
+E1's window and 4 to 19 windows elsewhere. The beta-binomial's shared floors in this table
+use each stack's own correlation (section 18, `floor_bands.json`): on E1 to E3 the tail's
+median correlation is 0 and the floor equals the binomial-tail value `floor` gives, on E4
+it is about 3 × 10⁻⁴ and the floor rises from 56 to 84. At the 0.01 cap two origins name
+a new stack, so the beta-binomial's new-stack 56 is ⌈2·25/0.9⌉, set by M and not by the
+endpoint.
+
+## 18. What the scope names, what the trigger stops, and how sure the rates are
+
+The review of the round-11 paper asked four things of the existing data. They are in
+`production_tables.json` (keys `clean_ci95_cluster`, `clean_gate_windows`,
+`clean_joint_expected`, `sweep`, `endpoints_exported`) and in `floor_bands.json`
+(`make floor-bands`).
+
+**The endpoints.** The exports hold 12 endpoints; the four evaluated are all those
+that carry TLS, have at least 50 calibration windows of k_min origins and a median
+window of at least k_min origins. No qualifying endpoint was dropped.
+
+**Misfires cluster, and gate and scope are not independent.** False alarms fall on few
+endpoint-days: 13 of the beta-binomial's 22 and 13 of the z-score's 20 are on the web
+console on 2026-09-23. A bootstrap over endpoint-days (the days of each endpoint
+resampled, 10,000 draws) gives the interval next to the exact one:
+
+| Configuration | False alarms | Exact 95% | Bootstrap 95% | Joint, if independent |
+|---|---|---|---|---|
+| Binomial | 5 (0.09%) | 0.03–0.21% | 0.02–0.16% | 3.5 |
+| Beta-binomial | 22 (0.39%) | 0.24–0.59% | 0.06–0.82% | 7.5 |
+| Calibrated z-score | 20 (0.35%) | 0.22–0.55% | 0.05–0.81% | 11.9 |
+| Binomial, cross-fitted | 6 (0.11%) | 0.04–0.23% | 0.03–0.18% | 3.2 |
+| Beta-binomial, cross-fitted | 6 (0.11%) | 0.04–0.23% | 0.00–0.23% | 1.8 |
+| z-score, cross-fitted | 13 (0.23%) | 0.12–0.39% | 0.00–0.70% | 4.6 |
+
+The last column is the joint misfires the gate and the scope would give if they were
+independent within each endpoint (gate rate × scope rate × windows). Every configuration
+exceeds it: a fleet raises the origin count and enriches its own fingerprint at once. The
+conjunction still keeps the rates low, but not because the two errors are independent.
+
+**The floor is not a cliff, and a binomial model of stack sizes predicts the ramp.** The
+runs inject 25, 50, 100, 250 and 1,000 attackers on 1, 5, 25 or 100 stacks, and 0.1,
+0.5 and 1 times the median window on 25. On new stacks, an attacker sits on a stack with
+probability 0.9 and its stack then holds it and Bin(A − 1, 0.9/M) others, so the share
+the scope alone blocks is 0.9 · P[Bin(A − 1, 0.9/M) ≥ c_min − 1], with c_min the smaller
+of k_min and the test's count at the fold's level (`model_new`). The binomial
+configuration, M = 25, scope alone / model / configuration behind the gate, in % (the gate
+column is the share of attack windows where the distinct-origin gate fires):
+
+| Endpoint | 25 | 50 | 100 | 250 | 1,000 | gate at 25 → 1,000 |
+|---|---|---|---|---|---|---|
+| E1, new | 1 / 1 / 0 | 9 / 9 / 1 | 43 / 43 / 3 | 88 / 88 / 11 | 90 / 90 / 41 | 6, 6, 8, 12, 45 |
+| E2, new | 1 / 1 / 0 | 9 / 9 / 3 | 43 / 43 / 28 | 88 / 88 / 88 | 90 / 90 / 90 | 15, 28, 66, 100, 100 |
+| E3, new | 2 / 1 / 0 | 9 / 9 / 4 | 43 / 43 / 43 | 88 / 88 / 88 | 90 / 90 / 90 | 12, 49, 100, 100, 100 |
+| E4, new | 34 / 39 / 5 | 51 / 48 / 42 | 79 / 79 / 79 | 90 / 90 / 90 | 90 / 90 / 90 | 23, 88, 100, 100, 100 |
+
+The model matches the injections within 10 points everywhere on E1 to E3 (E4's windows
+of about 20 origins vary most). The floor of Table V, where the mean stack reaches c_min,
+is the size at which a typical stack is named, near two thirds of the attackers covered;
+below it the scope names the stacks chance makes larger. On E1 the gate, not the scope,
+decides what is stopped: it opens in 6–13% of the windows of 25 attackers to a tenth of
+the window, 45% at 1,000 (a third) and 79% at the whole window, so the configuration
+stops 3.4% of 100 attackers, 11.8% of a tenth of the window and 70.8% of a whole one. On
+E2 to E4 the gate opens on 100 attackers (1.6 to 5 windows), and the floor decides.
+
+**Shared stacks by popularity, and the ratio limit.** The shared cells draw 25 stacks
+uniformly past the profile's ten most common fingerprints, mostly rare ones (a median
+prevalence of 2 × 10⁻⁶ on E1). `floor_bands.py` rebuilds each fold's rolling profile
+from the exports (checked against the runs' own records in all 60 fold-runs: profile
+size, origin count and tail prevalence equal) and gives the floor, M = 25, at each band's
+median prevalence and, under the beta-binomial, its median correlation:
+
+| Endpoint | Ranks 11–35 | Ranks 36–100 | Past 100 | Past 10 (Table V) |
+|---|---|---|---|---|
+| E1, binomial / beta-binomial | none / none | 743 / 480 | 252 / 85 | 254 / 86 |
+| E2 | none / none | 1,898 / 140 | 846 / 56 | 1,090 / 84 |
+| E3 | 808 / 612 | 227 / 84 | 168 / 56 | 168 / 56 |
+| E4 | 114 / 84 | 84 / 84 | (too few) | 84 / 84 |
+
+"None": no 25-stack botnet of any size. Each stack holds at most 0.9/M of the window, so
+the ratio c/n ≥ ρ·b fails for every prevalence above 0.9/(ρM), 1.2% for M = 25. On the
+four endpoints the fingerprints past that limit are the 4 to 28 most common (E1 23, E2
+26–28, E3 13–15, E4 4–5), and they carry 86–94% of the origins: a bot hiding behind any
+of them cannot be scoped by a 25-stack test, which is why the adversarial botnet (the 25
+most common fingerprints) is missed on E1 and E2. The shared floor of Table V under the
+beta-binomial is now computed at the tail's correlation; it was the binomial-tail value
+before, a lower bound, and changes only on E4 (56 → 84, and 2.8 → 4.2 windows in sample,
+2.95 → 4.4 cross-fitted).
+
+**The held-out day, conditional on the gate.** The gate opened in 3 of the day's 1,152
+clean windows (0.26%, against 3.0% on the test days), and the binomial scope misfired in
+2 of them, against 5 of 168 on the test days (P[Bin(3, 5/168) ≥ 2] = 0.003). The
+unconditional count (2, P = 0.27) is consistent because the gate was quiet. The protocol's
+metric 3, flash crowds of 100 users, is 1.1% on the held-out day; the paper now reports it.

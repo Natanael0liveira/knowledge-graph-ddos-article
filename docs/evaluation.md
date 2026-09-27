@@ -84,10 +84,12 @@ test certifies it only against a background profile large enough to resolve it:
 38.6% coverage with a 1,000-session profile, 89.6% with 30,000. See
 [`concepts.md`](concepts.md) for the test and a worked example.
 
-Legitimate distributions are calibrated against the ~322k benign sessions of
-CICIDS2017 and verified by Kolmogorov–Smirnov tests (D = 0.003 for duration,
-D = 0.002 for request count, both p > 0.8), so the observed gain cannot come from
-artificially easy benign traffic. A **stealth mode** draws attacker sessions from
+Legitimate request counts and durations are sampled from the empirical
+distributions of CICIDS2017's benign sessions: all 322,658 for the request count,
+and the 40,351 with two or more requests for the duration, since a one-request
+session has no span. Kolmogorov–Smirnov distances between generated and real
+sessions (D = 0.002 and 0.003) therefore only check the sampler: they hold by
+construction and say nothing about how realistic the benign traffic is. A **stealth mode** draws attacker sessions from
 the same per-session distributions as benign traffic, so the campaign reveals
 itself only through cross-session structure.
 
@@ -108,6 +110,33 @@ stealthy distributed regime. Their attacks carry an obvious flow signature, so a
 strong per-session classifier already reaches F₁ ≈ 0.90 on them and the
 cross-session gain is marginal. Both are laboratory testbed captures, not
 production traffic.
+
+### Source 3 — production traffic
+
+Eight days of four endpoints of a CDN operator's own services (real-user monitoring
+beacons, a web console, an API, single sign-on), exported as counts of distinct
+origins and connections per JA4 and five-minute window and of same-/24 pairs per window,
+never as addresses or URIs; a ninth day was exported afterwards and analyzed with the
+configuration fixed in advance. The four are all the endpoints, of the 12 exported,
+that carry TLS with at least 50 calibration windows of k_min origins and a median window
+of at least k_min origins. The calibration days are taken as attack-free: an attack in
+them would lower the level and raise the gate, so the scope would be more conservative. Each of the last five days is tested with the profile, thresholds
+and level of the days before it (the rolling split), and a botnet built as the
+generator builds one is injected into the counts (25 to 1,000 attackers on 1 to 100
+stacks, and 0.1 to 1 times the median window on 25). `--split crossfit` refits the level,
+the z-score threshold and the known fleets with each calibration day judged against
+a profile of the other days. The only real malicious population the exports carry is
+the clients the operator's WAF blocked, so `waf_labels.py` scores the scopes against
+those verdicts, under a profile without the blocked clients and under one with them.
+
+**What it establishes:** false alarms on real clients, per endpoint and per day, the
+calibration floor the endpoint's fleets impose, how a calibration holds out of sample,
+that the operator's WAF verdicts cannot label floods, and a fresh-day check of the
+false-alarm rate.
+**What it does not:** detection of a real flood. The botnet is injected, and the
+WAF's verdicts label whatever it blocks, which need not be a flood. The gate, the
+union with the unseen filter and the known-fleet share were chosen on the test days;
+only the fresh day holds them out.
 
 ### The benchmark gap
 

@@ -7,8 +7,11 @@ can be evaluated.
 
 **Status:** implemented and calibrated against CICIDS2017. Generates A/B/C and
 the **realistic same-service scenario** (legitimate users on the attacked `:443`),
-which is the canonical one reported in the paper. KS fidelity verified
-(D = 0.003 duration, 0.002 request count).
+which is the canonical one reported in the paper. KS distances to the real
+sessions are D = 0.003 (duration) and 0.002 (request count); the generator samples
+those very distributions (durations from the 40,351 benign sessions with two or more
+requests, request counts from all 322,658), so the KS check confirms the sampler,
+not the realism of the traffic.
 
 ## Why synthetic traffic is necessary
 

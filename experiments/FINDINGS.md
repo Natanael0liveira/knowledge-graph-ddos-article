@@ -1,7 +1,7 @@
-# Findings on real captures
+# Findings
 
-What the framework does on CICIDS2017 and CIC-IoT2023, including the parts that
-did not work. Entries superseded by later runs have been dropped; the canonical
+What the framework does on CICIDS2017 and CIC-IoT2023, on calibrated synthetic
+traffic and on production traffic, including the parts that did not work. Entries superseded by later runs have been dropped; the canonical
 scenario is the realistic same-service one, where legitimate users access the
 attacked service on the same port.
 
@@ -52,15 +52,17 @@ The reason is structural, not a bug: the CIC captures are LAN traffic and largel
 non-TLS, so the JA4 discriminator the scope derivation depends on is either
 absent or degenerate.
 
-The result is therefore demonstrated on calibrated synthetic traffic, where the
-frequency rule and the enrichment rule can be compared side by side under a known
-ground truth. Both ship in the repository.
+Counted in origins, the five CICIDS2017 clusters hold one to three sources, below
+k_min, and the two of CIC-IoT2023 hold seven. The result is therefore demonstrated on
+calibrated synthetic traffic, where the frequency rule and the enrichment rule can be
+compared side by side under a known ground truth (both ship in the repository), and
+measured on production traffic (below).
 
 ## The negative result on scope derivation
 
-On a monolithic botnet the frequency rule and the enrichment rule agree: 84.0% of
-attacker sessions blocked with no collateral observed, against 100% for a global
-endpoint rate limit, which by definition disconnects every legitimate user of the
+On a monolithic botnet the frequency rule and the enrichment rule agree: 89.8% of
+attacker sessions blocked with no collateral observed, where a challenge to every
+client, the fallback without a scope, would burden every legitimate user of the
 attacked service.
 
 From five stacks on, the frequency rule **inverts**. The modal fingerprint of the
@@ -68,11 +70,14 @@ cluster becomes a legitimate one, and the rule blocks 0.0% of the attack and
 39.0% of legitimate traffic. A more concentrated benign population (α = 2.0)
 raises that collateral to 61.1%.
 
-Enrichment removes the failure, blocking 90.0%, 90.3% and 85.0% of the attack at
-M = 5, 25 and 100 stacks, in every case with no collateral observed across
-n = 15 campaigns, and reproducing the frequency rule where the latter worked. The
-surviving 10–15% is the tail of attackers with one-off fingerprints: scoped
-mitigation trades completeness for precision.
+Enrichment removes the failure, blocking 90.0% and 90.3% of the attack at M = 5 and
+25 stacks with no collateral observed across n = 15 campaigns, and reproducing the
+frequency rule where the latter worked; a per-fingerprint z-score does the same. The
+surviving 10% is the tail of attackers with one-off fingerprints: scoped mitigation
+trades completeness for precision. At 100 stacks a stack of about ten sessions among
+two thousand cannot be told from the tail of a 1,000-session profile, and the test
+falls to 38.6%; a profile pooled over 30 attack-free periods restores 89.6%, and the
+z-score keeps 80.4%.
 
 ## Two conditions bound the mitigation result
 
@@ -83,19 +88,56 @@ the scope declines to name a fingerprint and degenerates to the global control,
 which is the correct report when no discriminator exists.
 
 **Background profile quality.** Moderate drift is tolerable (an α = 2.0 profile
-against an α = 1.5 episode gives 90.3% coverage at 0.45% collateral); a flat or
+against an α = 1.5 episode gives 90.3% coverage with no collateral); a flat or
 missing profile is not, since every fingerprint then looks rare, the benign head
-scores as enriched, and collateral jumps to 81.2%. Coverage is unaffected
-throughout, because profile quality governs precision rather than recall. Keeping
-the profile fresh is a deployment requirement, not an optimization, and it
-implies a fail-safe: where the profile fails a freshness check, scoped mitigation
-should be suppressed and the verdict emitted as evidence only.
+scores as enriched, and collateral jumps to 77.6%. Keeping the profile fresh is a
+deployment requirement, not an optimization, and it implies a fail-safe: where the
+profile fails a freshness check, scoped mitigation should be suppressed and the
+verdict emitted as evidence only.
+
+## On production traffic
+
+Eight days of four endpoints of a CDN operator's own services, with a botnet injected
+into the counts and a ninth day analyzed with every choice fixed in advance
+(`sprint-6-noms/README.md`, sections 9, 11 to 13 and 15 to 17).
+
+- **The binomial model is wrong there, so the level is an empirical quantile.** Fleets
+  of legitimate clients switch on together; at the nominal level the scope names a
+  filter in 26.9% of clean windows counted in origins. The level is set so that the
+  scope alone names one in at most 1% of the calibration windows, which pushes it to
+  10⁻⁶⁰ on the busiest endpoint.
+- **The 1% does not hold out of sample; the configuration's rate does.** The scope
+  alone fires on 2.2% of clean test-day windows and the distinct-origin gate on 3.0%.
+  The recommended configuration needs both and raises false alarms on 0.1% (5 of
+  5,643), 6 when calibrated out of sample, and 2 of 1,152 on the held-out day, a test
+  with a power of only 37% against a tripled rate, whose gate opened in only 3 windows.
+  Gate and scope are not independent (joint misfires exceed what independence gives in
+  every configuration), and misfires cluster by endpoint-day.
+- **Fleets set a calibration floor.** A 25-stack botnet on fingerprints real clients
+  also present is named only past 8% of the busiest endpoint's window and 4 to 19
+  whole windows on the small ones; new stacks are named from ⌈5M/0.9⌉ = 139 attackers
+  by the unseen filter. The floor is a ramp, not a cliff: below it the scope names the
+  stacks chance makes larger, as a binomial model of stack sizes predicts. A harder
+  limit sits past it: no 25-stack botnet can be enriched on a fingerprint more common
+  than 0.9/(ρM) = 1.2%, and those fingerprints carry 86–94% of each endpoint's origins.
+  A beta-binomial background, built after the held-out day was read, lowers the
+  shared-stack floor to 6% and at most 4.4 windows out of sample.
+- **Naming is not stopping: the trigger lets most of a small botnet through.** At a
+  tenth of the busiest endpoint's window the scope names the botnet in every window, but
+  the gate fires in 0.7–42% of them by day, so 11.8% of the attackers are stopped.
+- **The boundary holds.** A botnet on the endpoint's 25 most common fingerprints is
+  mostly missed (7.0% and 23.8% of 100 and 1,000 attackers).
+- **The WAF's verdicts are not labels.** Scored against the clients the operator's WAF
+  blocked, the scopes agree only under a profile that excludes those clients, where
+  agreement is built in; under a profile of all clients they do worse than a random
+  pick.
 
 ## Summary
 
 | Claim | Verdict |
 |---|---|
 | Cross-session beats per-session | Yes, in the stealthy distributed regime; on conventional real captures a strong per-session model already suffices |
-| Scoped mitigation | Yes in principle and on calibrated synthetic traffic; not demonstrable on the current real datasets |
-| Weight calibration | Ordering corroborated; absolute values still require production data |
+| Scoped mitigation | Yes on calibrated synthetic traffic; on production traffic 0.1% false alarms and a calibration floor set by fleets, with detection measured only for an injected botnet; not demonstrable on the CIC captures |
+| Calibration out of sample | The configuration keeps its rate; each calibrated component alone exceeds its 1% target |
+| Weight calibration | Only the top of the ordering is supported; at window scale Ω is volume, and uniform weights detect as well |
 | Robustness | No redundancy: detection depends on an observable high-weight discriminator |

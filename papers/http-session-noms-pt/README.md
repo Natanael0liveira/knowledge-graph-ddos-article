@@ -8,13 +8,23 @@ two-column IEEEtran format, same numbers, same figures.
 Submit `../http-session-noms/article.pdf`. This copy exists for reading, internal
 review and discussion with readers who prefer Portuguese.
 
-## What differs
+## Status
 
-Nothing in content. Every correction made to the English version is ported here.
+The Portuguese article lags the English one. It predates the current title
+(*TLS-Fingerprint Scoping of Application-Layer DDoS Mitigation: Calibration Floors and
+Collateral on a CDN Operator's Endpoints*), the restructured Sections III and V, the
+configuration table, the cross-fitted calibration, the floors of the configurations,
+the ratio limit, the analysis of the WAF's verdicts under both profiles and the
+endpoint-day intervals, and its `references.bib` lacks the references added
+since. Until it is ported, read the English article, or the study guide
+[`guia-de-estudo.md`](guia-de-estudo.md), which teaches the current English version
+in Portuguese, formula by formula.
+
+## What differs
 
 | | English (submission) | Portuguese (this) |
 |---|---|---|
-| Pages | 11 (body 8, refs 9–10, appendices 9–11) | 12 |
+| Pages | 12 (body 8, references from p. 9, appendices A–F) | 15 (not bound by the page limit) |
 | babel | — | `[brazilian]`, with `\figurename` pinned to `Fig.` |
 | Decimals | point (`0.982`) | comma (`0{,}982`) |
 | Code blocks | `Listing 1-2` | `Listagem 1-2` |
@@ -23,7 +33,7 @@ Nothing in content. Every correction made to the English version is ported here.
 Figures are binary copies of the English ones and keep English labels. To
 generate them in Portuguese, adapt the strings in
 `../http-session-noms/figures/make_figures_en.py` and in
-`src-drawio/fig1_ontology.drawio`.
+`../http-session-noms/figures/src-drawio/fig1_scoping.drawio`.
 
 ## Building
 
@@ -31,8 +41,9 @@ generate them in Portuguese, adapt the strings in
 pdflatex article && bibtex article && pdflatex article && pdflatex article
 ```
 
-`IEEEtran.cls`, `IEEEtran.bst` and `references.bib` are copies of the English
-version's; the `.bib` is identical, the references being the same.
+`IEEEtran.cls` and `IEEEtran.bst` are copies of the English version's. The
+`references.bib` must be brought level with the English one when the article is
+ported.
 
 ## Keeping in sync
 

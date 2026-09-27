@@ -120,7 +120,7 @@ O que se mediu, em seis pontos:
 
 As três contribuições declaradas na Seção I são: (1) no tráfego gerado, quando o escopo
 natural falha e por que os escopos relativos ao perfil funcionam sem rótulos, inclusive
-em pilhas que clientes reais usam; (2) em produção, quanto custa calibrar: falsos
+em pilhas que clientes reais usam (ali com 2,2% de dano); (2) em produção, quanto custa calibrar: falsos
 alarmes dentro e fora da amostra, o piso de calibração e quanto de uma botnet injetada o
 gatilho deixa passar, além da fronteira do método, da rotatividade de impressões, dos
 veredictos do WAF e de um dia novo; (3) nenhum padrão de troca carrega o escopo no
@@ -446,8 +446,9 @@ No exemplo acima, z = (5 − 0,1)/√(0,1 × 0,999) = 15,5.
 
 - **Sem calibração**, o limiar é z > 3, pela aproximação normal e sem correção para
   múltiplos testes. A aproximação exagera contagens pequenas: com n · b = 0,1, uma
-  contagem de 2 já dá z = 6,0. Em produção, o z-score sem calibração dispara em 2,6% das
-  janelas limpas (atrás de Ω) e em 64,5% dos picos legítimos de 100 usuários.
+  contagem de 2 já dá z = 6,0. Em produção, atrás do gatilho de Ω, o z-score sem
+  calibração dispara em 2,6% das janelas limpas e em 64,5% dos picos legítimos de 100
+  usuários.
 - **Calibrado**, o limiar é o percentil 99 do maior z de cada janela de calibração,
   nunca abaixo de 3, o mesmo orçamento do teste.
 
@@ -1162,12 +1163,12 @@ amostrado), o filtro de inéditas bloqueia 84,4% e o teste 89,8%.
   (89,8%, sem dano colateral). A partir de cinco pilhas, como a condição da seção 7.1
   prevê, a moda é uma impressão legítima: a regra por frequência bloqueia 0,0% do ataque
   e 39,0% do tráfego legítimo, e 61,1% com uma população mais concentrada (α = 2,0).
-- **Os escopos relativos ao perfil funcionam.** O teste bloqueia 90,0% e 90,3% a cinco e
-  25 pilhas sem dano colateral observado, e o z-score também. Os 10% restantes são a
+- **Os escopos relativos ao perfil funcionam.** O teste bloqueia 90,0% a cinco pilhas e
+  90,3% a 25, sem dano colateral observado, e o z-score também. Os 10% restantes são a
   cauda de impressões avulsas: o escopo troca completude por precisão.
 - **A 100 pilhas**, uma pilha de cerca de dez sessões entre duas mil não se distingue da
-  cauda de um perfil de 1.000 sessões, e o teste cai para 38,6%. O z-score mantém 80,4%,
-  e um perfil acumulado em 30 períodos sem ataque devolve o teste a 89,6%. O tamanho do
+  cauda de um perfil de 1.000 sessões, e o teste cai para 38,6%, abaixo do z-score (80,4%) e do
+  filtro de inéditas (88,1%). Um perfil acumulado em 30 períodos sem ataque devolve o teste a 89,6%. O tamanho do
   perfil governa a menor pilha que o teste aponta.
 - **O filtro de inéditas** empata até 25 pilhas e vai melhor a 100 (88,1%), porque as
   pilhas geradas nunca aparecem no vocabulário legítimo, mas não bloqueia nenhuma das
@@ -1186,13 +1187,14 @@ O modelo aprendido precisa de rótulos que nenhum operador tem durante um ataque
 
 - Contra uma botnet monolítica ou pouco fragmentada, ele compete com FPR = 0 (91,7% e
   88,6% contra 89,8% e 90,0%).
-- A 25 pilhas o teste passa à frente, 90,3% contra 36,4%, e 66,8% para um modelo com
-  1% de FPR permitido (AUC 0,979).
+- A 25 pilhas o teste passa à frente, 90,3% contra 36,4% com FPR = 0. Com 1% de FPR
+  permitido, de que o teste não precisa, o modelo chega a 66,8% (AUC 0,979), e a 94,6%
+  com o perfil.
 - Com o perfil dado como dois atributos por sessão (a prevalência da impressão e o seu
   enriquecimento no *cluster*), ele recupera 87,4% a 25 pilhas e 86,9% a 100, treinado
   com os rótulos da mesma campanha que avalia.
 - Treinado num número de pilhas, (d) não se transfere para outro: sua AUC cai de
-  0,93–0,98 para 0,48–0,75 (seção 15.6).
+  0,95–0,995 no número de pilhas em que foi treinado para 0,48–0,75 (seção 15.6).
 
 ### 15.4 As duas condições que limitam o resultado
 
@@ -1231,7 +1233,8 @@ mostram). Com o teste, a regra não dispara em nenhuma janela limpa (limite supe
 unilateral de 95%: 0,8%) nem em nenhum pico, e bloqueia uma mediana de 75–80% dos
 atacantes em toda janela de ataque que Ω sinaliza, sem atingir nenhuma sessão legítima.
 O gatilho de origens pega 82,2% e 85,7% das janelas de ataque e, com o teste, não
-sinaliza nenhuma janela limpa nem pico.
+sinaliza nenhuma janela limpa nem pico. Nos picos reais de produção isso não vale: a
+configuração ainda dispara em 22,2% dos picos de 1.000 usuários (seção 16.2).
 
 ### 15.6 Detecção por sessão e modelos aprendidos (Apêndice C)
 
@@ -1339,7 +1342,7 @@ A Tabela IV reúne as configurações em todos os endpoints, em %:
   por janela limpa.
 - **Os picos legítimos.** Um pico de 1.000 usuários, sorteados dos clientes do dia (nos
   endpoints pequenos, de 16 a 50 janelas típicas), dispara o z-score calibrado em 13,1%
-  das janelas e a binomial em 22,2%.
+  das janelas e a binomial em 22,2%. O dano desses disparos não foi medido.
 
 ### 16.3 O que o escopo aponta: o piso (Tabela V)
 
@@ -1364,7 +1367,8 @@ A Tabela IV reúne as configurações em todos os endpoints, em %:
   15 a 18 origens; isentar as cinco ou seis frotas conhecidas eleva λ_e para cerca de
   10⁻²¹.
 - Unida ao filtro de inéditas, a binomial aponta pilhas novas a partir de 139 atacantes
-  do E1 ao E3 (o limite que k_min impõe) e a partir de 84 no E4.
+  do E1 ao E3 (o limite que k_min impõe) e a partir de 84 no E4, onde o próprio teste as
+  aponta primeiro.
 - Em pilhas compartilhadas o nível decide: 254 atacantes no E1, 8% da janela, e de 4 a
   19 vezes a janela mediana nos pequenos (no E2, os 1.090 atacantes do piso mediano dão
   cerca de 18 janelas de 62 origens; o 19 é a mediana, dobra a dobra, do piso dividido
@@ -1468,7 +1472,9 @@ lido: seus resultados são *post hoc*.
 - Em amostra ela dispara em 0,4% das janelas limpas (22, 13 delas num só dia do console),
   com filtros que bloqueiam em média 7,7% dos
   clientes da janela, e detém 59,8% e 40,5% de 100 atacantes em pilhas novas e
-  compartilhadas. No dia novo não deu nenhum falso alarme.
+  compartilhadas. No console, porém, dispara em 1,3% das janelas limpas e em 74,4% dos
+  picos de 1.000 usuários (Tabela VI), o que a calibração cruzada baixa para 16,1%. No dia
+  novo não deu nenhum falso alarme.
 
 **A calibração cruzada.**
 
@@ -1482,10 +1488,11 @@ lido: seus resultados são *post hoc*.
   limpas (1,5% no console) e em 1,2% no dia novo, com níveis entre 10⁻¹⁷ e 10⁻². Ela dá os
   mesmos 6 falsos alarmes da binomial, com filtros que bloqueiam uma mediana de 2,0% dos
   clientes da janela, e detém 48,0% de 100 atacantes em pilhas novas e 27,2% em
-  compartilhadas, cujo piso cai para 6% da janela do E1 e no máximo 4,4 janelas nos
-  demais. Na calibração cruzada, uma frota conhecida aparece no E1 em três dos cinco dias.
-- **O desenho**: calibrar só no último dia de calibração não basta, porque um dia só perde
-  os eventos raros de frota que fixam o nível.
+  compartilhadas, cujo piso fica em 6% da janela do E1 e no máximo 4,4 janelas nos
+  demais, abaixo do piso cruzado da binomial em todo endpoint. Na calibração cruzada, uma frota conhecida aparece no E1 em três dos cinco dias.
+- **O desenho**: um primeiro desenho, que calibrava só no último dia de calibração, foi
+  descartado depois de ver os resultados: um dia só perde os eventos raros de frota que
+  fixam o nível.
 
 **A Fig. 4** (Apêndice E) tem dois painéis (pilhas novas e compartilhadas, 100 atacantes
 por janela): no eixo horizontal, a fração de janelas limpas com falso alarme (escala
@@ -1548,9 +1555,9 @@ Outros detalhes do Apêndice E:
   seguinte. Numa janela limpa do E2 ou do E3, a regra aponta uma frota e bloqueia cerca de
   metade dos clientes da janela, e o gatilho de origens reduz esses falsos alarmes à
   metade.
-- O z-score sem calibração dispara em 2,6% das janelas limpas e em 64,5% dos picos de 100
-  usuários (86,8% dos de 1.000). Um z-score de cada impressão contra o seu próprio
-  histórico dispara em metade dos picos menores.
+- O z-score sem calibração, atrás do gatilho de Ω, dispara em 2,6% das janelas limpas e em
+  64,5% dos picos de 100 usuários (86,8% dos de 1.000). Um z-score de cada impressão contra
+  o seu próprio histórico dispara em metade dos picos de 100 usuários.
 - Das quatro frações de frota testadas nos três primeiros dias de teste, só a de 5% não
   passou os falsos alarmes da regra básica (5 contra 6; as outras, de 12 a 16); pelo dano
   esperado, a de 0,5% seria cerca de 25 vezes mais leve (seção 10.1). Nos dois
@@ -1665,9 +1672,10 @@ com pesos uniformes.
   binomial, com filtros mais leves, menos disparos em picos legítimos e um piso menor em
   pilhas compartilhadas em todo endpoint, enquanto o z-score perde a vantagem em detecção.
 - **A recomendação.** Das configurações candidatas, só a binomial foi testada num dia que
-  não tinha visto, como fixado de antemão. O artigo a recomenda, atrás do gatilho de
-  origens, e rodaria a beta-binomial cruzada e um gatilho guiado pelo escopo ao lado dela,
-  sob um teste pré-especificado em dias ainda não vistos, antes de trocar. O escopo deve
+  não tinha visto, como fixado de antemão. O artigo a recomenda como foi testada, atrás
+  do gatilho de origens, embora esse gatilho seja o gargalo no E1. Ao lado dela rodaria a
+  beta-binomial cruzada, que a evidência *post hoc* favorece, e um gatilho guiado pelo
+  escopo, sob um teste pré-especificado em dias ainda não vistos, antes de trocar. O escopo deve
   agir como desafio antes de um bloqueio, porque um falso alarme atinge uma frota, embora
   clientes que não são navegadores, numa API ou num SSO, não consigam resolver um desafio.
 
@@ -1837,7 +1845,7 @@ alarmes são medidos em clientes reais.
 **"Por que os veredictos do WAF não servem de rótulo?"**
 Com o perfil sem os bloqueados, a concordância é construída: uma impressão estável só é
 enriquecida se 80–88% dos seus clientes foram bloqueados. Com o perfil de todos, os escopos
-ficam abaixo de uma escolha aleatória e pegam os surtos no acaso. As populações do WAF são
+ficam abaixo de uma escolha aleatória e pegam os surtos perto do acaso. As populações do WAF são
 tráfego de todo dia, e o escopo lê desvios dele.
 
 **"O que o grafo de conhecimento acrescenta?"**

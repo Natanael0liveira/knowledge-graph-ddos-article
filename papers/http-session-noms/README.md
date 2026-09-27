@@ -8,7 +8,7 @@ session ontology is the specification the count query is compiled from (Section 
 
 ```
 pp. 1–8    main text (Sections I–VII)   <- AT the 8-page limit
-p. 8       acknowledgment at the top of the right column (two thirds of a column of slack)
+p. 8       acknowledgment in the middle of the right column (a third of a column of slack)
 pp. 9–12   references, then appendices A–F
 total      12 pages                     <- AT the 12-page limit
 ```
@@ -29,8 +29,8 @@ cross-fitted calibration) and D the boundary and the WAF's verdicts. Specificati
 exchange are in Section VI. Section V keeps the central numbers in its text and leaves
 the rest to Tables IV to VI and to the "Details of Section V" paragraph of Appendix E.
 
-> **The body and the Acknowledgment end at the top of page 8's right column, and the
-> references (33) follow; page 12 is half full.** The body is within the limit only
+> **The body and the Acknowledgment end in the middle of page 8's right column, and the
+> references (33) follow; page 12 is nearly full (a third of a column free).** The body is within the limit only
 > if the Acknowledgment sits on page 8 or at the top of page 9's left column.
 
 Section structure follows the pattern observed in NOMS papers: Introduction ·
@@ -67,9 +67,9 @@ Current placement:
 | Table II (the configurations evaluated on production), Table III (the scopes on generated traffic, with the modal fingerprint) | 5 |
 | Table IV (production, pooled), Table V (the configurations' floor, in sample and cross-fitted), Table VI (production, per endpoint) | 6 |
 | Fig. 2 (what the binomial configuration stops, by botnet size, per endpoint) | 7 |
-| Listing 1 (SWRL rule and SPARQL aggregation) | 9 |
-| Fig. 3 (cost) | 10 |
-| Listing 2 (evidence chain), Table VII (rule per window), Fig. 4 (production operating points) | 11 |
+| Listing 1 (SWRL rule and SPARQL aggregation) | 10 |
+| Fig. 3 (cost), Listing 2 (evidence chain), Table VII (rule per window) | 11 |
+| Fig. 4 (production operating points) | 12 |
 
 Table I is declared in Section I so that it lands on page 2. `dbltopnumber` is
 capped at 1 so two full-width floats can never share a page top.

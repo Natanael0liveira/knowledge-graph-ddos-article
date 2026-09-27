@@ -1214,3 +1214,35 @@ drops, and DOTS and Flowspec filter network and transport fields. The ontology s
 the specification the count query is compiled from.
 
 `make audit`: 262 checks, 0 mismatches.
+
+## 20. Round 15: a full read for coherence and fairness
+
+No new analysis. The text now states what the tables already held, where a reader would
+otherwise draw a more favorable conclusion than the data supports:
+
+- **Generated traffic, 100 stacks**: the z-score (80.4%) and the unseen filter (88.1%)
+  beat the test (38.6%). The text said only that a pooled profile restores the test.
+- **The learned baseline at 1% FPR** (`symbolic_detector.json`, `rf_recall_fpr1`,
+  `rfp_recall_fpr1`): 66.8% at 25 stacks, 94.6% with the profile, against the test's
+  90.3% at zero FPR. The table forces it onto the test's operating point (FPR 0).
+- **Cross-M**: the AUC it falls from is the cross-M protocol's own same-M value
+  (0.95–0.995, other seeds), no longer the ablation's 0.93–0.98.
+- **Flash crowds**: requiring the test removes false alarms only for generated crowds,
+  drawn from the profile's own mix. On production the configuration fires on 22.2% of
+  1,000-user crowds, and what those misfires block was not measured.
+- **Beta-binomial on the console, in sample**: 1.3% of clean windows and 74.4% of
+  1,000-user crowds (16.1% cross-fitted). Its cross-fitted shared floor is below the
+  binomial's cross-fitted floor on every endpoint (167/168/140/84 against
+  286/1,041/227/114).
+- **WAF surges**: "near chance". On the API the binomial configuration catches 2 of 28
+  against 0.35 expected (Poisson P = 0.049).
+- **Disclosures**: the first cross-fit design was dropped after its results were seen,
+  and the uncalibrated z-score of Appendix E runs behind the Ω gate.
+- **Recommendation**: the binomial configuration is recommended as tested, although its
+  gate is the bottleneck on E1, and the post hoc evidence favors the cross-fitted
+  beta-binomial.
+
+The table notes are cut to two lines each. Their definitions moved to Section IV (false
+alarms, collateral, window counts, the 90% cap of one-off fingerprints, the shared
+mode) and to the text of V-A and V-B. `make audit`: 265 checks, 0 mismatches.
+

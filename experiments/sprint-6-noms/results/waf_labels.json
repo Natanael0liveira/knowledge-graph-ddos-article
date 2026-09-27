@@ -1,0 +1,1579 @@
+{
+  "k_min": 5,
+  "rho": 3.0,
+  "endpoints": {
+    "E1": "RUM beacons",
+    "E2": "web console",
+    "E3": "API",
+    "E4": "SSO"
+  },
+  "clean_profile": {
+    "check": {
+      "zscore_windows": 6884,
+      "zscore_mismatches": 0
+    },
+    "test_days": {
+      "E1": {
+        "windows": 1440,
+        "windows_with_waf": 0,
+        "waf_clients": 0
+      },
+      "E2": {
+        "windows": 1440,
+        "windows_with_waf": 1440,
+        "waf_clients": 14108,
+        "waf_share_median": 0.09302325581395349,
+        "base_rate": 0.10415805327505759,
+        "ceiling": {
+          "no_clean": 0.37248369719308194,
+          "majority": 0.5572015877516303
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.04513888888888889,
+            "recall": 0.002977034306776297,
+            "precision": 0.016646848989298454,
+            "lift": 0.15982296582807606,
+            "collateral": 0.02044667875391462
+          },
+          "beta-binomial": {
+            "named": 0.13680555555555557,
+            "recall": 0.010277856535299121,
+            "precision": 0.058895207148659624,
+            "lift": 0.5654407441077154,
+            "collateral": 0.01909510466457887
+          },
+          "z-score": {
+            "named": 0.10833333333333334,
+            "recall": 0.0026226254607314998,
+            "precision": 0.01209941137998692,
+            "lift": 0.11616395467794643,
+            "collateral": 0.024896983682215264
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.13006804649844061,
+            "precision": 0.07218441446048543,
+            "lift": 0.6930276842815304,
+            "collateral": 0.19437942970166475
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.21952083924014743,
+            "precision": 0.07263303548394662,
+            "lift": 0.6973348022561384,
+            "collateral": 0.32587769902752595
+          },
+          "unseen": {
+            "named": 0.001388888888888889,
+            "recall": 0.0003544088460447973,
+            "precision": 0.29411764705882354,
+            "lift": 2.823762904651512,
+            "collateral": 9.889566507334761e-05
+          }
+        },
+        "surges": {
+          "episodes": 33,
+          "windows": 51,
+          "scores": {
+            "binomial": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "beta-binomial": {
+              "named": 0.17647058823529413,
+              "recall": 0.011734028683181226,
+              "precision": 0.3829787234042553,
+              "lift": 2.1785347721157313,
+              "collateral": 0.004032258064516129
+            },
+            "z-score": {
+              "named": 0.09803921568627451,
+              "recall": 0.009126466753585397,
+              "precision": 0.45161290322580644,
+              "lift": 2.5689531900576186,
+              "collateral": 0.002363737486095662
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.1421121251629726,
+              "precision": 0.16280806572068707,
+              "lift": 0.9261168067005966,
+              "collateral": 0.15586763070077864
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.23468057366362452,
+              "precision": 0.16165244723843736,
+              "lift": 0.9195431907448529,
+              "collateral": 0.2595939933259177
+            },
+            "unseen": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            }
+          },
+          "detected": {
+            "binomial": 0,
+            "beta-binomial": 6,
+            "z-score": 5,
+            "modal": 33,
+            "top3": 33,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.0028797696184305254,
+            "beta-binomial": 0.043916486681065514,
+            "z-score": 0.0064794816414686825,
+            "modal": 0.5212383009359252,
+            "top3": 0.6637868970482361,
+            "unseen": 0.0007199424046076314
+          },
+          "expected_by_chance": {
+            "binomial": 0.1465786843970891,
+            "beta-binomial": 2.1746318317288726,
+            "z-score": 0.32899199387914924,
+            "modal": 20.136797631765667,
+            "top3": 24.300683853531293,
+            "unseen": 0.036698932354708
+          }
+        }
+      },
+      "E3": {
+        "windows": 1440,
+        "windows_with_waf": 1440,
+        "waf_clients": 106199,
+        "waf_share_median": 0.631578947368421,
+        "base_rate": 0.6263727837872908,
+        "ceiling": {
+          "no_clean": 0.3333176395257959,
+          "majority": 0.9705646945828115
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.2722222222222222,
+            "recall": 0.2152091827606663,
+            "precision": 0.8375169482208948,
+            "lift": 1.3370902598241023,
+            "collateral": 0.06999542204050704
+          },
+          "beta-binomial": {
+            "named": 0.9020833333333333,
+            "recall": 0.034275275661729394,
+            "precision": 0.9578947368421052,
+            "lift": 1.529272601932519,
+            "collateral": 0.0025257707547318735
+          },
+          "z-score": {
+            "named": 0.6479166666666667,
+            "recall": 0.0237667021346717,
+            "precision": 0.8803627485176142,
+            "lift": 1.4054932961719735,
+            "collateral": 0.005414621055456454
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.38373242685901,
+            "precision": 0.7731506953271737,
+            "lift": 1.2343299634642604,
+            "collateral": 0.18875400571455633
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.6918803378562887,
+            "precision": 0.6948573914359207,
+            "lift": 1.1093352224446051,
+            "collateral": 0.5093690308933335
+          },
+          "unseen": {
+            "named": 0.004166666666666667,
+            "recall": 0.0,
+            "precision": 0.0,
+            "lift": 0.0,
+            "collateral": 0.0006945869575512652
+          }
+        },
+        "surges": {
+          "episodes": 28,
+          "windows": 49,
+          "scores": {
+            "binomial": {
+              "named": 1.0,
+              "recall": 0.5325898389095415,
+              "precision": 0.8836348684210527,
+              "lift": 1.2598640391638949,
+              "collateral": 0.16472642607683352
+            },
+            "beta-binomial": {
+              "named": 0.9387755102040817,
+              "recall": 0.02664188351920694,
+              "precision": 0.8739837398373984,
+              "lift": 1.2461037063902238,
+              "collateral": 0.009022118742724098
+            },
+            "z-score": {
+              "named": 0.30612244897959184,
+              "recall": 0.01449814126394052,
+              "precision": 0.8297872340425532,
+              "lift": 1.1830894566163095,
+              "collateral": 0.006984866123399301
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.5209417596034697,
+              "precision": 0.8848663439275942,
+              "lift": 1.2616198455056877,
+              "collateral": 0.15919674039580908
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.826641883519207,
+              "precision": 0.76651729288751,
+              "lift": 1.0928807895865789,
+              "collateral": 0.5913853317811408
+            },
+            "unseen": {
+              "named": 0.02040816326530612,
+              "recall": 0.0,
+              "precision": 0.0,
+              "lift": 0.0,
+              "collateral": 0.002910360884749709
+            }
+          },
+          "detected": {
+            "binomial": 28,
+            "beta-binomial": 27,
+            "z-score": 13,
+            "modal": 28,
+            "top3": 28,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.24299065420560748,
+            "beta-binomial": 0.9000718907260963,
+            "z-score": 0.6542056074766355,
+            "modal": 0.9439252336448598,
+            "top3": 1.0,
+            "unseen": 0.0
+          },
+          "expected_by_chance": {
+            "binomial": 9.702478854370787,
+            "beta-binomial": 26.220239567590255,
+            "z-score": 21.10918872042926,
+            "modal": 27.021387729119496,
+            "top3": 28.0,
+            "unseen": 0.0
+          }
+        }
+      },
+      "E4": {
+        "windows": 1412,
+        "windows_with_waf": 1412,
+        "waf_clients": 20964,
+        "waf_share_median": 0.390625,
+        "base_rate": 0.408686837180287,
+        "ceiling": {
+          "no_clean": 0.24790116390001907,
+          "majority": 0.811867964128983
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.5757790368271954,
+            "recall": 0.08094829231062774,
+            "precision": 0.9571347997743936,
+            "lift": 2.3419760870648396,
+            "collateral": 0.002505604641962284
+          },
+          "beta-binomial": {
+            "named": 1.0,
+            "recall": 0.14210074413279908,
+            "precision": 0.9812252964426877,
+            "lift": 2.4009221907233402,
+            "collateral": 0.001879203481471713
+          },
+          "z-score": {
+            "named": 0.9624645892351275,
+            "recall": 0.13098645296699105,
+            "precision": 0.98705966930266,
+            "lift": 2.415198091802578,
+            "collateral": 0.0011868653567189767
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.5548082427017744,
+            "precision": 0.468406427449559,
+            "lift": 1.1461255534465074,
+            "collateral": 0.4351839641302914
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.8395344399923679,
+            "precision": 0.4088649351856154,
+            "lift": 1.0004357811143545,
+            "collateral": 0.83891599630753
+          },
+          "unseen": {
+            "named": 0.0,
+            "recall": 0.0,
+            "precision": null,
+            "lift": null,
+            "collateral": 0.0
+          }
+        },
+        "surges": {
+          "episodes": 10,
+          "windows": 12,
+          "scores": {
+            "binomial": {
+              "named": 0.16666666666666666,
+              "recall": 0.05371900826446281,
+              "precision": 0.8478260869565217,
+              "lift": 1.443406395975566,
+              "collateral": 0.013725490196078431
+            },
+            "beta-binomial": {
+              "named": 1.0,
+              "recall": 0.04132231404958678,
+              "precision": 1.0,
+              "lift": 1.7024793388429753,
+              "collateral": 0.0
+            },
+            "z-score": {
+              "named": 0.5833333333333334,
+              "recall": 0.01928374655647383,
+              "precision": 1.0,
+              "lift": 1.7024793388429753,
+              "collateral": 0.0
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.5261707988980716,
+              "precision": 0.6586206896551724,
+              "lift": 1.1212881162724424,
+              "collateral": 0.38823529411764707
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.8925619834710744,
+              "precision": 0.599444958371878,
+              "lift": 1.0205426564017097,
+              "collateral": 0.8490196078431372
+            },
+            "unseen": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            }
+          },
+          "detected": {
+            "binomial": 2,
+            "beta-binomial": 10,
+            "z-score": 6,
+            "modal": 10,
+            "top3": 10,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.5785714285714286,
+            "beta-binomial": 1.0,
+            "z-score": 0.9657142857142857,
+            "modal": 0.72,
+            "top3": 0.9521428571428572,
+            "unseen": 0.0
+          },
+          "expected_by_chance": {
+            "binomial": 6.273367346938775,
+            "beta-binomial": 10.0,
+            "z-score": 9.723363265306125,
+            "modal": 7.603199999999998,
+            "top3": 9.61256224489796,
+            "unseen": 0.0
+          }
+        }
+      }
+    },
+    "fresh_day": {
+      "E1": {
+        "windows": 288,
+        "windows_with_waf": 0,
+        "waf_clients": 0
+      },
+      "E2": {
+        "windows": 288,
+        "windows_with_waf": 288,
+        "waf_clients": 2647,
+        "waf_share_median": 0.07590571802706242,
+        "base_rate": 0.09185550196064823,
+        "ceiling": {
+          "no_clean": 0.421231582924065,
+          "majority": 0.5727238383075179
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.010416666666666666,
+            "recall": 0.0,
+            "precision": 0.0,
+            "lift": 0.0,
+            "collateral": 0.006304929308368361
+          },
+          "beta-binomial": {
+            "named": 0.0798611111111111,
+            "recall": 0.012466943709860219,
+            "precision": 0.44,
+            "lift": 4.7901322251605585,
+            "collateral": 0.0016048910966755827
+          },
+          "z-score": {
+            "named": 0.027777777777777776,
+            "recall": 0.0022667170381564035,
+            "precision": 0.030456852791878174,
+            "lift": 0.3315735273530613,
+            "collateral": 0.007298433320596103
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.12958065734794105,
+            "precision": 0.07257723233178164,
+            "lift": 0.7901239531941637,
+            "collateral": 0.16748184944593045
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.24820551567812618,
+            "precision": 0.0746082216670452,
+            "lift": 0.8122346519755351,
+            "collateral": 0.311387084447841
+          },
+          "unseen": {
+            "named": 0.003472222222222222,
+            "recall": 0.0,
+            "precision": 0.0,
+            "lift": 0.0,
+            "collateral": 0.00019105846388995032
+          }
+        },
+        "surges": {
+          "episodes": 1,
+          "windows": 1,
+          "scores": {
+            "binomial": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "beta-binomial": {
+              "named": 1.0,
+              "recall": 0.0,
+              "precision": 0.0,
+              "lift": 0.0,
+              "collateral": 0.045454545454545456
+            },
+            "z-score": {
+              "named": 1.0,
+              "recall": 0.0,
+              "precision": 0.0,
+              "lift": 0.0,
+              "collateral": 0.045454545454545456
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.2,
+              "precision": 0.2608695652173913,
+              "lift": 1.4086956521739131,
+              "collateral": 0.12878787878787878
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.3,
+              "precision": 0.20930232558139536,
+              "lift": 1.130232558139535,
+              "collateral": 0.25757575757575757
+            },
+            "unseen": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            }
+          },
+          "detected": {
+            "binomial": 0,
+            "beta-binomial": 0,
+            "z-score": 0,
+            "modal": 1,
+            "top3": 1,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.0,
+            "beta-binomial": 0.0627177700348432,
+            "z-score": 0.010452961672473868,
+            "modal": 0.554006968641115,
+            "top3": 0.7038327526132404,
+            "unseen": 0.0
+          },
+          "expected_by_chance": {
+            "binomial": 0.0,
+            "beta-binomial": 0.06271777003484325,
+            "z-score": 0.010452961672473893,
+            "modal": 0.554006968641115,
+            "top3": 0.7038327526132404,
+            "unseen": 0.0
+          }
+        }
+      },
+      "E3": {
+        "windows": 288,
+        "windows_with_waf": 288,
+        "waf_clients": 18704,
+        "waf_share_median": 0.5714285714285714,
+        "base_rate": 0.5828425415225452,
+        "ceiling": {
+          "no_clean": 0.3271492728828058,
+          "majority": 0.9415633019674936
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.15625,
+            "recall": 0.12622968349016253,
+            "precision": 0.8275499474237644,
+            "lift": 1.4198516554093257,
+            "collateral": 0.03675207290655113
+          },
+          "beta-binomial": {
+            "named": 0.9236111111111112,
+            "recall": 0.04090034217279726,
+            "precision": 0.9896507115135834,
+            "lift": 1.6979726787415743,
+            "collateral": 0.0005975946814073355
+          },
+          "z-score": {
+            "named": 0.7708333333333334,
+            "recall": 0.03394995722840034,
+            "precision": 0.9229651162790697,
+            "lift": 1.583558252059005,
+            "collateral": 0.0039590647643235975
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.3642536355859709,
+            "precision": 0.6569279722302575,
+            "lift": 1.1271105408918516,
+            "collateral": 0.26578023455591243
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.647401625320787,
+            "precision": 0.5911154503295094,
+            "lift": 1.0141940716704603,
+            "collateral": 0.6256816314334802
+          },
+          "unseen": {
+            "named": 0.0,
+            "recall": 0.0,
+            "precision": null,
+            "lift": null,
+            "collateral": 0.0
+          }
+        },
+        "surges": {
+          "episodes": 1,
+          "windows": 1,
+          "scores": {
+            "binomial": {
+              "named": 1.0,
+              "recall": 0.3588235294117647,
+              "precision": 1.0,
+              "lift": 1.3764705882352941,
+              "collateral": 0.0
+            },
+            "beta-binomial": {
+              "named": 1.0,
+              "recall": 0.3588235294117647,
+              "precision": 1.0,
+              "lift": 1.3764705882352941,
+              "collateral": 0.0
+            },
+            "z-score": {
+              "named": 1.0,
+              "recall": 0.3588235294117647,
+              "precision": 1.0,
+              "lift": 1.3764705882352941,
+              "collateral": 0.0
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.3058823529411765,
+              "precision": 0.8524590163934426,
+              "lift": 1.1733847637415622,
+              "collateral": 0.140625
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.8294117647058824,
+              "precision": 0.8245614035087719,
+              "lift": 1.134984520123839,
+              "collateral": 0.46875
+            },
+            "unseen": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            }
+          },
+          "detected": {
+            "binomial": 1,
+            "beta-binomial": 1,
+            "z-score": 1,
+            "modal": 1,
+            "top3": 1,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.15331010452961671,
+            "beta-binomial": 0.9198606271777003,
+            "z-score": 0.7630662020905923,
+            "modal": 0.9686411149825784,
+            "top3": 1.0,
+            "unseen": 0.0
+          },
+          "expected_by_chance": {
+            "binomial": 0.1533101045296167,
+            "beta-binomial": 0.9198606271777003,
+            "z-score": 0.7630662020905923,
+            "modal": 0.9686411149825784,
+            "top3": 1.0,
+            "unseen": 0.0
+          }
+        }
+      },
+      "E4": {
+        "windows": 288,
+        "windows_with_waf": 288,
+        "waf_clients": 7574,
+        "waf_share_median": 0.576014381099127,
+        "base_rate": 0.5486815415821501,
+        "ceiling": {
+          "no_clean": 0.1402165302350145,
+          "majority": 0.9614470557169263
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.8506944444444444,
+            "recall": 0.06535516239767626,
+            "precision": 1.0,
+            "lift": 1.822550831792976,
+            "collateral": 0.0
+          },
+          "beta-binomial": {
+            "named": 1.0,
+            "recall": 0.08053868497491418,
+            "precision": 0.993485342019544,
+            "lift": 1.810677536471849,
+            "collateral": 0.0006420545746388443
+          },
+          "z-score": {
+            "named": 1.0,
+            "recall": 0.07684182730393452,
+            "precision": 1.0,
+            "lift": 1.822550831792976,
+            "collateral": 0.0
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.6847108529178769,
+            "precision": 0.6382769230769231,
+            "lift": 1.1632921370681075,
+            "collateral": 0.47174959871589084
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.9152363348296805,
+            "precision": 0.5787759873090089,
+            "lift": 1.0548486570918352,
+            "collateral": 0.8097913322632424
+          },
+          "unseen": {
+            "named": 0.0,
+            "recall": 0.0,
+            "precision": null,
+            "lift": null,
+            "collateral": 0.0
+          }
+        },
+        "surges": {
+          "episodes": 6,
+          "windows": 6,
+          "scores": {
+            "binomial": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "beta-binomial": {
+              "named": 1.0,
+              "recall": 0.04294478527607362,
+              "precision": 1.0,
+              "lift": 1.656441717791411,
+              "collateral": 0.0
+            },
+            "z-score": {
+              "named": 1.0,
+              "recall": 0.03680981595092025,
+              "precision": 1.0,
+              "lift": 1.656441717791411,
+              "collateral": 0.0
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.6104294478527608,
+              "precision": 0.67003367003367,
+              "lift": 1.1098717233686557,
+              "collateral": 0.45794392523364486
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.8895705521472392,
+              "precision": 0.6196581196581197,
+              "lift": 1.0264275601698913,
+              "collateral": 0.8317757009345794
+            },
+            "unseen": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            }
+          },
+          "detected": {
+            "binomial": 0,
+            "beta-binomial": 6,
+            "z-score": 6,
+            "modal": 6,
+            "top3": 6,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.8687943262411347,
+            "beta-binomial": 1.0,
+            "z-score": 1.0,
+            "modal": 0.9964539007092199,
+            "top3": 1.0,
+            "unseen": 0.0
+          },
+          "expected_by_chance": {
+            "binomial": 5.212765957446808,
+            "beta-binomial": 6.0,
+            "z-score": 6.0,
+            "modal": 5.9787234042553195,
+            "top3": 6.0,
+            "unseen": 0.0
+          }
+        }
+      }
+    },
+    "implied_precision_floor": {
+      "E2": 0.6976744186046511,
+      "E3": 0.8771929824561403,
+      "E4": 0.796875
+    }
+  },
+  "all_profile": {
+    "check": {
+      "zscore_windows": 6884,
+      "zscore_mismatches": 0
+    },
+    "test_days": {
+      "E1": {
+        "windows": 1440,
+        "windows_with_waf": 0,
+        "waf_clients": 0
+      },
+      "E2": {
+        "windows": 1440,
+        "windows_with_waf": 1440,
+        "waf_clients": 14108,
+        "waf_share_median": 0.09302325581395349,
+        "base_rate": 0.10415805327505759,
+        "ceiling": {
+          "no_clean": 0.37248369719308194,
+          "majority": 0.5572015877516303
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.04375,
+            "recall": 0.002977034306776297,
+            "precision": 0.017227235438884332,
+            "lift": 0.16539513649886625,
+            "collateral": 0.019746167792978407
+          },
+          "beta-binomial": {
+            "named": 0.1125,
+            "recall": 0.0035440884604479726,
+            "precision": 0.020610057708161583,
+            "lift": 0.19787291582471433,
+            "collateral": 0.01958134168452283
+          },
+          "z-score": {
+            "named": 0.11458333333333333,
+            "recall": 0.0024099801531046214,
+            "precision": 0.010845295055821371,
+            "lift": 0.10412344235333804,
+            "collateral": 0.02555628811603758
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.13006804649844061,
+            "precision": 0.07218441446048543,
+            "lift": 0.6930276842815304,
+            "collateral": 0.19437942970166475
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.21952083924014743,
+            "precision": 0.07263303548394662,
+            "lift": 0.6973348022561384,
+            "collateral": 0.32587769902752595
+          },
+          "unseen": {
+            "named": 0.001388888888888889,
+            "recall": 0.0003544088460447973,
+            "precision": 0.29411764705882354,
+            "lift": 2.823762904651512,
+            "collateral": 9.889566507334761e-05
+          }
+        },
+        "surges": {
+          "episodes": 33,
+          "windows": 51,
+          "scores": {
+            "binomial": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "beta-binomial": {
+              "named": 0.1568627450980392,
+              "recall": 0.009126466753585397,
+              "precision": 0.3333333333333333,
+              "lift": 1.8961321164710994,
+              "collateral": 0.00389321468298109
+            },
+            "z-score": {
+              "named": 0.11764705882352941,
+              "recall": 0.009126466753585397,
+              "precision": 0.4117647058823529,
+              "lift": 2.3422808497584167,
+              "collateral": 0.0027808676307007787
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.1421121251629726,
+              "precision": 0.16280806572068707,
+              "lift": 0.9261168067005966,
+              "collateral": 0.15586763070077864
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.23468057366362452,
+              "precision": 0.16165244723843736,
+              "lift": 0.9195431907448529,
+              "collateral": 0.2595939933259177
+            },
+            "unseen": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            }
+          },
+          "detected": {
+            "binomial": 0,
+            "beta-binomial": 5,
+            "z-score": 5,
+            "modal": 33,
+            "top3": 33,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.0028797696184305254,
+            "beta-binomial": 0.01511879049676026,
+            "z-score": 0.0064794816414686825,
+            "modal": 0.5212383009359252,
+            "top3": 0.6637868970482361,
+            "unseen": 0.0007199424046076314
+          },
+          "expected_by_chance": {
+            "binomial": 0.1465786843970891,
+            "beta-binomial": 0.7631574267240953,
+            "z-score": 0.32899199387914924,
+            "modal": 20.136797631765667,
+            "top3": 24.300683853531293,
+            "unseen": 0.036698932354708
+          }
+        }
+      },
+      "E3": {
+        "windows": 1440,
+        "windows_with_waf": 1440,
+        "waf_clients": 106199,
+        "waf_share_median": 0.631578947368421,
+        "base_rate": 0.6263727837872908,
+        "ceiling": {
+          "no_clean": 0.3333176395257959,
+          "majority": 0.9705646945828115
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.016666666666666666,
+            "recall": 0.0018644243354457198,
+            "precision": 0.33,
+            "lift": 0.5268428139624667,
+            "collateral": 0.0063459990212638324
+          },
+          "beta-binomial": {
+            "named": 0.03194444444444444,
+            "recall": 0.0004613979416002034,
+            "precision": 0.10187110187110188,
+            "lift": 0.1626365393067528,
+            "collateral": 0.006819581037776059
+          },
+          "z-score": {
+            "named": 0.03333333333333333,
+            "recall": 0.0001224116987918907,
+            "precision": 0.03857566765578635,
+            "lift": 0.061585797873501186,
+            "collateral": 0.0051146857783320445
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.38373242685901,
+            "precision": 0.7731506953271737,
+            "lift": 1.2343299634642604,
+            "collateral": 0.18875400571455633
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.6918803378562887,
+            "precision": 0.6948573914359207,
+            "lift": 1.1093352224446051,
+            "collateral": 0.5093690308933335
+          },
+          "unseen": {
+            "named": 0.003472222222222222,
+            "recall": 0.0,
+            "precision": 0.0,
+            "lift": 0.0,
+            "collateral": 0.00059987055424882
+          }
+        },
+        "surges": {
+          "episodes": 28,
+          "windows": 49,
+          "scores": {
+            "binomial": {
+              "named": 0.10204081632653061,
+              "recall": 0.010532837670384139,
+              "precision": 0.625,
+              "lift": 0.8911090458488229,
+              "collateral": 0.014842840512223517
+            },
+            "beta-binomial": {
+              "named": 0.08163265306122448,
+              "recall": 0.00024783147459727387,
+              "precision": 0.0625,
+              "lift": 0.08911090458488229,
+              "collateral": 0.008731082654249126
+            },
+            "z-score": {
+              "named": 0.08163265306122448,
+              "recall": 0.00024783147459727387,
+              "precision": 0.06666666666666667,
+              "lift": 0.09505163155720776,
+              "collateral": 0.008149010477299184
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.5209417596034697,
+              "precision": 0.8848663439275942,
+              "lift": 1.2616198455056877,
+              "collateral": 0.15919674039580908
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.826641883519207,
+              "precision": 0.76651729288751,
+              "lift": 1.0928807895865789,
+              "collateral": 0.5913853317811408
+            },
+            "unseen": {
+              "named": 0.02040816326530612,
+              "recall": 0.0,
+              "precision": 0.0,
+              "lift": 0.0,
+              "collateral": 0.002910360884749709
+            }
+          },
+          "detected": {
+            "binomial": 2,
+            "beta-binomial": 1,
+            "z-score": 1,
+            "modal": 28,
+            "top3": 28,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.007189072609633357,
+            "beta-binomial": 0.010783608914450037,
+            "z-score": 0.005751258087706686,
+            "modal": 0.9439252336448598,
+            "top3": 1.0,
+            "unseen": 0.0
+          },
+          "expected_by_chance": {
+            "binomial": 0.3495581025573573,
+            "beta-binomial": 0.5223435726464959,
+            "z-score": 0.280075359592989,
+            "modal": 27.021387729119496,
+            "top3": 28.0,
+            "unseen": 0.0
+          }
+        }
+      },
+      "E4": {
+        "windows": 1412,
+        "windows_with_waf": 1412,
+        "waf_clients": 20964,
+        "waf_share_median": 0.390625,
+        "base_rate": 0.408686837180287,
+        "ceiling": {
+          "no_clean": 0.24790116390001907,
+          "majority": 0.811867964128983
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.017705382436260624,
+            "recall": 9.540164090822362e-05,
+            "precision": 0.0038910505836575876,
+            "lift": 0.009520861035074395,
+            "collateral": 0.016879862851114334
+          },
+          "beta-binomial": {
+            "named": 0.018413597733711047,
+            "recall": 0.0005247090249952299,
+            "precision": 0.0859375,
+            "lift": 0.21027714176683837,
+            "collateral": 0.0038573124093366743
+          },
+          "z-score": {
+            "named": 0.024079320113314446,
+            "recall": 0.0004293073840870063,
+            "precision": 0.15517241379310345,
+            "lift": 0.3796853719677082,
+            "collateral": 0.0016154556244230515
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.5548082427017744,
+            "precision": 0.468406427449559,
+            "lift": 1.1461255534465074,
+            "collateral": 0.4351839641302914
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.8395344399923679,
+            "precision": 0.4088649351856154,
+            "lift": 1.0004357811143545,
+            "collateral": 0.83891599630753
+          },
+          "unseen": {
+            "named": 0.0,
+            "recall": 0.0,
+            "precision": null,
+            "lift": null,
+            "collateral": 0.0
+          }
+        },
+        "surges": {
+          "episodes": 10,
+          "windows": 12,
+          "scores": {
+            "binomial": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "beta-binomial": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "z-score": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.5261707988980716,
+              "precision": 0.6586206896551724,
+              "lift": 1.1212881162724424,
+              "collateral": 0.38823529411764707
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.8925619834710744,
+              "precision": 0.599444958371878,
+              "lift": 1.0205426564017097,
+              "collateral": 0.8490196078431372
+            },
+            "unseen": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            }
+          },
+          "detected": {
+            "binomial": 0,
+            "beta-binomial": 0,
+            "z-score": 0,
+            "modal": 10,
+            "top3": 10,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.0007142857142857143,
+            "beta-binomial": 0.004285714285714286,
+            "z-score": 0.005,
+            "modal": 0.72,
+            "top3": 0.9521428571428572,
+            "unseen": 0.0
+          },
+          "expected_by_chance": {
+            "binomial": 0.008570408163264709,
+            "beta-binomial": 0.051391836734694385,
+            "z-score": 0.05994999999999995,
+            "modal": 7.603199999999998,
+            "top3": 9.61256224489796,
+            "unseen": 0.0
+          }
+        }
+      }
+    },
+    "fresh_day": {
+      "E1": {
+        "windows": 288,
+        "windows_with_waf": 0,
+        "waf_clients": 0
+      },
+      "E2": {
+        "windows": 288,
+        "windows_with_waf": 288,
+        "waf_clients": 2647,
+        "waf_share_median": 0.07590571802706242,
+        "base_rate": 0.09185550196064823,
+        "ceiling": {
+          "no_clean": 0.421231582924065,
+          "majority": 0.5727238383075179
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.010416666666666666,
+            "recall": 0.0,
+            "precision": 0.0,
+            "lift": 0.0,
+            "collateral": 0.006304929308368361
+          },
+          "beta-binomial": {
+            "named": 0.020833333333333332,
+            "recall": 0.0,
+            "precision": 0.0,
+            "lift": 0.0,
+            "collateral": 0.0013374092472296522
+          },
+          "z-score": {
+            "named": 0.020833333333333332,
+            "recall": 0.0,
+            "precision": 0.0,
+            "lift": 0.0,
+            "collateral": 0.007298433320596103
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.12958065734794105,
+            "precision": 0.07257723233178164,
+            "lift": 0.7901239531941637,
+            "collateral": 0.16748184944593045
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.24820551567812618,
+            "precision": 0.0746082216670452,
+            "lift": 0.8122346519755351,
+            "collateral": 0.311387084447841
+          },
+          "unseen": {
+            "named": 0.003472222222222222,
+            "recall": 0.0,
+            "precision": 0.0,
+            "lift": 0.0,
+            "collateral": 0.00019105846388995032
+          }
+        },
+        "surges": {
+          "episodes": 1,
+          "windows": 1,
+          "scores": {
+            "binomial": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "beta-binomial": {
+              "named": 1.0,
+              "recall": 0.0,
+              "precision": 0.0,
+              "lift": 0.0,
+              "collateral": 0.045454545454545456
+            },
+            "z-score": {
+              "named": 1.0,
+              "recall": 0.0,
+              "precision": 0.0,
+              "lift": 0.0,
+              "collateral": 0.045454545454545456
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.2,
+              "precision": 0.2608695652173913,
+              "lift": 1.4086956521739131,
+              "collateral": 0.12878787878787878
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.3,
+              "precision": 0.20930232558139536,
+              "lift": 1.130232558139535,
+              "collateral": 0.25757575757575757
+            },
+            "unseen": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            }
+          },
+          "detected": {
+            "binomial": 0,
+            "beta-binomial": 0,
+            "z-score": 0,
+            "modal": 1,
+            "top3": 1,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.0,
+            "beta-binomial": 0.0,
+            "z-score": 0.0,
+            "modal": 0.554006968641115,
+            "top3": 0.7038327526132404,
+            "unseen": 0.0
+          },
+          "expected_by_chance": {
+            "binomial": 0.0,
+            "beta-binomial": 0.0,
+            "z-score": 0.0,
+            "modal": 0.554006968641115,
+            "top3": 0.7038327526132404,
+            "unseen": 0.0
+          }
+        }
+      },
+      "E3": {
+        "windows": 288,
+        "windows_with_waf": 288,
+        "waf_clients": 18704,
+        "waf_share_median": 0.5714285714285714,
+        "base_rate": 0.5828425415225452,
+        "ceiling": {
+          "no_clean": 0.3271492728828058,
+          "majority": 0.9415633019674936
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.013888888888888888,
+            "recall": 0.006789991445680069,
+            "precision": 0.7257142857142858,
+            "lift": 1.245129231333252,
+            "collateral": 0.003585568088444013
+          },
+          "beta-binomial": {
+            "named": 0.020833333333333332,
+            "recall": 0.000588109495295124,
+            "precision": 0.14285714285714285,
+            "lift": 0.24510417939630944,
+            "collateral": 0.0049301561216105174
+          },
+          "z-score": {
+            "named": 0.017361111111111112,
+            "recall": 5.3464499572284e-05,
+            "precision": 0.125,
+            "lift": 0.21446615697177077,
+            "collateral": 0.0005228953462314185
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.3642536355859709,
+            "precision": 0.6569279722302575,
+            "lift": 1.1271105408918516,
+            "collateral": 0.26578023455591243
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.647401625320787,
+            "precision": 0.5911154503295094,
+            "lift": 1.0141940716704603,
+            "collateral": 0.6256816314334802
+          },
+          "unseen": {
+            "named": 0.0,
+            "recall": 0.0,
+            "precision": null,
+            "lift": null,
+            "collateral": 0.0
+          }
+        },
+        "surges": {
+          "episodes": 1,
+          "windows": 1,
+          "scores": {
+            "binomial": {
+              "named": 1.0,
+              "recall": 0.3588235294117647,
+              "precision": 1.0,
+              "lift": 1.3764705882352941,
+              "collateral": 0.0
+            },
+            "beta-binomial": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "z-score": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.3058823529411765,
+              "precision": 0.8524590163934426,
+              "lift": 1.1733847637415622,
+              "collateral": 0.140625
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.8294117647058824,
+              "precision": 0.8245614035087719,
+              "lift": 1.134984520123839,
+              "collateral": 0.46875
+            },
+            "unseen": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            }
+          },
+          "detected": {
+            "binomial": 1,
+            "beta-binomial": 0,
+            "z-score": 0,
+            "modal": 1,
+            "top3": 1,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.010452961672473868,
+            "beta-binomial": 0.006968641114982578,
+            "z-score": 0.003484320557491289,
+            "modal": 0.9686411149825784,
+            "top3": 1.0,
+            "unseen": 0.0
+          },
+          "expected_by_chance": {
+            "binomial": 0.010452961672473893,
+            "beta-binomial": 0.006968641114982632,
+            "z-score": 0.0034843205574912606,
+            "modal": 0.9686411149825784,
+            "top3": 1.0,
+            "unseen": 0.0
+          }
+        }
+      },
+      "E4": {
+        "windows": 288,
+        "windows_with_waf": 288,
+        "waf_clients": 7574,
+        "waf_share_median": 0.576014381099127,
+        "base_rate": 0.5486815415821501,
+        "ceiling": {
+          "no_clean": 0.1402165302350145,
+          "majority": 0.9614470557169263
+        },
+        "scores": {
+          "binomial": {
+            "named": 0.0,
+            "recall": 0.0,
+            "precision": null,
+            "lift": null,
+            "collateral": 0.0
+          },
+          "beta-binomial": {
+            "named": 0.010416666666666666,
+            "recall": 0.0002640612622128334,
+            "precision": 0.3333333333333333,
+            "lift": 0.607516943930992,
+            "collateral": 0.0006420545746388443
+          },
+          "z-score": {
+            "named": 0.003472222222222222,
+            "recall": 0.0,
+            "precision": 0.0,
+            "lift": 0.0,
+            "collateral": 0.00016051364365971107
+          },
+          "modal": {
+            "named": 1.0,
+            "recall": 0.6847108529178769,
+            "precision": 0.6382769230769231,
+            "lift": 1.1632921370681075,
+            "collateral": 0.47174959871589084
+          },
+          "top3": {
+            "named": 1.0,
+            "recall": 0.9152363348296805,
+            "precision": 0.5787759873090089,
+            "lift": 1.0548486570918352,
+            "collateral": 0.8097913322632424
+          },
+          "unseen": {
+            "named": 0.0,
+            "recall": 0.0,
+            "precision": null,
+            "lift": null,
+            "collateral": 0.0
+          }
+        },
+        "surges": {
+          "episodes": 6,
+          "windows": 6,
+          "scores": {
+            "binomial": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "beta-binomial": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "z-score": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            },
+            "modal": {
+              "named": 1.0,
+              "recall": 0.6104294478527608,
+              "precision": 0.67003367003367,
+              "lift": 1.1098717233686557,
+              "collateral": 0.45794392523364486
+            },
+            "top3": {
+              "named": 1.0,
+              "recall": 0.8895705521472392,
+              "precision": 0.6196581196581197,
+              "lift": 1.0264275601698913,
+              "collateral": 0.8317757009345794
+            },
+            "unseen": {
+              "named": 0.0,
+              "recall": 0.0,
+              "precision": null,
+              "lift": null,
+              "collateral": 0.0
+            }
+          },
+          "detected": {
+            "binomial": 0,
+            "beta-binomial": 0,
+            "z-score": 0,
+            "modal": 6,
+            "top3": 6,
+            "unseen": 0
+          },
+          "quiet_hit_rate": {
+            "binomial": 0.0,
+            "beta-binomial": 0.0035460992907801418,
+            "z-score": 0.0,
+            "modal": 0.9964539007092199,
+            "top3": 1.0,
+            "unseen": 0.0
+          },
+          "expected_by_chance": {
+            "binomial": 0.0,
+            "beta-binomial": 0.02127659574468055,
+            "z-score": 0.0,
+            "modal": 5.9787234042553195,
+            "top3": 6.0,
+            "unseen": 0.0
+          }
+        }
+      }
+    }
+  }
+}

@@ -2,7 +2,7 @@
 """Sprint 6 (NOMS) — compile the rule's count query from the ontology.
 
 The equality-based relatedBy sub-properties partition a window's sessions into
-classes, so Omega(S) and the enrichment scope need only class sizes (Section III-E).
+classes, so Omega(S) and the enrichment scope need only class sizes (Section III-E of the paper).
 This script reads, from ontology/ddos_ontology.owl, which sub-properties are
 equalities (kg:classKey), what each one equates, its coordinationWeight, and the
 unit classes are counted in (kg:countUnit on relatedTo), and emits the SQL a log
@@ -10,7 +10,7 @@ store runs to produce those counts. The only hand-written input is a binding tha
 maps each ontology property to a column expression of the log table.
 
     omega    per (window, endpoint): distinct origins and Omega(S), S being every
-             session to the endpoint (condition ii);
+             session to the endpoint;
     classes  per (window, endpoint, class value) of each equality sub-relation:
              distinct origins, the counts the enrichment scope reads.
 
@@ -23,7 +23,7 @@ adds a sub-property to a copy of the ontology and checks that the recompiled que
 picks it up with no change to any code.
 
 Usage:
-    python compile_counts.py --binding ../bindings/clickhouse_azion.json      # print SQL
+    python compile_counts.py --binding ../bindings/clickhouse_example.json    # print SQL
     python compile_counts.py --check --out ../results/compile_check.json
 """
 import argparse

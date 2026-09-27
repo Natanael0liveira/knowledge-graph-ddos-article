@@ -26,7 +26,12 @@ Protocol:
   profile and tau, a percentile of Omega over its windows; the test part is where
   the rule is evaluated. ``--split hours`` (default) alternates UTC hours, so both
   parts cover the daily cycle; ``halves`` calibrates on the first twelve hours and
-  ``days`` on every day but the last;
+  ``days`` on every day but the last. ``rolling`` tests each day on every day
+  before it. ``crossfit`` does the same, but when it fits the scope's level, the
+  z-score thresholds and the known fleets it judges each earlier day against a
+  profile of the other earlier days, so that no calibration window is part of the
+  profile it is judged against, as no test window is (tau, the origin gate and
+  the test day's profile are as in ``rolling``);
 - false alarms: the rule on the clean test windows;
 - detection: A attacker sessions injected into each test window, built as the
   generator builds them (scenario_stealth.yaml). With probability 0.9 a session
@@ -49,7 +54,9 @@ Protocol:
 - flash crowd: N legitimate sessions drawn from the host's own test traffic added
   to one window, with the host's rate of same-/24 pairs;
 - WAF diagnostic: the scope on the full test windows, blocked sessions included,
-  compared with the WAF's verdict.
+  compared with the WAF's verdict. By default the profile excludes the clients the
+  WAF blocked, so a fingerprint the WAF blocks is rare in it by construction;
+  ``--waf-in-profile`` builds everything from all clients instead.
 
 Three rules are compared, as in rule_detection.py, with condition (iv) off:
 ``omega`` (|S| >= k_min and Omega >= tau), ``pipeline`` (omega, then a non-empty
@@ -80,6 +87,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.special import logsumexp
 from scipy.stats import betabinom, binom
 
 HERE = Path(__file__).resolve()
@@ -141,9 +149,17 @@ def load_day(day, unit):
     return fp, pr
 
 
-def build_windows(e1, e2):
-    """One record per (host, window) with the counts the rule reads."""
-    e1 = e1.assign(clean=e1["sessions"] - e1["waf_sessions"])
+def build_windows(e1, e2, waf_in_profile=False):
+    """One record per (host, window) with the counts the rule reads.
+
+    ``clean`` is every client the WAF did not block, the traffic the profile, the
+    calibration and the clean test windows are built from. With ``waf_in_profile``
+    it is every client, blocked ones included: the profile then holds whatever the
+    WAF blocks, for scoring the scope against the WAF's verdicts without the
+    profile having seen them removed (waf_labels.py). The same-/24 pairs of the
+    export still exclude blocked requests, which moves Omega only.
+    """
+    e1 = e1.assign(clean=e1["sessions"] - (0 if waf_in_profile else e1["waf_sessions"]))
     p24 = e2.set_index(["host", "window"])["net_pairs"]
     recs = []
     for (host, win), g in e1.groupby(["host", "window"], sort=True):
@@ -166,8 +182,26 @@ def part_of(win, how, last_day):
     return "calib" if win.date() < last_day else "test"
 
 
+def log_tail(dist, c, n, *params):
+    """log P[X >= c] for each c, X ~ dist on 0..n.
+
+    The log of dist.sf where that is a float, and the tail summed from dist.logpmf
+    where sf underflows to 0: the counts of fleets and of large botnets reach far
+    beyond a float's range, and a p-value of 0 would set a calibrated level to 0.
+    """
+    c = np.asarray(c, dtype=float)
+    params = [np.broadcast_to(np.asarray(p, dtype=float), c.shape) for p in params]
+    with np.errstate(divide="ignore"):
+        out = np.log(dist.sf(c - 1, n, *params))
+    for i in np.flatnonzero(np.isneginf(out)):
+        k = np.arange(int(c[i]), int(n) + 1)
+        out[i] = logsumexp(dist.logpmf(k, n, *(p[i] for p in params)))
+    return out
+
+
 def adjusted_p(counts, profile, rho, exclude=frozenset()):
-    """Bonferroni-adjusted binomial p-value of each fingerprint of a window.
+    """Natural log of the Bonferroni-adjusted binomial p-value of each fingerprint
+    of a window.
 
     ``counts`` holds a window's TLS sessions per fingerprint, most common first;
     ``profile`` the host's prevalence per fingerprint, with its session count in
@@ -175,6 +209,7 @@ def adjusted_p(counts, profile, rho, exclude=frozenset()):
     ``exclude`` (the host's known fleets), gets inf. With ``profile.attrs["phi"]``
     (``--overdispersion``), a fingerprint of the profile with intra-window
     correlation phi > 0 is tested against a beta-binomial of the same mean instead.
+    Levels are compared in logs too (log_tail).
     """
     counts = counts[counts > 0]
     n = int(counts.sum())
@@ -184,7 +219,7 @@ def adjusted_p(counts, profile, rho, exclude=frozenset()):
     family = len(profile.index.union(counts.index))
     bf = profile.reindex(counts.index).fillna(0.0).to_numpy() + eps
     c = counts.to_numpy(dtype=float)
-    p = binom.sf(c - 1, n, np.minimum(bf, 1.0))
+    lp = log_tail(binom, c, n, np.minimum(bf, 1.0))
     phi = profile.attrs.get("phi")
     if phi is not None:
         ph = phi.reindex(counts.index).fillna(0.0).to_numpy()
@@ -192,20 +227,19 @@ def adjusted_p(counts, profile, rho, exclude=frozenset()):
         if od.any():
             bb = np.minimum(bf[od], 1.0 - 1e-12)
             shape = (1.0 - ph[od]) / ph[od]
-            p[od] = betabinom.sf(c[od] - 1, n, bb * shape, (1.0 - bb) * shape)
-    adj = np.where(c / n / bf >= rho, p * family, np.inf)
+            lp[od] = log_tail(betabinom, c[od], n, bb * shape, (1.0 - bb) * shape)
+    adj = np.where(c / n / bf >= rho, lp + np.log(family), np.inf)
     if exclude:
         adj = np.where(counts.index.isin(list(exclude)), np.inf, adj)
     return counts.index, adj
 
 
-def scope(counts, profile, rho, alpha, max_values=256, exclude=frozenset()):
-    """The JA4 branch of derive_scope_enriched(significance=alpha), on class sizes.
-
-    The self-check compares both on expanded windows.
+def scope(counts, profile, rho, log_alpha, max_values=256, exclude=frozenset()):
+    """The JA4 branch of derive_scope_enriched(significance=exp(log_alpha)), on
+    class sizes. The self-check compares both on expanded windows.
     """
     idx, adj = adjusted_p(counts, profile, rho, exclude)
-    return set(idx[adj < alpha][:max_values])
+    return set(idx[adj < log_alpha][:max_values])
 
 
 def known_fleets(cal, prof, args):
@@ -219,12 +253,12 @@ def known_fleets(cal, prof, args):
     named = {}
     for r in el:
         idx, adj = adjusted_p(r["clean"], prof(r), args.rho)
-        for f in idx[adj < args.significance]:
+        for f in idx[adj < np.log(args.significance)]:
             named[f] = named.get(f, 0) + 1
     return frozenset(f for f, c in named.items() if el and c / len(el) >= args.fleets)
 
 
-def judge(legit, n_legit, p24, profile, args, bot=None, alpha=None, exclude=frozenset(), cal=None):
+def judge(legit, n_legit, p24, profile, args, bot=None, log_alpha=None, exclude=frozenset(), cal=None):
     """Omega, scope, coverage and collateral of one window.
 
     ``legit`` counts the TLS sessions of legitimate users per fingerprint and
@@ -234,8 +268,8 @@ def judge(legit, n_legit, p24, profile, args, bot=None, alpha=None, exclude=froz
     total = legit if bot is None else legit.add(bot, fill_value=0)
     n = n_legit + (int(bot.sum()) if bot is not None else 0)
     omega = W_TLS * c2(total.to_numpy()) + W_EP * c2([n]) + W_NET * p24
-    alpha = args.significance if alpha is None else alpha
-    named = (scope(total.sort_values(ascending=False), profile, args.rho, alpha, exclude=exclude)
+    la = np.log(args.significance) if log_alpha is None else log_alpha
+    named = (scope(total.sort_values(ascending=False), profile, args.rho, la, exclude=exclude)
              if n >= args.k_min else set())
     coll = float(legit[legit.index.isin(named)].sum() / n_legit) if named and n_legit else 0.0
     cov = (float(bot[bot.index.isin(named)].sum() / bot.sum())
@@ -292,17 +326,26 @@ def history_z(counts, cal):
     return (counts.to_numpy(dtype=float) - mu) / np.maximum(sd, 1.0)
 
 
-def calibrate_baselines(cal, prof, args):
+def history(windows, k_min):
+    """Mean and standard deviation of each fingerprint's count over the windows."""
+    hist = pd.DataFrame([r["clean"] for r in windows
+                         if r["n"] >= k_min and r["clean"].sum() > 0]).fillna(0.0)
+    return {"mu": hist.mean(), "sd": hist.std(ddof=0)}
+
+
+def calibrate_baselines(cal, prof, args, hist_of=None):
     """Thresholds of the two calibrated baselines, at the enrichment test's budget.
 
     Over the endpoint's attack-free calibration windows of at least k_min units, the
     threshold is the p-th percentile (p the first --percentiles value) of the window's
     largest z, so either scope names a filter in at most (100 - p)% of them, as the
-    test's level is set; never below 3, the uncalibrated threshold.
+    test's level is set; never below 3, the uncalibrated threshold. ``hist_of`` maps
+    a calibration window to the history its historical z-score is taken against
+    (default: that of all of ``cal``, which the test windows are scored against).
     """
     el = [r for r in cal if r["n"] >= args.k_min and r["clean"].sum() > 0]
-    hist = pd.DataFrame([r["clean"] for r in el]).fillna(0.0)
-    out = {"mu": hist.mean(), "sd": hist.std(ddof=0)}
+    out = history(cal, args.k_min)
+    hist_of = hist_of or (lambda r: out)
     zmax, hmax = [], []
     for r in el:
         c = r["clean"][r["clean"] > 0]
@@ -310,7 +353,7 @@ def calibrate_baselines(cal, prof, args):
         b = P.reindex(c.index).fillna(0.0).to_numpy() + 1.0 / max(P.attrs["n"], 1)
         zmax.append(float(((c.to_numpy(dtype=float) - n * b)
                            / np.sqrt(n * b * (1 - np.minimum(b, 0.999999)))).max()))
-        hmax.append(float(history_z(c, out).max()))
+        hmax.append(float(history_z(c, hist_of(r)).max()))
     p = args.percentiles[0]
     out["zcal"] = max(3.0, float(np.percentile(zmax, p, method="higher")))
     out["zhist"] = max(3.0, float(np.percentile(hmax, p, method="higher")))
@@ -469,6 +512,25 @@ def prepare_hosts(recs, part, args):
         profile.attrs["n"] = int(bg.sum())
         if args.overdispersion:
             profile.attrs["phi"] = intra_window_correlation(cal, profile, args.k_min)
+        xprofile = xhist = None
+        if args.split == "crossfit":
+            # Leave one calibration day out: each is judged against a profile, and a
+            # history, of the other calibration days.
+            xprofile, xhist = {}, {}
+            for day in sorted({r["window"].date() for r in cal}):
+                rest = [r for r in cal if r["window"].date() != day]
+                b = pd.concat([r["clean"] for r in rest]).groupby(level=0).sum() if rest else pd.Series(dtype=float)
+                if b.sum() == 0:
+                    xprofile = None
+                    break
+                xprofile[day] = (b / b.sum()).sort_values(ascending=False)
+                xprofile[day].attrs["n"] = int(b.sum())
+                if args.overdispersion:
+                    xprofile[day].attrs["phi"] = intra_window_correlation(rest, xprofile[day], args.k_min)
+                xhist[day] = history(rest, args.k_min)
+            if xprofile is None:
+                excluded[host] = "a calibration day holds all of the host's TLS traffic"
+                continue
         hourly = None
         if args.profile_by_hour is not None:
             # One profile per UTC hour, from the calibration windows within
@@ -486,6 +548,7 @@ def prepare_hosts(recs, part, args):
         pool[NO_TLS] = sum(r["n_nontls"] for r in test)
         pool = pool[pool > 0]
         hosts[host] = {"calib": cal, "test": test, "profile": profile, "hourly": hourly,
+                       "xprofile": xprofile, "xhist": xhist,
                        "pool": (pool.index.to_numpy(dtype=object), (pool / pool.sum()).to_numpy()),
                        "pair_rate": (sum(r["p24"] for r in cal)
                                      / max(sum(c2([r["n"]]) for r in cal), 1.0)),
@@ -496,29 +559,42 @@ def prepare_hosts(recs, part, args):
     return hosts, excluded
 
 
+def scope_calibration(H, prof):
+    """The profile, and the history, each calibration window of the scope is judged
+    against when its level, thresholds and known fleets are fitted: the test's own,
+    or under --split crossfit those of the other calibration days."""
+    if H.get("xprofile") is not None:
+        return (lambda r: H["xprofile"][r["window"].date()]), (lambda r: H["xhist"][r["window"].date()])
+    return prof, None
+
+
 def evaluate_host(host, H, fold, args, rng, add):
     """Every window kind of one host in one fold: calibration, clean, WAF, flash, attack."""
-    P, a = H["profile"], args.significance
+    P, la = H["profile"], np.log(args.significance)
     prof = (lambda r: H["hourly"][r["window"].hour]) if H["hourly"] else (lambda r: P)
-    fl = H["fleets"] = known_fleets(H["calib"], prof, args)
+    xprof, xhist = scope_calibration(H, prof)
+    fl = H["fleets"] = known_fleets(H["calib"], xprof, args)
+    H["level_named_calibration"] = None
     if args.calibrate_level:
-        t = [min(adjusted_p(r["clean"], prof(r), args.rho, fl)[1], default=np.inf)
+        t = [min(adjusted_p(r["clean"], xprof(r), args.rho, fl)[1], default=np.inf)
              for r in H["calib"] if r["n"] >= args.k_min]
-        a = min(a, float(np.percentile(t, 100 - args.percentiles[0], method="lower")))
-    H["alpha"] = a
-    cb = H["baselines"] = calibrate_baselines(H["calib"], prof, args)
+        la = min(la, float(np.percentile(t, 100 - args.percentiles[0], method="lower")))
+        H["level_named_calibration"] = float(np.mean(np.array(t) < la))
+    H["log_alpha"], H["alpha"] = la, float(np.exp(la))
+    a = H["alpha"]
+    cb = H["baselines"] = calibrate_baselines(H["calib"], xprof, args, hist_of=xhist)
     base = {"fold": fold, "host": host, "alpha": a}
     for r in H["calib"]:
-        res, total, named = judge(r["clean"], r["n"], r["p24"], prof(r), args, alpha=a, exclude=fl, cal=cb)
+        res, total, named = judge(r["clean"], r["n"], r["p24"], prof(r), args, log_alpha=la, exclude=fl, cal=cb)
         add({"kind": "calib", **base, "window": r["window"], **res}, total, named, prof(r), r["n_nontls"])
     for r in H["test"]:
         base = {"fold": fold, "host": host, "alpha": a, "window": r["window"]}
         Pr = prof(r)
-        res, total, named = judge(r["clean"], r["n"], r["p24"], Pr, args, alpha=a, exclude=fl, cal=cb)
+        res, total, named = judge(r["clean"], r["n"], r["p24"], Pr, args, log_alpha=la, exclude=fl, cal=cb)
         add({"kind": "clean", **base, **res, "named": ";".join(sorted(named))},
             total, named, Pr, r["n_nontls"])
         # WAF diagnostic: every session, blocked or not; P_24 still clean-only.
-        res, total, named = judge(r["all"], r["n_all"], r["p24"], Pr, args, alpha=a, exclude=fl, cal=cb)
+        res, total, named = judge(r["all"], r["n_all"], r["p24"], Pr, args, log_alpha=la, exclude=fl, cal=cb)
         hit = r["all"].index.isin(named)
         hit_u = r["all"].index.isin(named | baseline_scopes(total, Pr, args)["unseen"])
         add({"kind": "waf", **base, **res, "named": ";".join(sorted(named)),
@@ -532,7 +608,7 @@ def evaluate_host(host, H, fold, args, rng, add):
             crowd = drawn.drop(NO_TLS, errors="ignore")
             legit = r["clean"].add(crowd[crowd > 0], fill_value=0)
             p24 = r["p24"] + H["pair_rate"] * (c2([r["n"] + N]) - c2([r["n"]]))
-            res, total, named = judge(legit, r["n"] + N, p24, Pr, args, alpha=a, exclude=fl, cal=cb)
+            res, total, named = judge(legit, r["n"] + N, p24, Pr, args, log_alpha=la, exclude=fl, cal=cb)
             add({"kind": "flash", **base, "flash": N, **res, "named": ";".join(sorted(named))},
                 total, named, Pr, r["n_nontls"] + int(drawn.get(NO_TLS, 0)))
         for source in args.sources:
@@ -543,7 +619,7 @@ def evaluate_host(host, H, fold, args, rng, add):
                 for A in args.attackers:
                     bot, bot_p24 = botnet(A, stacks, args, rng)
                     res, total, named = judge(r["clean"], r["n"], r["p24"] + bot_p24, Pr, args,
-                                              bot, alpha=a, exclude=fl, cal=cb)
+                                              bot, log_alpha=la, exclude=fl, cal=cb)
                     add({"kind": "attack", **base, "source": source, "stacks": M,
                          "attackers": A, **res}, total, named, Pr, r["n_nontls"])
         # Botnets sized as a fraction of the endpoint's typical window, so a small
@@ -557,7 +633,7 @@ def evaluate_host(host, H, fold, args, rng, add):
                 A = max(1, int(round(frac * H["median_origins"])))
                 bot, bot_p24 = botnet(A, stacks, args, H["rng_rel"])
                 res, total, named = judge(r["clean"], r["n"], r["p24"] + bot_p24, Pr, args,
-                                          bot, alpha=a, exclude=fl, cal=cb)
+                                          bot, log_alpha=la, exclude=fl, cal=cb)
                 add({"kind": "attack_rel", **base, "source": source, "stacks": 25,
                      "fraction": frac, "attackers": A, **res}, total, named, Pr, r["n_nontls"])
 
@@ -573,9 +649,9 @@ def main():
                          "day or YYYY-MM-DD_YYYY-MM-DD for a range of days")
     ap.add_argument("--days", nargs="+", default=None, help="subset of days (default: all)")
     ap.add_argument("--out-dir", required=True, type=Path)
-    ap.add_argument("--split", choices=["hours", "halves", "days", "rolling"], default="hours")
+    ap.add_argument("--split", choices=["hours", "halves", "days", "rolling", "crossfit"], default="hours")
     ap.add_argument("--min-calib-days", type=int, default=3,
-                    help="rolling split: days of history before the first test day")
+                    help="rolling and crossfit splits: days of history before the first test day")
     ap.add_argument("--unit", choices=["session", "origin"], default="session",
                     help="what the rule counts: connections (E1, E2) or client addresses (E3, E4)")
     ap.add_argument("--k-min", type=int, default=5)
@@ -613,11 +689,16 @@ def main():
                     help="distinct /24s the botnet draws from (generator: 2000)")
     ap.add_argument("--min-calib-windows", type=int, default=50,
                     help="a host is evaluated only with this many calibration windows of >= k_min sessions")
+    ap.add_argument("--waf-in-profile", action="store_true",
+                    help="build the profile, the calibration and the test windows from every client, "
+                         "WAF-blocked ones included (for scoring the scope against the WAF's verdicts)")
     ap.add_argument("--checks", type=int, default=60, help="windows in the scope self-check")
     ap.add_argument("--tag", default="", help="suffix for the output files")
     args = ap.parse_args()
     if args.overdispersion and args.profile_by_hour is not None:
         raise SystemExit("--overdispersion is implemented for one profile per host only")
+    if args.split == "crossfit" and args.profile_by_hour is not None:
+        raise SystemExit("--split crossfit is implemented for one profile per host only")
     args.out_dir.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(20260924)
 
@@ -628,15 +709,15 @@ def main():
         raise SystemExit(f"no day directories under {args.data_dir}")
     recs = []
     for day in days:
-        recs += build_windows(*load_day(day, args.unit))
+        recs += build_windows(*load_day(day, args.unit), waf_in_profile=args.waf_in_profile)
     dup = pd.Series([(r["host"], r["window"]) for r in recs]).duplicated()
     if dup.any():
         raise SystemExit(f"{int(dup.sum())} host-windows appear in two exports; "
                          "the directories under --data-dir must not overlap in time")
     dates = sorted({r["window"].date() for r in recs})
-    if args.split == "rolling":
+    if args.split in ("rolling", "crossfit"):
         if len(dates) <= args.min_calib_days:
-            raise SystemExit(f"--split rolling needs more than {args.min_calib_days} days")
+            raise SystemExit(f"--split {args.split} needs more than {args.min_calib_days} days")
         # One fold per test day, calibrated on every earlier day: as the rule would run.
         folds = [(d.isoformat(), lambda w, d=d: "calib" if w.date() < d else
                   "test" if w.date() == d else None) for d in dates[args.min_calib_days:]]
@@ -666,8 +747,9 @@ def main():
         for h, why in excluded[fold].items():
             log.info("fold %s: host %s excluded: %s", fold, h, why)
         for host, H in hosts.items():
-            fleet_of[0] = known_fleets(H["calib"], (lambda r, H=H: H["hourly"][r["window"].hour])
-                                       if H["hourly"] else (lambda r, H=H: H["profile"]), args)
+            fleet_of[0] = known_fleets(H["calib"], scope_calibration(
+                H, (lambda r, H=H: H["hourly"][r["window"].hour]) if H["hourly"]
+                else (lambda r, H=H: H["profile"]))[0], args)
             evaluate_host(host, H, fold, args, rng, add)
         info[fold] = hosts
         log.info("fold %s evaluated (%d hosts)", fold, len(hosts))
@@ -696,6 +778,7 @@ def main():
                 "profile_fingerprints": int(len(H["profile"])),
                 "top1_share": float(H["profile"].iloc[0]), "pair_rate": H["pair_rate"],
                 "dispersion": H["dispersion"], "scope_level": H["alpha"],
+                "scope_log10_level": H["log_alpha"] / np.log(10),
                 "fleets": len(H["fleets"]),
                 "phi_head_median": (float(H["profile"].attrs["phi"].iloc[:20].median())
                                     if "phi" in H["profile"].attrs else None),
@@ -703,6 +786,8 @@ def main():
                                       if "phi" in H["profile"].attrs and H["fleets"] else None),
                 "fleet_share": float(H["profile"].reindex(list(H["fleets"])).fillna(0).sum()),
                 "scope_named_calibration": float(c["scope_named"].mean()),
+                "level_named_calibration": H["level_named_calibration"],
+                "crossfit_profile_days": len(H["xprofile"]) if H["xprofile"] is not None else None,
                 "median_origins": H["median_origins"],
                 "tail_prevalence_median": (float(H["profile"].iloc[10:].median())
                                            if len(H["profile"]) > 10 else None),

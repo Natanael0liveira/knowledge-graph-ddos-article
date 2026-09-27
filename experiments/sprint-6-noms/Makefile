@@ -50,7 +50,7 @@ CLUSTERFLAG = $(if $(CLUSTER),--label-free-cluster)
 # Attack-free runs of rule_detection.py (calibration, test and flash-crowd donors).
 RULEWORK ?= $(DATA)/synth/sprint6_rule
 
-.PHONY: rule-production-od help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule rule-production production-summary audit compile-check stix-check stix-ingest rule-production-fleets fleet-selection rule-production-fresh production-tables unseen-synth cross-m
+.PHONY: floor-bands rule-production-wafprof waf-labels rule-production-crossfit ja4-churn rule-production-od help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule rule-production production-summary audit compile-check stix-check stix-ingest rule-production-fleets fleet-selection rule-production-fresh production-tables unseen-synth cross-m
 
 help:
 	@echo "No external data required:"
@@ -58,15 +58,18 @@ help:
 	@echo "  make compile-check      # the count query compiled from the ontology, on generated sessions"
 	@echo "  make stix-check         # the exported STIX 2.1 bundles, OASIS validator in strict mode"
 	@echo "  make stix-ingest        # the same bundles through TAXII 2.1 and MISP's importer"
-	@echo "  make latency            # cost of both layers (Fig. 3; the full sweep takes long)"
+	@echo "  make latency            # cost of both layers (Fig. 4; the full sweep takes long)"
 	@echo "Needs the data drive (synthetic scenario caches):"
 	@echo "  make canonical          # the ablation of Section V-A"
 	@echo "  make realistic symbolic unseen-synth   # Section V-C, Table II and Fig. 2"
 	@echo "  make drift rule baselines cross-m"
 	@echo "  make ml window purity   # sprint-4 reproduction cache"
 	@echo "Needs the operator's exports on the drive (PRODDATA):"
-	@echo "  make rule-production rule-production-fresh rule-production-od"
-	@echo "  make production-tables  # Tables III and IV, anonymized to results/"
+	@echo "  make rule-production rule-production-fresh rule-production-od rule-production-crossfit"
+	@echo "  make production-tables  # Tables IV and V, anonymized to results/"
+	@echo "  make ja4-churn          # fingerprints the rolling profile never saw"
+	@echo "  make waf-labels         # the WAF's verdicts as labels for the scope"
+	@echo "  make floor-bands        # the floor on shared stacks by popularity band, and the ratio limit"
 	@echo ""
 	@echo "Vars: SEEDS=$(SEEDS)  K='$(K)'  DATA=$(DATA)"
 
@@ -155,7 +158,7 @@ rule: check-data
 # the days before it, as the rule would run.
 PRODDATA ?= $(DATA)/azion
 SPLIT    ?= rolling
-# The eight days behind Tables III and IV and Appendix E (five test folds); the fresh day
+# The eight days behind Tables IV and V and Appendix E (five test folds); the fresh day
 # 2026-09-25 is evaluated apart (rule-production-fresh, fresh_day_protocol.md).
 TESTDAYS ?= 2026-09-17_2026-09-24 2026-09-23
 
@@ -201,17 +204,75 @@ rule-production-od:
 	  --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) $(METHODFLAG) --overdispersion \
 	  --fleets 0.05 --tag _$(SPLIT)_$(METHOD)_od_fleets0.05_v2 & wait
 
-# The production numbers of Tables III and IV (test days and fresh day apart), with
+# The four configurations again with the scope calibrated out of sample (--split
+# crossfit): when the level, the z-score thresholds and the known fleets are fitted,
+# each earlier day is judged against a profile of the other earlier days, as the test
+# day is judged against a profile it is not part of. Two runs at a time (memory).
+rule-production-crossfit:
+	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
+	  --out-dir $(PRODDATA)/results --split crossfit $(SIGFLAG) $(METHODFLAG) \
+	  --tag _crossfit_$(METHOD)_v2 & \
+	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
+	  --out-dir $(PRODDATA)/results --split crossfit $(SIGFLAG) $(METHODFLAG) \
+	  --fleets 0.05 --tag _crossfit_$(METHOD)_fleets0.05_v2 & wait
+	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
+	  --out-dir $(PRODDATA)/results --split crossfit $(SIGFLAG) $(METHODFLAG) --overdispersion \
+	  --tag _crossfit_$(METHOD)_od_v2 & \
+	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
+	  --out-dir $(PRODDATA)/results --split crossfit $(SIGFLAG) $(METHODFLAG) --overdispersion \
+	  --fleets 0.05 --tag _crossfit_$(METHOD)_od_fleets0.05_v2 & wait
+
+# The production numbers of Tables IV and V (test days and fresh day apart), with
 # the baselines calibrated to the scope's budget, attack-window collateral, the WAF
-# cross-check and the calibration floor; anonymized, read by the paper's audit.
+# cross-check and the calibration floor, for the rolling runs and their cross-fitted
+# counterparts (xfit*); anonymized, read by the paper's audit.
 production-tables:
 	$(PY) scripts/production_tables.py --results $(PRODDATA)/results --roles $(PRODDATA)/roles.json \
 	  --base rule_production_windows_$(SPLIT)_$(METHOD)_v2.csv \
 	  --fleets rule_production_windows_$(SPLIT)_$(METHOD)_fleets0.05_v2.csv \
 	  --od rule_production_windows_$(SPLIT)_$(METHOD)_od_v2.csv \
 	  --od-fleets rule_production_windows_$(SPLIT)_$(METHOD)_od_fleets0.05_v2.csv \
+	  --run xfit rule_production_windows_crossfit_$(METHOD)_v2.csv \
+	  --run xfit_fleets rule_production_windows_crossfit_$(METHOD)_fleets0.05_v2.csv \
+	  --run xfit_od rule_production_windows_crossfit_$(METHOD)_od_v2.csv \
+	  --run xfit_od_fleets rule_production_windows_crossfit_$(METHOD)_od_fleets0.05_v2.csv \
 	  --test-folds 2026-09-20 2026-09-21 2026-09-22 2026-09-23 2026-09-24 \
 	  --fresh-folds 2026-09-25 --out $(RESULTS)/production_tables.json
+
+# The binomial configuration and the beta-binomial with every client in the profile,
+# WAF-blocked ones included (--waf-in-profile), so the WAF analysis does not score the
+# scope against verdicts the profile was built without.
+rule-production-wafprof:
+	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
+	  --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) $(METHODFLAG) --waf-in-profile \
+	  --fleets 0.05 --tag _$(SPLIT)_$(METHOD)_wafprof_fleets0.05_v2 & \
+	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
+	  --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) $(METHODFLAG) --waf-in-profile \
+	  --overdispersion --tag _$(SPLIT)_$(METHOD)_wafprof_od_v2 & wait
+
+# The WAF's verdicts as labels: recall, precision and collateral of each configuration
+# on the full test windows, the ceiling of any fingerprint filter, and WAF surges as
+# labeled events (reads the rolling runs' WAF rows); anonymized counts and rates.
+waf-labels:
+	$(PY) scripts/waf_labels.py --data-dir $(PRODDATA) --results $(PRODDATA)/results \
+	  --roles $(PRODDATA)/roles.json --out $(RESULTS)/waf_labels.json
+
+# The calibration floor on shared stacks by popularity band of each fold's rolling
+# profile (ranks 11-35, 36-100, past 100, and every rank past ten), at each stack's own
+# correlation under the beta-binomial, and the fingerprints past the ratio limit
+# 0.9 / (rho M); prevalences, correlations and floors only.
+floor-bands:
+	$(PY) scripts/floor_bands.py --data-dir $(PRODDATA) --results $(PRODDATA)/results \
+	  --roles $(PRODDATA)/roles.json --fleets rule_production_rolling_$(METHOD)_fleets0.05_v2.json \
+	  --od rule_production_rolling_$(METHOD)_od_v2.json \
+	  --xfit-od rule_production_crossfit_$(METHOD)_od_v2.json --out $(RESULTS)/floor_bands.json
+
+# Fingerprints the rolling profile has never seen, per endpoint and test day: how
+# often the unseen filter would have a candidate (JA4 churn); anonymized counts.
+ja4-churn:
+	$(PY) scripts/ja4_churn.py --data-dir $(PRODDATA) --results $(PRODDATA)/results \
+	  --roles $(PRODDATA)/roles.json --base rule_production_$(SPLIT)_$(METHOD)_v2.json \
+	  --out $(RESULTS)/ja4_churn.json
 
 # The unseen-fingerprint filter on the synthetic scenarios of Table II and Fig. 2,
 # and botnet stacks drawn from the profile's tail, shared with real clients.

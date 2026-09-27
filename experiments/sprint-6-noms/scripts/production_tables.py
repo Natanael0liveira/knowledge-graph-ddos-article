@@ -8,17 +8,39 @@ Per scope (enrichment, enrichment united with the unseen filter, the z-score, th
 z-score calibrated to the enrichment test's budget, the per-fingerprint historical
 z-score, the unseen filter) and per gate (Omega >= tau, distinct origins >= their
 p99) it gives, per endpoint and pooled:
-- the firing rate on clean windows and the median share of clients a firing blocks;
+- the firing rate on clean windows, with its 95% Clopper-Pearson interval and its
+  count per test day, and the median and largest share of clients a firing blocks;
 - the firing rate with a flash crowd of 100 and of 1,000 users;
 - per botnet cell (new or shared stacks; 100 or 1,000 attackers, or 1x or 0.1x the
   endpoint's median window): the mean blocked share, and the median share of the
-  window's legitimate clients a firing blocks (collateral in attack windows).
+  window's legitimate clients a firing blocks (collateral in attack windows, whose
+  90th percentile and maximum over the cells are also given);
+- the same for a botnet on the endpoint's 25 most common profile fingerprints
+  (adversarial, 100 or 1,000 attackers), the boundary of the threat model. It is
+  reported apart and left out of the attack-window collateral of the other cells.
 
 It also gives:
 - the WAF cross-check: the share of the clients the scope matches that the WAF also
   blocked (precision against the WAF), and the share of WAF-blocked clients it
   matches (coverage);
-- the calibration floor per endpoint: the smallest stack, and the smallest 25-stack botnet, the calibrated test can name, from the level, profile and typical window of each fold, with the number of known fleets the fold exempted.
+- the calibration floor per endpoint: the smallest stack, and the smallest 25-stack botnet, the calibrated test can name, from the level, profile and typical window of each fold, with the number of known fleets the fold exempted;
+- the floor of the deployed configuration, the test joined with the unseen filter,
+  on new and shared stacks, for botnets of 5, 25 and 100 stacks;
+- how often each gate alone fires on clean windows, and the mean next to the median
+  share of clients a clean-window firing blocks;
+- for each false-alarm rate, an interval from a bootstrap over endpoint-days
+  (resampling the days of each endpoint), since misfires cluster by day, next to the
+  exact interval that treats windows as independent;
+- how many clean windows the gate opens, and how many joint misfires of gate and
+  scope independence would give (per endpoint, the gate's rate times the scope's
+  alone times the windows), to set against the observed ones;
+- a sweep over the injected botnet sizes (25 to 1,000 attackers on 1, 5, 25 or 100
+  stacks, and 0.1, 0.5 or 1 times the median window on 25): how often the gate
+  fires and the scope names, and what the configuration and its scope alone block,
+  with, for new stacks, the share a binomial model of stack sizes predicts.
+
+Further runs (``--run NAME CSV``, e.g. the cross-fitted calibration of
+rule_detection_production.py --split crossfit) are reduced the same way.
 
 Only rates, shares and counts leave. Endpoints are E1..E4, as in production_summary.py.
 
@@ -35,7 +57,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.stats import binom
+from scipy.stats import beta, binom
 
 SCOPES = {"enrichment": "scope", "union": "union", "zscore": "zscore", "zcal": "zcal",
           "zhist": "zhist", "unseen": "unseen"}
@@ -43,10 +65,12 @@ GATES = ("omega", "origins", "none")
 CELLS = [("attack", "fresh", 100), ("attack", "fresh", 1000), ("attack_rel", "fresh", 1.0),
          ("attack_rel", "fresh", 0.1), ("attack", "tail", 100), ("attack", "tail", 1000),
          ("attack_rel", "tail", 1.0), ("attack_rel", "tail", 0.1)]
+ADV_CELLS = [("attack", "adversarial", 100), ("attack", "adversarial", 1000)]
 
 
 def cell_name(kind, source, x):
-    return f"{'new' if source == 'fresh' else 'shared'}:{'A' if kind == 'attack' else 'x'}{x:g}"
+    name = {"fresh": "new", "tail": "shared", "adversarial": "adv"}[source]
+    return f"{name}:{'A' if kind == 'attack' else 'x'}{x:g}"
 
 
 def load(path, k_min=5):
@@ -74,6 +98,47 @@ def select(W, kind, source=None, x=None):
     return W[m]
 
 
+def clopper_pearson(k, n, level=0.95):
+    """Exact two-sided interval for a binomial proportion k/n."""
+    if not n:
+        return None
+    a = (1 - level) / 2
+    return [float(beta.ppf(a, k, n - k + 1)) if k else 0.0,
+            float(beta.ppf(1 - a, k + 1, n - k)) if k < n else 1.0]
+
+
+def cluster_ci(clean, fired, B=10_000, seed=0, level=0.95):
+    """Percentile interval for a false-alarm rate from a bootstrap over endpoint-days.
+
+    Windows of one endpoint and day share their fleets, so misfires cluster. The
+    days of each endpoint are resampled with replacement (the endpoints stay fixed),
+    and the rate is recomputed as misfires over windows. None with fewer than two
+    days per endpoint (the fresh day).
+    """
+    g = pd.DataFrame({"host": clean["host"].to_numpy(), "fold": clean["fold"].to_numpy(),
+                      "f": np.asarray(fired, dtype=float)})
+    agg = g.groupby(["host", "fold"])["f"].agg(["sum", "count"])
+    strata = [agg.xs(h, level="host") for h in agg.index.get_level_values("host").unique()]
+    if not strata or min(len(s) for s in strata) < 2:
+        return None
+    rng = np.random.default_rng(seed)
+    tf, tn = np.zeros(B), np.zeros(B)
+    for s in strata:
+        idx = rng.integers(0, len(s), size=(B, len(s)))
+        tf += s["sum"].to_numpy()[idx].sum(axis=1)
+        tn += s["count"].to_numpy()[idx].sum(axis=1)
+    a = (1 - level) / 2
+    return [float(np.quantile(tf / tn, a)), float(np.quantile(tf / tn, 1 - a))]
+
+
+def joint_expected(clean, gate, col):
+    """Joint misfires of gate and scope if they were independent within each endpoint."""
+    e = 0.0
+    for _, h in clean.groupby("host"):
+        e += float(h[f"gate_{gate}"].mean()) * float(h[f"{col}_named"].mean()) * len(h)
+    return e
+
+
 def rates(W):
     """Every scope under every gate, over the windows of W."""
     out = {}
@@ -86,17 +151,25 @@ def rates(W):
             f = fired(clean)
             r = {"clean_windows": int(len(clean)), "clean_fires": int(f.sum()),
                  "clean_rate": float(f.mean()) if len(clean) else None,
-                 "clean_collateral_median": float(clean.loc[f, f"{col}_collateral"].median()) if f.any() else None}
+                 "clean_ci95": clopper_pearson(int(f.sum()), int(len(clean))),
+                 "clean_ci95_cluster": cluster_ci(clean, f),
+                 "clean_gate_windows": int(clean[f"gate_{gate}"].sum()),
+                 "clean_joint_expected": (joint_expected(clean, gate, col) if gate != "none" else None),
+                 "clean_fires_by_fold": {fo: int(g.sum()) for fo, g in f.groupby(clean["fold"])},
+                 "clean_collateral_median": float(clean.loc[f, f"{col}_collateral"].median()) if f.any() else None,
+                 "clean_collateral_mean": float(clean.loc[f, f"{col}_collateral"].mean()) if f.any() else None,
+                 "clean_collateral_max": float(clean.loc[f, f"{col}_collateral"].max()) if f.any() else None}
             for N in (100, 1000):
                 fl = W[(W["kind"] == "flash") & (W["flash"] == N)]
                 r[f"flash{N}"] = float(fired(fl).mean()) if len(fl) else None
             coll = []
-            for kind, source, x in CELLS:
+            for kind, source, x in CELLS + ADV_CELLS:
                 d = select(W, kind, source, x)
                 if not len(d):
                     continue
                 fd = fired(d)
-                coll.append(d.loc[fd, f"{col}_collateral"])
+                if (kind, source, x) in CELLS:
+                    coll.append(d.loc[fd, f"{col}_collateral"])
                 r[cell_name(kind, source, x)] = {
                     "windows": int(len(d)), "fires": float(fd.mean()),
                     "gate": float(d[f"gate_{gate}"].mean()), "named": float(d[f"{col}_named"].mean()),
@@ -106,7 +179,10 @@ def rates(W):
             coll = pd.concat(coll) if coll else pd.Series(dtype=float)
             r["attack_collateral_median"] = float(coll.median()) if len(coll) else None
             r["attack_collateral_p90"] = float(coll.quantile(0.9)) if len(coll) else None
+            r["attack_collateral_max"] = float(coll.max()) if len(coll) else None
             out[f"{scope}|{gate}"] = r
+    # how often each gate alone fires on clean windows (its nominal rate is 1%)
+    out["gates_clean"] = {g: (float(clean[f"gate_{g}"].mean()) if len(clean) else None) for g in ("omega", "origins")}
     return out
 
 
@@ -123,10 +199,21 @@ def waf(W):
     return out
 
 
-def min_count(n, b, level, family, rho):
-    """Smallest count c the test names among n origins for prevalence b."""
+def min_count(n, b, log_level, family, rho):
+    """Smallest count c the test names among n origins for prevalence b.
+
+    In logs, as the test runs (rule_detection_production.log_tail): where the tail
+    probability underflows a float it is summed from the log pmf.
+    """
     c = np.arange(1, n + 1)
-    ok = (binom.sf(c - 1, n, min(b, 1.0)) * family < level) & (c / n >= rho * b)
+    b = min(b, 1.0)
+    with np.errstate(divide="ignore"):
+        lp = np.log(binom.sf(c - 1, n, b))
+    if np.isneginf(lp).any():
+        lpmf = binom.logpmf(np.arange(n + 1), n, b)
+        rev = np.logaddexp.accumulate(lpmf[::-1])[::-1]         # log P[X >= k], k = 0..n
+        lp = np.where(np.isneginf(lp), rev[c], lp)
+    ok = (lp + np.log(family) < log_level) & (c / n >= rho * b)
     return int(c[ok][0]) if ok.any() else None
 
 
@@ -143,17 +230,93 @@ def floor(rec, rho=3.0, M=25, share=0.9):
     """
     n0, N = int(round(rec["median_origins"])), rec["profile_sessions"]
     fam, lvl = rec["profile_fingerprints"] + M, rec["scope_level"]
-    out = {"median_origins": n0, "level": lvl, "known_fleets": rec.get("fleets", 0)}
+    # the level in logs: runs before the log-space test stored only the float
+    log_lvl = rec["scope_log10_level"] * np.log(10) if "scope_log10_level" in rec else np.log(lvl)
+    out = {"median_origins": n0, "level": lvl, "log10_level": float(log_lvl / np.log(10)),
+           "known_fleets": rec.get("fleets", 0), "zcal_threshold": rec.get("zcal_threshold")}
     for kind, b in (("new", 1.0 / N), ("shared", (rec.get("tail_prevalence_median") or 0.0) + 1.0 / N)):
         A_min = None
         for A in np.unique(np.round(np.geomspace(1, max(100 * n0, 10_000), 400)).astype(int)):
-            c = min_count(n0 + A, b, lvl, fam, rho)
+            c = min_count(n0 + A, b, log_lvl, fam, rho)
             if c is not None and share * A / M >= c:
                 A_min = int(A)
                 break
         out[kind] = {"min_attackers": A_min,
                      "min_fraction_of_window": (A_min / n0) if A_min else None,
-                     "min_stack_origins": (min_count(n0 + A_min, b, lvl, fam, rho) if A_min else None)}
+                     "min_stack_origins": (min_count(n0 + A_min, b, log_lvl, fam, rho) if A_min else None)}
+    return out
+
+
+def deployed_floor(rec, M=25, share=0.9, k_min=5, rho=3.0):
+    """The floor of a configuration that joins the test with the unseen filter.
+
+    On new stacks the unseen filter names a stack once it holds k_min origins,
+    whatever the level, so the configuration's floor is the smaller of the test's
+    and ceil(k_min * M / share) attackers. On stacks drawn from the profile's tail
+    the unseen filter names nothing, and the floor is the test's (a lower bound
+    under --overdispersion, see floor).
+    """
+    f = floor(rec, rho=rho, M=M, share=share)
+    n0 = f["median_origins"]
+    A_u = int(np.ceil(k_min * M / share))
+    t = f["new"]["min_attackers"]
+    A = A_u if t is None else min(t, A_u)
+    return {"M": M, "median_origins": n0,
+            "new": {"min_attackers": A, "min_fraction_of_window": A / n0,
+                    "set_by": "unseen" if (t is None or A_u < t) else "test", "test_alone": t},
+            "shared": {"min_attackers": f["shared"]["min_attackers"],
+                       "min_fraction_of_window": f["shared"]["min_fraction_of_window"]}}
+
+
+SWEEP_M = (5, 25, 100)
+SWEEP_A = (25, 50, 100, 250, 1000)
+SWEEP_X = (0.1, 0.5, 1.0)
+
+
+def model_new(rec, A, M, share=0.9, k_min=5, rho=3.0):
+    """Share of a botnet on new stacks its scope alone blocks, from stack sizes.
+
+    Each attacker sits on a stack with probability share, and its stack then holds
+    it and Bin(A - 1, share / M) others. The union names a new stack once it holds
+    the smaller of k_min and the test's smallest count at the fold's level, in a
+    window of n0 + A origins (n0 the fold's median window).
+    """
+    n0, N = int(round(rec["median_origins"])), rec["profile_sessions"]
+    fam = rec["profile_fingerprints"] + M
+    log_lvl = rec["scope_log10_level"] * np.log(10) if "scope_log10_level" in rec else np.log(rec["scope_level"])
+    t = min_count(n0 + A, 1.0 / N, log_lvl, fam, rho)
+    c = k_min if t is None else min(k_min, t)
+    return float(share * binom.sf(c - 2, A - 1, share / M))
+
+
+def sweep(W, col, recs=None, folds=()):
+    """Gate, naming and blocking over the injected botnet sizes (see the docstring)."""
+    out = {}
+    fired = lambda d: d["gate_origins"] & d[f"{col}_named"]
+    for source in ("fresh", "tail", "adversarial"):
+        name = {"fresh": "new", "tail": "shared", "adversarial": "adv"}[source]
+        for M in SWEEP_M:
+            for A in SWEEP_A:
+                d = W[(W["kind"] == "attack") & (W["source"] == source) & (W["stacks"] == M) & (W["attackers"] == A)]
+                if not len(d):
+                    continue
+                r = {"windows": int(len(d)), "gate": float(d["gate_origins"].mean()),
+                     "named": float(d[f"{col}_named"].mean()),
+                     "blocked": float((d[f"{col}_recall"] * fired(d)).mean()),
+                     "blocked_alone": float((d[f"{col}_recall"] * d[f"{col}_named"]).mean())}
+                if source == "fresh" and recs:
+                    r["model_blocked_alone"] = float(np.mean([model_new(recs[f], A, M) for f in folds if f in recs]))
+                out[f"{name}:M{M}:A{A}"] = r
+        if source == "adversarial":
+            continue
+        for x in SWEEP_X:
+            d = W[(W["kind"] == "attack_rel") & (W["source"] == source) & (W["stacks"] == 25) & (W["fraction"] == x)]
+            if len(d):
+                out[f"{name}:M25:x{x:g}"] = {
+                    "windows": int(len(d)), "attackers_median": float(d["attackers"].median()),
+                    "gate": float(d["gate_origins"].mean()), "named": float(d[f"{col}_named"].mean()),
+                    "blocked": float((d[f"{col}_recall"] * fired(d)).mean()),
+                    "blocked_alone": float((d[f"{col}_recall"] * d[f"{col}_named"]).mean())}
     return out
 
 
@@ -165,6 +328,8 @@ def main():
     ap.add_argument("--fleets", required=True)
     ap.add_argument("--od", default=None, help="the base run with the overdispersed background (--overdispersion)")
     ap.add_argument("--od-fleets", default=None, help="the same with known fleets")
+    ap.add_argument("--run", nargs=2, action="append", default=[], metavar=("NAME", "CSV"),
+                    help="a further run to reduce the same way, e.g. xfit and the --split crossfit CSV")
     ap.add_argument("--test-folds", nargs="+", required=True)
     ap.add_argument("--fresh-folds", nargs="+", default=[])
     ap.add_argument("--out", required=True, type=Path)
@@ -173,6 +338,7 @@ def main():
     roles = json.loads(args.roles.read_text())
     runs = {"base": args.base, "fleets": args.fleets}
     runs |= {k: v for k, v in (("od", args.od), ("od_fleets", args.od_fleets)) if v}
+    runs |= dict(args.run)
     fired = {}
     J = {k: json.loads((args.results / v.replace("_windows", "").replace(".csv", ".json")).read_text())
          for k, v in runs.items()}
@@ -182,7 +348,9 @@ def main():
     hosts = sorted((h for h in evaluated if h in roles),
                    key=lambda h: -J["base"]["hosts"][h]["median_test_size"])
     alias = {h: f"E{i + 1}" for i, h in enumerate(hosts)}
-    out = {"endpoints": {alias[h]: roles[h] for h in hosts},
+    # how many endpoints the exports hold, evaluated or not (a count only)
+    exported = set(J["base"]["hosts"]) | {h for v in J["base"].get("excluded_hosts", {}).values() for h in v}
+    out = {"endpoints": {alias[h]: roles[h] for h in hosts}, "endpoints_exported": len(exported),
            "folds": {"test": len(args.test_folds), "fresh": args.fresh_folds}}
     for run, csv in runs.items():
         W = load(args.results / csv)
@@ -222,6 +390,20 @@ def main():
         out.setdefault("floor", {})[run] = {
             alias[h]: {f: floor(J[run]["folds"][f][h]) for f in args.test_folds + args.fresh_folds
                        if h in J[run]["folds"].get(f, {})} for h in hosts}
+        # the floor of the deployed configuration (test joined with the unseen
+        # filter), on new and shared stacks, for 5, 25 and 100 botnet stacks
+        out.setdefault("floor_deployed", {})[run] = {
+            alias[h]: {f: {str(M): deployed_floor(J[run]["folds"][f][h], M=M) for M in (5, 25, 100)}
+                       for f in args.test_folds + args.fresh_folds if h in J[run]["folds"].get(f, {})}
+            for h in hosts}
+        # the injected sizes, on the test days: the union for the runs that join the
+        # test with the unseen filter, the calibrated z-score for the others
+        col = "union" if run in ("fleets", "od", "od_fleets") or run.endswith(("_fleets", "_od")) else "zcal"
+        T = W[W["fold"].isin(args.test_folds)]
+        out.setdefault("sweep", {})[run] = {"scope": col, "all": sweep(T, col), **{
+            alias[h]: sweep(T[T["host"] == h], col,
+                            {f: J[run]["folds"][f][h] for f in args.test_folds if h in J[run]["folds"].get(f, {})},
+                            args.test_folds) for h in hosts}}
     # Do the frozen configuration (known fleets, union, origin gate) and the calibrated
     # z-score (no fleet profile) fire on the same clean windows? Counts only.
     a, b = fired[("fleets", "union")], fired[("base", "zcal")]

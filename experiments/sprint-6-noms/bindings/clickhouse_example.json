@@ -2,11 +2,11 @@
   "dialect": "clickhouse",
   "_comment": "Example binding: map each ontology property the compiled query reads to a column expression of an access-log table. Table and column names are placeholders; a deployment writes its own. Plain-HTTP requests carry no JA4, hence nullIf.",
   "table": "access_log",
-  "where": "ts >= toDateTime('2026-09-23 00:00:00', 'UTC') AND ts < toDateTime('2026-09-24 00:00:00', 'UTC')",
-  "window": "toStartOfInterval(ts, INTERVAL 5 MINUTE)",
+  "where": "event_time >= toDateTime('2026-09-23 00:00:00', 'UTC') AND event_time < toDateTime('2026-09-24 00:00:00', 'UTC')",
+  "window": "toStartOfInterval(event_time, INTERVAL 5 MINUTE)",
   "columns": {
     "originatesFrom": "client_ip",
-    "targets": "host",
+    "targets": "endpoint_path",
     "tlsJa4": "nullIf(ja4, '-')",
     "srcPrefix": "if(position(client_ip, ':') > 0, cutIPv6(IPv6StringToNum(client_ip), 10, 0), arrayStringConcat(arraySlice(splitByChar('.', client_ip), 1, 3), '.'))"
   }

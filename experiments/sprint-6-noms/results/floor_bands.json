@@ -1,0 +1,2356 @@
+{
+  "stacks": 25,
+  "bands": {
+    "ranks_11_plus": [
+      11,
+      null
+    ],
+    "ranks_11_35": [
+      11,
+      35
+    ],
+    "ranks_36_100": [
+      36,
+      100
+    ],
+    "ranks_101_plus": [
+      101,
+      null
+    ]
+  },
+  "endpoints": {
+    "E1": "RUM beacons",
+    "E2": "web console",
+    "E3": "API",
+    "E4": "SSO"
+  },
+  "per_endpoint": {
+    "E1": {
+      "2026-09-20": {
+        "profile_fingerprints": 508,
+        "tail_prevalence_median": 2.860881075080963e-06,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 23,
+        "origin_share_above_limit": 0.9027529304958479,
+        "fleets": {
+          "median_origins": 2962,
+          "log10_level": -22.332448437611063,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 498,
+              "prevalence_median": 3.337694587594457e-06,
+              "binomial": 285,
+              "binomial_windows": 0.0962187711006077
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013558192228321197,
+              "binomial": null,
+              "binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00040529148563646974,
+              "binomial": 783,
+              "binomial_windows": 0.26434841323430114
+            },
+            "ranks_101_plus": {
+              "fingerprints": 408,
+              "prevalence_median": 1.9072540500539754e-06,
+              "binomial": 251,
+              "binomial_windows": 0.08474004051316678
+            }
+          }
+        },
+        "od": {
+          "median_origins": 2962,
+          "log10_level": -3.4788336626349063,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 498,
+              "prevalence_median": 3.337694587594457e-06,
+              "binomial": 86,
+              "phi_median": 0.0,
+              "beta_binomial": 86,
+              "binomial_windows": 0.02903443619176232,
+              "beta_binomial_windows": 0.02903443619176232
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013558192228321197,
+              "binomial": null,
+              "phi_median": 0.0005931774990749133,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00040529148563646974,
+              "binomial": 313,
+              "phi_median": 0.00010717252950140404,
+              "beta_binomial": 429,
+              "binomial_windows": 0.10567184334908845,
+              "beta_binomial_windows": 0.14483457123565158
+            },
+            "ranks_101_plus": {
+              "fingerprints": 408,
+              "prevalence_median": 1.9072540500539754e-06,
+              "binomial": 86,
+              "phi_median": 0.0,
+              "beta_binomial": 86,
+              "binomial_windows": 0.02903443619176232,
+              "beta_binomial_windows": 0.02903443619176232
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 2962,
+          "log10_level": -17.15550071979531,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 498,
+              "prevalence_median": 3.337694587594457e-06,
+              "binomial": 228,
+              "phi_median": 0.0,
+              "beta_binomial": 228,
+              "binomial_windows": 0.07697501688048616,
+              "beta_binomial_windows": 0.07697501688048616
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013558192228321197,
+              "binomial": null,
+              "phi_median": 0.0005931774990749133,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00040529148563646974,
+              "binomial": 668,
+              "phi_median": 0.00010717252950140404,
+              "beta_binomial": 1339,
+              "binomial_windows": 0.22552329507089805,
+              "beta_binomial_windows": 0.4520594193112762
+            },
+            "ranks_101_plus": {
+              "fingerprints": 408,
+              "prevalence_median": 1.9072540500539754e-06,
+              "binomial": 228,
+              "phi_median": 0.0,
+              "beta_binomial": 228,
+              "binomial_windows": 0.07697501688048616,
+              "beta_binomial_windows": 0.07697501688048616
+            }
+          }
+        }
+      },
+      "2026-09-21": {
+        "profile_fingerprints": 520,
+        "tail_prevalence_median": 2.176325926570763e-06,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 23,
+        "origin_share_above_limit": 0.9078267934739239,
+        "fleets": {
+          "median_origins": 2889,
+          "log10_level": -19.881411962004133,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 510,
+              "prevalence_median": 2.539046914332557e-06,
+              "binomial": 256,
+              "binomial_windows": 0.08861197646244376
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013722460409004185,
+              "binomial": null,
+              "binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00032971337787547064,
+              "binomial": 703,
+              "binomial_windows": 0.2433367947386639
+            },
+            "ranks_101_plus": {
+              "fingerprints": 420,
+              "prevalence_median": 1.8136049388089694e-06,
+              "binomial": 256,
+              "binomial_windows": 0.08861197646244376
+            }
+          }
+        },
+        "od": {
+          "median_origins": 2889,
+          "log10_level": -4.131897371895944,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 510,
+              "prevalence_median": 2.539046914332557e-06,
+              "binomial": 85,
+              "phi_median": 0.0,
+              "beta_binomial": 85,
+              "binomial_windows": 0.029421945309795777,
+              "beta_binomial_windows": 0.029421945309795777
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013722460409004185,
+              "binomial": null,
+              "phi_median": 0.0005269215712740016,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00032971337787547064,
+              "binomial": 310,
+              "phi_median": 0.00011272382828007662,
+              "beta_binomial": 452,
+              "binomial_windows": 0.10730356524749048,
+              "beta_binomial_windows": 0.15645552094150225
+            },
+            "ranks_101_plus": {
+              "fingerprints": 420,
+              "prevalence_median": 1.8136049388089694e-06,
+              "binomial": 85,
+              "phi_median": 0.0,
+              "beta_binomial": 85,
+              "binomial_windows": 0.029421945309795777,
+              "beta_binomial_windows": 0.029421945309795777
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 2889,
+          "log10_level": -11.742411791624168,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 510,
+              "prevalence_median": 2.539046914332557e-06,
+              "binomial": 170,
+              "phi_median": 0.0,
+              "beta_binomial": 170,
+              "binomial_windows": 0.058843890619591555,
+              "beta_binomial_windows": 0.058843890619591555
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013722460409004185,
+              "binomial": null,
+              "phi_median": 0.0005269215712740016,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00032971337787547064,
+              "binomial": 513,
+              "phi_median": 0.00011272382828007662,
+              "beta_binomial": 963,
+              "binomial_windows": 0.17757009345794392,
+              "beta_binomial_windows": 0.3333333333333333
+            },
+            "ranks_101_plus": {
+              "fingerprints": 420,
+              "prevalence_median": 1.8136049388089694e-06,
+              "binomial": 170,
+              "phi_median": 0.0,
+              "beta_binomial": 170,
+              "binomial_windows": 0.058843890619591555,
+              "beta_binomial_windows": 0.058843890619591555
+            }
+          }
+        }
+      },
+      "2026-09-22": {
+        "profile_fingerprints": 567,
+        "tail_prevalence_median": 1.946754051820924e-06,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 23,
+        "origin_share_above_limit": 0.9046237911700241,
+        "fleets": {
+          "median_origins": 2983,
+          "log10_level": -20.688088583308016,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 557,
+              "prevalence_median": 2.2248617735096273e-06,
+              "binomial": 252,
+              "binomial_windows": 0.08447871270533021
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013386437075764052,
+              "binomial": null,
+              "binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0003298357579228023,
+              "binomial": 714,
+              "binomial_windows": 0.23935635266510225
+            },
+            "ranks_101_plus": {
+              "fingerprints": 467,
+              "prevalence_median": 1.3905386084435174e-06,
+              "binomial": 252,
+              "binomial_windows": 0.08447871270533021
+            }
+          }
+        },
+        "od": {
+          "median_origins": 2983,
+          "log10_level": -4.881759692671169,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 557,
+              "prevalence_median": 2.2248617735096273e-06,
+              "binomial": 114,
+              "phi_median": 0.0,
+              "beta_binomial": 114,
+              "binomial_windows": 0.03821656050955414,
+              "beta_binomial_windows": 0.03821656050955414
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013386437075764052,
+              "binomial": null,
+              "phi_median": 0.0005833121846225039,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0003298357579228023,
+              "binomial": 335,
+              "phi_median": 0.0001224682088269819,
+              "beta_binomial": 505,
+              "binomial_windows": 0.11230305062018102,
+              "beta_binomial_windows": 0.1692926583975863
+            },
+            "ranks_101_plus": {
+              "fingerprints": 467,
+              "prevalence_median": 1.3905386084435174e-06,
+              "binomial": 86,
+              "phi_median": 0.0,
+              "beta_binomial": 86,
+              "binomial_windows": 0.028830036875628563,
+              "beta_binomial_windows": 0.028830036875628563
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 2983,
+          "log10_level": -11.32582311149614,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 557,
+              "prevalence_median": 2.2248617735096273e-06,
+              "binomial": 167,
+              "phi_median": 0.0,
+              "beta_binomial": 167,
+              "binomial_windows": 0.055983908816627556,
+              "beta_binomial_windows": 0.055983908816627556
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013386437075764052,
+              "binomial": null,
+              "phi_median": 0.0005833121846225039,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0003298357579228023,
+              "binomial": 505,
+              "phi_median": 0.0001224682088269819,
+              "beta_binomial": 949,
+              "binomial_windows": 0.1692926583975863,
+              "beta_binomial_windows": 0.3181361045926919
+            },
+            "ranks_101_plus": {
+              "fingerprints": 467,
+              "prevalence_median": 1.3905386084435174e-06,
+              "binomial": 167,
+              "phi_median": 0.0,
+              "beta_binomial": 167,
+              "binomial_windows": 0.055983908816627556,
+              "beta_binomial_windows": 0.055983908816627556
+            }
+          }
+        }
+      },
+      "2026-09-23": {
+        "profile_fingerprints": 630,
+        "tail_prevalence_median": 1.5868500007367517e-06,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 23,
+        "origin_share_above_limit": 0.9039407152839726,
+        "fleets": {
+          "median_origins": 3028,
+          "log10_level": -21.47315227936394,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 620,
+              "prevalence_median": 1.8135428579848592e-06,
+              "binomial": 254,
+              "binomial_windows": 0.08388375165125496
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013144105248959762,
+              "binomial": null,
+              "binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00033233172872572543,
+              "binomial": 743,
+              "binomial_windows": 0.2453764861294584
+            },
+            "ranks_101_plus": {
+              "fingerprints": 530,
+              "prevalence_median": 1.133464286240537e-06,
+              "binomial": 254,
+              "binomial_windows": 0.08388375165125496
+            }
+          }
+        },
+        "od": {
+          "median_origins": 3028,
+          "log10_level": -4.740979073442846,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 620,
+              "prevalence_median": 1.8135428579848592e-06,
+              "binomial": 115,
+              "phi_median": 0.0,
+              "beta_binomial": 115,
+              "binomial_windows": 0.03797886393659181,
+              "beta_binomial_windows": 0.03797886393659181
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013144105248959762,
+              "binomial": null,
+              "phi_median": 0.0006243872863730674,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00033233172872572543,
+              "binomial": 337,
+              "phi_median": 0.00012913229933124632,
+              "beta_binomial": 542,
+              "binomial_windows": 0.11129458388375166,
+              "beta_binomial_windows": 0.17899603698811095
+            },
+            "ranks_101_plus": {
+              "fingerprints": 530,
+              "prevalence_median": 1.133464286240537e-06,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 0.02774108322324967,
+              "beta_binomial_windows": 0.02774108322324967
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 3028,
+          "log10_level": -7.497041220228423,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 620,
+              "prevalence_median": 1.8135428579848592e-06,
+              "binomial": 115,
+              "phi_median": 0.0,
+              "beta_binomial": 115,
+              "binomial_windows": 0.03797886393659181,
+              "beta_binomial_windows": 0.03797886393659181
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.013144105248959762,
+              "binomial": null,
+              "phi_median": 0.0006243872863730674,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00033233172872572543,
+              "binomial": 395,
+              "phi_median": 0.00012913229933124632,
+              "beta_binomial": 698,
+              "binomial_windows": 0.13044914134742405,
+              "beta_binomial_windows": 0.23051519154557465
+            },
+            "ranks_101_plus": {
+              "fingerprints": 530,
+              "prevalence_median": 1.133464286240537e-06,
+              "binomial": 115,
+              "phi_median": 0.0,
+              "beta_binomial": 115,
+              "binomial_windows": 0.03797886393659181,
+              "beta_binomial_windows": 0.03797886393659181
+            }
+          }
+        }
+      },
+      "2026-09-24": {
+        "profile_fingerprints": 818,
+        "tail_prevalence_median": 6.676432061294987e-07,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 23,
+        "origin_share_above_limit": 0.9036817852245217,
+        "fleets": {
+          "median_origins": 3067,
+          "log10_level": -21.73103417721398,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 808,
+              "prevalence_median": 8.583984078807841e-07,
+              "binomial": 225,
+              "binomial_windows": 0.07336159113139876
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0129709722086839,
+              "binomial": null,
+              "binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00034545767037157777,
+              "binomial": 772,
+              "binomial_windows": 0.25171177045973264
+            },
+            "ranks_101_plus": {
+              "fingerprints": 718,
+              "prevalence_median": 5.722656052538561e-07,
+              "binomial": 225,
+              "binomial_windows": 0.07336159113139876
+            }
+          }
+        },
+        "od": {
+          "median_origins": 3067,
+          "log10_level": -3.921946328454494,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 808,
+              "prevalence_median": 8.583984078807841e-07,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 0.027388327355722206,
+              "beta_binomial_windows": 0.027388327355722206
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0129709722086839,
+              "binomial": null,
+              "phi_median": 0.0006285229966483028,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00034545767037157777,
+              "binomial": 308,
+              "phi_median": 0.00011558158553226772,
+              "beta_binomial": 480,
+              "binomial_windows": 0.10042386697098142,
+              "beta_binomial_windows": 0.156504727746984
+            },
+            "ranks_101_plus": {
+              "fingerprints": 718,
+              "prevalence_median": 5.722656052538561e-07,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 0.027388327355722206,
+              "beta_binomial_windows": 0.027388327355722206
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 3067,
+          "log10_level": -6.849616621512259,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 808,
+              "prevalence_median": 8.583984078807841e-07,
+              "binomial": 112,
+              "phi_median": 0.0,
+              "beta_binomial": 112,
+              "binomial_windows": 0.03651776980762961,
+              "beta_binomial_windows": 0.03651776980762961
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0129709722086839,
+              "binomial": null,
+              "phi_median": 0.0006285229966483028,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00034545767037157777,
+              "binomial": 397,
+              "phi_median": 0.00011558158553226772,
+              "beta_binomial": 639,
+              "binomial_windows": 0.12944245190740136,
+              "beta_binomial_windows": 0.2083469188131725
+            },
+            "ranks_101_plus": {
+              "fingerprints": 718,
+              "prevalence_median": 5.722656052538561e-07,
+              "binomial": 112,
+              "phi_median": 0.0,
+              "beta_binomial": 112,
+              "binomial_windows": 0.03651776980762961,
+              "beta_binomial_windows": 0.03651776980762961
+            }
+          }
+        }
+      }
+    },
+    "E2": {
+      "2026-09-20": {
+        "profile_fingerprints": 213,
+        "tail_prevalence_median": 0.00012196795292037017,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 26,
+        "origin_share_above_limit": 0.8626793310057781,
+        "fleets": {
+          "median_origins": 64,
+          "log10_level": -89.72671229801217,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 203,
+              "prevalence_median": 0.00013721394703541644,
+              "binomial": 1312,
+              "binomial_windows": 20.5
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.01885929472031224,
+              "binomial": null,
+              "binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0010367275998231465,
+              "binomial": 2282,
+              "binomial_windows": 35.65625
+            },
+            "ranks_101_plus": {
+              "fingerprints": 113,
+              "prevalence_median": 4.573798234513881e-05,
+              "binomial": 1066,
+              "binomial_windows": 16.65625
+            }
+          }
+        },
+        "od": {
+          "median_origins": 64,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 203,
+              "prevalence_median": 0.00013721394703541644,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 1.3125,
+              "beta_binomial_windows": 1.3125
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.01885929472031224,
+              "binomial": null,
+              "phi_median": 0.0,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0010367275998231465,
+              "binomial": 114,
+              "phi_median": 5.209602888634012e-05,
+              "beta_binomial": 140,
+              "binomial_windows": 1.78125,
+              "beta_binomial_windows": 2.1875
+            },
+            "ranks_101_plus": {
+              "fingerprints": 113,
+              "prevalence_median": 4.573798234513881e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 0.875,
+              "beta_binomial_windows": 0.875
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 64,
+          "log10_level": -10.547893404872644,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 203,
+              "prevalence_median": 0.00013721394703541644,
+              "binomial": 198,
+              "phi_median": 0.0,
+              "beta_binomial": 198,
+              "binomial_windows": 3.09375,
+              "beta_binomial_windows": 3.09375
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.01885929472031224,
+              "binomial": null,
+              "phi_median": 0.0,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0010367275998231465,
+              "binomial": 336,
+              "phi_median": 5.209602888634012e-05,
+              "beta_binomial": 368,
+              "binomial_windows": 5.25,
+              "beta_binomial_windows": 5.75
+            },
+            "ranks_101_plus": {
+              "fingerprints": 113,
+              "prevalence_median": 4.573798234513881e-05,
+              "binomial": 168,
+              "phi_median": 0.0,
+              "beta_binomial": 168,
+              "binomial_windows": 2.625,
+              "beta_binomial_windows": 2.625
+            }
+          }
+        }
+      },
+      "2026-09-21": {
+        "profile_fingerprints": 221,
+        "tail_prevalence_median": 0.00012739664946811899,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 27,
+        "origin_share_above_limit": 0.8804255048092234,
+        "fleets": {
+          "median_origins": 57,
+          "log10_level": -89.01700264382832,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 211,
+              "prevalence_median": 0.00014013631441493087,
+              "binomial": 1282,
+              "binomial_windows": 22.49122807017544
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.018434295178036818,
+              "binomial": null,
+              "binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0009809542009045161,
+              "binomial": 2230,
+              "binomial_windows": 39.12280701754386
+            },
+            "ranks_101_plus": {
+              "fingerprints": 121,
+              "prevalence_median": 3.82189948404357e-05,
+              "binomial": 1017,
+              "binomial_windows": 17.842105263157894
+            }
+          }
+        },
+        "od": {
+          "median_origins": 57,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 211,
+              "prevalence_median": 0.00014013631441493087,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 1.4736842105263157,
+              "beta_binomial_windows": 1.4736842105263157
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.018434295178036818,
+              "binomial": null,
+              "phi_median": 0.00014252510433808844,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0009809542009045161,
+              "binomial": 114,
+              "phi_median": 0.0002213325235102806,
+              "beta_binomial": 140,
+              "binomial_windows": 2.0,
+              "beta_binomial_windows": 2.456140350877193
+            },
+            "ranks_101_plus": {
+              "fingerprints": 121,
+              "prevalence_median": 3.82189948404357e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 0.9824561403508771,
+              "beta_binomial_windows": 0.9824561403508771
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 57,
+          "log10_level": -9.580066895687358,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 211,
+              "prevalence_median": 0.00014013631441493087,
+              "binomial": 198,
+              "phi_median": 0.0,
+              "beta_binomial": 198,
+              "binomial_windows": 3.473684210526316,
+              "beta_binomial_windows": 3.473684210526316
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.018434295178036818,
+              "binomial": null,
+              "phi_median": 0.00014252510433808844,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0009809542009045161,
+              "binomial": 306,
+              "phi_median": 0.0002213325235102806,
+              "beta_binomial": 509,
+              "binomial_windows": 5.368421052631579,
+              "beta_binomial_windows": 8.929824561403509
+            },
+            "ranks_101_plus": {
+              "fingerprints": 121,
+              "prevalence_median": 3.82189948404357e-05,
+              "binomial": 140,
+              "phi_median": 0.0,
+              "beta_binomial": 140,
+              "binomial_windows": 2.456140350877193,
+              "beta_binomial_windows": 2.456140350877193
+            }
+          }
+        }
+      },
+      "2026-09-22": {
+        "profile_fingerprints": 236,
+        "tail_prevalence_median": 0.00013464185267189277,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 27,
+        "origin_share_above_limit": 0.876628169070273,
+        "fleets": {
+          "median_origins": 58,
+          "log10_level": -72.69004427165238,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 226,
+              "prevalence_median": 0.00014461532324018113,
+              "binomial": 1090,
+              "binomial_windows": 18.79310344827586
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.01961781660782319,
+              "binomial": null,
+              "binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0010372409391019887,
+              "binomial": 1898,
+              "binomial_windows": 32.724137931034484
+            },
+            "ranks_101_plus": {
+              "fingerprints": 136,
+              "prevalence_median": 3.989388227315341e-05,
+              "binomial": 846,
+              "binomial_windows": 14.586206896551724
+            }
+          }
+        },
+        "od": {
+          "median_origins": 58,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 226,
+              "prevalence_median": 0.00014461532324018113,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 1.4482758620689655,
+              "beta_binomial_windows": 1.4482758620689655
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.01961781660782319,
+              "binomial": null,
+              "phi_median": 0.0002735607927483045,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0010372409391019887,
+              "binomial": 114,
+              "phi_median": 0.0005868246153976624,
+              "beta_binomial": 168,
+              "binomial_windows": 1.9655172413793103,
+              "beta_binomial_windows": 2.896551724137931
+            },
+            "ranks_101_plus": {
+              "fingerprints": 136,
+              "prevalence_median": 3.989388227315341e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 0.9655172413793104,
+              "beta_binomial_windows": 0.9655172413793104
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 58,
+          "log10_level": -7.790460367498802,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 226,
+              "prevalence_median": 0.00014461532324018113,
+              "binomial": 168,
+              "phi_median": 0.0,
+              "beta_binomial": 168,
+              "binomial_windows": 2.896551724137931,
+              "beta_binomial_windows": 2.896551724137931
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.01961781660782319,
+              "binomial": null,
+              "phi_median": 0.0002735607927483045,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0010372409391019887,
+              "binomial": 279,
+              "phi_median": 0.0005868246153976624,
+              "beta_binomial": 533,
+              "binomial_windows": 4.810344827586207,
+              "beta_binomial_windows": 9.189655172413794
+            },
+            "ranks_101_plus": {
+              "fingerprints": 136,
+              "prevalence_median": 3.989388227315341e-05,
+              "binomial": 140,
+              "phi_median": 0.0,
+              "beta_binomial": 140,
+              "binomial_windows": 2.413793103448276,
+              "beta_binomial_windows": 2.413793103448276
+            }
+          }
+        }
+      },
+      "2026-09-23": {
+        "profile_fingerprints": 241,
+        "tail_prevalence_median": 0.00012533684276493074,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 27,
+        "origin_share_above_limit": 0.8708795512941031,
+        "fleets": {
+          "median_origins": 62,
+          "log10_level": -68.42874874453514,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 231,
+              "prevalence_median": 0.00013317039543773892,
+              "binomial": 1017,
+              "binomial_windows": 16.403225806451612
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.02114275866390926,
+              "binomial": null,
+              "binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.001010528294792254,
+              "binomial": 1771,
+              "binomial_windows": 28.56451612903226
+            },
+            "ranks_101_plus": {
+              "fingerprints": 141,
+              "prevalence_median": 3.1334210691232685e-05,
+              "binomial": 754,
+              "binomial_windows": 12.161290322580646
+            }
+          }
+        },
+        "od": {
+          "median_origins": 62,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 231,
+              "prevalence_median": 0.00013317039543773892,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 1.3548387096774193,
+              "beta_binomial_windows": 1.3548387096774193
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.02114275866390926,
+              "binomial": null,
+              "phi_median": 0.0002466941500440334,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.001010528294792254,
+              "binomial": 114,
+              "phi_median": 0.0005237261361627377,
+              "beta_binomial": 168,
+              "binomial_windows": 1.8387096774193548,
+              "beta_binomial_windows": 2.7096774193548385
+            },
+            "ranks_101_plus": {
+              "fingerprints": 141,
+              "prevalence_median": 3.1334210691232685e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 0.9032258064516129,
+              "beta_binomial_windows": 0.9032258064516129
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 62,
+          "log10_level": -8.04848416997169,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 231,
+              "prevalence_median": 0.00013317039543773892,
+              "binomial": 168,
+              "phi_median": 0.0,
+              "beta_binomial": 168,
+              "binomial_windows": 2.7096774193548385,
+              "beta_binomial_windows": 2.7096774193548385
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.02114275866390926,
+              "binomial": null,
+              "phi_median": 0.0002466941500440334,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.001010528294792254,
+              "binomial": 279,
+              "phi_median": 0.0005237261361627377,
+              "beta_binomial": 509,
+              "binomial_windows": 4.5,
+              "beta_binomial_windows": 8.209677419354838
+            },
+            "ranks_101_plus": {
+              "fingerprints": 141,
+              "prevalence_median": 3.1334210691232685e-05,
+              "binomial": 140,
+              "phi_median": 0.0,
+              "beta_binomial": 140,
+              "binomial_windows": 2.2580645161290325,
+              "beta_binomial_windows": 2.2580645161290325
+            }
+          }
+        }
+      },
+      "2026-09-24": {
+        "profile_fingerprints": 262,
+        "tail_prevalence_median": 0.00010237117227788655,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 28,
+        "origin_share_above_limit": 0.8700270003966882,
+        "fleets": {
+          "median_origins": 66,
+          "log10_level": -47.776751932117556,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 252,
+              "prevalence_median": 0.00010876937054525446,
+              "binomial": 672,
+              "binomial_windows": 10.181818181818182
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.02090931193775833,
+              "binomial": null,
+              "binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0009981189297093938,
+              "binomial": 1224,
+              "binomial_windows": 18.545454545454547
+            },
+            "ranks_101_plus": {
+              "fingerprints": 162,
+              "prevalence_median": 3.1990991336839546e-05,
+              "binomial": 558,
+              "binomial_windows": 8.454545454545455
+            }
+          }
+        },
+        "od": {
+          "median_origins": 66,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 252,
+              "prevalence_median": 0.00010876937054525446,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 1.2727272727272727,
+              "beta_binomial_windows": 1.2727272727272727
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.02090931193775833,
+              "binomial": null,
+              "phi_median": 0.00028038080751816805,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0009981189297093938,
+              "binomial": 140,
+              "phi_median": 0.000380048883282283,
+              "beta_binomial": 140,
+              "binomial_windows": 2.121212121212121,
+              "beta_binomial_windows": 2.121212121212121
+            },
+            "ranks_101_plus": {
+              "fingerprints": 162,
+              "prevalence_median": 3.1990991336839546e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 0.8484848484848485,
+              "beta_binomial_windows": 0.8484848484848485
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 66,
+          "log10_level": -8.385426982353136,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 252,
+              "prevalence_median": 0.00010876937054525446,
+              "binomial": 168,
+              "phi_median": 0.0,
+              "beta_binomial": 168,
+              "binomial_windows": 2.5454545454545454,
+              "beta_binomial_windows": 2.5454545454545454
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.02090931193775833,
+              "binomial": null,
+              "phi_median": 0.00028038080751816805,
+              "beta_binomial": null,
+              "binomial_windows": null,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0009981189297093938,
+              "binomial": 279,
+              "phi_median": 0.000380048883282283,
+              "beta_binomial": 454,
+              "binomial_windows": 4.2272727272727275,
+              "beta_binomial_windows": 6.878787878787879
+            },
+            "ranks_101_plus": {
+              "fingerprints": 162,
+              "prevalence_median": 3.1990991336839546e-05,
+              "binomial": 140,
+              "phi_median": 0.0,
+              "beta_binomial": 140,
+              "binomial_windows": 2.121212121212121,
+              "beta_binomial_windows": 2.121212121212121
+            }
+          }
+        }
+      }
+    },
+    "E3": {
+      "2026-09-20": {
+        "profile_fingerprints": 171,
+        "tail_prevalence_median": 8.33472245374229e-05,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 13,
+        "origin_share_above_limit": 0.8900650108351393,
+        "fleets": {
+          "median_origins": 40,
+          "log10_level": -10.181921490590515,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 161,
+              "prevalence_median": 0.00011112963271656387,
+              "binomial": 168,
+              "binomial_windows": 4.2
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.004028449185975441,
+              "binomial": 612,
+              "binomial_windows": 15.3
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00022225926543312775,
+              "binomial": 198,
+              "binomial_windows": 4.95
+            },
+            "ranks_101_plus": {
+              "fingerprints": 71,
+              "prevalence_median": 5.556481635828194e-05,
+              "binomial": 168,
+              "binomial_windows": 4.2
+            }
+          }
+        },
+        "od": {
+          "median_origins": 40,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 161,
+              "prevalence_median": 0.00011112963271656387,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 2.1,
+              "beta_binomial_windows": 2.1
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.004028449185975441,
+              "binomial": 227,
+              "phi_median": 9.317738026487626e-05,
+              "beta_binomial": 227,
+              "binomial_windows": 5.675,
+              "beta_binomial_windows": 5.675
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00022225926543312775,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 2.1,
+              "beta_binomial_windows": 2.1
+            },
+            "ranks_101_plus": {
+              "fingerprints": 71,
+              "prevalence_median": 5.556481635828194e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 1.4,
+              "beta_binomial_windows": 1.4
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 40,
+          "log10_level": -15.985997867598599,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 161,
+              "prevalence_median": 0.00011112963271656387,
+              "binomial": 255,
+              "phi_median": 0.0,
+              "beta_binomial": 255,
+              "binomial_windows": 6.375,
+              "beta_binomial_windows": 6.375
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.004028449185975441,
+              "binomial": 907,
+              "phi_median": 9.317738026487626e-05,
+              "beta_binomial": 2282,
+              "binomial_windows": 22.675,
+              "beta_binomial_windows": 57.05
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00022225926543312775,
+              "binomial": 306,
+              "phi_median": 0.0,
+              "beta_binomial": 306,
+              "binomial_windows": 7.65,
+              "beta_binomial_windows": 7.65
+            },
+            "ranks_101_plus": {
+              "fingerprints": 71,
+              "prevalence_median": 5.556481635828194e-05,
+              "binomial": 227,
+              "phi_median": 0.0,
+              "beta_binomial": 227,
+              "binomial_windows": 5.675,
+              "beta_binomial_windows": 5.675
+            }
+          }
+        }
+      },
+      "2026-09-21": {
+        "profile_fingerprints": 188,
+        "tail_prevalence_median": 6.08198515995621e-05,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 15,
+        "origin_share_above_limit": 0.8793942342780684,
+        "fleets": {
+          "median_origins": 43,
+          "log10_level": -10.99799644025263,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 178,
+              "prevalence_median": 8.10931354660828e-05,
+              "binomial": 168,
+              "binomial_windows": 3.9069767441860463
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.005453513360094068,
+              "binomial": 808,
+              "binomial_windows": 18.790697674418606
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00020273283866520698,
+              "binomial": 227,
+              "binomial_windows": 5.27906976744186
+            },
+            "ranks_101_plus": {
+              "fingerprints": 88,
+              "prevalence_median": 4.05465677330414e-05,
+              "binomial": 168,
+              "binomial_windows": 3.9069767441860463
+            }
+          }
+        },
+        "od": {
+          "median_origins": 43,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 178,
+              "prevalence_median": 8.10931354660828e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 1.302325581395349,
+              "beta_binomial_windows": 1.302325581395349
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.005453513360094068,
+              "binomial": 279,
+              "phi_median": 0.0014986020425728649,
+              "beta_binomial": 585,
+              "binomial_windows": 6.488372093023256,
+              "beta_binomial_windows": 13.604651162790697
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00020273283866520698,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 1.9534883720930232,
+              "beta_binomial_windows": 1.9534883720930232
+            },
+            "ranks_101_plus": {
+              "fingerprints": 88,
+              "prevalence_median": 4.05465677330414e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 1.302325581395349,
+              "beta_binomial_windows": 1.302325581395349
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 43,
+          "log10_level": -7.797920578393513,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 178,
+              "prevalence_median": 8.10931354660828e-05,
+              "binomial": 140,
+              "phi_median": 0.0,
+              "beta_binomial": 140,
+              "binomial_windows": 3.255813953488372,
+              "beta_binomial_windows": 3.255813953488372
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.005453513360094068,
+              "binomial": 612,
+              "phi_median": 0.0014986020425728649,
+              "beta_binomial": null,
+              "binomial_windows": 14.232558139534884,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00020273283866520698,
+              "binomial": 168,
+              "phi_median": 0.0,
+              "beta_binomial": 168,
+              "binomial_windows": 3.9069767441860463,
+              "beta_binomial_windows": 3.9069767441860463
+            },
+            "ranks_101_plus": {
+              "fingerprints": 88,
+              "prevalence_median": 4.05465677330414e-05,
+              "binomial": 114,
+              "phi_median": 0.0,
+              "beta_binomial": 114,
+              "binomial_windows": 2.6511627906976742,
+              "beta_binomial_windows": 2.6511627906976742
+            }
+          }
+        }
+      },
+      "2026-09-22": {
+        "profile_fingerprints": 210,
+        "tail_prevalence_median": 4.817806613242544e-05,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 15,
+        "origin_share_above_limit": 0.8837463264224573,
+        "fleets": {
+          "median_origins": 43,
+          "log10_level": -11.324804411389046,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 200,
+              "prevalence_median": 6.42374215099006e-05,
+              "binomial": 168,
+              "binomial_windows": 3.9069767441860463
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.004737509836355169,
+              "binomial": 754,
+              "binomial_windows": 17.53488372093023
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00020877161990717693,
+              "binomial": 227,
+              "binomial_windows": 5.27906976744186
+            },
+            "ranks_101_plus": {
+              "fingerprints": 110,
+              "prevalence_median": 4.817806613242545e-05,
+              "binomial": 168,
+              "binomial_windows": 3.9069767441860463
+            }
+          }
+        },
+        "od": {
+          "median_origins": 43,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 200,
+              "prevalence_median": 6.42374215099006e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 1.302325581395349,
+              "beta_binomial_windows": 1.302325581395349
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.004737509836355169,
+              "binomial": 255,
+              "phi_median": 0.0017408694538615466,
+              "beta_binomial": 612,
+              "binomial_windows": 5.930232558139535,
+              "beta_binomial_windows": 14.232558139534884
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00020877161990717693,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 1.9534883720930232,
+              "beta_binomial_windows": 1.9534883720930232
+            },
+            "ranks_101_plus": {
+              "fingerprints": 110,
+              "prevalence_median": 4.817806613242545e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 1.302325581395349,
+              "beta_binomial_windows": 1.302325581395349
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 43,
+          "log10_level": -4.765956259219494,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 200,
+              "prevalence_median": 6.42374215099006e-05,
+              "binomial": 114,
+              "phi_median": 0.0,
+              "beta_binomial": 114,
+              "binomial_windows": 2.6511627906976742,
+              "beta_binomial_windows": 2.6511627906976742
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.004737509836355169,
+              "binomial": 395,
+              "phi_median": 0.0017408694538615466,
+              "beta_binomial": null,
+              "binomial_windows": 9.186046511627907,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00020877161990717693,
+              "binomial": 114,
+              "phi_median": 0.0,
+              "beta_binomial": 114,
+              "binomial_windows": 2.6511627906976742,
+              "beta_binomial_windows": 2.6511627906976742
+            },
+            "ranks_101_plus": {
+              "fingerprints": 110,
+              "prevalence_median": 4.817806613242545e-05,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 1.9534883720930232,
+              "beta_binomial_windows": 1.9534883720930232
+            }
+          }
+        }
+      },
+      "2026-09-23": {
+        "profile_fingerprints": 227,
+        "tail_prevalence_median": 5.457919441109049e-05,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 14,
+        "origin_share_above_limit": 0.8692418949896298,
+        "fleets": {
+          "median_origins": 41,
+          "log10_level": -14.604889995655112,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 217,
+              "prevalence_median": 6.822399301386311e-05,
+              "binomial": 227,
+              "binomial_windows": 5.536585365853658
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.004530073136120511,
+              "binomial": 907,
+              "binomial_windows": 22.121951219512194
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00025925117345267985,
+              "binomial": 279,
+              "binomial_windows": 6.804878048780488
+            },
+            "ranks_101_plus": {
+              "fingerprints": 127,
+              "prevalence_median": 4.093439580831787e-05,
+              "binomial": 198,
+              "binomial_windows": 4.829268292682927
+            }
+          }
+        },
+        "od": {
+          "median_origins": 41,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 217,
+              "prevalence_median": 6.822399301386311e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 1.3658536585365855,
+              "beta_binomial_windows": 1.3658536585365855
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.004530073136120511,
+              "binomial": 227,
+              "phi_median": 0.002093897293647399,
+              "beta_binomial": 808,
+              "binomial_windows": 5.536585365853658,
+              "beta_binomial_windows": 19.70731707317073
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00025925117345267985,
+              "binomial": 84,
+              "phi_median": 0.001369677540590933,
+              "beta_binomial": 140,
+              "binomial_windows": 2.048780487804878,
+              "beta_binomial_windows": 3.4146341463414633
+            },
+            "ranks_101_plus": {
+              "fingerprints": 127,
+              "prevalence_median": 4.093439580831787e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 1.3658536585365855,
+              "beta_binomial_windows": 1.3658536585365855
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 41,
+          "log10_level": -7.143923113092284,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 217,
+              "prevalence_median": 6.822399301386311e-05,
+              "binomial": 140,
+              "phi_median": 0.0,
+              "beta_binomial": 140,
+              "binomial_windows": 3.4146341463414633,
+              "beta_binomial_windows": 3.4146341463414633
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.004530073136120511,
+              "binomial": 509,
+              "phi_median": 0.002093897293647399,
+              "beta_binomial": null,
+              "binomial_windows": 12.414634146341463,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.00025925117345267985,
+              "binomial": 168,
+              "phi_median": 0.001369677540590933,
+              "beta_binomial": 866,
+              "binomial_windows": 4.097560975609756,
+              "beta_binomial_windows": 21.121951219512194
+            },
+            "ranks_101_plus": {
+              "fingerprints": 127,
+              "prevalence_median": 4.093439580831787e-05,
+              "binomial": 114,
+              "phi_median": 0.0,
+              "beta_binomial": 114,
+              "binomial_windows": 2.7804878048780486,
+              "beta_binomial_windows": 2.7804878048780486
+            }
+          }
+        }
+      },
+      "2026-09-24": {
+        "profile_fingerprints": 238,
+        "tail_prevalence_median": 4.75324706189916e-05,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 14,
+        "origin_share_above_limit": 0.8685133031502147,
+        "fleets": {
+          "median_origins": 40,
+          "log10_level": -14.394294584290002,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 228,
+              "prevalence_median": 5.9415588273739495e-05,
+              "binomial": 227,
+              "binomial_windows": 5.675
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.005834610768481218,
+              "binomial": 1066,
+              "binomial_windows": 26.65
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0002495454707497059,
+              "binomial": 279,
+              "binomial_windows": 6.975
+            },
+            "ranks_101_plus": {
+              "fingerprints": 138,
+              "prevalence_median": 3.56493529642437e-05,
+              "binomial": 198,
+              "binomial_windows": 4.95
+            }
+          }
+        },
+        "od": {
+          "median_origins": 40,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 228,
+              "prevalence_median": 5.9415588273739495e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 1.4,
+              "beta_binomial_windows": 1.4
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.005834610768481218,
+              "binomial": 279,
+              "phi_median": 0.001797231278792001,
+              "beta_binomial": 928,
+              "binomial_windows": 6.975,
+              "beta_binomial_windows": 23.2
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0002495454707497059,
+              "binomial": 84,
+              "phi_median": 0.0008449627022914607,
+              "beta_binomial": 114,
+              "binomial_windows": 2.1,
+              "beta_binomial_windows": 2.85
+            },
+            "ranks_101_plus": {
+              "fingerprints": 138,
+              "prevalence_median": 3.56493529642437e-05,
+              "binomial": 56,
+              "phi_median": 0.0,
+              "beta_binomial": 56,
+              "binomial_windows": 1.4,
+              "beta_binomial_windows": 1.4
+            }
+          }
+        },
+        "xfit_od": {
+          "median_origins": 40,
+          "log10_level": -4.828019904152636,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 228,
+              "prevalence_median": 5.9415588273739495e-05,
+              "binomial": 114,
+              "phi_median": 0.0,
+              "beta_binomial": 114,
+              "binomial_windows": 2.85,
+              "beta_binomial_windows": 2.85
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.005834610768481218,
+              "binomial": 475,
+              "phi_median": 0.001797231278792001,
+              "beta_binomial": null,
+              "binomial_windows": 11.875,
+              "beta_binomial_windows": null
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 0.0002495454707497059,
+              "binomial": 140,
+              "phi_median": 0.0008449627022914607,
+              "beta_binomial": 255,
+              "binomial_windows": 3.5,
+              "beta_binomial_windows": 6.375
+            },
+            "ranks_101_plus": {
+              "fingerprints": 138,
+              "prevalence_median": 3.56493529642437e-05,
+              "binomial": 84,
+              "phi_median": 0.0,
+              "beta_binomial": 84,
+              "binomial_windows": 2.1,
+              "beta_binomial_windows": 2.1
+            }
+          }
+        }
+      }
+    },
+    "E4": {
+      "2026-09-20": {
+        "profile_fingerprints": 76,
+        "tail_prevalence_median": 0.0001225940909648155,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 4,
+        "origin_share_above_limit": 0.9348412406522005,
+        "fleets": {
+          "median_origins": 19,
+          "log10_level": -3.9950676501536546,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 66,
+              "prevalence_median": 0.00018389113644722325,
+              "binomial": 114,
+              "binomial_windows": 6.0
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.00042907931837685425,
+              "binomial": 114,
+              "binomial_windows": 6.0
+            },
+            "ranks_36_100": {
+              "fingerprints": 41,
+              "prevalence_median": 0.0001225940909648155,
+              "binomial": 84,
+              "binomial_windows": 4.421052631578948
+            },
+            "ranks_101_plus": null
+          }
+        },
+        "od": {
+          "median_origins": 19,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 66,
+              "prevalence_median": 0.00018389113644722325,
+              "binomial": 56,
+              "phi_median": 0.0004011988446958841,
+              "beta_binomial": 84,
+              "binomial_windows": 2.9473684210526314,
+              "beta_binomial_windows": 4.421052631578948
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.00042907931837685425,
+              "binomial": 84,
+              "phi_median": 0.0003835437923106115,
+              "beta_binomial": 84,
+              "binomial_windows": 4.421052631578948,
+              "beta_binomial_windows": 4.421052631578948
+            },
+            "ranks_36_100": {
+              "fingerprints": 41,
+              "prevalence_median": 0.0001225940909648155,
+              "binomial": 56,
+              "phi_median": 0.00040119884469596006,
+              "beta_binomial": 84,
+              "binomial_windows": 2.9473684210526314,
+              "beta_binomial_windows": 4.421052631578948
+            },
+            "ranks_101_plus": null
+          }
+        },
+        "xfit_od": {
+          "median_origins": 19,
+          "log10_level": -3.646021986946164,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 66,
+              "prevalence_median": 0.00018389113644722325,
+              "binomial": 84,
+              "phi_median": 0.0004011988446958841,
+              "beta_binomial": 114,
+              "binomial_windows": 4.421052631578948,
+              "beta_binomial_windows": 6.0
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.00042907931837685425,
+              "binomial": 114,
+              "phi_median": 0.0003835437923106115,
+              "beta_binomial": 140,
+              "binomial_windows": 6.0,
+              "beta_binomial_windows": 7.368421052631579
+            },
+            "ranks_36_100": {
+              "fingerprints": 41,
+              "prevalence_median": 0.0001225940909648155,
+              "binomial": 84,
+              "phi_median": 0.00040119884469596006,
+              "beta_binomial": 114,
+              "binomial_windows": 4.421052631578948,
+              "beta_binomial_windows": 6.0
+            },
+            "ranks_101_plus": null
+          }
+        }
+      },
+      "2026-09-21": {
+        "profile_fingerprints": 87,
+        "tail_prevalence_median": 8.811349017534584e-05,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 4,
+        "origin_share_above_limit": 0.9432108555819896,
+        "fleets": {
+          "median_origins": 20,
+          "log10_level": -4.319626474461904,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 77,
+              "prevalence_median": 0.00013217023526301876,
+              "binomial": 84,
+              "binomial_windows": 4.2
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.00030839721561371045,
+              "binomial": 114,
+              "binomial_windows": 5.7
+            },
+            "ranks_36_100": {
+              "fingerprints": 52,
+              "prevalence_median": 8.811349017534584e-05,
+              "binomial": 84,
+              "binomial_windows": 4.2
+            },
+            "ranks_101_plus": null
+          }
+        },
+        "od": {
+          "median_origins": 20,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 77,
+              "prevalence_median": 0.00013217023526301876,
+              "binomial": 56,
+              "phi_median": 0.00029349846286161677,
+              "beta_binomial": 84,
+              "binomial_windows": 2.8,
+              "beta_binomial_windows": 4.2
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.00030839721561371045,
+              "binomial": 84,
+              "phi_median": 0.0002551584712686354,
+              "beta_binomial": 84,
+              "binomial_windows": 4.2,
+              "beta_binomial_windows": 4.2
+            },
+            "ranks_36_100": {
+              "fingerprints": 52,
+              "prevalence_median": 8.811349017534584e-05,
+              "binomial": 56,
+              "phi_median": 0.0002978970835986953,
+              "beta_binomial": 84,
+              "binomial_windows": 2.8,
+              "beta_binomial_windows": 4.2
+            },
+            "ranks_101_plus": null
+          }
+        },
+        "xfit_od": {
+          "median_origins": 20,
+          "log10_level": -3.8961001037168344,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 77,
+              "prevalence_median": 0.00013217023526301876,
+              "binomial": 84,
+              "phi_median": 0.00029349846286161677,
+              "beta_binomial": 114,
+              "binomial_windows": 4.2,
+              "beta_binomial_windows": 5.7
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.00030839721561371045,
+              "binomial": 114,
+              "phi_median": 0.0002551584712686354,
+              "beta_binomial": 140,
+              "binomial_windows": 5.7,
+              "beta_binomial_windows": 7.0
+            },
+            "ranks_36_100": {
+              "fingerprints": 52,
+              "prevalence_median": 8.811349017534584e-05,
+              "binomial": 84,
+              "phi_median": 0.0002978970835986953,
+              "beta_binomial": 114,
+              "binomial_windows": 4.2,
+              "beta_binomial_windows": 5.7
+            },
+            "ranks_101_plus": null
+          }
+        }
+      },
+      "2026-09-22": {
+        "profile_fingerprints": 102,
+        "tail_prevalence_median": 6.729927989770509e-05,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 4,
+        "origin_share_above_limit": 0.9360656840971802,
+        "fleets": {
+          "median_origins": 20,
+          "log10_level": -3.841653067830989,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 92,
+              "prevalence_median": 0.00010094891984655763,
+              "binomial": 84,
+              "binomial_windows": 4.2
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0003028467595396729,
+              "binomial": 114,
+              "binomial_windows": 5.7
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 6.729927989770509e-05,
+              "binomial": 84,
+              "binomial_windows": 4.2
+            },
+            "ranks_101_plus": null
+          }
+        },
+        "od": {
+          "median_origins": 20,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 92,
+              "prevalence_median": 0.00010094891984655763,
+              "binomial": 56,
+              "phi_median": 0.00021016368040913846,
+              "beta_binomial": 84,
+              "binomial_windows": 2.8,
+              "beta_binomial_windows": 4.2
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0003028467595396729,
+              "binomial": 84,
+              "phi_median": 0.00021228260991018494,
+              "beta_binomial": 84,
+              "binomial_windows": 4.2,
+              "beta_binomial_windows": 4.2
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 6.729927989770509e-05,
+              "binomial": 56,
+              "phi_median": 0.00020884629352831174,
+              "beta_binomial": 56,
+              "binomial_windows": 2.8,
+              "beta_binomial_windows": 2.8
+            },
+            "ranks_101_plus": null
+          }
+        },
+        "xfit_od": {
+          "median_origins": 20,
+          "log10_level": -2.3297016561759074,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 92,
+              "prevalence_median": 0.00010094891984655763,
+              "binomial": 56,
+              "phi_median": 0.00021016368040913846,
+              "beta_binomial": 84,
+              "binomial_windows": 2.8,
+              "beta_binomial_windows": 4.2
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0003028467595396729,
+              "binomial": 84,
+              "phi_median": 0.00021228260991018494,
+              "beta_binomial": 84,
+              "binomial_windows": 4.2,
+              "beta_binomial_windows": 4.2
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 6.729927989770509e-05,
+              "binomial": 56,
+              "phi_median": 0.00020884629352831174,
+              "beta_binomial": 84,
+              "binomial_windows": 2.8,
+              "beta_binomial_windows": 4.2
+            },
+            "ranks_101_plus": null
+          }
+        }
+      },
+      "2026-09-23": {
+        "profile_fingerprints": 107,
+        "tail_prevalence_median": 5.5167848178081815e-05,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 5,
+        "origin_share_above_limit": 0.940060132954514,
+        "fleets": {
+          "median_origins": 20,
+          "log10_level": -3.797383512696277,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 97,
+              "prevalence_median": 8.275177226712272e-05,
+              "binomial": 84,
+              "binomial_windows": 4.2
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0003585910131575318,
+              "binomial": 114,
+              "binomial_windows": 5.7
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 8.275177226712272e-05,
+              "binomial": 84,
+              "binomial_windows": 4.2
+            },
+            "ranks_101_plus": null
+          }
+        },
+        "od": {
+          "median_origins": 20,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 97,
+              "prevalence_median": 8.275177226712272e-05,
+              "binomial": 56,
+              "phi_median": 0.00016317621596431768,
+              "beta_binomial": 56,
+              "binomial_windows": 2.8,
+              "beta_binomial_windows": 2.8
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0003585910131575318,
+              "binomial": 84,
+              "phi_median": 0.0022584876938807437,
+              "beta_binomial": 140,
+              "binomial_windows": 4.2,
+              "beta_binomial_windows": 7.0
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 8.275177226712272e-05,
+              "binomial": 56,
+              "phi_median": 0.00016169677622687308,
+              "beta_binomial": 56,
+              "binomial_windows": 2.8,
+              "beta_binomial_windows": 2.8
+            },
+            "ranks_101_plus": null
+          }
+        },
+        "xfit_od": {
+          "median_origins": 20,
+          "log10_level": -2.0068131633705684,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 97,
+              "prevalence_median": 8.275177226712272e-05,
+              "binomial": 56,
+              "phi_median": 0.00016317621596431768,
+              "beta_binomial": 56,
+              "binomial_windows": 2.8,
+              "beta_binomial_windows": 2.8
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0003585910131575318,
+              "binomial": 84,
+              "phi_median": 0.0022584876938807437,
+              "beta_binomial": 140,
+              "binomial_windows": 4.2,
+              "beta_binomial_windows": 7.0
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 8.275177226712272e-05,
+              "binomial": 56,
+              "phi_median": 0.00016169677622687308,
+              "beta_binomial": 56,
+              "binomial_windows": 2.8,
+              "beta_binomial_windows": 2.8
+            },
+            "ranks_101_plus": null
+          }
+        }
+      },
+      "2026-09-24": {
+        "profile_fingerprints": 117,
+        "tail_prevalence_median": 4.9319392385085815e-05,
+        "enrichment_limit": 0.012,
+        "fingerprints_above_limit": 5,
+        "origin_share_above_limit": 0.9336160978496745,
+        "fleets": {
+          "median_origins": 19,
+          "log10_level": -3.869371309938145,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 107,
+              "prevalence_median": 7.397908857762872e-05,
+              "binomial": 84,
+              "binomial_windows": 4.421052631578948
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0003945551390806865,
+              "binomial": 114,
+              "binomial_windows": 6.0
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 7.397908857762872e-05,
+              "binomial": 84,
+              "binomial_windows": 4.421052631578948
+            },
+            "ranks_101_plus": null
+          }
+        },
+        "od": {
+          "median_origins": 19,
+          "log10_level": -1.9999999999999996,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 107,
+              "prevalence_median": 7.397908857762872e-05,
+              "binomial": 56,
+              "phi_median": 0.00031856080145720953,
+              "beta_binomial": 84,
+              "binomial_windows": 2.9473684210526314,
+              "beta_binomial_windows": 4.421052631578948
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0003945551390806865,
+              "binomial": 84,
+              "phi_median": 0.0017062306046081626,
+              "beta_binomial": 140,
+              "binomial_windows": 4.421052631578948,
+              "beta_binomial_windows": 7.368421052631579
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 7.397908857762872e-05,
+              "binomial": 56,
+              "phi_median": 0.000305010340854213,
+              "beta_binomial": 84,
+              "binomial_windows": 2.9473684210526314,
+              "beta_binomial_windows": 4.421052631578948
+            },
+            "ranks_101_plus": null
+          }
+        },
+        "xfit_od": {
+          "median_origins": 19,
+          "log10_level": -2.1344821392006827,
+          "bands": {
+            "ranks_11_plus": {
+              "fingerprints": 107,
+              "prevalence_median": 7.397908857762872e-05,
+              "binomial": 56,
+              "phi_median": 0.00031856080145720953,
+              "beta_binomial": 84,
+              "binomial_windows": 2.9473684210526314,
+              "beta_binomial_windows": 4.421052631578948
+            },
+            "ranks_11_35": {
+              "fingerprints": 25,
+              "prevalence_median": 0.0003945551390806865,
+              "binomial": 84,
+              "phi_median": 0.0017062306046081626,
+              "beta_binomial": 140,
+              "binomial_windows": 4.421052631578948,
+              "beta_binomial_windows": 7.368421052631579
+            },
+            "ranks_36_100": {
+              "fingerprints": 65,
+              "prevalence_median": 7.397908857762872e-05,
+              "binomial": 56,
+              "phi_median": 0.000305010340854213,
+              "beta_binomial": 84,
+              "binomial_windows": 2.9473684210526314,
+              "beta_binomial_windows": 4.421052631578948
+            },
+            "ranks_101_plus": null
+          }
+        }
+      }
+    }
+  },
+  "check": {
+    "folds": 60,
+    "mismatches": 0
+  }
+}

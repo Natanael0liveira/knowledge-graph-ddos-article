@@ -8,9 +8,15 @@ Sources in `src-drawio/*.drawio`.
 
 | Figure | Source | Canvas |
 |---|---|---|
-| `fig1_ontology` | `src-drawio/fig1_ontology.drawio` | 1032 × 396, included at 0.9`\textwidth` |
+| `fig1_scoping` | `src-drawio/fig1_scoping.drawio` | 1032 × 265, included at `\textwidth` |
 
-`fig2_pipeline` (`src-drawio/fig_pipeline.drawio`) left the paper in round 7.
+`fig1_scoping` is the calibrated scoping pipeline (round 10): log, count query
+compiled from the ontology, class sizes, trigger, scope, challenge or block, with the
+calibration on attack-free days feeding the trigger and the scope. It replaced
+`fig1_ontology` (`src-drawio/fig1_ontology.drawio`, the ontology schematic), which
+is kept in the repository but is no longer in the paper. `fig2_pipeline`
+(`src-drawio/fig_pipeline.drawio`) left the paper in round 7 and describes the
+retired RDF layer.
 
 **Workflow.** Open the `.drawio` at [app.diagrams.net](https://app.diagrams.net)
 or in the desktop app, edit, then *File ▸ Export as ▸ PDF* with **Crop** on and
@@ -52,7 +58,7 @@ Colour only when it carries meaning, never for emphasis.
 
 ## 2. Data plots — generated from code
 
-`fig3_collateral`, `fig4_operating` and `fig5_latency` come from
+`fig4_operating` (Fig. 3) and `fig5_latency` (Fig. 2) come from
 `make_figures_en.py`, reading the results in
 `experiments/sprint-6-noms/results/` (`unseen_synth_summary.csv`,
 `production_tables.json`, `latency_summary.json`). `fig4_regime` is no longer in
@@ -91,10 +97,10 @@ mapping:
 
 | Printed | Source | Type |
 |---|---|---|
-| Fig. 1 | `src-drawio/fig1_ontology.drawio` | draw.io schematic |
-| Fig. 2 | `fig3_collateral.png` | generated |
-| Fig. 3 | `fig5_latency.png` | generated |
-| Fig. 4 | `fig4_operating.png` | generated |
+| Fig. 1 | `src-drawio/fig1_scoping.drawio` | draw.io schematic |
+| Fig. 2 | `fig5_latency.png` | generated (Appendix D) |
+| Fig. 3 | `fig4_operating.png` | generated (Appendix E; grey markers and arrows: the cross-fitted calibration) |
+| (none) | `fig3_collateral.png` | generated, no longer in the paper: Table III carries its modal column |
 | Listing 1 | `verbatim` block, Appendix A | SWRL / SPARQL rules |
 | Listing 2 | `verbatim` block, Appendix D | evidence chain |
 

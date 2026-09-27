@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """English figures for the NOMS submission (papers/http-session-noms).
 
-Generates the three DATA figures. fig1_ontology is a draw.io schematic and is NOT
-produced here -- see figures/README.md and figures/src-drawio/.
-  fig3_collateral.png -- single column: the modal scope, the unseen-fingerprint filter and
-                         the enrichment scope on generated traffic, fresh and shared stacks.
-  fig4_operating.png  -- single column: operating points on production traffic, false
-                         alarms against blocked share (test days and the fresh day).
-  fig5_latency.png    -- single column: the cost of both layers.
+Generates the three DATA figures. Fig. 1 (fig1_scoping) is a draw.io schematic and is
+NOT produced here -- see figures/README.md and figures/src-drawio/.
+  fig5_latency.png    -- Fig. 2 (Appendix D), single column: the cost of both layers.
+  fig4_operating.png  -- Fig. 3 (Appendix E), single column: operating points on production
+                         traffic, false alarms against blocked share (test days and the
+                         held-out day).
+  fig3_collateral.png -- no longer in the paper (Table III carries its modal column): the
+                         modal scope, the unseen-fingerprint filter and the enrichment scope
+                         on generated traffic, fresh and shared stacks.
   (fig_regime, the earlier Fig. 4, is kept for reference and no longer drawn.)
 
 Run from the repository root:
@@ -93,7 +95,7 @@ def fig_regime(root):
 
 # --------------------------------------------------------------------------- fig 3 (v2)
 def fig_collateral(root):
-    """Modal, unseen-filter and enrichment scopes across the realism axis.
+    """Modal, unseen-filter, z-score and enrichment scopes across the realism axis.
 
     unseen_synth.py reproduces the committed modal and enrichment runs exactly and
     adds the unseen filter and the shared-stacks mode on the same scenarios."""
@@ -110,30 +112,31 @@ def fig_collateral(root):
               ("original", 25, 1, "M=25\nadversarial")]
     methods = [("modal", "modal (frequency)", "white", "#555", None),
                ("unseen", "unseen fingerprints", BAR_GRAY, "#777", None),
-               ("enrichment", "enrichment (ours)", NAVY, NAVY, None)]
+               ("zscore", "$z$-score ($z>3$)", "#7a7a7a", "#555", None),
+               ("enrichment", "binomial enrichment", NAVY, NAVY, None)]
     labels = [p[3] for p in points]
     cov = {m: [get(mo, s, a, m)["recall"] * 100 for mo, s, a, _ in points] for m, *_ in methods}
     col = {m: [get(mo, s, a, m)["fpr"] * 100 for mo, s, a, _ in points] for m, *_ in methods}
 
     x = np.arange(len(labels))
-    w = 0.26
+    w = 0.2
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7.2, 4.1), sharex=True,
                                    gridspec_kw={"hspace": 0.16})
     for k, (m, lab, face, edge, _) in enumerate(methods):
-        off = (k - 1) * w
+        off = (k - 1.5) * w
         ax1.bar(x + off, cov[m], w, color=face, edgecolor=edge, lw=0.8, zorder=3, label=lab)
         ax2.bar(x + off, col[m], w, color=face, edgecolor=edge, lw=0.8, zorder=3)
         for xi, v in zip(x, cov[m]):
-            ax1.text(xi + off, v + 2.5, f"{v:.0f}", ha="center", fontsize=6.8,
+            ax1.text(xi + off, v + 2.5, f"{v:.0f}", ha="center", fontsize=6.2,
                      color=NAVY if m == "enrichment" else "#555",
                      fontweight="bold" if m == "enrichment" else None)
         for xi, v in zip(x, col[m]):
             ax2.text(xi + off, v + 2.5, f"{v:.0f}" if v >= 1 else f"{v:.1f}", ha="center",
-                     fontsize=6.8, color=NAVY if m == "enrichment" else "#555",
+                     fontsize=6.2, color=NAVY if m == "enrichment" else "#555",
                      fontweight="bold" if m == "enrichment" else None)
     ax1.set_ylabel("attack blocked (%)", fontsize=9)
     ax1.set_ylim(0, 112)
-    ax1.legend(loc="upper center", bbox_to_anchor=(0.5, 1.24), ncol=3, fontsize=8.2,
+    ax1.legend(loc="upper center", bbox_to_anchor=(0.5, 1.24), ncol=4, fontsize=8.2,
                frameon=False)
     ax1.grid(axis="y", alpha=.25, zorder=0)
     ax1.spines[["top", "right"]].set_visible(False)
@@ -153,18 +156,24 @@ def fig_collateral(root):
 
 
 def fig_operating(root):
-    """False alarms against blocked share on production traffic, 100 attackers."""
+    """False alarms against blocked share on production traffic, 100 attackers.
+
+    Grey markers are the three calibrated configurations with the cross-fitted
+    calibration (test days), joined to their in-sample point by a thin arrow.
+    """
     T = json.load(open(os.path.join(root, "experiments/sprint-6-noms/results/production_tables.json")))
     scopes = [  # (label, run, key, marker)
         ("binomial, $\\Omega$ gate (rule)", "base", "enrichment|omega", "o"),
         ("binomial $\\cup$ unseen, origin gate", "base", "union|origins", "s"),
         ("  + known fleets", "fleets", "union|origins", "D"),
-        ("beta-binomial $\\cup$ unseen, origin gate", "od", "union|origins", "h"),
+        ("beta-binomial $\\cup$ unseen, origin gate (post hoc)", "od", "union|origins", "h"),
         ("$z$-score, calibrated", "base", "zcal|origins", "^"),
         ("unseen JA4", "base", "unseen|origins", "P"),
         ("scope alone, known fleets", "fleets", "union|none", "*"),
-        ("scope alone, beta-binomial", "od", "union|none", "X"),
+        ("scope alone, beta-binomial (post hoc)", "od", "union|none", "X"),
     ]
+    xfit = [("fleets", "xfit_fleets", "union|origins", "D"), ("od", "xfit_od", "union|origins", "h"),
+            ("base", "xfit", "zcal|origins", "^")]
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.0), sharey=True)
     for ax, cell, title in ((axes[0], "new:A100", "new stacks"), (axes[1], "shared:A100", "shared stacks")):
         for lab, run, key, mk in scopes:
@@ -176,6 +185,13 @@ def fig_operating(root):
                 ax.scatter(fa, y, marker=mk, s=40 if mk != "*" else 90, facecolors=face,
                            edgecolors=NAVY, linewidths=0.9, zorder=3,
                            label=lab if (filled and ax is axes[0]) else None)
+        for run0, run, key, mk in xfit:
+            r0, r = T["test_days"][run0]["all"][key], T["test_days"][run]["all"][key]
+            p0 = (max(r0["clean_rate"] * 100, 0.01), r0[cell]["blocked"] * 100)
+            p1 = (max(r["clean_rate"] * 100, 0.01), r[cell]["blocked"] * 100)
+            ax.annotate("", xy=p1, xytext=p0, zorder=2,
+                        arrowprops=dict(arrowstyle="-|>", color=CHANCE, lw=0.7, shrinkA=4, shrinkB=4))
+            ax.scatter(*p1, marker=mk, s=40, facecolors=BAR_GRAY, edgecolors=NAVY, linewidths=0.9, zorder=3)
         ax.set_xscale("log")
         ax.set_xlim(0.008, 15)
         ax.set_ylim(-3, 100)
@@ -186,7 +202,7 @@ def fig_operating(root):
         ax.spines[["top", "right"]].set_visible(False)
     axes[0].set_ylabel("botnet blocked (%)", fontsize=9.5)
     fig.legend(loc="lower center", bbox_to_anchor=(0.5, -0.27), ncol=3, fontsize=8.6, frameon=False)
-    fig.text(0.99, 0.005, "filled: test days; open: fresh day", ha="right", fontsize=8.4, color="#555")
+    fig.text(0.99, 0.005, "filled: test days; open: held-out day; grey: test days, cross-fitted", ha="right", fontsize=8.4, color="#555")
     fig.tight_layout()
     out = os.path.join(OUT, "fig4_operating.png")
     fig.savefig(out, dpi=200, bbox_inches="tight")
@@ -234,8 +250,8 @@ def fig_latency(root):
     ax.set_xlabel("active sessions in the window, $|S_W|$", fontsize=9)
     ax.set_ylabel("latency (s)", fontsize=9)
     ax.grid(True, which="both", alpha=.25)
-    # legenda abaixo dos eixos: dentro do grafico ela competia com os dados.
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=2,
+    # legend below the axes, clear of the x label: inside the plot it competed with the data.
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.30), ncol=2,
               fontsize=8.2, frameon=False)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
@@ -247,7 +263,7 @@ def fig_latency(root):
 
 if __name__ == "__main__":
     root = os.path.abspath(os.path.join(OUT, "..", "..", ".."))
-    # fig1_ontology and fig2_pipeline are draw.io schematics, not generated here.
+    # Fig. 1 (fig1_scoping) is a draw.io schematic, not generated here.
     # Sources live in src-drawio/; see README.md for the export procedure.
     fig_collateral(root)
     fig_operating(root)

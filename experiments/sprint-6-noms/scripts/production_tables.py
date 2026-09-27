@@ -6,8 +6,10 @@ recomputes the paper's production numbers from the per-window CSVs that rule_det
 
 Per scope (enrichment, enrichment united with the unseen filter, the z-score, the
 z-score calibrated to the enrichment test's budget, the per-fingerprint historical
-z-score, the unseen filter) and per gate (Omega >= tau, distinct origins >= their
-p99) it gives, per endpoint and pooled:
+z-score, the unseen filter) and per gate (Omega >= tau; distinct origins >= their
+p99; the seasonal gate, distinct origins against the median of the same hour of day
+on the fold's calibration windows, past the p99 of that ratio; none, the scope as its
+own trigger) it gives, per endpoint and pooled:
 - the firing rate on clean windows, with its 95% Clopper-Pearson interval and its
   count per test day, and the median and largest share of clients a firing blocks;
 - the firing rate with a flash crowd of 100 and of 1,000 users;
@@ -61,7 +63,7 @@ from scipy.stats import beta, binom
 
 SCOPES = {"enrichment": "scope", "union": "union", "zscore": "zscore", "zcal": "zcal",
           "zhist": "zhist", "unseen": "unseen"}
-GATES = ("omega", "origins", "none")
+GATES = ("omega", "origins", "seasonal", "none")
 CELLS = [("attack", "fresh", 100), ("attack", "fresh", 1000), ("attack_rel", "fresh", 1.0),
          ("attack_rel", "fresh", 0.1), ("attack", "tail", 100), ("attack", "tail", 1000),
          ("attack_rel", "tail", 1.0), ("attack_rel", "tail", 0.1)]
@@ -84,6 +86,15 @@ def load(path, k_min=5):
     W = W.assign(gate_omega=W["omega"].to_numpy() >= cal["omega"].quantile(0.99).reindex(keys).to_numpy(),
                  gate_origins=W["size"].to_numpy() >= cal["size"].quantile(0.99).reindex(keys).to_numpy(),
                  gate_none=True)          # the scope alone triggers (|S| >= k_min already holds)
+    # The seasonal gate: distinct origins against the median of the same hour of day
+    # (UTC) over the fold's calibration windows, firing past the 99th percentile of
+    # that ratio on the calibration windows (never below 1), the same 1% budget.
+    W["hour"] = W["window"].astype(str).str.slice(11, 13).astype(int)
+    hk = list(zip(W["fold"], W["host"], W["hour"]))
+    med = W[W["kind"] == "calib"].groupby(["fold", "host", "hour"])["size"].median()
+    W["size_ratio"] = W["size"].to_numpy() / med.reindex(hk).to_numpy()
+    thr = W[W["kind"] == "calib"].groupby(["fold", "host"])["size_ratio"].quantile(0.99).clip(lower=1.0)
+    W["gate_seasonal"] = W["size_ratio"].to_numpy() >= thr.reindex(keys).to_numpy()
     for c in SCOPES.values():
         if f"{c}_named" in W:
             W[f"{c}_named"] = W[f"{c}_named"].astype(bool)
@@ -182,7 +193,7 @@ def rates(W):
             r["attack_collateral_max"] = float(coll.max()) if len(coll) else None
             out[f"{scope}|{gate}"] = r
     # how often each gate alone fires on clean windows (its nominal rate is 1%)
-    out["gates_clean"] = {g: (float(clean[f"gate_{g}"].mean()) if len(clean) else None) for g in ("omega", "origins")}
+    out["gates_clean"] = {g: (float(clean[f"gate_{g}"].mean()) if len(clean) else None) for g in ("omega", "origins", "seasonal")}
     return out
 
 
@@ -305,7 +316,9 @@ def sweep(W, col, recs=None, folds=()):
                 r = {"windows": int(len(d)), "gate": float(d["gate_origins"].mean()),
                      "named": float(d[f"{col}_named"].mean()),
                      "blocked": float((d[f"{col}_recall"] * fired(d)).mean()),
-                     "blocked_alone": float((d[f"{col}_recall"] * d[f"{col}_named"]).mean())}
+                     "blocked_alone": float((d[f"{col}_recall"] * d[f"{col}_named"]).mean()),
+                     "gate_seasonal": float(d["gate_seasonal"].mean()),
+                     "blocked_seasonal": float((d[f"{col}_recall"] * (d["gate_seasonal"] & d[f"{col}_named"])).mean())}
                 if source == "fresh" and recs:
                     r["model_blocked_alone"] = float(np.mean([model_new(recs[f], A, M) for f in folds if f in recs]))
                 out[f"{name}:M{M}:A{A}"] = r
@@ -318,7 +331,9 @@ def sweep(W, col, recs=None, folds=()):
                     "windows": int(len(d)), "attackers_median": float(d["attackers"].median()),
                     "gate": float(d["gate_origins"].mean()), "named": float(d[f"{col}_named"].mean()),
                     "blocked": float((d[f"{col}_recall"] * fired(d)).mean()),
-                    "blocked_alone": float((d[f"{col}_recall"] * d[f"{col}_named"]).mean())}
+                    "blocked_alone": float((d[f"{col}_recall"] * d[f"{col}_named"]).mean()),
+                    "gate_seasonal": float(d["gate_seasonal"].mean()),
+                    "blocked_seasonal": float((d[f"{col}_recall"] * (d["gate_seasonal"] & d[f"{col}_named"])).mean())}
     return out
 
 
@@ -384,7 +399,9 @@ def main():
                      "recall_where_named": (float(g.loc[g["union_named"], "union_recall"].mean())
                                             if g["union_named"].any() else None),
                      "blocked": float((g["union_recall"] * (g["gate_origins"] & g["union_named"])).mean()),
-                     "blocked_no_gate": float((g["union_recall"] * g["union_named"]).mean())}
+                     "blocked_no_gate": float((g["union_recall"] * g["union_named"]).mean()),
+                     "gate_seasonal": float(g["gate_seasonal"].mean()),
+                     "blocked_seasonal": float((g["union_recall"] * (g["gate_seasonal"] & g["union_named"])).mean())}
                 for fo, g in select(W[W["host"] == e1], "attack_rel", source, 0.1).groupby("fold")}
             for source in ("fresh", "tail")}
         out["stealth_E1"][run]["clean_no_gate"] = {

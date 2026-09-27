@@ -177,7 +177,7 @@ def fig_operating(root):
     ]
     xfit = [("fleets", "xfit_fleets", "union|origins", "D", 13), ("od", "xfit_od", "union|origins", "h", 18),
             ("base", "xfit", "zcal|origins", "^", 18)]
-    fig, axes = plt.subplots(1, 2, figsize=(3.45, 2.45), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(3.45, 2.3), sharey=True)
     for ax, cell, title in ((axes[0], "new:A100", "new stacks"), (axes[1], "shared:A100", "shared stacks")):
         for lab, run, key, mk, s in scopes:
             for block, filled in (("test_days", True), ("fresh_day", False)):
@@ -227,7 +227,7 @@ def fig_stops(root):
     n0 = {"E1": 2983, "E2": 62, "E3": 41, "E4": 20}          # Table V, median origins per window
     floor_new = {"E1": 139, "E2": 139, "E3": 139, "E4": 84}  # Table V, new stacks, in sample
     names = {"E1": "E1, RUM beacons", "E2": "E2, web console", "E3": "E3, API", "E4": "E4, SSO"}
-    fig, axes = plt.subplots(2, 2, figsize=(3.45, 3.05), sharex=True, sharey=True)
+    fig, axes = plt.subplots(2, 2, figsize=(3.45, 2.8), sharex=True, sharey=True)
     for ax, e in zip(axes.flat, ("E1", "E2", "E3", "E4")):
         pts = [(A, f"M25:A{A}") for A in (25, 50, 100, 250, 1000)]
         pts += [(x * n0[e], f"M25:x{x:g}") for x in (0.1, 0.5, 1)]
@@ -276,7 +276,7 @@ def fig_latency(root):
     sym_n = [n for n in sizes if "symbolic_total_s" in d[str(n)]]
     sym = [d[str(n)]["symbolic_total_s"] for n in sym_n]
 
-    fig, ax = plt.subplots(figsize=(7.0, 2.7))
+    fig, ax = plt.subplots(figsize=(7.0, 2.2))
     # comparison series (grey): pair edges enumerated or materialized
     ax.loglog(sym_n, sym, "s-", color=BAR_GRAY, lw=2, ms=6, markeredgecolor="#777",
               label="symbolic layer, pair edges materialized")

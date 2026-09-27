@@ -161,6 +161,30 @@ so a calibrated rate threshold is an origin count. This is why the rule's former
 conditions on rate and on a `BotBehavior` profile were dropped from the paper:
 neither was ever active in an experiment.
 
+**The trigger decides what is stopped, and it can be chosen per endpoint.** A
+scope blocks only in the windows where the trigger fires. On the busiest endpoint
+the p99 gate opens in 6–13% of the windows of a botnet a tenth of the window, so the
+binomial configuration stops 11.8% of it (0.6–37.2% by day), while its scope alone
+would block 89.6%. Two other triggers were measured after the held-out day:
+
+- a **seasonal gate** compares the distinct origins with their median at the same
+  hour of day on the calibration days, and fires past the 99th percentile of that
+  ratio on the calibration windows (the same 1% budget). On the busiest endpoint it
+  stops 20.4% of the tenth-size botnet and 90.0% of one the size of the window
+  (against 70.8%), with no false alarm, but it lifts the binomial configuration's
+  false alarms on the web console from 0.28% to 2.64%: the seasonal baseline makes
+  off-hours fleets look like surges;
+- the **scope as its own trigger** (no gate) stops 89.4–89.8% of the tenth-size
+  botnet on every test day. On the busiest endpoint it fires on 0.97% of clean
+  windows (0.83% cross-fitted, 0 of 288 on the held-out day), within the budget, and
+  its misfires block a median 1.0% of the clients. On the small endpoints it fires on
+  1.5–4.4%, above the budget.
+
+So the trigger can be chosen per endpoint: the scope itself where its alarms stay
+within the budget, as on large endpoints, and the distinct-origin gate where they do
+not. The paper proposes this for the pre-specified test, since the choice was made
+after the held-out day was read.
+
 **Why origins and not sessions.** Sessions stay the nodes of the graph, and the
 relations still link sessions; only the aggregation counts each class in
 distinct origins. The threat is a botnet of many devices, so coordination is

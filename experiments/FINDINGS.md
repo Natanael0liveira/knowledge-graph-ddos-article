@@ -135,6 +135,10 @@ into the counts and a ninth day analyzed with every choice fixed in advance
 - **Naming is not stopping: the trigger lets most of a small botnet through.** At a
   tenth of the busiest endpoint's window the scope names the botnet in every window, but
   the gate fires in 0.7–42% of them by day, so 11.8% of the attackers are stopped.
+  A seasonal gate (the ratio to the same hour's median) stops 20.4%, and the scope as
+  its own trigger 89.4–89.8% on every day, within the 1% budget on that endpoint
+  (0.97%, 0 of 288 on the held-out day) but not on the small ones (1.5–4.4%). Post
+  hoc; the paper proposes a trigger chosen per endpoint for the pre-specified test.
 - **The boundary holds.** A botnet on the endpoint's 25 most common fingerprints is
   mostly missed (7.0% and 23.8% of 100 and 1,000 attackers).
 - **The WAF's verdicts are not labels.** Scored against the clients the operator's WAF

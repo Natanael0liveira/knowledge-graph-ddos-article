@@ -8,7 +8,7 @@ session ontology is the specification the count query is compiled from (Section 
 
 ```
 pp. 1–8    main text (Sections I–VII)   <- AT the 8-page limit
-p. 8       acknowledgment at the bottom of the right column (no slack)
+p. 9       acknowledgment at the top of the left column (the body ends on p. 8, no slack)
 pp. 9–12   references, then appendices A–F
 total      12 pages                     <- AT the 12-page limit
 ```
@@ -16,21 +16,22 @@ total      12 pages                     <- AT the 12-page limit
 Appendices: **A** sub-relation specification and Listing 1 · **B** weight
 calibration · **C** additional limitations, per-session detection and the learned
 models (the (a)–(d) ablation), laboratory captures, KLAGE, the learned representation
-across stack counts · **D** cost model (Fig. 4), window sensitivity, the evidence chain
+across stack counts · **D** cost model (Fig. 4), the evidence chain
 (Listing 2) and CDN-scale partitioning · **E** the rule per window (Table VII) and the
 production details (the details of Section V that left the body, other baselines,
 known fleets, the scope alone as a trigger) · **F**
 reproducibility.
 
-Section V has four parts: A generated traffic, B production traffic (the pre-specified
-configurations, Fig. 2 with what the configuration stops by botnet size and endpoint,
-Fig. 3 with the operating points, and the held-out day), C the post hoc analyses (beta-binomial,
-cross-fitted calibration) and D the boundary and the WAF's verdicts. Specification and
+Section V has four parts: A generated traffic, then three findings on production
+traffic: B false alarms and the calibration floor, C what is stopped (the trigger
+decides; Fig. 2, the seasonal gate and the scope as its own trigger, Fig. 3 with the
+operating points) and D what the evidence supports (the held-out day, the post hoc
+analyses, the boundary and this WAF's verdicts). Specification and
 exchange are in Section VI. Section V keeps the central numbers in its text and leaves
 the rest to Tables IV to VI and to the "Details of Section V" paragraph of Appendix E.
 
-> **The body and the Acknowledgment end at the bottom of page 8's right column, and the
-> references (32) follow; page 12 is half full.** The body is within the limit only
+> **The body ends at the bottom of page 8, the Acknowledgment opens page 9's left
+> column, and the references (36) follow; page 12 is nearly full.** The body is within the limit only
 > if the Acknowledgment sits on page 8 or at the top of page 9's left column.
 
 Section structure follows the pattern observed in NOMS papers: Introduction ·

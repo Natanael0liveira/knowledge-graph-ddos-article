@@ -1245,3 +1245,52 @@ The table notes are cut to two lines each. Their definitions moved to Section IV
 alarms, collateral, window counts, the 90% cap of one-off fingerprints, the shared
 mode) and to the text of V-A and V-B. `make audit`: 265 checks, 0 mismatches.
 
+## 21. Round 17: the trigger, Section V in three findings
+
+The round-16 review (the acceptance bar of NOMS rather than its best papers) ranked
+first a re-evaluation of the trigger on the existing data. `production_tables.py`
+now computes a **seasonal gate** beside the distinct-origin gate, from the
+calibration windows the per-window CSVs already hold (no detection rerun): the ratio
+of a window's distinct origins to the median of the same hour of day (UTC) over the
+fold's calibration windows, firing past the 99th percentile of that ratio on the
+calibration windows, never below 1. Every existing key of `production_tables.json`
+is unchanged (checked value by value); the new keys are `union|seasonal` (and the
+other scopes under it), `gates_clean.seasonal`, and `gate_seasonal` /
+`blocked_seasonal` in `sweep` and `stealth_E1`.
+
+| Busiest endpoint (E1), binomial configuration | Origin gate | Seasonal gate | Scope alone |
+|---|---|---|---|
+| False alarms, test days | 0 | 0 | 0.97% (0.83% cross-fitted) |
+| Tenth-size botnet stopped, test days | 11.8% (0.6–37.2% by day) | 20.4% (10.0–44.7%) | 89.6% (89.4–89.8%) |
+| Whole-window botnet stopped | 70.8% | 90.0% | 90.0% |
+| Tenth-size botnet, held-out day | 0.0% | 15.3% | 89.7% (0 of 288 false alarms) |
+
+The seasonal gate alone fires on 3.0% of clean test-day windows, as the origin gate
+does, and it lifts the binomial configuration's false alarms on the web console from
+0.28% to 2.64% (under the cross-fitted beta-binomial it does not: 0.21%). The scope
+alone meets the 1% budget on E1 only; on E2 to E4 it fires on 1.5–4.4% of clean
+windows. The paper (V-C, VI) proposes a trigger chosen per endpoint for the
+pre-specified test, and says the analysis is post hoc.
+
+**Section V in three findings.** V-B: false alarms and the calibration floor. V-C,
+new: what is stopped, the trigger decides (Figs. 2 and 3, the other triggers). V-D:
+what the evidence supports (the held-out day, the post hoc analyses, the boundary,
+this WAF's verdicts).
+
+**Text fixes the review verified**: the "88% of a named botnet" wording (it counted
+the one-off tenth no scope names), the learned model's operating point on the
+adversarial row (23.4% at 1% FPR), the gate/Ω agreement (136 of 181), median
+collateral throughout, p1 as a share of requests, the ratio limit as an expectation,
+Table II's held-out column, Table V's note, the conclusion's rate, the profile-size
+sensitivity of Table VII (68.9% and 80.0% with a one-run profile), and the parameters
+fixed before production data (ρ, k_min, τ's percentile, the 25-stack botnet).
+
+**References** (36): RFC 9761 (the IETF ACL model matches TLS client parameters since
+2025, but names no fingerprint, and DOTS defines its own filters), DDoS-Shield,
+Xie and Yu, and Lakhina et al. DDoS-Shield decides which sessions to penalize and at
+what cost, so the introduction's "none says which clients to block" became "none
+scopes the block by application-client fingerprint". To keep 8 + 4 pages, the
+window-sensitivity paragraph of App. D and the fleet share's secondary held-out
+results left the paper (both remain in sections 11 and 12 of this README).
+
+`make audit`: 258 checks, 0 mismatches.

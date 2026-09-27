@@ -187,8 +187,11 @@ without it), and under the cross-fitted beta-binomial it fired on 1.74% of the h
 day's windows. The cross-fitted beta-binomial behind the seasonal gate stays within
 the budget on every endpoint on both day sets (4 of 5,643 and 0 of 1,152) while
 stopping more than the origin gate (20.4% of a tenth-size botnet on E1 against 11.9%).
-But on new stacks the unseen filter alone does as well under every trigger, with
-fewer false alarms and flash-crowd firings: as its own trigger it misfires on 0.28% of
+But on new stacks of at least k_min origins, as in that tenth-size botnet, the unseen
+filter alone does as well under every trigger, with fewer false alarms and flash-crowd
+firings (below that size the test names stacks the filter cannot, but only where its trigger
+opens: of 100 attackers, the cross-fitted beta-binomial behind the seasonal gate stops
+53-84% on the small endpoints and 3.9% on the busiest one, against the filter's 43%): as its own trigger it misfires on 0.28% of
 E1's clean windows and at most 0.42% elsewhere, and stops the same 90%. The enrichment
 test's gain is on shared stacks, which the unseen filter never names. So the paper
 (Table VII) takes the unseen filter as its own trigger as the baseline of the next,

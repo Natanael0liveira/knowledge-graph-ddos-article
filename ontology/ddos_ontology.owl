@@ -520,7 +520,7 @@
     <!--
     ///////////////////////////////////////////////////////////////////////////////////////
     //
-    // Cross-Session Coordination — the weighted relatedTo family (contribution 1 of the paper)
+    // Cross-Session Coordination — the weighted relatedTo family (the relations the coordination mass counts)
     //
     // relatedTo links TWO ApplicationSession individuals and is specialized into six typed
     // sub-properties, each instantiated from one specific coordination signal. Detection

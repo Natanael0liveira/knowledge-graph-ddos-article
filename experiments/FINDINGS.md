@@ -144,7 +144,11 @@ into the counts and a ninth day analyzed with every choice fixed in advance
   cross-fitted beta-binomial behind the seasonal gate stays within the budget on every
   endpoint on both day sets (4 of 5,643, 0 of 1,152) and stops 20.4% (15.3% held out),
   so the paper proposes it as the next test's primary, the scope alone on E1 as secondary.
-- **On new stacks the unseen filter alone matches every scope (round 19).** Under the
+- **On new stacks of at least k_min origins, the unseen filter alone matches every scope
+  (round 19, scoped in round 21: at 100 attackers, 3.6 per stack, the cross-fitted
+  beta-binomial as its own trigger stops 57-84% per endpoint against the filter's 43%, but
+  that configuration is over the budget; behind the seasonal gate it stops 53-84% on E2-E4
+  and only 3.9% on E1, where the gate rarely opens).** Under the
   origin gate, the seasonal gate and as its own trigger, the unseen filter stops as much
   of E1's tenth-size botnet on new stacks as the calibrated scopes, with fewer false
   alarms (0 behind the seasonal gate; 0.28% on E1 and at most 0.42% elsewhere as its own

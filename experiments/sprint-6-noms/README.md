@@ -1400,3 +1400,71 @@ rule; the boundary paragraph folded into V-B.
 Body ends at the bottom of page 8 (the Acknowledgment opens page 9), 12 pages, abstract
 250 words. `make audit`: 266 checks, 0 mismatches. The rounds of review stop here, at
 the user's choice.
+
+## 24. Round 21: the round-20 review's B items
+
+The round-20 review (scope-bound, as in round 19) found **no class A item**: all 81 cells
+of Table VII and the claims of the abstract, the contributions, Tables III-VII, Section VI
+and the conclusion match the artifact. Borderline leaning weak accept, 3/4/2/4. Round 21
+applied its B items and cheap polish, each checked against the result files:
+
+- **B1, the unseen filter's parity is scoped.** It holds for stacks of at least k_min
+  origins, as in E1's tenth-size botnet (about 11 attackers per stack). Below that the
+  test names new stacks the filter cannot: of 100 attackers, the cross-fitted
+  beta-binomial as its own trigger stops 57-84% per endpoint against the filter's 43%
+  (`xfit_od` and `fleets`, `union|none` and `unseen|none`, `new:A100`). V-C, VI, the
+  abstract and the conclusion now say the test adds shared stacks and smaller new ones,
+  and the next test covers 100 attackers as well as a tenth of the window.
+- **B2** Table VII's note states its bases (FA per endpoint, Fl. 1k and Coll. pooled,
+  E1's tenth-size botnet); "Scope itself" is now "No gate". **B3** the abstract's 0.1%
+  is "on the days it was chosen on"; the conclusion adds that the scope misfired in 2 of
+  the 3 held-out windows where the gate opened and marks its seasonal-gate sentence post
+  hoc. **B4** the "Alone" column of Tables IV and VI is "No gate"; the ratio limit has its
+  own paragraph; the floors by stack count and by profile rank moved to Appendix E, with
+  two numbers left in the body. **B5** Section VI says the compiled query reproduced the
+  origin and /24-pair counts and the JA4 class sizes where the WAF blocked no client
+  (`compile_production_check.json` note); App. F gives medallion 3.0.0 and misp-stix
+  2026.9.16. **B6** Fig. 3 adds the unseen filter as its own trigger and the cross-fitted
+  point of the beta-binomial scope alone. **B7** the binomial scope as its own trigger is
+  an option on E1 only, rising by day. **B8** the unseen filter's misfires cluster by day
+  (E1 all 4 on one day, the console's 2 on one day, 5 of the API's 6 on another). **B9**
+  the WAF comparison names the three profile-relative scopes (the unseen filter's lift on
+  E2 is 2.8). **B10** the cross-fitted beta-binomial's floor on ranks 36-100 against the
+  binomial in sample: higher on E1 (949 vs 743) and E3 (255 vs 227), equal on E4, lower on
+  E2 (509 vs 1,898).
+- Polish: "Ω is mostly volume"; the endpoint rule includes 50 calibration windows; the
+  ablation's 30 seeds; Table V's n0 header; the OWL comment no longer cites a
+  contribution number. To stay at 8 + 4 pages: App. C's explanation-validation and
+  vocabulary-tail paragraphs, App. B's first sentence, three lines of Listing 1 and some
+  App. A implementation details left; Figs. 2-4 are 0.1-0.15 in shorter; the unverified
+  "an hourly profile did not help" left App. E.
+
+Not applied: OpenC2 in the exchange survey (not verified, would add a reference); the
+Acknowledgment still opens page 9's left column (the body ends on page 8), which the
+reviewer asks to confirm against the CFP. `make audit`: 266 checks, 0 mismatches.
+
+## 25. Round 23: the round-22 review
+
+The round-22 review (scope-bound) found one class A item, introduced by round 21's own
+fix: the text said the test's gain lies on "shared stacks and smaller new ones" for the
+cross-fitted beta-binomial behind the seasonal gate, but on E1 that configuration stops
+3.9% of 100 new-stack attackers (2.8% held out) against 43.2% for the unseen filter as its
+own trigger, and 20.4% against 89.6% of the tenth-size botnet, because the seasonal gate
+opens in 7.4% of those windows. Its gain on smaller new stacks is on E2-E4 only (53.4,
+64.6, 84.2% against about 43%). V-C, VI, the abstract and the conclusion now say so; the
+abstract names the cross-fitted beta-binomial as the source of the 15% on shared stacks.
+
+B items applied: the conclusion's 0.1% is on the days the configuration was chosen on;
+the floor ratios are medians of the daily ratios; the rank-band caveat names the
+in-sample binomial; the compiled-query check is "JA4 pair counts", run in the
+operator's log store with only its counts in the artifact (`compile_counts.py`'s
+`compare_export` covers origins and /24 pairs); the configuration deployed now "stops
+few small botnets there, none on the held-out day"; the unseen filter's parity holds by
+construction, being part of the union; App. E gives Table VII's held-out shared and
+flash-crowd cells; the WAF surges are counted (at most 2 of 38 on the API and SSO).
+Polish: "None retains", Omega's 91% is of a campaign's cluster, App. F's "one command"
+is for generated traffic, Fig. 4 has y ticks every two decades, App. E marks its post hoc
+numbers. Space: Table VI keeps its binomial rows (the beta-binomial rows were post hoc;
+the text keeps the 19 of 22 console misfires and the 74.4%), the uncited Table VIII is
+one sentence in App. E, App. C's lean baseline left. Body ends on page 8, 12 pages,
+abstract 250 words. `make audit`: 259 checks, 0 mismatches.

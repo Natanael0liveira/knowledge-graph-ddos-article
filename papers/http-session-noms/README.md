@@ -17,14 +17,14 @@ Appendices: **A** sub-relation specification, with Eq. 1 (Ω) and the weights ·
 calibration · **C** additional limitations, per-session detection and the learned
 models (the (a)–(d) ablation), laboratory captures, KLAGE, the learned representation
 across stack counts · **D** cost model (Fig. 4), the evidence chain
-(Listing 1) and CDN-scale partitioning · **E** the rule per window (Table VIII) and the
+(Listing 1) and CDN-scale partitioning · **E** the rule per window (in text since round 23) and the
 production details (the details of Section V that left the body, other baselines,
 known fleets, the scope alone as a trigger) · **F**
 reproducibility.
 
 Section V has four parts: A generated traffic, then three findings on production
 traffic: B false alarms and the calibration floor, C what is stopped (the trigger
-decides; Fig. 2, Table VII with the scopes behind each trigger, the unseen filter alone included, Fig. 3 with the
+decides; Fig. 2, Table VII with the scopes behind each trigger ("No gate": the scope as its own trigger), the unseen filter alone included, Fig. 3 with the
 operating points) and D what the evidence supports (the held-out day, the post hoc
 analyses, the boundary and this WAF's verdicts). Specification and
 exchange are in Section VI. Section V keeps the central numbers in its text and leaves
@@ -70,7 +70,7 @@ Current placement:
 | Table II (the configurations evaluated on production), Table III (the scopes on generated traffic, with the modal fingerprint) | 5 |
 | Table IV (production, pooled), Table V (the configurations' floor, in sample and cross-fitted), Table VI (production, per endpoint) | 6 |
 | Fig. 2 (what the binomial configuration stops, by botnet size, per endpoint), Table VII (the scope behind each trigger), Fig. 3 (production operating points) | 7 |
-| Fig. 4 (cost), Listing 1 (evidence chain), Table VIII (rule per window) | 11 |
+| Fig. 4 (cost), Listing 1 (evidence chain) | 11 |
 
 Table I is declared in Section I so that it lands on page 2. `dbltopnumber` is
 capped at 1 so two full-width floats can never share a page top.

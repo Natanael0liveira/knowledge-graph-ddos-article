@@ -12,8 +12,7 @@ existing result; all are additive and Sprints 1–5 stay intact.
 > Appendix E). The production results are Section V-B, the post hoc analyses V-C, the
 > boundary and the WAF V-D, and the ablation and cross-M results Appendix C. Fig. 2 is
 > what the binomial configuration stops by botnet size and endpoint (V-B, from the
-> `sweep` block), Fig. 3 the cost (Appendix D) and Fig. 4 the operating points
-> (Appendix E).
+> `sweep` block), Fig. 3 the operating points (V-B) and Fig. 4 the cost (Appendix D).
 
 | Script | Gap it closes | Needs the drive? |
 |---|---|---|

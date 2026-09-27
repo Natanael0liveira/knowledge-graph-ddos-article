@@ -6,10 +6,10 @@ produced here -- see figures/README.md and figures/src-drawio/.
   fig6_stops.png      -- Fig. 2 (Section V-B), one column at print size: what the binomial
                          configuration stops per endpoint, by botnet size, with the gate
                          and the scope alone.
-  fig5_latency.png    -- Fig. 3 (Appendix D), single column: the cost of both layers.
-  fig4_operating.png  -- Fig. 4 (Appendix E), single column: operating points on production
-                         traffic, false alarms against blocked share (test days and the
-                         held-out day).
+  fig4_operating.png  -- Fig. 3 (Section V-B), one column at print size: operating points
+                         on production traffic, false alarms against blocked share (test
+                         days, the held-out day and the cross-fitted calibration).
+  fig5_latency.png    -- Fig. 4 (Appendix D), single column: the cost of both layers.
   fig3_collateral.png -- no longer in the paper (Table III carries its modal column): the
                          modal scope, the unseen-fingerprint filter and the enrichment scope
                          on generated traffic, fresh and shared stacks.
@@ -161,54 +161,55 @@ def fig_collateral(root):
 def fig_operating(root):
     """False alarms against blocked share on production traffic, 100 attackers.
 
-    Grey markers are the three calibrated configurations with the cross-fitted
-    calibration (test days), joined to their in-sample point by a thin arrow.
+    Drawn at print size (one column, 3.45 in). Filled markers: test days; open: the
+    held-out day; grey, joined by an arrow to its in-sample point: the cross-fitted
+    calibration of the three calibrated configurations.
     """
     T = json.load(open(os.path.join(root, "experiments/sprint-6-noms/results/production_tables.json")))
-    scopes = [  # (label, run, key, marker)
-        ("binomial, $\\Omega$ gate (rule)", "base", "enrichment|omega", "o"),
-        ("binomial $\\cup$ unseen, origin gate", "base", "union|origins", "s"),
-        ("  + known fleets", "fleets", "union|origins", "D"),
-        ("beta-binomial $\\cup$ unseen, origin gate (post hoc)", "od", "union|origins", "h"),
-        ("$z$-score, calibrated", "base", "zcal|origins", "^"),
-        ("unseen JA4", "base", "unseen|origins", "P"),
-        ("scope alone, known fleets", "fleets", "union|none", "*"),
-        ("scope alone, beta-binomial (post hoc)", "od", "union|none", "X"),
+    scopes = [  # (label, run, key, marker, size)
+        ("base rule ($\\Omega$ gate)", "base", "enrichment|omega", "o", 16),
+        ("binomial (recommended)", "fleets", "union|origins", "D", 13),
+        ("$z$-score, calibrated", "base", "zcal|origins", "^", 18),
+        ("beta-binomial$^{*}$", "od", "union|origins", "h", 18),
+        ("unseen filter", "base", "unseen|origins", "P", 18),
+        ("scope alone, binomial", "fleets", "union|none", "*", 34),
+        ("scope alone, beta-binomial$^{*}$", "od", "union|none", "X", 18),
     ]
-    xfit = [("fleets", "xfit_fleets", "union|origins", "D"), ("od", "xfit_od", "union|origins", "h"),
-            ("base", "xfit", "zcal|origins", "^")]
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.0), sharey=True)
+    xfit = [("fleets", "xfit_fleets", "union|origins", "D", 13), ("od", "xfit_od", "union|origins", "h", 18),
+            ("base", "xfit", "zcal|origins", "^", 18)]
+    fig, axes = plt.subplots(1, 2, figsize=(3.45, 2.45), sharey=True)
     for ax, cell, title in ((axes[0], "new:A100", "new stacks"), (axes[1], "shared:A100", "shared stacks")):
-        for lab, run, key, mk in scopes:
+        for lab, run, key, mk, s in scopes:
             for block, filled in (("test_days", True), ("fresh_day", False)):
                 r = T[block][run]["all"][key]
-                fa = max(r["clean_rate"] * 100, 0.01)
-                y = r[cell]["blocked"] * 100
-                face = (NAVY if filled else "white") if mk not in ("x",) else NAVY
-                ax.scatter(fa, y, marker=mk, s=40 if mk != "*" else 90, facecolors=face,
-                           edgecolors=NAVY, linewidths=0.9, zorder=3,
+                ax.scatter(max(r["clean_rate"] * 100, 0.01), r[cell]["blocked"] * 100, marker=mk, s=s,
+                           facecolors=NAVY if filled else "white", edgecolors=NAVY, linewidths=0.6, zorder=3,
                            label=lab if (filled and ax is axes[0]) else None)
-        for run0, run, key, mk in xfit:
+        for run0, run, key, mk, s in xfit:
             r0, r = T["test_days"][run0]["all"][key], T["test_days"][run]["all"][key]
             p0 = (max(r0["clean_rate"] * 100, 0.01), r0[cell]["blocked"] * 100)
             p1 = (max(r["clean_rate"] * 100, 0.01), r[cell]["blocked"] * 100)
             ax.annotate("", xy=p1, xytext=p0, zorder=2,
-                        arrowprops=dict(arrowstyle="-|>", color=CHANCE, lw=0.7, shrinkA=4, shrinkB=4))
-            ax.scatter(*p1, marker=mk, s=40, facecolors=BAR_GRAY, edgecolors=NAVY, linewidths=0.9, zorder=3)
+                        arrowprops=dict(arrowstyle="-|>", color=CHANCE, lw=0.5, mutation_scale=5,
+                                        shrinkA=2.5, shrinkB=2.5))
+            ax.scatter(*p1, marker=mk, s=s, facecolors=BAR_GRAY, edgecolors=NAVY, linewidths=0.6, zorder=3)
         ax.set_xscale("log")
-        ax.set_xlim(0.008, 15)
-        ax.set_ylim(-3, 100)
-        ax.set_title(title + ", 100 attackers", fontsize=10)
-        ax.set_xlabel("clean windows with a false alarm (%)", fontsize=9.5)
-        ax.tick_params(labelsize=9)
-        ax.grid(alpha=.25, zorder=0)
+        ax.set_xlim(0.007, 15)
+        ax.set_xticks([0.01, 0.1, 1, 10])
+        ax.set_xticklabels(["0.01", "0.1", "1", "10"])
+        ax.set_ylim(-4, 100)
+        ax.set_title(title, fontsize=7, pad=2)
+        ax.set_xlabel("false alarms (% of windows)", fontsize=6.5, labelpad=1)
+        ax.tick_params(labelsize=6.5, length=2, pad=1.5)
+        ax.grid(alpha=.25, lw=0.5, zorder=0)
         ax.spines[["top", "right"]].set_visible(False)
-    axes[0].set_ylabel("botnet blocked (%)", fontsize=9.5)
-    fig.legend(loc="lower center", bbox_to_anchor=(0.5, -0.27), ncol=3, fontsize=8.6, frameon=False)
-    fig.text(0.99, 0.005, "filled: test days; open: held-out day; grey: test days, cross-fitted", ha="right", fontsize=8.4, color="#555")
-    fig.tight_layout()
+    axes[0].set_ylabel("% of 100 attackers blocked", fontsize=7, labelpad=1)
+    h, l = axes[0].get_legend_handles_labels()
+    fig.legend(h, l, loc="lower center", bbox_to_anchor=(0.5, -0.005), ncol=2, fontsize=6.3,
+               frameon=False, handletextpad=0.3, columnspacing=0.8, labelspacing=0.35)
+    fig.tight_layout(pad=0.2, w_pad=0.5, rect=(0, 0.25, 1, 1))
     out = os.path.join(OUT, "fig4_operating.png")
-    fig.savefig(out, dpi=200, bbox_inches="tight")
+    fig.savefig(out, dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"OK: {out}")
 

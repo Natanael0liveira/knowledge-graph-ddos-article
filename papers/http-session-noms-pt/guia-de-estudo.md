@@ -47,8 +47,8 @@ Bin(n, b) é a distribuição binomial de n sorteios com probabilidade b.
 
 **Parte IV. Os resultados**
 15. Tráfego gerado (Tabelas III e VII)
-16. Tráfego de produção (Tabelas IV, V e VI, Figs. 2 e 4)
-17. Especificação, troca e custo (Fig. 3)
+16. Tráfego de produção (Tabelas IV, V e VI, Figs. 2 e 3)
+17. Especificação, troca e custo (Fig. 4)
 
 **Parte V. A defesa**
 18. Qual configuração recomendar, e os limites
@@ -63,8 +63,8 @@ coluna da impressão modal. Tabela IV: as configurações em produção, todos o
 Tabela V: o piso de calibração das configurações. Tabela VI: as configurações em
 produção, por endpoint. Tabela VII: a regra por janela (Apêndice E). Fig. 1: o pipeline
 de escopo calibrado. Fig. 2: o que a configuração binomial detém, por tamanho da botnet e
-por endpoint (Seção V-B). Fig. 3: o custo (Apêndice D). Fig. 4: os pontos de operação em
-produção (Apêndice E). Listagem 1: a regra SWRL e a agregação SPARQL (Apêndice A).
+por endpoint (Seção V-B). Fig. 3: os pontos de operação em produção (Seção V-B). Fig. 4:
+o custo (Apêndice D). Listagem 1: a regra SWRL e a agregação SPARQL (Apêndice A).
 Listagem 2: a cadeia de evidência de uma campanha canônica (Apêndice D).
 
 ---
@@ -1494,12 +1494,14 @@ lido: seus resultados são *post hoc*.
   descartado depois de ver os resultados: um dia só perde os eventos raros de frota que
   fixam o nível.
 
-**A Fig. 4** (Apêndice E) tem dois painéis (pilhas novas e compartilhadas, 100 atacantes
+**A Fig. 3** (Seção V-B) tem dois painéis (pilhas novas e compartilhadas, 100 atacantes
 por janela): no eixo horizontal, a fração de janelas limpas com falso alarme (escala
 logarítmica, com as taxas zero desenhadas em 0,01%); no vertical, a fração da botnet
-bloqueada. Marcadores cheios são os dias de teste; vazados, o dia novo; cinza, a
-calibração cruzada. As setas ligam os pontos em amostra da beta-binomial e do z-score aos
-cruzados; a beta-binomial e a calibração cruzada são *post hoc*.
+bloqueada. São sete configurações: a regra básica, a binomial recomendada, o z-score
+calibrado, a beta-binomial, o filtro de inéditas e o escopo sozinho, da binomial e da
+beta-binomial. Marcadores cheios são os dias de teste; vazados, o dia novo; cinza, a
+calibração cruzada. As setas ligam os pontos em amostra da binomial, da beta-binomial e
+do z-score aos cruzados; a beta-binomial e a calibração cruzada são *post hoc*.
 
 ### 16.7 A fronteira e a rotatividade de JA4 (Seção V-D)
 
@@ -1596,7 +1598,7 @@ diferença máxima de 0,0.
   no seu vocabulário central. O artigo sugere uma extensão TLS do objeto *network-traffic*
   do STIX e um campo de filtro no DOTS.
 
-### 17.3 O custo (Apêndice D, Fig. 3)
+### 17.3 O custo (Apêndice D, Fig. 4)
 
 A admissão acontece por requisição e a agregação de Ω uma vez por janela, então as duas
 são medidas separadamente numa janela sintética (30% das sessões numa campanha com uma JA4
@@ -1611,7 +1613,7 @@ mesmo Ω a menos de 7 × 10⁻¹².
 
 A camada simbólica roda em `rdflib` no lugar de Jena/TDB2, então os números são um limite
 superior. O termo quadrático vive no **valor** de Ω, que conta pares, e nas arestas das
-sub-relações não transitivas, não no custo de contar classes. A Fig. 3 mostra quatro
+sub-relações não transitivas, não no custo de contar classes. A Fig. 4 mostra quatro
 curvas (admissão e agregação, cada uma com arestas de pares e com contagens de classe),
 com retas pontilhadas de inclinação de referência.
 
@@ -2038,14 +2040,14 @@ O artigo diz isso no Apêndice F.
   inéditas, união, frotas, calibração do nível, beta-binomial com `--overdispersion`,
   calibração cruzada com `--split crossfit`, perfil com todos os clientes com
   `--waf-in-profile`, `log_tail`).
-- `production_tables.py`: as Tabelas IV, V e VI e os dados da Fig. 2 (taxas, intervalos,
+- `production_tables.py`: as Tabelas IV, V e VI e os dados das Figs. 2 e 3 (taxas, intervalos,
   dano, piso com `floor` e `deployed_floor`, e o bloco `sweep`).
 - `waf_labels.py`: os veredictos do WAF como rótulos, sob os dois perfis.
 - `ja4_churn.py`: a rotatividade de impressões.
 - `compile_counts.py`: compila a consulta de contagem a partir da ontologia.
 - `symbolic_detector.py`, `unseen_synth.py`, `rule_detection.py`, `cross_m_generalization.py`,
   `bench_latency.py`: Tabela III, Tabela VII, os testes entre valores de M e o custo
-  (Fig. 3).
+  (Fig. 4).
 - `floor_bands.py`: o piso em pilhas compartilhadas por faixa de popularidade, na
   correlação de cada faixa, e as impressões acima do limite da razão (`make floor-bands`).
 - `audit_paper.py`: confere cada número do artigo contra os resultados (`make audit`).

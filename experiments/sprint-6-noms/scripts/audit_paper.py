@@ -433,7 +433,7 @@ ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: beta-binomi
 SW = PT["sweep"]
 m = SW["fleets"]["E1"]["new:M25:A100"]
 good = (round(m["blocked_alone"] * 100) == round(m["model_blocked_alone"] * 100) == 43
-        and "below it the scope names the stacks chance makes larger, $43\\%$ of 100 attackers on new stacks on the busiest endpoint, as a binomial model of stack sizes predicts" in TEXN)
+        and "below it the scope names the stacks chance makes larger, as a binomial model of stack sizes predicts (Fig.~\\ref{fig:stops})" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: below the floor, E1 scope alone stops {m['blocked_alone']*100:.1f}% of 100 new-stack attackers, model {m['model_blocked_alone']*100:.1f}%")
 dev = [abs(SW[r][e][k]["blocked_alone"] - SW[r][e][k]["model_blocked_alone"]) for r in ("fleets", "od") for e in ("E1", "E2", "E3")
        for k in SW[r][e] if k.startswith("new:M25:A")]

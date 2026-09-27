@@ -8,7 +8,7 @@ session ontology is the specification the count query is compiled from (Section 
 
 ```
 pp. 1–8    main text (Sections I–VII)   <- AT the 8-page limit
-p. 8       acknowledgment in the middle of the right column (a third of a column of slack)
+p. 8       acknowledgment at the bottom of the right column (no slack)
 pp. 9–12   references, then appendices A–F
 total      12 pages                     <- AT the 12-page limit
 ```
@@ -16,21 +16,21 @@ total      12 pages                     <- AT the 12-page limit
 Appendices: **A** sub-relation specification and Listing 1 · **B** weight
 calibration · **C** additional limitations, per-session detection and the learned
 models (the (a)–(d) ablation), laboratory captures, KLAGE, the learned representation
-across stack counts · **D** cost model (Fig. 3), window sensitivity, the evidence chain
+across stack counts · **D** cost model (Fig. 4), window sensitivity, the evidence chain
 (Listing 2) and CDN-scale partitioning · **E** the rule per window (Table VII) and the
-production details (the details of Section V that left the body, operating points in
-Fig. 4, other baselines, known fleets, the scope alone as a trigger) · **F**
+production details (the details of Section V that left the body, other baselines,
+known fleets, the scope alone as a trigger) · **F**
 reproducibility.
 
 Section V has four parts: A generated traffic, B production traffic (the pre-specified
 configurations, Fig. 2 with what the configuration stops by botnet size and endpoint,
-and the held-out day), C the post hoc analyses (beta-binomial,
+Fig. 3 with the operating points, and the held-out day), C the post hoc analyses (beta-binomial,
 cross-fitted calibration) and D the boundary and the WAF's verdicts. Specification and
 exchange are in Section VI. Section V keeps the central numbers in its text and leaves
 the rest to Tables IV to VI and to the "Details of Section V" paragraph of Appendix E.
 
-> **The body and the Acknowledgment end in the middle of page 8's right column, and the
-> references (33) follow; page 12 is nearly full (a third of a column free).** The body is within the limit only
+> **The body and the Acknowledgment end at the bottom of page 8's right column, and the
+> references (32) follow; page 12 is half full.** The body is within the limit only
 > if the Acknowledgment sits on page 8 or at the top of page 9's left column.
 
 Section structure follows the pattern observed in NOMS papers: Introduction ·
@@ -66,10 +66,9 @@ Current placement:
 | Fig. 1 (the scoping pipeline) | 3 |
 | Table II (the configurations evaluated on production), Table III (the scopes on generated traffic, with the modal fingerprint) | 5 |
 | Table IV (production, pooled), Table V (the configurations' floor, in sample and cross-fitted), Table VI (production, per endpoint) | 6 |
-| Fig. 2 (what the binomial configuration stops, by botnet size, per endpoint) | 7 |
+| Fig. 2 (what the binomial configuration stops, by botnet size, per endpoint), Fig. 3 (production operating points) | 7 |
 | Listing 1 (SWRL rule and SPARQL aggregation) | 10 |
-| Fig. 3 (cost), Listing 2 (evidence chain), Table VII (rule per window) | 11 |
-| Fig. 4 (production operating points) | 12 |
+| Fig. 4 (cost), Listing 2 (evidence chain), Table VII (rule per window) | 11 |
 
 Table I is declared in Section I so that it lands on page 2. `dbltopnumber` is
 capped at 1 so two full-width floats can never share a page top.

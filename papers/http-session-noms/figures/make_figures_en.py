@@ -168,11 +168,11 @@ def fig_operating(root):
     T = json.load(open(os.path.join(root, "experiments/sprint-6-noms/results/production_tables.json")))
     scopes = [  # (label, run, key, marker, size)
         ("base rule ($\\Omega$ gate)", "base", "enrichment|omega", "o", 16),
-        ("binomial (recommended)", "fleets", "union|origins", "D", 13),
+        ("binomial (in protocol)", "fleets", "union|origins", "D", 13),
         ("$z$-score, calibrated", "base", "zcal|origins", "^", 18),
         ("beta-binomial$^{*}$", "od", "union|origins", "h", 18),
         ("unseen filter", "base", "unseen|origins", "P", 18),
-        ("scope alone, binomial", "fleets", "union|none", "*", 34),
+        ("scope alone, binomial$^{*}$", "fleets", "union|none", "*", 34),
         ("scope alone, beta-binomial$^{*}$", "od", "union|none", "X", 18),
     ]
     xfit = [("fleets", "xfit_fleets", "union|origins", "D", 13), ("od", "xfit_od", "union|origins", "h", 18),
@@ -276,7 +276,7 @@ def fig_latency(root):
     sym_n = [n for n in sizes if "symbolic_total_s" in d[str(n)]]
     sym = [d[str(n)]["symbolic_total_s"] for n in sym_n]
 
-    fig, ax = plt.subplots(figsize=(7.0, 2.2))
+    fig, ax = plt.subplots(figsize=(7.0, 2.4))
     # comparison series (grey): pair edges enumerated or materialized
     ax.loglog(sym_n, sym, "s-", color=BAR_GRAY, lw=2, ms=6, markeredgecolor="#777",
               label="symbolic layer, pair edges materialized")
@@ -306,7 +306,7 @@ def fig_latency(root):
     ax.set_ylabel("latency (s)", fontsize=9)
     ax.grid(True, which="both", alpha=.25)
     # legend below the axes, clear of the x label: inside the plot it competed with the data.
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.30), ncol=2,
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.42), ncol=2,
               fontsize=8.2, frameon=False)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()

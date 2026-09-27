@@ -1294,3 +1294,109 @@ window-sensitivity paragraph of App. D and the fleet share's secondary held-out
 results left the paper (both remain in sections 11 and 12 of this README).
 
 `make audit`: 258 checks, 0 mismatches.
+
+## 22. Round 18: the trigger table, flash-crowd collateral, floors by stack count
+
+The round-17 review (the acceptance bar) found one claim false: Section VI said the
+scope alone stays within the budget on the busiest endpoint for the binomial *and* the
+beta-binomial, but the beta-binomial's scope alone fires on 2.08% of E1's clean
+test-day windows in sample and, cross-fitted, on 5 of the held-out day's 288 (1.74%).
+It also found an option the paper did not report: the cross-fitted beta-binomial
+behind the seasonal gate misfires on 4 of 5,643 test-day windows and none of the
+held-out day's 1,152, and stops 20.4% of E1's tenth-size botnet (15.3% held out),
+against 11.9% behind the origin gate. Round 18 rebuilds the recommendation on a table
+of the scope behind each trigger (Table VII), from values already in
+`production_tables.json`:
+
+| Trigger | Background | FA E1 test / held | FA E2–E4 highest, test / held | E1 0.1× stopped, test / held | Coll. |
+|---|---|---|---|---|---|
+| Origin gate | binomial | 0.00 / 0.00 | 0.28 / 0.69 | 11.8 / 0.0 | 32.9 |
+| | beta-binomial, cross-fitted* | 0.14 / 0.00 | 0.28 / 0.00 | 11.9 / 0.0 | 2.0 |
+| Seasonal gate* | binomial | 0.00 / 0.00 | 2.64 / 0.69 | 20.4 / 15.3 | 35.2 |
+| | beta-binomial, cross-fitted | 0.07 / 0.00 | 0.21 / 0.00 | 20.4 / 15.3 | 16.9 |
+| Scope alone* | binomial | 0.97 / 0.00 | 4.38 / 1.04 | 89.6 / 89.7 | 32.6 |
+| | beta-binomial, cross-fitted | 0.90 / 1.74 | 1.46 / 1.39 | 89.7 / 90.1 | 6.6 |
+
+In %; Coll. is the median over test-day misfires, all endpoints; * post hoc. The
+binomial scope alone on E1 sits at the budget: 14 of 1,440 (95% interval
+0.53–1.63%), rising by day 0, 0, 1, 5, 8, and it needs the fleet exemption (92 of 1,440
+without it). Section VI now proposes, for the pre-specified test, the cross-fitted
+beta-binomial behind the seasonal gate as primary and the scope alone on E1 as
+secondary, over a weekly cycle with an external timestamp.
+
+**Flash-crowd collateral** (`production_tables.py` now reduces it): the filters the
+binomial configuration installs on 1,000-user crowds block a median 4.3% of the
+window's clients, crowd included (90th percentile 20.6%; 7.1%, 18.6% and 2.7% on E2
+to E4), against 32.9% for clean-window misfires. On the held-out day E4's 1,000-user
+crowds trigger the configuration in 97.2% of windows (34.1% on the test days), 98.2% of
+the 280 firings on one fingerprint far more common among that day's clients than in
+the profile, at a median 1.1%. The new key `flash_concentration` holds that share per
+endpoint and block (a count; no fingerprint leaves the drive). Every earlier key of
+`production_tables.json` is unchanged, checked value by value.
+
+**Floors by stack count** (already in `floor_deployed`): on shared stacks E1's floor is
+50, 254 and 1,026 attackers for 5, 25 and 100 stacks (2%, 8% and 34% of its window),
+and 0.7–2.8, 4–19 and 24–106 windows on the small endpoints. The floor grows faster
+than linearly on E2 and E3, so the paper says only that it grows with the stacks.
+
+**Text fixes the review verified**: Listing 2 was cited as a STIX bundle (it is the
+JSON-LD chain); the WAF ranges now include E2 (implied floor 70–88%, random pick
+10–63%); the unsupported "one JA4 per browser" clause left (the FoxIO post does not
+say it); the introduction's "none scopes by fingerprint" became "no published method"
+(Table I lists a commercial JA4 product); "recommended" became "pre-specified"; 4 of the
+5 misfires are on the console; the distinct-origin gate alone fires on 5.4% of E1's
+clean windows; the held-out day passed mostly because its gate was quiet (3 of 1,152,
+0.26% against 3.0%); the ratio limit is stated for ρ = 3; the known fleets carry about
+7% of E1's profile; the exchange gap is "in its core vocabulary" throughout.
+
+**Space.** Ω is defined in words in Section III-B, with Eq. 1 and the weights moved to
+Appendix A; Section III-E is shorter; Listing 1 (the SWRL rule and SPARQL aggregation)
+left, and Appendix D describes the aggregation in words; Appendix B is shorter. Fig. 4's
+legend no longer overlaps its axis label. Body ends on page 8 (right column), 12 pages,
+abstract 250 words.
+
+Not done: m7 (the fleet-share comparison uses the median collateral, Section IV-B's
+expected share the mean; the mean would need `fleet_selection.py` rerun on the protocol
+record) and m16 (when the rolling split was fixed is not recorded in the repository).
+
+`make audit`: 266 checks, 0 mismatches.
+
+## 23. Round 19: a scope-bound review, the unseen filter in the trigger table
+
+From round 19 the reviewer judges what the paper delivers against what it proposes
+(its abstract and three contributions): class A for blocking issues within that scope,
+B for text, table or figure fixes that need no new analysis, and C for new work, which
+does not count in the verdict. Round 19's review: borderline, 3/3/2/4, one class A item.
+
+**A1, verified.** Table VII credited the post hoc gains on new stacks to the calibrated
+test, but the unseen filter alone, which reads no level and no fleet list, gives the same
+stops on new stacks under every trigger, with fewer false alarms and fewer flash-crowd
+firings (`unseen|seasonal`, `unseen|none` in `production_tables.json`):
+
+| E1, tenth-size botnet | Misfires, test / held out | New stacks, test / held | Shared, test | Fl. 1k |
+|---|---|---|---|---|
+| Seasonal gate, cross-fitted beta-binomial | 4 of 5,643 / 0 of 1,152 | 20.4 / 15.3 | 15.1 | 10.9 |
+| Seasonal gate, unseen filter alone | 0 / 0 | 20.4 / 15.3 | 0.0 | 3.4 |
+| Scope itself, binomial with known fleets | E1 0.97%, E2-E4 up to 4.38% | 89.6 / 89.7 | 61.1 | 22.4 |
+| Scope itself, unseen filter alone | E1 0.28%, others up to 0.42% / up to 0.35% | 89.6 / 89.7 | 0.0 | 3.4 |
+
+What the test adds is the shared stacks. Table VII now has the unseen-filter rows and
+the shared and flash-crowd columns; V-C, VI, the abstract and the conclusion say where
+each gain comes from; the next test takes the unseen filter as its own trigger as the
+baseline, against the cross-fitted beta-binomial behind the seasonal gate (its gain on
+shared stacks) and the binomial scope with known fleets as its own trigger.
+
+**B items applied**: "pre-specified" no longer qualifies test-day rates (the Fig. 3
+legend reads "in protocol"); the seasonal gate keeps the console within the budget
+under one of the four calibrations only (2.64%, 2.57% and 2.01% under the others); 95 of
+the held-out day's 288 E1 windows misfire without the fleet exemption; the cross-fitted
+beta-binomial's lower floor holds for the rare tail only (E1 ranks 36-100: 949
+attackers against the binomial's 743); the introduction's novelty sentence is one
+claim; cross-fitting is defined in IV-B; Fig. 3's caption says the small endpoints
+dominate the pooled cell and marks the cross-fitted points post hoc; the held-out
+diagnostics beyond the protocol are labelled; the ρ sensitivity is stated for the base
+rule; the boundary paragraph folded into V-B.
+
+Body ends at the bottom of page 8 (the Acknowledgment opens page 9), 12 pages, abstract
+250 words. `make audit`: 266 checks, 0 mismatches. The rounds of review stop here, at
+the user's choice.

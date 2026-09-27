@@ -176,14 +176,25 @@ would block 89.6%. Two other triggers were measured after the held-out day:
   off-hours fleets look like surges;
 - the **scope as its own trigger** (no gate) stops 89.4–89.8% of the tenth-size
   botnet on every test day. On the busiest endpoint it fires on 0.97% of clean
-  windows (0.83% cross-fitted, 0 of 288 on the held-out day), within the budget, and
+  windows (0.83% cross-fitted, 0 of 288 on the held-out day), at the budget, and
   its misfires block a median 1.0% of the clients. On the small endpoints it fires on
   1.5–4.4%, above the budget.
 
-So the trigger can be chosen per endpoint: the scope itself where its alarms stay
-within the budget, as on large endpoints, and the distinct-origin gate where they do
-not. The paper proposes this for the pre-specified test, since the choice was made
-after the held-out day was read.
+So the trigger decides, and the choice needs care. The binomial scope alone on the
+busiest endpoint sits *at* the budget rather than below it (14 of 1,440, 95% interval
+0.53–1.63%, rising 0, 0, 1, 5, 8 by day) and depends on the fleet exemption (92 of 1,440
+without it), and under the cross-fitted beta-binomial it fired on 1.74% of the held-out
+day's windows. The cross-fitted beta-binomial behind the seasonal gate stays within
+the budget on every endpoint on both day sets (4 of 5,643 and 0 of 1,152) while
+stopping more than the origin gate (20.4% of a tenth-size botnet on E1 against 11.9%).
+But on new stacks the unseen filter alone does as well under every trigger, with
+fewer false alarms and flash-crowd firings: as its own trigger it misfires on 0.28% of
+E1's clean windows and at most 0.42% elsewhere, and stops the same 90%. The enrichment
+test's gain is on shared stacks, which the unseen filter never names. So the paper
+(Table VII) takes the unseen filter as its own trigger as the baseline of the next,
+pre-specified test, against the cross-fitted beta-binomial behind the seasonal gate and
+the binomial scope with known fleets as its own trigger; all of it was examined after
+the held-out day was read.
 
 **Why origins and not sessions.** Sessions stay the nodes of the graph, and the
 relations still link sessions; only the aggregation counts each class in

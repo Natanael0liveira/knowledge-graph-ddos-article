@@ -138,7 +138,24 @@ into the counts and a ninth day analyzed with every choice fixed in advance
   A seasonal gate (the ratio to the same hour's median) stops 20.4%, and the scope as
   its own trigger 89.4–89.8% on every day, within the 1% budget on that endpoint
   (0.97%, 0 of 288 on the held-out day) but not on the small ones (1.5–4.4%). Post
-  hoc; the paper proposes a trigger chosen per endpoint for the pre-specified test.
+  hoc. Round 18: that 0.97% sits at the budget (95% interval 0.53–1.63%, rising 0, 0,
+  1, 5, 8 by day) and needs the fleet exemption (92 of 1,440 without it); under the
+  cross-fitted beta-binomial the scope alone reached 1.74% on the held-out day. The
+  cross-fitted beta-binomial behind the seasonal gate stays within the budget on every
+  endpoint on both day sets (4 of 5,643, 0 of 1,152) and stops 20.4% (15.3% held out),
+  so the paper proposes it as the next test's primary, the scope alone on E1 as secondary.
+- **On new stacks the unseen filter alone matches every scope (round 19).** Under the
+  origin gate, the seasonal gate and as its own trigger, the unseen filter stops as much
+  of E1's tenth-size botnet on new stacks as the calibrated scopes, with fewer false
+  alarms (0 behind the seasonal gate; 0.28% on E1 and at most 0.42% elsewhere as its own
+  trigger) and fewer flash-crowd firings (3.4% of 1,000-user crowds). The enrichment
+  test's gain is on shared stacks: 14.4-15.1% behind the seasonal gate and 61.1-65.7% as
+  its own trigger, where the unseen filter names none.
+- **Flash-crowd firings are light.** The filters the binomial configuration installs
+  on 1,000-user crowds block a median 4.3% of the window's clients (90th percentile
+  20.6%), against 32.9% for clean-window misfires. On the held-out day E4's crowds fire
+  it in 97.2% of windows, 98% of them on one fingerprint far more common that day than
+  in the profile, at a median 1.1%.
 - **The boundary holds.** A botnet on the endpoint's 25 most common fingerprints is
   mostly missed (7.0% and 23.8% of 100 and 1,000 attackers).
 - **The WAF's verdicts are not labels.** Scored against the clients the operator's WAF

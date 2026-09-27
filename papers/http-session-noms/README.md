@@ -13,25 +13,27 @@ pp. 9–12   references, then appendices A–F
 total      12 pages                     <- AT the 12-page limit
 ```
 
-Appendices: **A** sub-relation specification and Listing 1 · **B** weight
+Appendices: **A** sub-relation specification, with Eq. 1 (Ω) and the weights · **B** weight
 calibration · **C** additional limitations, per-session detection and the learned
 models (the (a)–(d) ablation), laboratory captures, KLAGE, the learned representation
 across stack counts · **D** cost model (Fig. 4), the evidence chain
-(Listing 2) and CDN-scale partitioning · **E** the rule per window (Table VII) and the
+(Listing 1) and CDN-scale partitioning · **E** the rule per window (Table VIII) and the
 production details (the details of Section V that left the body, other baselines,
 known fleets, the scope alone as a trigger) · **F**
 reproducibility.
 
 Section V has four parts: A generated traffic, then three findings on production
 traffic: B false alarms and the calibration floor, C what is stopped (the trigger
-decides; Fig. 2, the seasonal gate and the scope as its own trigger, Fig. 3 with the
+decides; Fig. 2, Table VII with the scopes behind each trigger, the unseen filter alone included, Fig. 3 with the
 operating points) and D what the evidence supports (the held-out day, the post hoc
 analyses, the boundary and this WAF's verdicts). Specification and
 exchange are in Section VI. Section V keeps the central numbers in its text and leaves
-the rest to Tables IV to VI and to the "Details of Section V" paragraph of Appendix E.
+the rest to Tables IV to VII and to the "Details of Section V" paragraph of Appendix E.
+Section III keeps the trigger, the scope, its calibration and the floor; Ω is defined
+there in words and its equation and weights are in Appendix A.
 
 > **The body ends at the bottom of page 8, the Acknowledgment opens page 9's left
-> column, and the references (36) follow; page 12 is nearly full.** The body is within the limit only
+> column, and the references (36) follow; page 12 has a few lines free.** The body is within the limit only
 > if the Acknowledgment sits on page 8 or at the top of page 9's left column.
 
 Section structure follows the pattern observed in NOMS papers: Introduction ·
@@ -67,9 +69,8 @@ Current placement:
 | Fig. 1 (the scoping pipeline) | 3 |
 | Table II (the configurations evaluated on production), Table III (the scopes on generated traffic, with the modal fingerprint) | 5 |
 | Table IV (production, pooled), Table V (the configurations' floor, in sample and cross-fitted), Table VI (production, per endpoint) | 6 |
-| Fig. 2 (what the binomial configuration stops, by botnet size, per endpoint), Fig. 3 (production operating points) | 7 |
-| Listing 1 (SWRL rule and SPARQL aggregation) | 10 |
-| Fig. 4 (cost), Listing 2 (evidence chain), Table VII (rule per window) | 11 |
+| Fig. 2 (what the binomial configuration stops, by botnet size, per endpoint), Table VII (the scope behind each trigger), Fig. 3 (production operating points) | 7 |
+| Fig. 4 (cost), Listing 1 (evidence chain), Table VIII (rule per window) | 11 |
 
 Table I is declared in Section I so that it lands on page 2. `dbltopnumber` is
 capped at 1 so two full-width floats can never share a page top.

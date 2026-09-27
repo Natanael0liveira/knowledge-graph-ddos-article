@@ -12,7 +12,10 @@ on the fold's calibration windows, past the p99 of that ratio; none, the scope a
 own trigger) it gives, per endpoint and pooled:
 - the firing rate on clean windows, with its 95% Clopper-Pearson interval and its
   count per test day, and the median and largest share of clients a firing blocks;
-- the firing rate with a flash crowd of 100 and of 1,000 users;
+- the firing rate with a flash crowd of 100 and of 1,000 users, and the median and
+  90th percentile of the share of the window's clients those firings block, with,
+  for the frozen configuration, the share of its 1,000-user firings that name the
+  fingerprint most often named there (a count, no fingerprint leaves);
 - per botnet cell (new or shared stacks; 100 or 1,000 attackers, or 1x or 0.1x the
   endpoint's median window): the mean blocked share, and the median share of the
   window's legitimate clients a firing blocks (collateral in attack windows, whose
@@ -172,7 +175,12 @@ def rates(W):
                  "clean_collateral_max": float(clean.loc[f, f"{col}_collateral"].max()) if f.any() else None}
             for N in (100, 1000):
                 fl = W[(W["kind"] == "flash") & (W["flash"] == N)]
-                r[f"flash{N}"] = float(fired(fl).mean()) if len(fl) else None
+                ff = fired(fl)
+                r[f"flash{N}"] = float(ff.mean()) if len(fl) else None
+                # what a firing on a flash crowd blocks: the share of the window's
+                # legitimate clients, the crowd included
+                r[f"flash{N}_collateral_median"] = float(fl.loc[ff, f"{col}_collateral"].median()) if ff.any() else None
+                r[f"flash{N}_collateral_p90"] = float(fl.loc[ff, f"{col}_collateral"].quantile(0.9)) if ff.any() else None
             coll = []
             for kind, source, x in CELLS + ADV_CELLS:
                 d = select(W, kind, source, x)
@@ -194,6 +202,34 @@ def rates(W):
             out[f"{scope}|{gate}"] = r
     # how often each gate alone fires on clean windows (its nominal rate is 1%)
     out["gates_clean"] = {g: (float(clean[f"gate_{g}"].mean()) if len(clean) else None) for g in ("omega", "origins", "seasonal")}
+    return out
+
+
+def flash_concentration(path, W, hosts, alias, blocks, N=1000):
+    """How concentrated the configuration's firings on flash crowds of N users are.
+
+    Among the flash-crowd windows where the distinct-origin gate and the union fire,
+    the share whose enrichment scope holds the fingerprint most often named there, per
+    endpoint and block. The named fingerprints are read in chunks for the flash rows
+    only, and only counts and shares leave.
+    """
+    parts = [ch[(ch["kind"] == "flash") & (ch["flash"] == N)]
+             for ch in pd.read_csv(path, usecols=["kind", "fold", "host", "window", "flash", "named"],
+                                   dtype={"fold": str, "named": str}, chunksize=500_000)]
+    F = pd.concat(parts).merge(
+        W.loc[(W["kind"] == "flash") & (W["flash"] == N), ["fold", "host", "window", "flash", "gate_origins", "union_named"]],
+        on=["fold", "host", "window", "flash"])
+    out = {}
+    for block, folds in blocks:
+        for h in hosts:
+            f = F[F["fold"].isin(folds) & (F["host"] == h) & F["gate_origins"] & F["union_named"]]
+            count = {}
+            for s in f["named"].fillna(""):
+                for x in set(s.split(";")) - {""}:
+                    count[x] = count.get(x, 0) + 1
+            top = max(count.values()) if count else 0
+            out.setdefault(block, {})[alias[h]] = {"fires": int(len(f)),
+                                                   "top_fingerprint_share": (top / len(f)) if len(f) else None}
     return out
 
 
@@ -406,6 +442,10 @@ def main():
             for source in ("fresh", "tail")}
         out["stealth_E1"][run]["clean_no_gate"] = {
             fo: float(g["union_named"].mean()) for fo, g in select(W[W["host"] == e1], "clean").groupby("fold")}
+        if run == "fleets":
+            out["flash_concentration"] = flash_concentration(
+                args.results / csv, W, hosts, alias,
+                [(k, v) for k, v in (("test_days", args.test_folds), ("fresh_day", args.fresh_folds)) if v])
         out.setdefault("floor", {})[run] = {
             alias[h]: {f: floor(J[run]["folds"][f][h]) for f in args.test_folds + args.fresh_folds
                        if h in J[run]["folds"].get(f, {})} for h in hosts}

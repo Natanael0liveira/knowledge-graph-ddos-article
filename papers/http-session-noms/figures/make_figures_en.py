@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """English figures for the NOMS submission (papers/http-session-noms).
 
-Generates the three DATA figures. Fig. 1 (fig1_scoping) is a draw.io schematic and is
-NOT produced here -- see figures/README.md and figures/src-drawio/.
-  fig5_latency.png    -- Fig. 2 (Appendix D), single column: the cost of both layers.
-  fig4_operating.png  -- Fig. 3 (Appendix E), single column: operating points on production
+Generates the DATA figures. Fig. 1 (fig1_scoping) is a draw.io schematic and is NOT
+produced here -- see figures/README.md and figures/src-drawio/.
+  fig6_stops.png      -- Fig. 2 (Section V-B), one column at print size: what the binomial
+                         configuration stops per endpoint, by botnet size, with the gate
+                         and the scope alone.
+  fig5_latency.png    -- Fig. 3 (Appendix D), single column: the cost of both layers.
+  fig4_operating.png  -- Fig. 4 (Appendix E), single column: operating points on production
                          traffic, false alarms against blocked share (test days and the
                          held-out day).
   fig3_collateral.png -- no longer in the paper (Table III carries its modal column): the
@@ -210,6 +213,57 @@ def fig_operating(root):
     print(f"OK: {out}")
 
 
+def fig_stops(root):
+    """What the binomial configuration stops per endpoint, by botnet size (test days).
+
+    Drawn at print size (one column, 3.45 in) from the `sweep` block of
+    production_tables.json: run `fleets`, scope union, distinct-origin gate, 25 stacks.
+    The absolute sizes (25-1,000) and the relative ones (a tenth, half and the whole
+    median window) share the x axis in attackers per window.
+    """
+    T = json.load(open(os.path.join(root, "experiments/sprint-6-noms/results/production_tables.json")))
+    S = T["sweep"]["fleets"]
+    n0 = {"E1": 2983, "E2": 62, "E3": 41, "E4": 20}          # Table V, median origins per window
+    floor_new = {"E1": 139, "E2": 139, "E3": 139, "E4": 84}  # Table V, new stacks, in sample
+    names = {"E1": "E1, RUM beacons", "E2": "E2, web console", "E3": "E3, API", "E4": "E4, SSO"}
+    fig, axes = plt.subplots(2, 2, figsize=(3.45, 3.05), sharex=True, sharey=True)
+    for ax, e in zip(axes.flat, ("E1", "E2", "E3", "E4")):
+        pts = [(A, f"M25:A{A}") for A in (25, 50, 100, 250, 1000)]
+        pts += [(x * n0[e], f"M25:x{x:g}") for x in (0.1, 0.5, 1)]
+        pts.sort()
+        xs = [p[0] for p in pts]
+        get = lambda mode, f: [S[e][f"{mode}:{k}"][f] * 100 for _, k in pts]
+        ax.plot(xs, get("new", "gate"), ":", color=CHANCE, lw=1.1, label="gate opens (% of windows)")
+        ax.plot(xs, get("new", "blocked_alone"), "--", color=GRAYB, lw=1.1, label="scope alone, new stacks")
+        ax.plot(xs, get("new", "blocked"), "o-", color=NAVY, lw=1.1, ms=2.6, label="configuration, new stacks")
+        ax.plot(xs, get("shared", "blocked"), "o-", color=NAVY, lw=0.8, ms=2.6, mfc="white",
+                label="configuration, shared stacks")
+        ax.axvline(floor_new[e], color=GRAYB, lw=0.6, zorder=0)
+        ax.plot([n0[e]], [-6], marker="^", color=NAVY, ms=3.5, clip_on=False, zorder=4)
+        ax.set_xscale("log")
+        ax.set_xlim(1.5, 4000)
+        ax.set_ylim(-6, 100)
+        ax.set_title(names[e], fontsize=7, pad=2)
+        ax.grid(alpha=.25, lw=0.5, zorder=0)
+        ax.tick_params(labelsize=6.5, length=2, pad=1.5)
+        ax.spines[["top", "right"]].set_visible(False)
+    for ax in axes[1]:
+        ax.set_xlabel("attackers per window", fontsize=7, labelpad=1)
+    for ax in axes[:, 0]:
+        ax.set_ylabel("% of the botnet", fontsize=7, labelpad=1)
+    h, l = axes[0, 0].get_legend_handles_labels()
+    fig.legend(h, l, loc="lower center", bbox_to_anchor=(0.5, -0.005), ncol=2, fontsize=6.5,
+               frameon=False, handlelength=2.2, columnspacing=1.0)
+    fig.tight_layout(pad=0.2, h_pad=0.5, w_pad=0.4, rect=(0, 0.1, 1, 1))
+    out = os.path.join(OUT, "fig6_stops.png")
+    fig.savefig(out, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    e1 = S["E1"]
+    print(f"OK: {out} | E1 new A100 gate {e1['new:M25:A100']['gate']:.3f} alone {e1['new:M25:A100']['blocked_alone']:.3f} "
+          f"conf {e1['new:M25:A100']['blocked']:.3f} | x0.1 alone {e1['new:M25:x0.1']['blocked_alone']:.3f} "
+          f"conf {e1['new:M25:x0.1']['blocked']:.3f}")
+
+
 def fig_latency(root):
     import json
     d = json.load(open(os.path.join(
@@ -266,5 +320,6 @@ if __name__ == "__main__":
     # Fig. 1 (fig1_scoping) is a draw.io schematic, not generated here.
     # Sources live in src-drawio/; see README.md for the export procedure.
     fig_collateral(root)
+    fig_stops(root)
     fig_operating(root)
     fig_latency(root)

@@ -51,7 +51,8 @@ depend on `|S_W|`, and no pair is ever enumerated. This is also how the evaluati
 computes Ω (`compute_coordination.py` groups by value and counts).
 
 The non-transitive relations (near-variant JA4, temporal pattern, payload
-signature) still compare the new session with candidates. Inverted indexes and
+signature) still compare the new session with candidates. None of them is exercised
+in the paper's evaluation, which counts exact-JA4, endpoint and /24 classes. Inverted indexes and
 locality-sensitive hashing narrow that comparison set before any per-pair work
 happens, so the per-pair cost `c` stays O(1) and the candidate count is what grows.
 
@@ -63,7 +64,7 @@ sub-relation **except the temporal one**.
 
 | Sub-relation | Decision | Cost |
 |---|---|---|
-| `relatedByTLSFingerprint` | Exact JA4 equality; failing that, near variants — same transport/TLS-version/ALPN prefix, at most one symbol of difference in the ordered cipher or extension blocks, annotated `ja4_distance = 1` | O(1) |
+| `relatedByTLSFingerprint` | Exact JA4 equality, the relation exercised (kept as class counts). Specified but not exercised: near variants — same transport/TLS-version/ALPN prefix, at most one symbol of difference in the ordered cipher or extension blocks, annotated `ja4_distance = 1` | O(1) |
 | `relatedByReusedIdentity` | Non-empty overlap of the identity sets (cookies ∪ tokens ∪ usernames); JWTs decoded and compared by the `sub` claim; cookies and usernames normalized | O(1) amortized, inverted index |
 | `relatedByTemporalPattern` | Normalized DTW over inter-arrival sequences, `d_DTW ≤ τ_DTW`; sessions with fewer than three requests skipped | **O(n)** — see below |
 | `relatedByPayloadSignature` | Cosine similarity over (mean body size, sd body size, hash of dominant User-Agent, hash of Content-Type) above `τ_payload` | O(1), precomputed vectors |
@@ -76,9 +77,10 @@ band reduces the per-pair cost from O(n²) to O(n), and locality-sensitive hashi
 over summary vectors (δ̄, σ_δ, δ_min, δ_max, entropy) avoids all-pairs
 comparison in the first place.
 
-The near-variant matching on JA4 deserves a note: it absorbs version drift within
-one client library without admitting spurious matches across genuinely distinct
-TLS stacks. Exact-only matching would fragment a single botnet stack across minor
+The near-variant matching on JA4 deserves a note: it would absorb version drift
+within one client library without admitting spurious matches across genuinely
+distinct TLS stacks. No code path implements it yet, and since it is not an
+equivalence it cannot be kept as class counts. Exact-only matching would fragment a single botnet stack across minor
 version changes; unbounded fuzzy matching would merge unrelated ones.
 
 ### Measured cost

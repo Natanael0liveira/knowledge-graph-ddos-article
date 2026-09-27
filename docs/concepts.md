@@ -493,6 +493,11 @@ its parameters, and the count query is compiled from it:
   attacked resource and filters only on network and transport header fields (RFC 8783),
   so both would widen a fingerprint scope to the endpoint or to address prefixes.
 
+No exchange standard has a JA4 property in its core vocabulary. The paper states this
+as its third contribution: fingerprint-scoped mitigation needs one, for instance in a
+TLS extension of STIX's network-traffic object and as a DOTS filter field. The ontology
+is the specification the operator deploys and the vocabulary of the exported chain.
+
 What the graph does not add is also measured: the AUC gain comes from the
 cross-session structure, which features express as well, and at window scale the
 trigger is a count of origins (section 4). A learned model over those features does

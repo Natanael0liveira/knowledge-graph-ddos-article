@@ -147,7 +147,7 @@ fitted on labels.
 
 ## Collateral damage is FPR under another name
 
-The mitigation results (Fig. 2, and
+The mitigation results (Table III, and
 [`../experiments/pillar4-evidence-mitigation/`](../experiments/pillar4-evidence-mitigation/))
 use two operational labels that map exactly onto the metrics above:
 
@@ -189,13 +189,17 @@ the beta-binomial on 22 (0.390%, up to 0.590%). The budget the level is calibrat
 
 **Windows are not independent.** Misfires cluster: 13 of the beta-binomial's 22 and 13
 of the z-score's 20 fall on one day of the web console. The exact interval treats the
-5,643 windows as independent draws, so each rate also gets a percentile interval from a
-bootstrap over endpoint-days: the days of each endpoint are resampled with replacement
-(the endpoints stay fixed), the rate is recomputed as misfires over windows, and the
-2.5th and 97.5th percentiles of 10,000 draws bound it (`cluster_ci`). It widens the
-beta-binomial's upper bound from 0.59% to 0.82% and the z-score's from 0.55% to 0.81%,
-and narrows the binomial's to 0.02–0.16%, whose five misfires are spread over the days.
-With five days per endpoint the bootstrap is itself rough; both intervals are reported.
+5,643 windows as independent draws, which clustering violates, so it understates the
+uncertainty of the clustered rates. The artifact also computes a percentile interval
+from a bootstrap over endpoint-days (`cluster_ci`): the days of each endpoint are
+resampled with replacement (the endpoints stay fixed), the rate is recomputed as
+misfires over windows, and the 2.5th and 97.5th percentiles of 10,000 draws bound it.
+The paper does not use it. With five days per endpoint the percentile bootstrap cannot
+see day-to-day variation it has not sampled: for the binomial configuration it gives
+0.02–0.16%, narrower than the exact 0.03–0.21%, and for the cross-fitted beta-binomial
+a lower bound of 0% although six misfires were observed. The paper reports the exact
+interval and states the clustering. An overdispersed count model per endpoint-day, or
+more days, would be the proper fix.
 
 The same rate is also reported for each component alone: the scope without the gate
 (the `|none` keys) and the gate without the scope (`gates_clean`). Each is calibrated
@@ -205,8 +209,21 @@ low because it needs both, and the two are not independent. If they were, per en
     expected joint misfires = Σ_e (gate rate_e × scope rate_e × clean windows_e)
 
 which gives 3.5, 7.5 and 11.9 for the binomial, the beta-binomial and the z-score against
-5, 22 and 20 observed (`clean_joint_expected`): a fleet raises the origin count and
-enriches its own fingerprint in the same window.
+5, 22 and 20 observed (`clean_joint_expected`). A fleet can cause the excess, since it
+raises the origin count and enriches its own fingerprint in the same window. Whether
+the excess is real is a count test. Under independence the joint misfires are a sum of
+many rare window events, so their count is close to Poisson with that mean, and the
+tail P[X ≥ observed] says how surprising the observation is:
+
+| Configuration | In sample | P | Cross-fitted | P |
+|---|---|---|---|---|
+| Binomial (recommended) | 5 against 3.5 | 0.27 | 6 against 3.2 | 0.10 |
+| Beta-binomial | 22 against 7.5 | 1.4 × 10⁻⁵ | 6 against 1.8 | 0.011 |
+| Calibrated z-score | 20 against 11.9 | 0.020 | 13 against 4.6 | 0.001 |
+
+The dependence is clear for the beta-binomial and the z-score. For the recommended
+configuration the excess is within chance, so the paper says it can occur, and does not
+claim it there.
 
 ### What a false alarm costs
 

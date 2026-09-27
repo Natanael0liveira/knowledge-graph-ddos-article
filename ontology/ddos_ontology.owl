@@ -611,7 +611,7 @@
         <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">1.0</coordinationWeight>
         <classKey rdf:resource="http://security.example.org/ontology/ddos#tlsJa4"/>
         <rdfs:label>related by TLS fingerprint</rdfs:label>
-        <rdfs:comment>Sessions with an equal or near-equal JA4 (distance ≤ 1). High weight: changing the TLS stack is costly for the attacker.</rdfs:comment>
+        <rdfs:comment>Sessions with an equal JA4, the equivalence whose classes the compiled count query counts. High weight: changing the TLS stack is costly for the attacker. A near-variant match (JA4 distance ≤ 1) is specified in the paper's Appendix A but not exercised: it is not an equivalence, so it would need pair edges.</rdfs:comment>
     </owl:ObjectProperty>
 
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByReusedIdentity">

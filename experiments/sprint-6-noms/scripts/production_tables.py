@@ -225,8 +225,10 @@ def floor(rec, rho=3.0, M=25, share=0.9):
     the floor, for stacks absent from the profile (b = 1/N) and for stacks drawn
     from its tail (b = the median prevalence past the ten most common, plus 1/N).
     Under --overdispersion the floor on new stacks stays exact, since a stack absent
-    from the profile keeps the binomial; the shared floor ignores the tail's
-    correlation, and the paper reports only the first.
+    from the profile keeps the binomial; the shared floor here ignores the tail's
+    correlation, so it is a lower bound. Table V's beta-binomial shared floor is the
+    exact one from floor_bands.py, which differs from this bound only on E4 (84
+    against 56).
     """
     n0, N = int(round(rec["median_origins"])), rec["profile_sessions"]
     fam, lvl = rec["profile_fingerprints"] + M, rec["scope_level"]

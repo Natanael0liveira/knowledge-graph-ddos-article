@@ -58,7 +58,7 @@ Colour only when it carries meaning, never for emphasis.
 
 ## 2. Data plots — generated from code
 
-`fig4_operating` (Fig. 3) and `fig5_latency` (Fig. 2) come from
+`fig6_stops` (Fig. 2), `fig5_latency` (Fig. 3) and `fig4_operating` (Fig. 4) come from
 `make_figures_en.py`, reading the results in
 `experiments/sprint-6-noms/results/` (`unseen_synth_summary.csv`,
 `production_tables.json`, `latency_summary.json`). `fig4_regime` is no longer in
@@ -98,8 +98,9 @@ mapping:
 | Printed | Source | Type |
 |---|---|---|
 | Fig. 1 | `src-drawio/fig1_scoping.drawio` | draw.io schematic |
-| Fig. 2 | `fig5_latency.png` | generated (Appendix D) |
-| Fig. 3 | `fig4_operating.png` | generated (Appendix E; grey markers and arrows: the cross-fitted calibration) |
+| Fig. 2 | `fig6_stops.png` | generated (Section V-B, from the `sweep` block; drawn at print size, one column of 3.45 in, fonts 6.5–7 pt) |
+| Fig. 3 | `fig5_latency.png` | generated (Appendix D) |
+| Fig. 4 | `fig4_operating.png` | generated (Appendix E; grey markers and arrows: the cross-fitted calibration) |
 | (none) | `fig3_collateral.png` | generated, no longer in the paper: Table III carries its modal column |
 | Listing 1 | `verbatim` block, Appendix A | SWRL / SPARQL rules |
 | Listing 2 | `verbatim` block, Appendix D | evidence chain |

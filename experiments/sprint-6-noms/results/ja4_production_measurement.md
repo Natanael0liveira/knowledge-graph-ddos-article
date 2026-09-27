@@ -2,9 +2,9 @@
 
 > **Authorization status.** These aggregates come from third-party production
 > traffic operated by Azion Technologies. This file keeps only the statistics the
-> paper actually cites. The log path, configuration variable name, fingerprint
-> list and point-of-presence volume were removed: none is used by the paper, and
-> exposing them buys nothing.
+> paper actually cites. The log path, configuration variable name and fingerprint
+> list were removed: the paper uses none of them, and exposing them buys nothing.
+> The one volume the paper cites is the extract's size, 6.33M TLS requests.
 >
 > Azion Technologies authorized this measurement and the aggregated traffic
 > statistics of the paper's Appendix E (confirmed 2026-09-24), which the
@@ -16,6 +16,7 @@ production edge node. The extract holds only **client-software** fingerprints an
 their frequencies: no address, host, URI, header, user agent, JA4H or session
 identifier.
 
+    requests  = 6.33M TLS requests
     distinct  = 495
     top-1     = 38.37%
     top-10    = 93.82%

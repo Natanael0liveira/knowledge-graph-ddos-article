@@ -55,9 +55,11 @@ test names, joined with fingerprints absent from the profile.
   for fingerprints absent from the profile, behind a distinct-origin gate) raises false
   alarms on 0.1% of clean windows (5 of 5,643), in sample and cross-fitted. Each
   calibrated component alone exceeds its 1% target on the days after calibration (the
-  scope alone fires on 2.2%), and gate and scope misfire together more often than if
-  they were independent: the conjunction is rare, not the errors independent. Misfires
-  cluster by endpoint-day, so intervals come from a bootstrap over endpoint-days too.
+  scope alone fires on 2.2%). The conjunction is what is rare: for the beta-binomial
+  and the z-score, gate and scope misfire together clearly more often than
+  independence predicts, and for the binomial configuration within chance. Misfires
+  cluster by endpoint-day. The exact intervals assume independent windows, and a
+  bootstrap over five days per endpoint proved too coarse to replace them.
 - **The calibration floor, and a harder limit.** Fleets of legitimate clients that
   switch on together set a floor below which the scope names only the stacks chance
   makes larger. A 25-stack botnet on stacks real clients also present is named only past
@@ -132,7 +134,7 @@ the experiment behind, or a figure you want the source of.
 | Ω(S) ≥ τ per window | The rule end to end, with flash crowds (App. E) | §V-A; App. E | [`sprint-6 README`](experiments/sprint-6-noms/README.md) | [`rule_detection.py`](experiments/sprint-6-noms/scripts/rule_detection.py) |
 | Per-pair decision procedures | JA4 near-match, identity overlap, DTW, cosine, prefix match | App. A | [`runtime.md`](docs/runtime.md) | see note below |
 | Σₖ C(nₖ, 2) class counting | Why admission is constant and aggregation linear | §III-E, §V-C; App. D | [`runtime.md`](docs/runtime.md) | [`bench_latency.py`](experiments/sprint-6-noms/scripts/bench_latency.py) |
-| AUC, recall @ FPR = 0, collateral, Clopper–Pearson and endpoint-day bootstrap intervals | The metrics every result is reported in, with expected collateral per clean window | §IV-B | [`metrics.md`](docs/metrics.md) | [`production_tables.py`](experiments/sprint-6-noms/scripts/production_tables.py) | [`metrics.md`](docs/metrics.md) | — |
+| AUC, recall @ FPR = 0, collateral, Clopper–Pearson intervals, the joint-misfire count test, and why the endpoint-day bootstrap is not used | The metrics every result is reported in, with expected collateral per clean window | §IV-B | [`metrics.md`](docs/metrics.md) | [`production_tables.py`](experiments/sprint-6-noms/scripts/production_tables.py) | [`metrics.md`](docs/metrics.md) | — |
 
 > **Note on sub-relation coverage.** All six sub-relations are specified in
 > Appendix A and implemented in
@@ -172,7 +174,7 @@ its result file.
 | Artifact | Source |
 |---|---|
 | Fig. 1 (the scoping pipeline) | draw.io source in [`figures/src-drawio/`](papers/http-session-noms/figures/src-drawio/) |
-| Fig. 2 (cost, App. D), Fig. 3 (production operating points, in sample and cross-fitted, App. E) | [`make_figures_en.py`](papers/http-session-noms/figures/make_figures_en.py), from `unseen_synth_summary.csv`, `production_tables.json` and `latency_summary.json` in `experiments/sprint-6-noms/results/` |
+| Fig. 2 (what the configuration stops, by botnet size and endpoint, V-B), Fig. 3 (cost, App. D), Fig. 4 (production operating points, in sample and cross-fitted, App. E) | [`make_figures_en.py`](papers/http-session-noms/figures/make_figures_en.py), from `unseen_synth_summary.csv`, `production_tables.json` and `latency_summary.json` in `experiments/sprint-6-noms/results/` |
 | Ablation numbers (Appendix C) | `canonical_realistic.json`, `canonical_baselines.json`, `cross_m_generalization.json` |
 | Table III (the scope on generated traffic, with the modal fingerprint's column) | `symbolic_detector.json` via [`symbolic_detector.py`](experiments/sprint-6-noms/scripts/symbolic_detector.py), `unseen_synth_summary.csv` via [`unseen_synth.py`](experiments/sprint-6-noms/scripts/unseen_synth.py) |
 | Table II (configurations), Tables IV, V and VI (production) | `production_tables.json` via [`production_tables.py`](experiments/sprint-6-noms/scripts/production_tables.py), `floor_bands.json` via [`floor_bands.py`](experiments/sprint-6-noms/scripts/floor_bands.py), `waf_labels.json` via [`waf_labels.py`](experiments/sprint-6-noms/scripts/waf_labels.py), `ja4_churn.json`; their inputs are the operator's exports and stay off the repository |

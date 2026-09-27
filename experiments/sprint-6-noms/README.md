@@ -11,7 +11,9 @@ existing result; all are additive and Sprints 1–5 stay intact.
 > Table VI (production per endpoint, in the body) and Table VII (the rule per window,
 > Appendix E). The production results are Section V-B, the post hoc analyses V-C, the
 > boundary and the WAF V-D, and the ablation and cross-M results Appendix C. Fig. 2 is
-> the cost (Appendix D) and Fig. 3 the operating points (Appendix E).
+> what the binomial configuration stops by botnet size and endpoint (V-B, from the
+> `sweep` block), Fig. 3 the cost (Appendix D) and Fig. 4 the operating points
+> (Appendix E).
 
 | Script | Gap it closes | Needs the drive? |
 |---|---|---|
@@ -1094,8 +1096,9 @@ resampled, 10,000 draws) gives the interval next to the exact one:
 
 The last column is the joint misfires the gate and the scope would give if they were
 independent within each endpoint (gate rate × scope rate × windows). Every configuration
-exceeds it: a fleet raises the origin count and enriches its own fingerprint at once. The
-conjunction still keeps the rates low, but not because the two errors are independent.
+exceeds it, since a fleet raises the origin count and enriches its own fingerprint at
+once, but for the binomial configuration the excess is within chance (section 19). The
+bootstrap column turned out too coarse to use (section 19).
 
 **The floor is not a cliff, and a binomial model of stack sizes predicts the ramp.** The
 runs inject 25, 50, 100, 250 and 1,000 attackers on 1, 5, 25 or 100 stacks, and 0.1,
@@ -1151,3 +1154,63 @@ clean windows (0.26%, against 3.0% on the test days), and the binomial scope mis
 2 of them, against 5 of 168 on the test days (P[Bin(3, 5/168) ≥ 2] = 0.003). The
 unconditional count (2, P = 0.27) is consistent because the gate was quiet. The protocol's
 metric 3, flash crowds of 100 users, is 1.1% on the held-out day; the paper now reports it.
+
+## 19. What the round-13 review verified, and what changed
+
+The review of the round-13 paper checked 30 claims against these files. We
+re-verified each defect it reported before changing anything.
+
+**The dependence of gate and scope, tested.** Under independence the joint misfires
+are a sum of many rare window events, so their count is close to Poisson with the mean
+of section 18. The tail P[X ≥ observed]:
+
+| Configuration | In sample | P | Cross-fitted | P |
+|---|---|---|---|---|
+| Binomial | 5 against 3.5 | 0.27 | 6 against 3.2 | 0.10 |
+| Beta-binomial | 22 against 7.5 | 1.4 × 10⁻⁵ | 6 against 1.8 | 0.011 |
+| Calibrated z-score | 20 against 11.9 | 0.020 | 13 against 4.6 | 0.001 |
+
+The paper now claims the dependence only where it is significant.
+
+**The endpoint-day bootstrap is too coarse.** With five days per endpoint it gives the
+binomial configuration 0.02–0.16%, narrower than the exact 0.03–0.21%, and the
+cross-fitted beta-binomial a lower bound of 0% with six misfires observed. The paper
+now reports the exact interval, says it assumes independent windows, and states the
+clustering (13 of each on one day of the console). `cluster_ci` stays in the artifact.
+
+**The fleet share against the paper's own collateral metric.** On the design days
+(`fleet_profile.json`, block `design`), rate × median collateral per clean window is
+0.0028% for the 0.5% share and 0.070% for the chosen 5%, about 25 times heavier, and
+the 0.5% share stopped more of 100 attackers on new stacks (44.6% against 30.9%). The
+protocol chose by misfire count (5 against 6 for the base rule, 12 to 16 for smaller
+shares). The choice stands, since changing it now would be post hoc, and Table II's
+note and Appendix E disclose it.
+
+**Other verified fixes.**
+- The floor bands are in the body: the headline shared floor (254 on E1) is that of the
+  rare tail. Ranks 36 to 100 need 743 attackers, and ranks 11 to 35 are never named on
+  E1 and E2 (`floor_bands.json`).
+- Section VI said "about three misfires per endpoint and day", where the configuration
+  has 0.25. "Every calibrated configuration" named a floor the z-score does not have.
+- "The gate fires on the same windows as Ω in 86–99.6%" counted the windows where
+  neither fires. Among clean windows where either fires they coincide in 136 of 181
+  (`volume_baseline`), and the paper now says "agrees with Ω on 86–99.6% of windows".
+- `relatedByTLSFingerprint` counts exact-JA4 classes. The near-variant match of
+  Appendix A is specified but not exercised, since it is not an equivalence. The OWL
+  comment said "equal or near-equal" and now matches.
+- The Layer-7 detectors sentence cited a categorization of slow DoS attacks, and now
+  cites the survey.
+- The measurement note removed the point-of-presence volume but the paper cites the
+  extract's size. The note now carries it (6.33M TLS requests).
+
+**Fig. 2 of the paper** (`fig6_stops.png`, `make_figures_en.py`) draws the `sweep`
+block for the binomial configuration: per endpoint, the gate rate, the scope alone and
+the configuration on new and shared stacks, against attackers per window. It replaces
+the numeric part of the "What the configuration stops" paragraph.
+
+**Contribution (iii)** is now the exchange gap. No exchange standard has a JA4 property
+in its core vocabulary: STIX 2.1 carries one only in an extension that MISP's importer
+drops, and DOTS and Flowspec filter network and transport fields. The ontology stays as
+the specification the count query is compiled from.
+
+`make audit`: 262 checks, 0 mismatches.

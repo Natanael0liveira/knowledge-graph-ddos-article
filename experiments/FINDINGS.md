@@ -111,8 +111,18 @@ into the counts and a ninth day analyzed with every choice fixed in advance
   The recommended configuration needs both and raises false alarms on 0.1% (5 of
   5,643), 6 when calibrated out of sample, and 2 of 1,152 on the held-out day, a test
   with a power of only 37% against a tripled rate, whose gate opened in only 3 windows.
-  Gate and scope are not independent (joint misfires exceed what independence gives in
-  every configuration), and misfires cluster by endpoint-day.
+  Joint misfires of gate and scope exceed independence clearly for the beta-binomial
+  and the z-score (Poisson P < 10⁻⁴ and 0.02) and within chance for the binomial
+  configuration (5 against 3.5, P = 0.27). Misfires cluster by endpoint-day, which the
+  exact interval ignores; a bootstrap over five days per endpoint is too coarse to
+  fix that (it gave a narrower interval than the exact one).
+- **The fleet share was chosen by misfire count.** On
+  the design days the 5% share had the fewest false alarms (5 against 6 for the base
+  rule, 12 to 16 for smaller shares), which the protocol set as the criterion. By rate
+  times median collateral, the paper's own metric, the 0.5% share blocked about 25
+  times fewer legitimate clients per clean window (0.0028% against 0.070%) and stopped
+  more of 100 attackers on new stacks (44.6% against 30.9%). Re-choosing now would be
+  post hoc; the paper discloses it in Table II's note and Appendix E.
 - **Fleets set a calibration floor.** A 25-stack botnet on fingerprints real clients
   also present is named only past 8% of the busiest endpoint's window and 4 to 19
   whole windows on the small ones; new stacks are named from ⌈5M/0.9⌉ = 139 attackers

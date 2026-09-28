@@ -101,12 +101,13 @@ O que se mediu, em seis pontos:
    clientes da janela. O escopo sozinho dispara em 2,2% contra a meta de 1%.
    Na configuração binomial, gatilho e escopo erram juntos dentro do acaso; na
    beta-binomial e no z-score, bem mais do que se fossem independentes.
-3. **Frotas legítimas**, clientes que se ativam juntos, impõem um **piso de
-   calibração**. Uma botnet de 25 pilhas em impressões raras que clientes reais também
+3. **Frotas legítimas**, clientes que se ativam juntos, elevam um **piso de
+   calibração** (no SSO a maior parte dele vem do tamanho da janela: 56 atacantes no
+   nível nominal, 84 calibrado). Uma botnet de 25 pilhas em impressões raras que clientes reais também
    usam só é apontada acima de 8% da janela do endpoint mais movimentado e de 4 a 19
    janelas inteiras nos demais. Nas posições 11 a 35 do perfil, ela nunca é apontada no E1
-   nem no E2. Nas impressões que carregam a maior parte das origens, ela não é
-   apontada nunca: a fatia esperada de uma pilha fica abaixo de 0,9/M da janela, e uma
+   nem no E2. Nas impressões que carregam a maior parte das origens, em
+   expectativa, ela não é apontada nunca: a fatia esperada de uma pilha fica abaixo de 0,9/M da janela, e uma
    botnet de 25 pilhas não deve enriquecer nenhuma impressão acima de 0,9/(ρM) = 1,2%.
    O piso cresce com o número de pilhas: no E1, 50, 254 e 1.026 atacantes para 5, 25 e
    100 pilhas.
@@ -119,14 +120,15 @@ O que se mediu, em seis pontos:
    15% dela em pilhas compartilhadas, mas só 20% em pilhas novas no E1.
 5. **Os pontos *post hoc* e os limites.** Uma referência **beta-binomial**, construída
    depois de o dia novo ter sido lido, quase cumpre a meta na calibração cruzada e baixa o
-   piso para 6% e no máximo 4,4 janelas. Os veredictos do WAF do operador não servem de
+   piso para 6% e no máximo 4,4 janelas. Os veredictos do WAF deste operador não servem de
    rótulo. O dia novo, analisado com a configuração fixada de antemão, não contradiz a
    taxa de falso alarme, mas é um teste fraco e passou sobretudo porque o gatilho quase
    não abriu.
 6. **Nenhum padrão examinado expressa o escopo**, um filtro sobre impressões JA4, no seu
    vocabulário central. O STIX 2.1 só leva a JA4 numa extensão, que o importador do MISP
-   descarta. O OCSF registra JA4 em eventos de rede e nas evidências de achados (desde a
-   versão 1.3.0, de 2024), mas não define filtro nem remediação sobre elas. Os filtros do
+   descarta. O OCSF registra JA4 em eventos de rede desde a versão 1.3.0 (2024) e nas
+   evidências de achados desde a 1.4.0 (2025), mas não define filtro nem remediação sobre
+   elas. Os filtros do
    DOTS e do Flowspec casam só campos de rede e transporte. A **ontologia OWL** especifica as
    contagens que a decisão lê e o escopo exportado, e a consulta compilada a partir dela
    reproduz as contagens de origens e de pares /24 do operador.

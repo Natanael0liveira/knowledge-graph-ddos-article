@@ -1523,3 +1523,40 @@ III-C's WAF sentence (IV-A states it), "A single source is left to volumetric
 detectors", V-A's flash-crowd sentences, VI's TAXII detail (App. F keeps it) and a shorter
 Acknowledgment. The body and the Acknowledgment end on page 8, the references open page
 9, 12 pages, abstract 249 words. `make audit`: 259 checks, 0 mismatches.
+
+## 27. Round 26: the round-26 review
+
+The round-26 review (scope-bound) found no class A item and answered "ready to submit:
+yes", borderline leaning weak accept, 3/4/2/4, 60-75th percentile. Only its B1 (the
+readability of V-C, V-D, VI and App. E) would move it to weak accept; that item is left
+to the user. The cheap items were applied:
+- B4: the OCSF reference is version 1.4.0 (January 2025), and its note says JA4 is in
+  network events since 1.3.0 and in finding evidence since 1.4.0 (the key is now
+  `ocsf2025schema`);
+- B7: "The operator's WAF verdicts cannot serve as labels";
+- B8: fleets "raise" the floor (on E4 most of it is structural: 56 attackers at the
+  0.01 cap, 84 calibrated), and the ratio limit holds "in expectation" in the abstract,
+  contribution (ii) and V-B's heading;
+- B2: Table VII's note defines "No gate: scope as trigger";
+- B3: V-C no longer cites Fig. 3 for the triggers, which it does not show; V-D cites it
+  for the cross-fitted arrows;
+- B6: the binomial configuration is deployed on every endpoint, with the fallback below
+  its floor; the baseline and the seasonal-gate arm are marked post hoc; the baseline's
+  parity on the small endpoints is stated (every Table VII scope stops 90.0% of 1,000
+  new-stack attackers on E2-E4 under every trigger, test days and held-out day; the base
+  rule and the cross-fitted z-score stop less there and are not in Table VII);
+- B5: a new fingerprint that persists enters the profile only through an operator;
+- B9: test-day windows without an injected botnet (clean) are taken as attack-free, so a
+  real attack there would count as a false alarm;
+- B10: App. F says pair counts constrain the class sizes the scope tests but do not
+  identify them;
+- polish: "Pooled over the endpoints", "the floor is computed at their median
+  prevalence", the survey's category, "on new stacks on every day", the TAXII server
+  keeps all but the extension definition, cross-fitting post hoc at its first mention,
+  ECH hides the inner ClientHello.
+
+Space came from the CICIDS2017 session counts (now in App. B), the z-score formula (now
+in words), III-A's list of what the attacker randomizes, V-A's fallback clause, V-C's
+0.97% (Table VII prints it) and E1 collateral (now in App. E), and VI's cost sentence
+(App. D keeps it). Table VII's note stays at two lines. The body and the Acknowledgment
+end on page 8, 12 pages, abstract 250 words. `make audit`: 259 checks, 0 mismatches.

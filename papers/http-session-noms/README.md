@@ -7,8 +7,7 @@ session ontology is the specification the count query is compiled from (Section 
 ## Layout
 
 ```
-pp. 1–8    main text (Sections I–VII)   <- AT the 8-page limit
-p. 9       acknowledgment at the top of the left column (the body ends on p. 8, no slack)
+pp. 1–8    main text (Sections I–VII) and the acknowledgment   <- AT the 8-page limit
 pp. 9–12   references, then appendices A–F
 total      12 pages                     <- AT the 12-page limit
 ```
@@ -32,9 +31,11 @@ the rest to Tables IV to VII and to the "Details of Section V" paragraph of Appe
 Section III keeps the trigger, the scope, its calibration and the floor; Ω is defined
 there in words and its equation and weights are in Appendix A.
 
-> **The body ends at the bottom of page 8, the Acknowledgment opens page 9's left
-> column, and the references (36) follow; page 12 has a few lines free.** The body is within the limit only
-> if the Acknowledgment sits on page 8 or at the top of page 9's left column.
+> **The body and the Acknowledgment end at the bottom of page 8, and the references (37)
+> open page 9; page 12 has a few lines free.** The NOMS 2027 CFP allows 8 pages of main
+> text plus references and an optional appendix, 12 in total. The Acknowledgment is
+> neither, so it must end on page 8. Submission is via EDAS by 9 November 2026, and the
+> PDF's author list must match the EDAS registration.
 
 Section structure follows the pattern observed in NOMS papers: Introduction ·
 Related Work · Calibrated Fingerprint Scoping · Evaluation Methodology · Results ·

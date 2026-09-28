@@ -113,19 +113,21 @@ O que se mediu, em seis pontos:
 4. **Apontar não é deter (Fig. 2).** Onde o escopo aponta uma botnet pequena, o gatilho de
    origens raramente dispara: só 12% de uma botnet de um décimo da janela do endpoint
    mais movimentado é detida. Examinado *post hoc*, o filtro de impressões inéditas
-   como gatilho próprio detém 90% dela em pilhas novas, dentro do orçamento em todo
-   endpoint, porque cada pilha dela tem ao menos k_min origens. A beta-binomial cruzada
-   atrás de um gatilho sazonal acrescenta 15% dela em pilhas compartilhadas, mas no E1
-   perde a maior parte da detecção em pilhas novas.
+   como gatilho próprio detém ali 90% dela em pilhas novas, porque cada pilha dela tem ao
+   menos k_min origens, e os seus falsos alarmes ficam dentro do orçamento em todo
+   endpoint. A alternativa, a beta-binomial cruzada atrás de um gatilho sazonal, detém
+   15% dela em pilhas compartilhadas, mas só 20% em pilhas novas no E1.
 5. **Os pontos *post hoc* e os limites.** Uma referência **beta-binomial**, construída
    depois de o dia novo ter sido lido, quase cumpre a meta na calibração cruzada e baixa o
    piso para 6% e no máximo 4,4 janelas. Os veredictos do WAF do operador não servem de
    rótulo. O dia novo, analisado com a configuração fixada de antemão, não contradiz a
    taxa de falso alarme, mas é um teste fraco e passou sobretudo porque o gatilho quase
    não abriu.
-6. **Nenhum padrão de troca carrega o escopo** no seu vocabulário central: o STIX 2.1 só
-   leva a JA4 numa extensão, que o importador do MISP descarta, e os filtros do DOTS e do
-   Flowspec casam só campos de rede e transporte. A **ontologia OWL** especifica as
+6. **Nenhum padrão examinado expressa o escopo**, um filtro sobre impressões JA4, no seu
+   vocabulário central. O STIX 2.1 só leva a JA4 numa extensão, que o importador do MISP
+   descarta. O OCSF registra JA4 em eventos de rede e nas evidências de achados (desde a
+   versão 1.3.0, de 2024), mas não define filtro nem remediação sobre elas. Os filtros do
+   DOTS e do Flowspec casam só campos de rede e transporte. A **ontologia OWL** especifica as
    contagens que a decisão lê e o escopo exportado, e a consulta compilada a partir dela
    reproduz as contagens de origens e de pares /24 do operador.
 
@@ -136,9 +138,9 @@ alarmes dentro e fora da amostra, o piso de calibração, um limite mais duro fi
 razão de enriquecimento e quanto de uma botnet injetada o gatilho deixa passar (e,
 *post hoc*, gatilhos que recuperam parte dela), além da fronteira do método, da
 rotatividade de impressões, dos
-veredictos do WAF e de um dia novo; (3) nenhum padrão de troca carrega o escopo no
-seu vocabulário central: o STIX 2.1 só leva a JA4 numa extensão, que o importador do MISP
-descarta, e o DOTS e o Flowspec filtram só campos de rede e transporte. A ontologia
+veredictos do WAF e de um dia novo; (3) nenhum padrão examinado expressa o escopo no
+seu vocabulário central: o STIX 2.1 só leva a JA4 numa extensão, o OCSF a registra sem
+definir filtro sobre ela, e o DOTS e o Flowspec filtram só campos de rede e transporte. A ontologia
 especifica as contagens e o escopo exportado, e dela se compila a consulta que o
 armazenamento de logs executa.
 
@@ -972,8 +974,10 @@ do próprio dia, a uma janela.
   por calibração cruzada.
 - **Cinco escolhas foram feitas nos dias de teste**: contar origens, calibrar λ_e, o
   gatilho de origens, a união com o filtro de inéditas e a fração de 5% das frotas. Só o
-  dia novo as põe à prova. A fração de 5% foi escolhida por ter menos falsos alarmes,
-  embora a de 0,5% bloqueasse menos clientes legítimos (seção 10.1).
+  dia novo as põe à prova. Das quatro frações, só a de 5% não teve mais falsos alarmes
+  que a regra base nos três primeiros dias de teste, embora a de 0,5% bloqueasse cerca de
+  25 vezes menos clientes legítimos e detivesse mais de uma botnet de 100 atacantes
+  (44,6% contra 30,9%, seção 10.1).
 - **Beta-binomial no dia novo**: o dia foi lido antes de ela ser construída, então o
   resultado dela ali também é *post hoc*.
 - ***Post hoc***: depois de o dia novo ter sido lido. A beta-binomial e a calibração
@@ -1696,9 +1700,14 @@ diferença máxima de 0,0.
 - Nos dois casos o escopo se alargaria para o endpoint ou para prefixos de endereço. O
   que falta: uma propriedade padrão para JA4 no STIX e no DOTS, e um mapeamento da extensão
   STIX para o objeto JA4 do MISP.
-- **É a contribuição (iii) do artigo**: nenhum padrão de troca tem uma propriedade para JA4
-  no seu vocabulário central. O artigo sugere uma extensão TLS do objeto *network-traffic*
-  do STIX e uma extensão dos filtros do DOTS.
+- O OCSF, um esquema aberto de eventos e achados de segurança, registra JA4 em eventos
+  de rede desde a versão 1.3.0 (agosto de 2024) e nas evidências de achados desde a
+  1.4.0 (janeiro de 2025). Ele não define filtro nem remediação sobre JA4: as classes de
+  remediação carregam contramedidas do D3FEND.
+- **É a contribuição (iii) do artigo**: dos padrões examinados, STIX 2.1, DOTS e Flowspec
+  não têm propriedade para JA4 no vocabulário central, e o OCSF a registra sem filtro
+  sobre ela. O artigo sugere um casamento de JA4 nos filtros do DOTS e uma propriedade
+  JA4 no STIX, por exemplo numa extensão TLS do objeto *network-traffic*.
 
 ### 17.3 O custo (Apêndice D, Fig. 4)
 
@@ -2081,9 +2090,10 @@ Com contagens de classe, a admissão é constante (~0,37 µs por sessão) e a ag
 (26,4 s a 100.000 sessões); com arestas de pares, 52,8 s já a 1.000.
 
 **"Por que falar de STIX e DOTS?"**
-Porque o escopo precisa ser trocado, e essa é a terceira contribuição: nenhum padrão tem
-uma propriedade para JA4 no vocabulário central. O STIX leva as impressões pelo TAXII numa
-extensão, o MISP as descarta, e o DOTS não consegue expressá-las.
+Porque o escopo precisa ser trocado, e essa é a terceira contribuição: nenhum padrão
+examinado expressa um filtro sobre JA4 no vocabulário central. O STIX leva as impressões
+pelo TAXII numa extensão, o MISP as descarta, o OCSF as registra em eventos e achados sem
+filtro sobre elas, e o DOTS não consegue expressá-las.
 
 **"O que a ontologia acrescenta, então?"**
 Aos números de detecção e ao gatilho, nada. Ela é a especificação que o operador implanta:

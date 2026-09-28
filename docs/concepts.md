@@ -531,9 +531,12 @@ its parameters, and the count query is compiled from it:
   attacked resource and filters only on network and transport header fields (RFC 8783),
   so both would widen a fingerprint scope to the endpoint or to address prefixes.
 
-No exchange standard has a JA4 property in its core vocabulary. The paper states this
-as its third contribution: fingerprint-scoped mitigation needs one, for instance in a
-TLS extension of STIX's network-traffic object and as a DOTS filter field. The ontology
+Of the standards examined, STIX 2.1, DOTS and Flowspec have no JA4 property in their
+core vocabulary. OCSF records JA4 fingerprints in network events (since v1.3.0, August
+2024) and in the evidence of findings (v1.4.0, January 2025), but defines no filter or
+remediation over them. The paper states this as its third contribution:
+fingerprint-scoped mitigation needs a JA4 match in the DOTS filters and a JA4 property in
+STIX, for instance in a TLS extension of its network-traffic object. The ontology
 is the specification the operator deploys and the vocabulary of the exported chain.
 
 What the graph does not add is also measured: the AUC gain comes from the

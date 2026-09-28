@@ -1468,3 +1468,58 @@ numbers. Space: Table VI keeps its binomial rows (the beta-binomial rows were po
 the text keeps the 19 of 22 console misfires and the 74.4%), the uncited Table VIII is
 one sentence in App. E, App. C's lean baseline left. Body ends on page 8, 12 pages,
 abstract 250 words. `make audit`: 259 checks, 0 mismatches.
+
+## 26. Round 25: the round-24 review and the NOMS 2027 rules
+
+The round-24 review (scope-bound) found one class A item, an external fact: "no exchange
+standard has a JA4 property in its core vocabulary" is false for OCSF. Checked at the
+source, the OCSF CHANGELOG and the schema's main branch (1.10.0-dev):
+- v1.3.0 (1 August 2024) added the `ja4_fingerprint` object and put
+  `ja4_fingerprint_list` in the base network event class (#834);
+- v1.4.0 (31 January 2025) added it to the `evidences` object of findings (#1244; the
+  review's "v1.6.0" is wrong);
+- in the schema JA4 appears only in `events/network/network.json`,
+  `objects/evidences.json` and `objects/ja4_fingerprint.json`. The remediation classes
+  carry D3FEND countermeasures and nothing over JA4, and `firewall_rule` has only
+  free-text match fields.
+
+The claim is now scoped to the standards examined in the abstract, contribution (iii),
+Section VI and the conclusion. STIX 2.1, DOTS and Flowspec have no JA4 property; OCSF
+records JA4 but defines no filter or remediation over it. The new reference is
+`ocsf2024schema`, so 37 are cited. Section VI's remedy is now a JA4 match in the DOTS
+filters and a JA4 property in STIX.
+
+NOMS 2027 (CFP and submission guidelines read 27 September 2026): 8 pages of main text,
+self-contained, plus references and an optional appendix, 12 pages in total. The PDF's
+author list must match EDAS (no blind review is stated), and submission closes on 9
+November 2026. The Acknowledgment is neither references nor appendix, so it now ends on
+page 8 (B8).
+
+B items applied:
+- B1: the abstract's post hoc sentence puts the 90% on the busiest endpoint and names the
+  beta-binomial as the alternative, 15% on shared stacks and 20% on new ones there;
+- B2: IV-B says that of four fleet shares only 5% had no more false alarms than the base
+  rule on the design days, and gives both sides of the trade-off (0.5% blocked about 25
+  times fewer legitimate clients and more of a 100-attacker botnet);
+- B3: Table IV marks its held-out cells beyond the protocol (No gate, Fl. 1k, the
+  z-score), IV-B calls "No gate" a diagnostic, and App. E marks the scope as a trigger
+  post hoc;
+- B4, in part: V-C names the four calibrations of the seasonal gate and the 43% (the
+  unseen filter as its own trigger), and says the unseen filter matches the union on new
+  stacks because it names each such stack;
+- B5: the unseen trigger's misfires cluster by day, and VI's "within the budget
+  everywhere" is pooled over the days;
+- B6 and B7, in part: the small endpoints' fallback applies below the floor, the
+  configuration is deployed on the busiest endpoint, and VI's "under a tenth of its
+  window" is for new or rare shared stacks;
+- B10: the KLAGE comparison is uncontrolled, against its published result;
+- polish: "never on the 4 to 28 most common", "matches or beats the test".
+
+Not applied: B9 (a legend table), a Fig. 3 mark for the z-score, splitting App. E's
+paragraph and a new reference on JA4 bot detection.
+
+Space came from Section II's closing paragraph (it repeated the introduction's gap),
+III-C's WAF sentence (IV-A states it), "A single source is left to volumetric
+detectors", V-A's flash-crowd sentences, VI's TAXII detail (App. F keeps it) and a shorter
+Acknowledgment. The body and the Acknowledgment end on page 8, the references open page
+9, 12 pages, abstract 249 words. `make audit`: 259 checks, 0 mismatches.

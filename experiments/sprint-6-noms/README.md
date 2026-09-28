@@ -1661,3 +1661,34 @@ covers it) and Fig. 2 at 2.5 in. 12 pages, the Acknowledgment ends on page 8, ab
 250 words. `make audit`: 253 checks, 0 mismatches. Not applied: B5 (four denser
 sentences), B6 (a sentence on the diagnostics computed after the held-out day) and the
 polish.
+
+## 32. The held-out block, fixed before its export
+
+New production data enter the paper only as a pre-specified test,
+`results/heldout_block_protocol.md`, committed and pushed before any day of it is
+exported. The block is the 14 days after the paper's data, 2026-09-26 to 2026-10-09,
+each calibrated on every earlier day, with the paper's nine days as history only. A
+first draft chose the 30 days before the paper's data, but the log store keeps only 8
+to 12 days and none of them was left; nothing was read.
+- `make rule-production-block` runs the eight runs that `production-tables` reduces, on
+  the block's own data directory (`$(PRODDATA)/block2`, with copies of the nine days),
+  so no earlier target reads the block. `make production-tables-block` reduces them.
+- `production_tables.py --endpoints-from` takes the endpoints and their order from the
+  paper's run, so the block keeps the paper's E1-E4 even if volumes shift or a fifth
+  host qualifies on every block day. Given the paper's own run, it reproduces
+  `results/production_tables.json` byte for byte.
+
+## 33. The user's held-out wording, back to 12 pages
+
+The user reworded the held-out day in three places. The abstract says "consistent with the
+test-day behavior but provides limited additional evidence", Section V's lead-in says "the
+held-out evidence is evaluated separately", and V-D replaces "This test is weak" with the
+few gate openings limiting the inference. The edits pushed the Acknowledgment to page 9, so
+the added length came out of our own text:
+- in the abstract, "25 new stacks", and "median", "TLS" and "ones" dropped;
+- in Section VI, a table reference and an appendix reference that repeated within their
+  paragraphs.
+
+V-D's new sentence was fixed for case, `1\,152` and `$P$`, and split under 45 words. 12
+pages, the Acknowledgment ends on page 8, abstract 250 words. `make audit`: 253 checks, 0
+mismatches, with the phrases updated to the new wording over the same numbers.

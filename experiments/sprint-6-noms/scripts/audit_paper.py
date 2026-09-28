@@ -871,13 +871,13 @@ def abs_chk(label, phrase, value, fmt_):
     good = phrase in ab and got == phrase.replace("\\%", "").replace("$", "")
     ok += good; bad += not good
     print(f"{'OK ' if good else 'XX '} abstract: {label:44s} phrase={phrase!r} data={got}")
-abs_chk("modal blocks none, hits legitimate traffic", "blocks no attacker and $39\\%$ of legitimate traffic from five TLS stacks on",
-        us("original", 5, 0, "modal", "fpr")*100, "blocks no attacker and {:.0f} of legitimate traffic from five TLS stacks on")
+abs_chk("modal blocks none, hits legitimate traffic", "blocks no attacker and $39\\%$ of legitimate traffic from five stacks on",
+        us("original", 5, 0, "modal", "fpr")*100, "blocks no attacker and {:.0f} of legitimate traffic from five stacks on")
 good = us("original", 5, 0, "modal", "recall") == 0; ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} abstract: the modal scope blocks no attacker at five stacks")
 pr = [us("original", s, 0, m, "recall") for s in (5, 25) for m in ("enrichment", "zscore")]
 pf = [us("original", s, 0, m, "fpr") for s in (5, 25) for m in ("enrichment", "zscore")]
-good = all(round(x * 100) == 90 for x in pr) and max(pf) == 0 and "profile-relative scopes block $90\\%$ of a botnet on up to 25 stacks absent from legitimate traffic, without observed collateral" in ab
+good = all(round(x * 100) == 90 for x in pr) and max(pf) == 0 and "profile-relative scopes block $90\\%$ of a botnet on up to 25 new stacks, without observed collateral" in ab
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract: binomial test and z-score block 90% up to 25 stacks at zero FPR")
 good = (fmt(fz["clean_rate"]) == "0.1" and 0.30 <= fz["clean_collateral_median"] <= 0.36
         and "the binomial configuration misfires on $0.1\\%$ of clean windows of the days it was chosen on, blocking a median third of clients" in ab)
@@ -886,8 +886,8 @@ print(f"{'OK ' if good else 'XX '} abstract: the binomial configuration misfires
 grows = all(dA("fleets", e, k, 5) < dA("fleets", e, k, 25) < dA("fleets", e, k, 100) for e in ("E1", "E2", "E3", "E4") for k in ("new", "shared"))
 good = grows and "Client fleets raise a calibration floor:" in ab and "legitimate fleets raise a calibration floor" in TEXN and "The floor grows with the stacks" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract, V-B: every floor grows from 5 to 25 to 100 stacks")
-abs_chk("the floor on shared stacks", "is named only past $8\\%$ of the busiest endpoint's window and 4 to 19 median windows elsewhere",
-        (shF*100, min(shS), max(shS)), "is named only past {:.0f} of the busiest endpoint's window and {:.0f} to {:.0f} median windows elsewhere")
+abs_chk("the floor on shared stacks", "is named only past $8\\%$ of the busiest endpoint's window and 4 to 19 windows elsewhere",
+        (shF*100, min(shS), max(shS)), "is named only past {:.0f} of the busiest endpoint's window and {:.0f} to {:.0f} windows elsewhere")
 good = min(share) > 0.5 and "and in expectation never on the 4 to 28 most common" in ab
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract: never named on the fingerprints carrying most origins ({min(share)*100:.0f}%+)")
 good = (round(sw1["new:M25:x0.1"]["blocked"] * 100) == 12 and sw1["new:M25:x0.1"]["gate"] < 0.2
@@ -901,10 +901,10 @@ good = (round(un1 * 100) == 90 and unmax <= 0.01 and round(sh15 * 100) == 15
         and round(TD["xfit_od"]["per_endpoint"]["E1"]["union|seasonal"]["new:x0.1"]["blocked"] * 100) == 20
         and TD["fleets"]["per_endpoint"]["E1"]["unseen|none"]["clean_rate"] <= 0.01
         and TD["fleets"]["per_endpoint"]["E1"]["unseen|none"]["shared:x0.1"]["blocked"] == 0
-        and "Post hoc, the unseen-fingerprint filter as its own trigger stops $90\\%$ of it there on new stacks within budget but none on shared stacks, where a cross-fitted beta-binomial behind a seasonal gate stops $15\\%$ ($20\\%$ on new ones)" in ab)
+        and "Post hoc, the unseen-fingerprint filter as its own trigger stops $90\\%$ of it there on new stacks within budget but none on shared stacks, where a cross-fitted beta-binomial behind a seasonal gate stops $15\\%$ ($20\\%$ on new)" in ab)
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} abstract: the unseen filter as its own trigger stops {un1*100:.1f}% (misfires at most {unmax*100:.2f}%); the alternative stops {sh15*100:.1f}% on shared stacks and 20% on new ones")
-good = pv >= 0.05 and pw < 0.5 and gw == 3 and "A held-out day, whose gate barely opened, is consistent but weakly informative" in ab
+good = pv >= 0.05 and pw < 0.5 and gw == 3 and "A held-out day, whose gate rarely opened, is consistent with the test-day behavior but provides limited additional evidence" in ab
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract: the held-out day is consistent")
 good = (cp["origins_equal"] == cp["windows"] and cpf["origins_equal"] == cpf["windows"] and cp["net24_pairs_equal"] == cp["windows"]
         and "The compiled query returned the exported origin and /24-pair counts in every window of two production days" in TEXN)
@@ -931,7 +931,7 @@ good = (unmax <= 0.01 and same and xso["union|seasonal"]["shared:x0.1"]["blocked
         and "On each small endpoint every scope of Table~\\ref{tab:triggers} stops $90.0\\%$ of 1\\,000 attackers on new stacks under every trigger, on the test days and the held-out day" in TEXN
         and TD["xfit_od"]["per_endpoint"]["E1"]["union|seasonal"]["new:x0.1"]["blocked"] < 0.25 * TD["fleets"]["per_endpoint"]["E1"]["unseen|none"]["new:x0.1"]["blocked"]
         and all(TD["xfit_od"]["per_endpoint"][e]["union|seasonal"]["new:A100"]["blocked"] > TD["fleets"]["per_endpoint"][e]["unseen|none"]["new:A100"]["blocked"] for e in ("E2", "E3", "E4"))
-        and "Against it would run the cross-fitted beta-binomial behind the seasonal gate, which gains on shared stacks everywhere and on smaller new stacks on the small endpoints but loses most new-stack detection on the busiest one (Table~\\ref{tab:triggers})" in TEXN
+        and "Against it would run the cross-fitted beta-binomial behind the seasonal gate, which gains on shared stacks everywhere and on smaller new stacks on the small endpoints but loses most new-stack detection on the busiest one." in TEXN
         and "\\1~\\textit{Now} we would deploy the binomial configuration on every endpoint, with the fallback below its floor, because behind the distinct-origin gate it alone was tested on a day it had not seen, as fixed in advance. A botnet that leaves the gate shut meets neither filter nor fallback on any endpoint, so on the busiest one the configuration stops few small botnets, none on the held-out day. On the console, where both held-out false alarms fell, a challenge may be the safer first response. \\2~\\textit{Next}, a test pre-specified on new days over a weekly cycle with an external timestamp would compare post hoc triggers" in TEXN
         and PT["stealth_E1"]["fleets"]["fresh:x0.1"]["2026-09-25"]["blocked"] == 0
         and FD["fleets"]["per_endpoint"]["E2"]["union|origins"]["clean_fires"] == FD["fleets"]["all"]["union|origins"]["clean_fires"] == 2

@@ -378,30 +378,30 @@ concluir demais. A ordem é a do artigo.
   deixou maiores, e por isso as curvas da Fig. 2 sobem aos poucos.
 
 **Fig. 2, o que a configuração barra conforme o tamanho da botnet**
-- **A pergunta:** por que botnets pequenas passam no serviço grande?
+- **A pergunta:** a lista reconhece uma botnet pequena, então por que ela não é barrada?
 - **Como ler:** há um painel por serviço, do E1 ao E4. O eixo horizontal traz os atacantes por
-  janela, em escala logarítmica, e o vertical, a porcentagem.
-  - Pontilhada cinza-clara (*gate opens*): em quantas janelas o gate abre.
-  - Tracejada escura (*scope alone*): quanto a lista barraria sem gate, agindo em toda janela, com fingerprints novos.
-  - Cheia, com bolinhas pretas: o que a configuração de fato barra, com fingerprints novos.
-  - Cheia, com bolinhas vazadas: o mesmo, com fingerprints compartilhados.
-  - Área sombreada: a parte da botnet que a lista apontaria, mas o gate deixa passar. No E1 ela
-    vem marcada *lost to the gate*. É o problema que a figura mostra, e ela só é grande no E1.
-  - Linha vertical cinza: o piso dos fingerprints novos (Tabela V).
-  - Triângulos no eixo: o preto é a janela típica, e o vazado é um décimo dela, a botnet "de um
-    décimo" do texto.
-- **Exemplo de leitura (E1):** com 100 atacantes, a lista sozinha barraria 43% (tracejada).
-  Mas para botnets de 25 atacantes até um décimo da janela o alarme toca em só 6% a 13% das
-  janelas (pontilhada), e a configuração barra só 3,4% (cheia). A linha cheia segue a
-  pontilhada, e não a tracejada: quem manda é o alarme. A área sombreada entre a tracejada e a
-  cheia é o que ele deixa passar. No triângulo vazado, um décimo da janela, a lista pegaria 90%
-  da botnet, e a configuração barra 12%.
-- **Exemplo de leitura (E2 a E4):** o alarme toca cedo, porque 100 atacantes já valem várias
-  janelas típicas desses serviços. Aí quem manda é o piso, e as linhas cheias sobem perto da
-  linha vertical.
-- **O que concluir:** no serviço grande, uma botnet pequena não enche o saguão o bastante para
-  tocar o alarme. Nos pequenos, o limite é o piso.
-- **Cuidado:** é uma botnet injetada, de uma forma só (25 fingerprints divididos por igual).
+  janela, em escala logarítmica (10, 100, 1.000), e o vertical, a porcentagem da botnet que é
+  barrada. Cada painel tem só duas linhas e a área entre elas.
+  - Tracejada (*the scope alone would block*): quanto a lista de fingerprints barraria se
+    pudesse agir em toda janela.
+  - Cheia, com bolinhas (*the configuration stops*): quanto o sistema barra de verdade, porque
+    ele só age quando o gate abre.
+  - Área cinza entre as duas (*lost to the gate*): o que se perde porque o gate não abriu.
+  - Triângulo vazado no eixo: um décimo da janela típica, a botnet "de um décimo" do texto.
+- **Exemplo de leitura (E1):** no triângulo vazado, com cerca de 300 atacantes, a tracejada
+  está em 90% e a cheia em 12%. A lista reconheceria 90% da botnet, mas só 12% é barrado. O
+  motivo é que 300 pessoas a mais num saguão de 3.000 quase não mudam a lotação, e o gate só
+  abre em 6% a 13% das janelas.
+- **Exemplo de leitura (E2 a E4):** no E2 e no E3 as duas linhas andam quase juntas. Nesses
+  serviços, 100 atacantes já valem várias janelas típicas: o saguão enche e o gate abre. O
+  limite é outro, o tamanho mínimo que a lista reconhece, que é o piso (Tabela V). No E4, com
+  só 20 origens por janela, sobra uma área menor, para botnets de até umas 30 origens que ainda
+  não enchem o saguão.
+- **O que concluir:** reconhecer a botnet não basta. No serviço grande, quem limita o que é
+  barrado é o gate, e nos pequenos é o piso.
+- **Cuidado:** é uma botnet injetada, de uma forma só (25 fingerprints novos, divididos por
+  igual). A taxa do gate e as pilhas compartilhadas ficaram fora da figura. Elas estão no texto,
+  na Tabela V e na seção 16.4 deste guia.
 
 **Tabela VI, os alarmes alternativos**
 - **A pergunta:** trocar o alarme recupera a botnet pequena sem encher o dia de falsos alarmes?
@@ -1969,10 +1969,11 @@ Uma botnet apontada só é detida nas janelas em que o gatilho de origens també
 A **Fig. 2** desenha isso por endpoint. No eixo horizontal está o tamanho da botnet de 25
 pilhas, em atacantes por janela (escala logarítmica, juntando os tamanhos absolutos, de 25
 a 1.000, e os relativos, de um décimo à janela mediana inteira); no vertical, a fração da
-botnet. A linha pontilhada é a fração de janelas em que o gatilho abre; a tracejada, o que
-o escopo sozinho bloquearia em pilhas novas; as cheias, o que a configuração detém em
-pilhas novas (marcadores cheios) e compartilhadas (vazados). A linha vertical marca o piso
-em pilhas novas (Tabela V), e o triângulo, a janela mediana. As mesmas curvas em números
+botnet. A tracejada é o que o escopo sozinho bloquearia em pilhas novas, e a cheia é o que a
+configuração detém. A área cinza entre elas é o que o gate deixa passar, e o triângulo
+vazado marca um décimo da janela mediana. A taxa do gate e as pilhas compartilhadas ficaram
+fora da figura para ela mostrar uma coisa só. A taxa do gate está na última coluna da
+tabela abaixo, e as pilhas compartilhadas na Tabela V. As mesmas curvas em números
 (binomial, M = 25, pilhas novas; escopo sozinho / modelo / configuração com o gatilho, em
 %, e a taxa do gatilho nas janelas de ataque):
 
@@ -2544,7 +2545,7 @@ como gatilho próprio, ataques HTTP/2 e uma campanha furtiva capturada.
 | *No gate* | Tabelas IV e VI, Fig. 3 | sem gate: o escopo age em toda janela e é o próprio gatilho |
 | *Scope alone* | Figs. 2 e 3 | o mesmo que *no gate*: o que o escopo barraria sem esperar o gate |
 | *Own trigger* | Fig. 3 | o filtro de inéditos como o próprio gatilho, sem gate |
-| *Gate opens* | Fig. 2 | a fração das janelas em que o gate abriu |
+| *Lost to the gate* | Fig. 2 | a área cinza: o que o escopo apontaria, mas o gate deixa passar |
 | FA | Tabelas IV e VI | *false alarms*: a fração das janelas limpas em que algo foi barrado |
 | *Coll.* | Tabelas IV e VI | *collateral*: a fração dos clientes da janela que um falso alarme barra (mediana) |
 | *Fl. 1k* | Tabelas IV e VI | *flash crowd* de 1.000 usuários reais: em quantas janelas ele dispara o filtro |

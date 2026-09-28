@@ -1873,3 +1873,18 @@ in the plot's best corner.
 No stretched column, 12 pages, the Acknowledgment ends on page 8. `make audit`: 253 checks,
 0 mismatches. The study guide's readings of Figs. 2 and 3 describe the new elements. A
 formatting slip from round 35 is fixed: five list items had been joined to the line above.
+
+## 42. Round 39: Fig. 2 with two lines
+
+Even with the shading, the user found Fig. 2 hard to read. The problem was the four series per
+panel: the gate's rate (a share of windows, on an axis labelled share of the botnet) and the
+shared stacks told other stories. The figure now draws only what the scope alone would block
+and what the configuration stops, on new stacks, with the gap between them shaded ("lost to
+the gate" on E1) and an open triangle at a tenth of each median window. The gate's rate and
+the shared stacks stay in the text and Table V, and the one number the text cites from the
+figure, 43.2% at 100 attackers on E1, is the dashed line. The new caption is a line shorter,
+and page 7 stretched again (badness 10000). Fig. 2 grew from 2.5 to 2.6 in, which fills it
+and gives the panels more room. `make_figures_en.py` draws the approved version byte for
+byte. No stretched column, 12 pages, the Acknowledgment ends on page 8. `make audit`: 253
+checks, 0 mismatches. The study guide's readings of Fig. 2 (0.7, 16.4 and the glossary)
+follow.

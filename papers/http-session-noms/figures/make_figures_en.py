@@ -200,15 +200,17 @@ def fig_operating(root):
         ax.set_xticklabels(["0.01", "0.1", "1", "10"])
         ax.set_ylim(-4, 100)
         ax.set_title(title, fontsize=7, pad=2)
-        ax.set_xlabel("false alarms (% of windows)", fontsize=6.5, labelpad=1)
         ax.tick_params(labelsize=6.5, length=2, pad=1.5)
         ax.grid(alpha=.25, lw=0.5, zorder=0)
         ax.spines[["top", "right"]].set_visible(False)
     axes[0].set_ylabel("% of 100 attackers blocked", fontsize=7, labelpad=1)
     h, l = axes[0].get_legend_handles_labels()
-    fig.legend(h, l, loc="lower center", bbox_to_anchor=(0.5, -0.005), ncol=2, fontsize=6.3,
-               frameon=False, handletextpad=0.3, columnspacing=0.8, labelspacing=0.35)
-    fig.tight_layout(pad=0.2, w_pad=0.5, rect=(0, 0.25, 1, 1))
+    # one x label for both panels, just under the tick labels, then a clear gap before the legend
+    fig.tight_layout(pad=0.2, w_pad=0.5, rect=(0, 0.29, 1, 1))
+    y0 = axes[0].get_position().y0
+    fig.text(0.5, y0 - 0.105, "false alarms (% of clean windows)", ha="center", va="center", fontsize=6.8)
+    fig.legend(h, l, loc="upper center", bbox_to_anchor=(0.5, y0 - 0.125), ncol=2, fontsize=6.3, borderpad=0.2,
+               frameon=False, handletextpad=0.3, columnspacing=0.8, labelspacing=0.3)
     out = os.path.join(OUT, "fig4_operating.png")
     fig.savefig(out, dpi=300, bbox_inches="tight")
     plt.close(fig)
@@ -228,7 +230,7 @@ def fig_stops(root):
     n0 = {"E1": 2983, "E2": 62, "E3": 41, "E4": 20}          # Table V, median origins per window
     floor_new = {"E1": 139, "E2": 139, "E3": 139, "E4": 84}  # Table V, new stacks, in sample
     names = {"E1": "E1, RUM beacons", "E2": "E2, web console", "E3": "E3, API", "E4": "E4, SSO"}
-    fig, axes = plt.subplots(2, 2, figsize=(3.45, 2.7), sharex=True, sharey=True)
+    fig, axes = plt.subplots(2, 2, figsize=(3.45, 2.5), sharex=True, sharey=True)
     for ax, e in zip(axes.flat, ("E1", "E2", "E3", "E4")):
         pts = [(A, f"M25:A{A}") for A in (25, 50, 100, 250, 1000)]
         pts += [(x * n0[e], f"M25:x{x:g}") for x in (0.1, 0.5, 1)]
@@ -277,43 +279,47 @@ def fig_latency(root):
     sym_n = [n for n in sizes if "symbolic_total_s" in d[str(n)]]
     sym = [d[str(n)]["symbolic_total_s"] for n in sym_n]
 
-    fig, ax = plt.subplots(figsize=(7.0, 2.25))
+    # drawn at the width it prints (one column), with fonts of about 7 pt
+    fig, ax = plt.subplots(figsize=(3.45, 1.9))
     # comparison series (grey): pair edges enumerated or materialized
-    ax.loglog(sym_n, sym, "s-", color=BAR_GRAY, lw=2, ms=6, markeredgecolor="#777",
-              label="symbolic layer, pair edges materialized")
-    ax.loglog(sizes, adm, "o-", color=BAR_GRAY, lw=2, ms=6, markeredgecolor="#777",
-              label="admission, peers enumerated")
+    ax.loglog(sym_n, sym, "s-", color=BAR_GRAY, lw=1.2, ms=3.6, markeredgecolor="#777",
+              label="aggregation, pair edges")
+    ax.loglog(sizes, adm, "o-", color=BAR_GRAY, lw=1.2, ms=3.6, markeredgecolor="#777",
+              label="admission, pair edges")
     # proposed series (ink): equality-based sub-relations kept as classes
-    ax.loglog(sizes, sym_c, "s-", color=NAVY, lw=2, ms=6,
-              label="symbolic layer, class aggregation")
-    ax.loglog(sizes, adm_c, "o-", color=NAVY, lw=2, ms=6,
-              label="admission, class counters")
+    ax.loglog(sizes, sym_c, "s-", color=NAVY, lw=1.2, ms=3.6,
+              label="aggregation, class counts")
+    ax.loglog(sizes, adm_c, "o-", color=NAVY, lw=1.2, ms=3.6,
+              label="admission, class counts")
 
     # reference slopes anchored on the first point of each series
     def ref(xs, y0, k, color, label, dy):
         x = [xs[0], xs[-1]]
         y = [y0, y0 * (x[1] / x[0]) ** k]
-        ax.loglog(x, y, ":", color=color, lw=1, alpha=.7)
-        ax.text(x[1], y[1] * dy, label, color=color, fontsize=8, ha="right",
+        ax.loglog(x, y, ":", color=color, lw=0.8, alpha=.7)
+        ax.text(x[1], y[1] * dy, label, color=color, fontsize=6.3, ha="right",
                 style="italic")
-    ref(sym_n, sym[0], 2, "#777", "slope 2", 1.6)
-    ref(sizes, sym_c[0], 1, NAVY, "slope 1", 1.6)
-    ref(sizes, adm[0], 1, "#777", "slope 1", 1.6)
-    ax.text(sizes[-1], adm_c[-1] * 2.6, "constant", color=NAVY, fontsize=8,
+    ref(sym_n, sym[0], 2, "#777", "slope 2", 2.2)
+    ref(sizes, sym_c[0], 1, NAVY, "slope 1", 2.2)
+    ref(sizes, adm[0], 1, "#777", "slope 1", 2.2)
+    ax.text(sizes[-1], adm_c[-1] * 3.0, "constant", color=NAVY, fontsize=6.3,
             ha="right", style="italic")
     ax.set_ylim(bottom=min(adm_c) / 4)     # room under the flat series
     ax.set_yticks([1e-6, 1e-4, 1e-2, 1, 100])   # one label every two decades
 
-    ax.set_xlabel("active sessions in the window, $|S_W|$", fontsize=9)
-    ax.set_ylabel("latency (s)", fontsize=9)
-    ax.grid(True, which="both", alpha=.25)
-    # legend below the axes, clear of the x label: inside the plot it competed with the data.
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.42), ncol=2,
-              fontsize=8.2, frameon=False)
+    ax.set_xlabel("active sessions in the window, $|S_W|$", fontsize=7, labelpad=1)
+    ax.set_ylabel("latency (s)", fontsize=7, labelpad=1)
+    ax.tick_params(labelsize=6.5, length=2, pad=1.5)
+    ax.grid(True, which="both", alpha=.25, lw=0.5)
     ax.spines[["top", "right"]].set_visible(False)
-    fig.tight_layout()
+    # legend below the axes, with a clear gap after the x label
+    h, l = ax.get_legend_handles_labels()
+    fig.tight_layout(pad=0.2, rect=(0, 0.2, 1, 1))
+    y0 = ax.get_position().y0
+    fig.legend(h, l, loc="upper center", bbox_to_anchor=(0.5, y0 - 0.15), ncol=2, fontsize=6.3,
+               frameon=False, handletextpad=0.3, columnspacing=1.0, labelspacing=0.3, borderpad=0.2)
     out = os.path.join(OUT, "fig5_latency.png")
-    fig.savefig(out, dpi=200, bbox_inches="tight")
+    fig.savefig(out, dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"OK: {out}")
 

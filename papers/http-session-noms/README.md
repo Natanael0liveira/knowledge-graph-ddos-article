@@ -23,11 +23,11 @@ reproducibility.
 
 Section V has four parts: A generated traffic, then three findings on production
 traffic: B false alarms and the calibration floor, C what is stopped (the trigger
-decides; Fig. 2, Table VII with the scopes behind each trigger ("No gate": the scope as its own trigger), the unseen filter alone included, Fig. 3 with the
+decides; Fig. 2, Table VI with the scopes behind each trigger ("No gate": the scope as its own trigger), the unseen filter alone included, Fig. 3 with the
 operating points) and D what the evidence supports (the held-out day, the post hoc
 analyses, the boundary and this WAF's verdicts). Specification and
 exchange are in Section VI. Section V keeps the central numbers in its text and leaves
-the rest to Tables IV to VII and to the "Details of V-B", "V-C" and "V-D" paragraphs of Appendix E.
+the rest to Tables IV to VI and to the "Details of V-B", "V-C" and "V-D" paragraphs of Appendix E.
 Section III keeps the trigger, the scope, its calibration and the floor; Ω is defined
 there in words and its equation and weights are in Appendix A.
 
@@ -69,8 +69,8 @@ Current placement:
 | Table I (related work) | 2 |
 | Fig. 1 (the scoping pipeline) | 3 |
 | Table II (the configurations evaluated on production), Table III (the scopes on generated traffic, with the modal fingerprint) | 5 |
-| Table IV (production, pooled), Table V (the configurations' floor, in sample and cross-fitted), Table VI (production, per endpoint) | 6 |
-| Fig. 2 (what the binomial configuration stops, by botnet size, per endpoint), Table VII (the scope behind each trigger), Fig. 3 (production operating points) | 7 |
+| Table IV (production, pooled), Table V (the configurations' floor, in sample and cross-fitted), Fig. 2 (what the binomial configuration stops, by botnet size, per endpoint) | 6 |
+| Table VI (the scope behind each trigger), Fig. 3 (production operating points) | 7 |
 | Fig. 4 (cost), Listing 1 (evidence chain) | 11 |
 
 Table I is declared in Section I so that it lands on page 2. `dbltopnumber` is

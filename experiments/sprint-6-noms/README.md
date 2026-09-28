@@ -1612,3 +1612,52 @@ WAF sentence, the next test's size sentence folded into (ii), a shorter conclusi
 the appendices the one-run-profile sentence (its audit check went with it), "Dataset
 breadth" folded into "Coverage", and a shorter seeds sentence. 12 pages, the
 Acknowledgment ends on page 8, abstract 250 words. `make audit`: 258 checks, 0 mismatches.
+
+## 30. Round 29: clarity
+
+The user asked for paragraphs and blocks that connect naturally and for the most common
+words the language allows, since the content is already complex, to lift the clarity score
+of 2. The reviewers had called the text dense: many numbers per sentence, many coined terms
+and few transitions.
+- Sections I to VII were rewritten sentence by sentence with one idea per sentence and
+  plainer words ("modal" is defined once as the alarm's most common fingerprint,
+  "canonical" is "default", "headroom" is "spare capacity"). Each subsection opens from
+  where the last one landed. Every qualifier and number was kept, except the numbers
+  Table III already prints in V-A.
+- Table VI (per endpoint) left the paper: Fig. 2, Table V, the trigger table (now
+  Table VI) and the text carry its content, and its values stay in the study guide. That
+  paid for the transitions.
+- Fig. 3 has one x label for both panels ("false alarms (% of clean windows)") just under
+  the ticks, and the legend sits clear of it. Fig. 4 is drawn at the width it prints
+  (3.45 in, fonts of about 7 pt), with a two-column legend below the axis label; it was
+  drawn 7 in wide and scaled to half. Fig. 2 is 0.1 in shorter to pay for Fig. 3.
+- The appendix paid for Fig. 4: App. A's lead-in to the list, App. C's generic sentence
+  on noisy extraction, and a shorter App. D.
+
+12 pages, the Acknowledgment ends on page 8, abstract 250 words, no sentence over 45
+words. `make audit`: 253 checks, 0 mismatches (the Table VI row checks left with the
+table; App. F now says "about 250").
+
+## 31. Round 30: the round-29 review
+
+The round-29 review (scope-bound, the text after the clarity pass) found no class A item:
+weak accept, 3/4/3/4 (clarity up from 2 to 3), confidence 4, 70-80th percentile, ready to
+submit. At the user's choice its B1-B4 were applied, each number checked against the
+result files:
+- B1: on the console, where both held-out false alarms fell (a median 41.2% of the
+  window's clients), a challenge may be the safer first response;
+- B2: on the small endpoints a botnet of one median window opens the gate in only
+  14-33% of windows (32.2, 32.8 and 13.7% on E2-E4), and a botnet that leaves the gate
+  shut meets neither filter nor fallback on any endpoint;
+- B3: as its own trigger the cross-fitted beta-binomial also adds on E1 (57.6% against
+  43.2% of 100 new-stack attackers), and the next test leaves it out because it fired in
+  1.74% of E1's held-out windows (5 of 288);
+- B4: "what an operator would deploy" and "the evaluation places the scope behind the
+  operator's WAF", since the run is offline.
+
+Space came from the conclusion (the standards sentence and a shorter generated-traffic
+sentence), a shorter ECH sentence, VI's sentence on the busiest endpoint (the new (i)
+covers it) and Fig. 2 at 2.5 in. 12 pages, the Acknowledgment ends on page 8, abstract
+250 words. `make audit`: 253 checks, 0 mismatches. Not applied: B5 (four denser
+sentences), B6 (a sentence on the diagnostics computed after the held-out day) and the
+polish.

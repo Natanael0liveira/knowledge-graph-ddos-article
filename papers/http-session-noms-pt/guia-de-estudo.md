@@ -60,10 +60,10 @@ Bin(n, b) é a distribuição binomial de n sorteios com probabilidade b.
 **Elementos flutuantes do artigo.** Tabela I: trabalhos relacionados. Tabela II: as
 configurações avaliadas em produção. Tabela III: o escopo no tráfego gerado, com a
 coluna da impressão modal. Tabela IV: as configurações em produção, todos os endpoints.
-Tabela V: o piso de calibração das configurações. Tabela VI: as configurações em
-produção, por endpoint. Tabela VII: os escopos atrás de cada gatilho, com o filtro de
-inéditas sozinho (Seção V-C). Tabela
-VIII: a regra por janela (Apêndice E). Fig. 1: o pipeline de escopo calibrado. Fig. 2: o
+Tabela V: o piso de calibração das configurações. Tabela VI: os escopos atrás de cada
+gatilho, com o filtro de inéditas sozinho (Seção V-C). A tabela por endpoint saiu na rodada
+29 (os valores estão na seção 16.9), e a da regra por janela virou uma frase do Apêndice E
+na rodada 23. Fig. 1: o pipeline de escopo calibrado. Fig. 2: o
 que a configuração binomial detém, por tamanho da botnet e por endpoint (Seção V-C). Fig.
 3: os pontos de operação em produção (Seção V-C). Fig. 4: o custo (Apêndice D). Listagem
 1: a cadeia de evidência de uma campanha canônica (Apêndice D). A antiga listagem com a
@@ -1329,7 +1329,7 @@ estudo com usuários as testou.
 ## 16. Tráfego de produção (Seções V-B a V-D; Apêndice E)
 
 A Seção V dá três achados de produção: V-B, falsos alarmes e o piso; V-C, o que é detido,
-onde o gatilho decide (Fig. 2, Tabela VII, Fig. 3); V-D, o que a evidência sustenta (o dia
+onde o gatilho decide (Fig. 2, Tabela VI, Fig. 3); V-D, o que a evidência sustenta (o dia
 novo, as análises *post hoc*, a fronteira e os veredictos do WAF). O texto da Seção V dá
 os números centrais; os demais estão nas Tabelas IV a VII e no parágrafo *Details of
 Section V* do Apêndice E. Este guia reúne os dois.
@@ -1474,7 +1474,7 @@ em pilhas novas (Tabela V), e o triângulo, a janela mediana. As mesmas curvas e
   janelas ali, abre o gatilho em 66–100% das janelas, e a configuração detém 28–79% dela
   em pilhas novas e 0–69% em compartilhadas. Uma botnet do tamanho da janela abre o
   gatilho em 14–33% das janelas e fica abaixo dos pisos (2–5% detidos em pilhas novas).
-- **Outros gatilhos** (*post hoc*, Tabela VII). O **gatilho sazonal** (seção 6.1) e o
+- **Outros gatilhos** (*post hoc*, Tabela VI). O **gatilho sazonal** (seção 6.1) e o
   **escopo como gatilho próprio**, cada um com a binomial (em amostra), com a
   beta-binomial cruzada e com o **filtro de inéditas sozinho**, em %:
 
@@ -1578,7 +1578,7 @@ lido: seus resultados são *post hoc*.
   com filtros que bloqueiam em média 7,7% dos
   clientes da janela, e detém 59,8% e 40,5% de 100 atacantes em pilhas novas e
   compartilhadas. No console, porém, dispara em 1,3% das janelas limpas e em 74,4% dos
-  picos de 1.000 usuários (Tabela VI), o que a calibração cruzada baixa para 16,1%. No dia
+  picos de 1.000 usuários (seção 16.9), o que a calibração cruzada baixa para 16,1%. No dia
   novo não deu nenhum falso alarme.
 
 **A calibração cruzada.**
@@ -1642,11 +1642,12 @@ do z-score aos cruzados; a beta-binomial e a calibração cruzada são *post hoc
   dia, e um escopo que lê desvios desse tráfego as ignora por construção. Os veredictos
   não podem validar o escopo, e o escopo não recupera o que este WAF bloqueia.
 
-### 16.9 Por endpoint (Tabela VI) e outros detalhes (Apêndice E)
+### 16.9 Por endpoint e outros detalhes (Apêndice E)
 
-A Tabela VI, no corpo do artigo, repete a Tabela IV por endpoint (dias de teste, em
-amostra), em %. Desde a rodada 23 o artigo mostra só as linhas da binomial; as da
-beta-binomial (*post hoc*) ficam aqui:
+A antiga Tabela VI repetia a Tabela IV por endpoint (dias de teste, em amostra), em %.
+Ela saiu do artigo na rodada 29, porque a Fig. 2, a Tabela V e a Tabela VI (os gatilhos)
+já mostram o essencial por endpoint. Os valores ficam aqui, com as linhas da
+beta-binomial (*post hoc*):
 
 | | Escopo | FA | Sem gatilho | Dano | Pico 1k | Novas 0,1× | Novas 1× | Compart. 0,1× | Compart. 1× |
 |---|---|---|---|---|---|---|---|---|---|
@@ -1779,10 +1780,11 @@ com pesos uniformes.
 - **O piso e o gatilho decidem, por endpoint.** No E1, o escopo aponta uma botnet de
   menos de um décimo da janela (os pisos do E1, binomial e beta-binomial, em amostra e
   cruzados, vão de 85 a 286 atacantes), mas o gatilho de origens deixa passar a maior
-  parte dela (Tabela VII). Nos três endpoints pequenos, a
+  parte dela (Tabela VI). Nos três endpoints pequenos, a
   binomial só aponta pilhas compartilhadas a partir de 4 a 19 janelas e pilhas novas a
-  partir de 2 a 4 janelas: o escopo por impressão acrescenta pouco, e o recurso é o
-  limite de taxa ou o desafio a todos.
+  partir de 2 a 4 janelas: abaixo disso o recurso é o limite de taxa ou o desafio a
+  todos. Mas o gatilho também limita ali: uma botnet do tamanho da janela mediana abre o
+  gatilho em só 14–33% das janelas (32,2%, 32,8% e 13,7% no E2, E3 e E4).
 - **Entre configurações** (Seções V-B e V-D e Apêndice E), em amostra a binomial dá 0,25 falso alarme por endpoint e dia (4 dos 5 no console),
   e a beta-binomial e o z-score calibrado cerca de um, contra um orçamento do escopo de
   2,9; seus filtros bloqueiam uma mediana de um terço e de um décimo dos clientes da
@@ -1791,14 +1793,21 @@ com pesos uniformes.
   pilhas compartilhadas em todo endpoint, enquanto o z-score perde a vantagem em detecção.
 - **A recomendação.** Só a binomial atrás do gatilho de origens foi testada num dia que
   não tinha visto, como fixado de antemão, então é a configuração que o artigo implantaria
-  agora, embora ela não detenha botnets pequenas no E1. O próximo teste, pré-especificado
+  agora em todo endpoint, com o recurso abaixo do piso. Uma botnet que não abre o gatilho
+  não encontra nem filtro nem recurso em nenhum endpoint, por isso ela detém poucas
+  botnets pequenas no E1 (nenhuma no dia novo). No console, onde caíram os dois falsos
+  alarmes do dia novo (mediana de 41,2% dos clientes), um desafio pode ser a primeira
+  resposta mais segura. O próximo teste, pré-especificado
   em dias novos, num ciclo semanal e com carimbo de tempo externo, teria como **base o
   filtro de inéditas como gatilho próprio**, que igualou todo escopo em pilhas novas de ao
   menos k_min origens dentro do orçamento em todo endpoint, e cobriria botnets de 100
   atacantes além das de um décimo da janela. Contra ela rodariam a **beta-binomial cruzada
   atrás do gatilho sazonal**, cujo ganho está nas pilhas compartilhadas e nas pilhas novas
   menores, e, só no E1, o **escopo binomial com frotas como gatilho próprio**, no limite do
-  orçamento ali, subindo dia a dia e dependente da isenção de frotas.
+  orçamento ali, subindo dia a dia e dependente da isenção de frotas. A beta-binomial
+  cruzada como gatilho próprio fica de fora: no E1 ela detém 58% de 100 atacantes em
+  pilhas novas (contra 43% do filtro de inéditas), mas disparou em 1,74% das janelas do
+  dia novo (5 de 288).
 - **Como se chegou aqui.** A rodada 17 dizia que o escopo sozinho cabia no orçamento no E1
   também na beta-binomial, o que era falso (2,08% em amostra); a rodada 18 corrigiu e
   propôs a beta-binomial atrás do sazonal como primária. A revisão da rodada 19 mostrou que
@@ -1908,14 +1917,14 @@ como gatilho próprio, ataques HTTP/2 e uma campanha furtiva capturada.
   origens, nunca são apontadas por uma botnet de 25 pilhas.
 - O gatilho no E1: abre em 6–13% das janelas de 25 atacantes a um décimo da janela; a
   binomial detém 3,4% de 100, 11,8% de um décimo (0,6–37,2% por dia), 70,8% de uma janela.
-- Outros gatilhos no E1 (*post hoc*, Tabela VII), um décimo da janela: sazonal 20,4%
+- Outros gatilhos no E1 (*post hoc*, Tabela VI), um décimo da janela: sazonal 20,4%
   (15,3% no dia novo); com a beta cruzada, 4 de 5.643 e 0 de 1.152 falsos alarmes; com a
   binomial, o console vai a 2,64%. Escopo sozinho: cerca de 90% em todo dia; binomial 0,97%
   no E1 (14 de 1.440, IC 0,53–1,63%; 0, 0, 1, 5, 8 por dia; 92 sem frotas, 95 de 288 no
   dia novo), beta cruzada 0,90% e 1,74% no dia novo; nos pequenos, a binomial dá 1,5–4,4%.
 - Com 100 atacantes em pilhas novas (abaixo de k_min por pilha), a beta-binomial cruzada
   atrás do sazonal detém 53–84% nos pequenos e 3,9% no E1, contra 43% do filtro de inéditas.
-- O filtro de inéditas sozinho (*post hoc*, Tabela VII): atrás do sazonal, 0 falsos
+- O filtro de inéditas sozinho (*post hoc*, Tabela VI): atrás do sazonal, 0 falsos
   alarmes e os mesmos 20,4% / 15,3%; como gatilho próprio, 0,28% no E1 (no máximo 0,42% nos
   demais) e 89,6% / 89,7%; em pilhas compartilhadas, 0%. O teste: 14,4–15,1% das
   compartilhadas atrás do sazonal e 61,1–65,7% como gatilho próprio.
@@ -1971,7 +1980,7 @@ calibração cruzada (6 contra 5 alarmes) e no dia novo (2 em 1.152).
 Porque só a binomial foi testada num dia que não tinha visto, como fixado de antemão. A
 beta-binomial foi construída depois; a proposta é testá-la, atrás do gatilho sazonal e
 contra o filtro de inéditas como gatilho próprio, num teste pré-especificado em dias
-novos antes de trocar (Tabela VII).
+novos antes de trocar (Tabela VI).
 
 **"O escopo como gatilho próprio detém 90% no E1. Por que não é ele a proposta?"**
 Porque em pilhas novas o filtro de inéditas sozinho, como gatilho próprio, detém os

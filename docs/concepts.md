@@ -194,7 +194,7 @@ opens: of 100 attackers, the cross-fitted beta-binomial behind the seasonal gate
 53-84% on the small endpoints and 3.9% on the busiest one, against the filter's 43%): as its own trigger it misfires on 0.28% of
 E1's clean windows and at most 0.42% elsewhere, and stops the same 90%. The enrichment
 test's gain is on shared stacks, which the unseen filter never names. So the paper
-(Table VII) takes the unseen filter as its own trigger as the baseline of the next,
+(Table VI) takes the unseen filter as its own trigger as the baseline of the next,
 pre-specified test, against the cross-fitted beta-binomial behind the seasonal gate and
 the binomial scope with known fleets as its own trigger; all of it was examined after
 the held-out day was read.

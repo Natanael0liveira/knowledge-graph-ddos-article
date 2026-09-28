@@ -385,8 +385,13 @@ def main():
                     help="a further run to reduce the same way, e.g. xfit and the --split crossfit CSV")
     ap.add_argument("--test-folds", nargs="+", required=True)
     ap.add_argument("--fresh-folds", nargs="+", default=[])
+    ap.add_argument("--endpoints-from", type=Path, default=None, metavar="RUN_JSON",
+                    help="take the endpoints and their order from this run's --endpoints-folds")
+    ap.add_argument("--endpoints-folds", nargs="+", default=None)
     ap.add_argument("--out", required=True, type=Path)
     args = ap.parse_args()
+    if (args.endpoints_from is None) != (args.endpoints_folds is None):
+        raise SystemExit("--endpoints-from and --endpoints-folds go together")
 
     roles = json.loads(args.roles.read_text())
     runs = {"base": args.base, "fleets": args.fleets}
@@ -396,10 +401,14 @@ def main():
     J = {k: json.loads((args.results / v.replace("_windows", "").replace(".csv", ".json")).read_text())
          for k, v in runs.items()}
     # The endpoints the paper evaluates: those of every test fold. A host that first
-    # qualifies on a fresh day is not added to it (fresh_day_protocol.md).
-    evaluated = set.intersection(*(set(J["base"]["folds"][f]) for f in args.test_folds))
+    # qualifies on a fresh day is not added to it (fresh_day_protocol.md). With
+    # --endpoints-from, the endpoints and their order come from that run's folds, so
+    # the held-out block keeps the paper's E1-E4 (heldout_block_protocol.md).
+    ref, ref_folds = ((json.loads(args.endpoints_from.read_text()), args.endpoints_folds)
+                      if args.endpoints_from else (J["base"], args.test_folds))
+    evaluated = set.intersection(*(set(ref["folds"][f]) for f in ref_folds))
     hosts = sorted((h for h in evaluated if h in roles),
-                   key=lambda h: -J["base"]["hosts"][h]["median_test_size"])
+                   key=lambda h: -ref["hosts"][h]["median_test_size"])
     alias = {h: f"E{i + 1}" for i, h in enumerate(hosts)}
     # how many endpoints the exports hold, evaluated or not (a count only)
     exported = set(J["base"]["hosts"]) | {h for v in J["base"].get("excluded_hosts", {}).values() for h in v}

@@ -50,7 +50,7 @@ CLUSTERFLAG = $(if $(CLUSTER),--label-free-cluster)
 # Attack-free runs of rule_detection.py (calibration, test and flash-crowd donors).
 RULEWORK ?= $(DATA)/synth/sprint6_rule
 
-.PHONY: floor-bands rule-production-wafprof waf-labels rule-production-crossfit ja4-churn rule-production-od help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule rule-production production-summary audit compile-check stix-check stix-ingest rule-production-fleets fleet-selection rule-production-fresh production-tables unseen-synth cross-m
+.PHONY: floor-bands rule-production-wafprof waf-labels rule-production-crossfit ja4-churn rule-production-od help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule rule-production production-summary audit compile-check stix-check stix-ingest rule-production-fleets fleet-selection rule-production-fresh production-tables unseen-synth cross-m rule-production-block production-tables-block
 
 help:
 	@echo "No external data required:"
@@ -67,6 +67,7 @@ help:
 	@echo "Needs the operator's exports on the drive (PRODDATA):"
 	@echo "  make rule-production rule-production-fresh rule-production-od rule-production-crossfit"
 	@echo "  make production-tables  # Tables IV and V, anonymized to results/"
+	@echo "  make rule-production-block production-tables-block   # the held-out block, its own directory"
 	@echo "  make ja4-churn          # fingerprints the rolling profile never saw"
 	@echo "  make waf-labels         # the WAF's verdicts as labels for the scope"
 	@echo "  make floor-bands        # the floor on shared stacks by popularity band, and the ratio limit"
@@ -238,6 +239,41 @@ production-tables:
 	  --run xfit_od_fleets rule_production_windows_crossfit_$(METHOD)_od_fleets0.05_v2.csv \
 	  --test-folds 2026-09-20 2026-09-21 2026-09-22 2026-09-23 2026-09-24 \
 	  --fresh-folds 2026-09-25 --out $(RESULTS)/production_tables.json
+
+# The held-out block (results/heldout_block_protocol.md): the paper's nine days as
+# history and the 14 days after them as test days, each calibrated on every earlier
+# day, in the eight runs production-tables reduces, with the paper's endpoints E1-E4.
+# The block has its own data directory, which holds copies of the nine days, so the
+# targets above never read it.
+BLOCKDATA ?= $(PRODDATA)/block2
+BLOCKDAYS ?= 2026-09-26 2026-09-27 2026-09-28 2026-09-29 2026-09-30 2026-10-01 2026-10-02 \
+             2026-10-03 2026-10-04 2026-10-05 2026-10-06 2026-10-07 2026-10-08 2026-10-09
+BLOCKRUN   = nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(BLOCKDATA) \
+             --out-dir $(BLOCKDATA)/results --min-calib-days 9 $(SIGFLAG) $(METHODFLAG)
+rule-production-block:
+	@test -d "$(BLOCKDATA)" || { echo "ERROR: $(BLOCKDATA) not found."; exit 1; }
+	$(BLOCKRUN) --split rolling --tag _rolling_$(METHOD)_v2 & \
+	$(BLOCKRUN) --split rolling --fleets 0.05 --tag _rolling_$(METHOD)_fleets0.05_v2 & wait
+	$(BLOCKRUN) --split rolling --overdispersion --tag _rolling_$(METHOD)_od_v2 & \
+	$(BLOCKRUN) --split rolling --overdispersion --fleets 0.05 --tag _rolling_$(METHOD)_od_fleets0.05_v2 & wait
+	$(BLOCKRUN) --split crossfit --tag _crossfit_$(METHOD)_v2 & \
+	$(BLOCKRUN) --split crossfit --fleets 0.05 --tag _crossfit_$(METHOD)_fleets0.05_v2 & wait
+	$(BLOCKRUN) --split crossfit --overdispersion --tag _crossfit_$(METHOD)_od_v2 & \
+	$(BLOCKRUN) --split crossfit --overdispersion --fleets 0.05 --tag _crossfit_$(METHOD)_od_fleets0.05_v2 & wait
+
+production-tables-block:
+	$(PY) scripts/production_tables.py --results $(BLOCKDATA)/results --roles $(PRODDATA)/roles.json \
+	  --base rule_production_windows_rolling_$(METHOD)_v2.csv \
+	  --fleets rule_production_windows_rolling_$(METHOD)_fleets0.05_v2.csv \
+	  --od rule_production_windows_rolling_$(METHOD)_od_v2.csv \
+	  --od-fleets rule_production_windows_rolling_$(METHOD)_od_fleets0.05_v2.csv \
+	  --run xfit rule_production_windows_crossfit_$(METHOD)_v2.csv \
+	  --run xfit_fleets rule_production_windows_crossfit_$(METHOD)_fleets0.05_v2.csv \
+	  --run xfit_od rule_production_windows_crossfit_$(METHOD)_od_v2.csv \
+	  --run xfit_od_fleets rule_production_windows_crossfit_$(METHOD)_od_fleets0.05_v2.csv \
+	  --endpoints-from $(PRODDATA)/results/rule_production_rolling_$(METHOD)_v2.json \
+	  --endpoints-folds 2026-09-20 2026-09-21 2026-09-22 2026-09-23 2026-09-24 \
+	  --test-folds $(BLOCKDAYS) --out $(RESULTS)/production_tables_block.json
 
 # The binomial configuration and the beta-binomial with every client in the profile,
 # WAF-blocked ones included (--waf-in-profile), so the WAF analysis does not score the

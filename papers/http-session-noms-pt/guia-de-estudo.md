@@ -229,42 +229,245 @@ tamanho. Quando o alarme não toca, ninguém confere os sotaques, e a botnet pas
 
 ### 0.7 Como ler cada tabela e figura
 
-- **Fig. 1, o método.** Da esquerda para a direita: os logs viram contagens por janela
-  (a consulta compilada da ontologia), o gatilho dispara, o teste compara com o perfil e
-  sai o escopo. Todos os limites vêm de dias sem ataque.
-- **Tabela I, trabalhos relacionados.** Para cada abordagem da literatura: o que o filtro
-  compara, quem escolhe e quanto custa aos usuários. Só este trabalho filtra por
-  impressão TLS **e** mede o custo.
-- **Tabela II, as quatro configurações.** O que muda em cada uma: o alarme, a regra, o
-  modelo estatístico e se ela foi fixada antes do dia novo ("in protocol") ou depois
-  ("post hoc").
-- **Tabela III, tráfego gerado.** Quanto de cada botnet cada regra bloqueia, com 1 a 100
-  sotaques. A coluna "Modal" é a escolha óbvia, e o zero dela a partir de cinco sotaques
-  é o primeiro resultado.
-- **Tabela IV, produção, todos os serviços juntos.** "FA" é a taxa de falso alarme;
-  "Coll." quanto cada alarme falso bloqueia; "Fl. 1k" quantas vezes um pico de 1.000
-  usuários legítimos dispara o filtro. As colunas 0.1× e 1× dizem quanto de uma botnet
-  de um décimo da janela, ou de uma janela inteira, é detido.
-- **Tabela V, o piso por serviço.** Quantos atacantes por janela o teste precisa ver para
-  apontar a botnet: "new" para sotaques novos, "shared" para sotaques que clientes reais
-  também usam.
-- **Fig. 2, o que a configuração detém, por tamanho de botnet.** Um painel por serviço:
-  - pontilhado: com que frequência o alarme toca;
-  - tracejado: o que o escopo bloquearia se o alarme sempre tocasse;
-  - linhas cheias: o que a configuração realmente detém.
+Cada item abaixo responde a cinco coisas: a pergunta que a tabela ou figura responde, como
+lê-la, um exemplo de leitura com os números do artigo, o que concluir, e o cuidado para não
+concluir demais. A ordem é a do artigo.
 
-  A distância entre o tracejado e as linhas cheias no E1 é o "gatilho decide".
-- **Tabela VI, os alarmes alternativos.** Linhas: três alarmes (o de origens, o sazonal e
-  nenhum, isto é, o próprio escopo como alarme) combinados com três regras. Colunas: os
-  falsos alarmes no E1 e nos serviços pequenos, nos dias de teste ("test") e no dia novo
-  ("held"), e quanto se detém da botnet de um décimo no E1.
-- **Fig. 3, o equilíbrio de cada configuração.** O eixo horizontal é a taxa de falsos
-  alarmes e o vertical a parte de 100 atacantes bloqueada. O melhor fica **em cima e à
-  esquerda**. Os símbolos cheios são os dias de teste, os vazados o dia novo, e as setas
-  cinzas mostram o que muda com a calibração cruzada.
-- **Fig. 4 (Apêndice D), o custo.** O tempo de cálculo cresce com o número de sessões. As
-  linhas cinzas (ligações entre pares) sobem muito rápido; as pretas (contagem por
-  classe) sobem devagar ou ficam planas. É por isso que o método conta classes.
+**Antes de começar: quatro convenções que se repetem**
+- **Escala logarítmica.** Nas Figs. 2, 3 e 4, cada marca do eixo vale 10 vezes a anterior
+  (10, 100, 1.000). É o que permite ver no mesmo gráfico uma botnet de 25 atacantes e uma de
+  3.000. Subir uma marca é multiplicar por 10, e não somar 10.
+- **Números como 10⁻²¹.** É 0,000...0001, com a vírgula 21 casas à esquerda: uma chance de
+  um em um sextilhão. Na Tabela V, quanto menor esse número, mais exigente o teste e mais
+  alto o piso.
+- **"254/286".** São duas medidas da mesma coisa separadas por uma barra. A primeira vem da
+  calibração em amostra e a segunda da calibração cruzada.
+- **Os sinais \* e †.** O \* marca o que é *post hoc*, pensado depois de ver o dia novo, e o
+  † marca o que usa calibração cruzada. Um resultado com \* é uma pista para o próximo teste,
+  e não uma prova.
+
+---
+
+**Fig. 1, o método numa fileira de caixas**
+- **A pergunta:** como o sistema decide quem barrar, a cada cinco minutos?
+- **Como ler:** da esquerda para a direita, para cada serviço e cada janela de cinco minutos.
+  1. *access log*: cada requisição traz o sotaque (JA4), a origem e o serviço.
+  2. *count query*: uma consulta gerada automaticamente a partir da ontologia (a caixa de
+     baixo, com a seta *compiles*) e executada no banco de logs.
+  3. *class sizes*: as contagens que a consulta devolve. São quantas origens falam cada
+     sotaque, c(f), o total de origens, n, e os pares de origens na mesma vizinhança de rede
+     (/24).
+  4. *trigger*: o alarme. Toca quando o número de origens passa do percentil 99 dos dias
+     normais, isto é, quando o saguão está mais cheio do que em 99% dos períodos normais.
+  5. *scope*: a lista de sotaques barrados. Entra um sotaque que está pelo menos 3 vezes
+     (ρ = 3) mais frequente do que no perfil e que seria improvável por acaso. Entram também
+     os sotaques inéditos, e saem as frotas conhecidas.
+  6. As duas saídas. Se a lista tem sotaques, o sistema desafia ou bloqueia esses sotaques
+     naquele serviço e exporta a justificativa em STIX 2.1. Se ela sai vazia, o operador cai
+     para um limite de taxa ou para um desafio a todos.
+  - A caixa larga de baixo, *calibration on attack-free days*, é de onde vêm todos os
+    limites: o perfil, os percentis 99, o nível do teste (o maior valor até 0,01 que dispara
+    em no máximo 1% das janelas) e as frotas conhecidas. As setas tracejadas mostram que ela
+    alimenta o alarme e a lista. Em nenhum ponto entra um rótulo do tipo "isto é ataque".
+- **Exemplo de leitura (hipotético):** numa janela com 500 origens, o alarme toca porque 500
+  passa do percentil 99. O sotaque X aparece em 200 delas (40%), mas no perfil tem só 0,1%.
+  Ele está 400 vezes acima do normal, muito além das 3 vezes exigidas, e isso seria
+  impossível por acaso. X entra na lista, e só quem fala X é barrado.
+- **O que concluir:** o método conta e compara com o normal do próprio serviço. Nenhum passo
+  precisa saber quem é atacante.
+- **Cuidado:** o alarme decide *quando* agir, e a lista decide *quem* barrar. Se o alarme não
+  toca, ninguém é barrado, mesmo que a lista estivesse certa. A Fig. 2 mostra o preço disso.
+
+**Tabela I, o que já existe**
+- **A pergunta:** o que as outras soluções filtram, o que escolhe o filtro, e quanto ele custa
+  aos usuários?
+- **Como ler:** cada linha é uma família de soluções. As colunas dizem o que o filtro compara
+  (*Filter matches*), o que decide o filtro (*Chosen by*) e quem paga por ele (*Cost to
+  legitimate users*).
+- **Exemplo de leitura:** o *Blackholing* descarta o tráfego do endereço atacado, e quem paga
+  é todo o tráfego desse endereço, inclusive o legítimo. O *Bot management* dos produtos
+  comerciais filtra por JA4, mas não publica como escolhe nem quanto custa (*Undisclosed*).
+- **O que concluir:** só a última linha filtra pela impressão TLS **e** mede o custo, por
+  alarme e por janela.
+- **Cuidado:** é uma comparação de desenho, e não de desempenho. Não rodamos essas soluções
+  nos nossos dados.
+
+**Tabela II, as quatro configurações de produção**
+- **A pergunta:** o que exatamente foi testado nos dados reais?
+- **Como ler:** cada linha é uma configuração completa, e cada coluna é uma peça dela.
+  - *Gate*: o alarme. Na regra de referência é Ω ≥ τ, e nas outras é o número de origens.
+  - *Scope*: a regra que monta a lista.
+  - *Background*: o modelo do que é normal, binomial ou beta-binomial.
+  - *Exempt*: o que fica fora da lista, ou seja, as frotas conhecidas.
+  - *Chosen*: onde as escolhas foram feitas, nos dias de teste ou depois (*post hoc*).
+  - *Held-out day*: se o dia novo foi analisado dentro do protocolo fixado antes.
+- **Exemplo de leitura:** a linha *Binomial* usa o alarme de origens, a lista do teste mais a
+  dos inéditos, o modelo binomial e a isenção das frotas. Ela está *in protocol*, e por isso é
+  a configuração recomendada, a única testada no dia novo do jeito fixado antes.
+- **O que concluir:** *Binomial* é a configuração principal. *Base rule* e *z-score* servem de
+  referência, e *Beta-binomial* é uma alternativa construída depois.
+- **Cuidado:** *outside* (nota *a*) quer dizer que o z-score já estava no código antes do dia
+  novo, mas não fazia parte do que o protocolo prometia avaliar.
+
+**Tabela III, o tráfego gerado**
+- **A pergunta:** quem acerta a botnet quando ela fala 1, 5, 25 ou 100 sotaques?
+- **Como ler:** cada linha é um cenário. M é o número de sotaques da botnet. *Shared* quer dizer
+  sotaques que clientes reais também usam, e *adversarial* quer dizer que a botnet copia os
+  sotaques mais comuns do serviço. As colunas são:
+  - para o teste binomial, *Recall* (quanto da botnet é barrado), FPR (quanto do tráfego
+    legítimo é barrado) e F1, uma nota de 0 a 1 que junta as duas coisas;
+  - o *Recall* das outras listas: *Modal* (a escolha óbvia), *z-score* e *Unseen* (inéditos);
+  - o *Recall* dos modelos que aprendem com rótulos, travados em zero falso positivo.
+- **Exemplo de leitura:** na linha M = 25, o teste barra 90,3% da botnet e 0,00% dos
+  legítimos, enquanto a escolha óbvia (*Modal*) barra 0,0%, nenhum atacante.
+- **Por que nunca passa de uns 90%:** em cada botnet, 10% dos atacantes usam um sotaque só deles,
+  que nenhuma lista pega. É um teto do experimento, e não uma falha do teste.
+- **O que concluir:** a partir de cinco sotaques, a escolha óbvia falha por completo, e as
+  listas relativas ao perfil funcionam sem rótulo nenhum.
+- **Cuidado:** o tráfego gerado é fácil por construção, porque os sotaques da botnet nunca
+  aparecem no tráfego legítimo. A última linha (*adversarial*, 30,4%) mostra a fronteira: se a
+  botnet fala "Chrome", o método pouco pode fazer.
+
+**Tabela IV, a produção com todos os serviços juntos**
+- **A pergunta:** nos dados reais, quantos alarmes falsos acontecem, quanto eles custam, e
+  quanto da botnet injetada é barrado?
+- **Como ler:** há três blocos de linhas: os dias de teste calibrados em amostra, os mesmos dias
+  com calibração cruzada (\*), e o dia novo. As colunas se dividem em dois grupos.
+  - **Clean windows**, as janelas sem botnet:
+    - FA: em quantas das janelas limpas a configuração barrou alguém;
+    - *No gate*: o mesmo número se a lista agisse sem esperar o alarme, que serve de
+      diagnóstico;
+    - *Coll.*: quando um falso alarme acontece, a fração dos clientes da janela que é barrada
+      (a mediana);
+    - *Fl. 1k*: em quantas janelas um pico de 1.000 usuários reais dispara o filtro.
+  - **New stacks** e **Shared**, com sotaques novos ou compartilhados: quanto de uma botnet
+    injetada é barrado, quando ela tem um décimo da janela típica (0,1×) ou uma janela inteira
+    (1×).
+- **Exemplo de leitura:** na linha *binomial* dos dias de teste, FA é 0,1, cerca de um falso
+  alarme a cada mil janelas (5 em 5.643). Mas cada um barra, na mediana, 32,9% dos clientes
+  da janela, um terço. Um pico de 1.000 usuários dispara o filtro em 22,2% das janelas. E de
+  uma botnet de um décimo da janela, com sotaques novos, só 3,0% é barrado.
+- **O que concluir:** os falsos alarmes são raros, mas caros quando acontecem. E botnets
+  pequenas passam, como a Fig. 2 explica.
+- **Cuidado:** com poucos eventos, a incerteza é grande. O intervalo de 95% dos 5 falsos
+  alarmes vai de 0,03% a 0,21%. O dia novo teve 2 falsos alarmes em 1.152 janelas: é
+  consistente com os dias de teste, mas traz pouca evidência nova.
+
+**Tabela V, o piso por serviço**
+- **A pergunta:** a partir de que tamanho a botnet é apontada?
+- **Como ler:** há uma linha por serviço.
+  - n₀ é o tamanho da janela típica, em origens.
+  - λₑ é o nível calibrado. Quanto menor, mais exigente o teste: 10⁻²¹ é muito mais exigente
+    que 10⁻².
+  - As colunas de piso dão quantos atacantes por janela a botnet precisa ter para o teste
+    apontar um sotaque típico dela. Cada uma vem como "em amostra / cruzado", para sotaques
+    novos (*new*) e compartilhados (*shared*), com o binomial e com o beta-binomial (\*,
+    *post hoc*).
+- **Exemplo de leitura:** o E1 tem uma janela típica de 2.983 origens, e com sotaques
+  compartilhados o piso é de 254 atacantes, uns 8% da janela. O E2 tem janela de 62 origens e
+  precisa de 1.090 atacantes, mais de 17 vezes o seu tráfego normal.
+- **Por que o 139 aparece tanto:** é o piso dos sotaques novos, fixado pelo filtro de inéditos,
+  e ele não depende do nível. O filtro exige 5 origens por sotaque. Com 25 sotaques e 90% da
+  botnet neles, isso dá 5 × 25 ÷ 0,9 ≈ 139 atacantes.
+- **O que concluir:** nos serviços pequenos, uma botnet em sotaques compartilhados só é
+  apontada quando é muito maior que o tráfego normal. Abaixo do piso, o operador precisa de
+  um limite de taxa ou de um desafio.
+- **Cuidado:** o piso não é um degrau. Abaixo dele, o teste ainda pega os sotaques que o acaso
+  deixou maiores, e por isso as curvas da Fig. 2 sobem aos poucos.
+
+**Fig. 2, o que a configuração barra conforme o tamanho da botnet**
+- **A pergunta:** por que botnets pequenas passam no serviço grande?
+- **Como ler:** há um painel por serviço, do E1 ao E4. O eixo horizontal traz os atacantes por
+  janela, em escala logarítmica, e o vertical, a porcentagem.
+  - Linha pontilhada: em quantas janelas o alarme toca.
+  - Tracejada cinza: quanto a lista barraria se agisse sozinha, com sotaques novos.
+  - Cheia, com bolinhas pretas: o que a configuração de fato barra, com sotaques novos.
+  - Cheia, com bolinhas vazadas: o mesmo, com sotaques compartilhados.
+  - Linha vertical cinza: o piso dos sotaques novos (Tabela V).
+  - Triângulo no eixo: o tamanho da janela típica.
+- **Exemplo de leitura (E1):** com 100 atacantes, a lista sozinha barraria 43% (tracejada).
+  Mas para botnets de 25 atacantes até um décimo da janela o alarme toca em só 6% a 13% das
+  janelas (pontilhada), e a configuração barra só 3,4% (cheia). A linha cheia segue a
+  pontilhada, e não a tracejada: quem manda é o alarme.
+- **Exemplo de leitura (E2 a E4):** o alarme toca cedo, porque 100 atacantes já valem várias
+  janelas típicas desses serviços. Aí quem manda é o piso, e as linhas cheias sobem perto da
+  linha vertical.
+- **O que concluir:** no serviço grande, uma botnet pequena não enche o saguão o bastante para
+  tocar o alarme. Nos pequenos, o limite é o piso.
+- **Cuidado:** é uma botnet injetada, de uma forma só (25 sotaques divididos por igual).
+
+**Tabela VI, os alarmes alternativos**
+- **A pergunta:** trocar o alarme recupera a botnet pequena sem encher o dia de falsos alarmes?
+- **Como ler:** os blocos de linhas são três alarmes.
+  - *Origin gate*: o do protocolo.
+  - *Seasonal gate*: compara o saguão com a mesma hora dos dias anteriores (\*).
+  - *No gate*: a própria lista funciona como alarme (\*).
+
+  Dentro de cada bloco há três listas: o binomial, o beta-binomial cruzado (†) e os inéditos.
+  As colunas trazem:
+  - os falsos alarmes no E1 e o maior valor entre os serviços pequenos (E2 a E4), nos dias de
+    teste (*test*) e no dia novo (*held*);
+  - *New* e *Shared*: quanto se barra da botnet de um décimo da janela do E1;
+  - *Fl. 1k* e *Coll.*, como na Tabela IV.
+- **Exemplo de leitura:** na linha *No gate / unseen*, os falsos alarmes ficam em 0,28% no E1
+  e em no máximo 0,42% nos serviços pequenos, dentro do orçamento de 1%. Ela barra 89,6% da
+  botnet de um décimo com sotaques novos, e 0,0% com sotaques compartilhados.
+- **O que concluir:** para sotaques novos, o melhor candidato é usar os inéditos como alarme
+  próprio. Para os compartilhados, o beta-binomial cruzado atrás do alarme sazonal chega a
+  15,1%. É essa comparação que o bloco de 14 dias, fixado antes, vai testar.
+- **Cuidado:** tudo o que tem \* foi examinado depois do dia novo. É uma hipótese para o
+  próximo teste, e não um resultado confirmado.
+
+**Fig. 3, o equilíbrio de cada configuração**
+- **A pergunta:** qual configuração faz o melhor acordo entre falsos alarmes e detecção?
+- **Como ler:** há dois painéis, um para sotaques novos e outro para compartilhados. O eixo
+  horizontal traz os falsos alarmes (% das janelas limpas), em escala logarítmica de 0,01 a
+  10, e o vertical, a porcentagem barrada de uma botnet de 100 atacantes.
+  - O melhor lugar é **em cima e à esquerda**: muita detecção e poucos falsos alarmes.
+  - Cada forma é uma configuração, conforme a legenda.
+  - Cheio são os dias de teste, vazado é o dia novo, e cinza é a calibração cruzada, com uma
+    seta saindo do ponto em amostra.
+  - As taxas zero aparecem desenhadas em 0,01%.
+- **Exemplo de leitura:** o losango (binomial, a do protocolo) fica perto de 0,1% de falsos
+  alarmes e de 38% da botnet em sotaques novos. O X (a lista sozinha, com beta-binomial) chega
+  a uns 86%, mas com cerca de 4,5% de falsos alarmes. Com a calibração cruzada (a seta), ele
+  cai para cerca de 1,1% e 66%.
+- **O que concluir:** nenhum ponto chega ao canto ideal, porque ganhar detecção custa falsos
+  alarmes. As setas mostram quanto do resultado em amostra era otimismo.
+- **Cuidado:** os 100 atacantes estão somados sobre os quatro serviços, e o total é puxado
+  pelos pequenos, onde 100 atacantes já valem várias janelas típicas.
+
+**Fig. 4 (Apêndice D), o custo de processamento**
+- **A pergunta:** o método aguenta rodar em tempo real numa CDN?
+- **Como ler:** o eixo horizontal traz as sessões ativas na janela, de 100 a 100.000, e o
+  vertical, o tempo em segundos, de um milionésimo de segundo até 100 segundos. Os dois eixos
+  estão em escala logarítmica.
+  - Há quatro linhas: a admissão, feita a cada requisição, e a agregação, feita uma vez por
+    janela.
+  - Cada uma é medida de dois jeitos: guardando as ligações entre pares de sessões (cinza) ou
+    só contando classes (preto).
+  - As pontilhadas são inclinações de referência. *Slope 2* quer dizer que o tempo quadruplica
+    quando as sessões dobram, *slope 1* que ele dobra, e *constant* que ele não muda.
+- **Exemplo de leitura:** a agregação que guarda pares leva cerca de 53 s com 1.000 sessões,
+  o que é inviável. Contando classes, ela leva 0,33 s. A admissão por contagem fica em cerca
+  de 0,4 milionésimo de segundo, sem crescer, até 100.000 sessões.
+- **O que concluir:** contar classes deixa o custo proporcional ao tráfego, e guardar pares o
+  deixa quadrático. Por isso o método conta.
+- **Cuidado:** a medição usa uma biblioteca em Python (rdflib), então os tempos são um teto.
+  Um motor como o Jena seria mais rápido.
+
+**Listagem 1 (Apêndice D), a cadeia de evidência**
+- **A pergunta:** o que o sistema entrega ao operador quando dispara?
+- **Como ler:** é um registro em JSON-LD com as seguintes partes:
+  - a regra que disparou (*CoordinatedHTTPFlood*);
+  - o tamanho do grupo (1.991 origens) e a massa Ω (1.303.422,8);
+  - a divisão da massa por tipo de ligação: pares com o mesmo sotaque (peso 1,0), o mesmo
+    serviço (0,6) e a mesma vizinhança /24 (0,3);
+  - por fim, a lista barrada, com o serviço e os 25 sotaques.
+- **Exemplo de leitura:** os 1.981.045 pares ligados pelo mesmo serviço, vezes 0,6, dão 91%
+  de Ω. É por isso que o artigo diz que Ω mede sobretudo volume.
+- **O que concluir:** o operador vê o que foi barrado e por quê, numa forma que outras
+  ferramentas conseguem ler.
 
 ### 0.8 O que recomendamos, e por quê
 
@@ -504,18 +707,22 @@ O que se mediu, em seis pontos:
    contagens que a decisão lê e o escopo exportado, e a consulta compilada a partir dela
    reproduz as contagens de origens e de pares /24 do operador.
 
-As três contribuições declaradas na Seção I são: (1) no tráfego gerado, quando o escopo
-natural falha e por que os escopos relativos ao perfil funcionam sem rótulos, inclusive
-em pilhas que clientes reais usam (ali com 2,2% de dano); (2) em produção, quanto custa calibrar: falsos
-alarmes dentro e fora da amostra, o piso de calibração, um limite mais duro fixado pela
-razão de enriquecimento e quanto de uma botnet injetada o gatilho deixa passar (e,
-*post hoc*, gatilhos que recuperam parte dela), além da fronteira do método, da
-rotatividade de impressões, dos
-veredictos do WAF e de um dia novo; (3) nenhum padrão examinado expressa o escopo no
-seu vocabulário central: o STIX 2.1 só leva a JA4 numa extensão, o OCSF a registra sem
-definir filtro sobre ela, e o DOTS e o Flowspec filtram só campos de rede e transporte. A ontologia
-especifica as contagens e o escopo exportado, e dela se compila a consulta que o
-armazenamento de logs executa.
+As três contribuições declaradas na Seção I são:
+1. **Escopo relativo ao perfil.** No tráfego gerado, os escopos relativos ao perfil barram o
+   ataque sem rótulos, enquanto a impressão mais comum do alarme barra usuários e nenhum
+   atacante assim que a botnet usa várias pilhas.
+2. **Um método de calibração do escopo.** O teste é calibrado por serviço para um orçamento
+   de falsos alarmes de 1% das janelas sem ataque. Essa calibração define o **piso de
+   calibração**, o tamanho de botnet a partir do qual o teste aponta uma pilha típica. Os
+   dois são avaliados em oito dias de quatro serviços da CDN e num dia novo.
+3. **A ontologia de sessão como especificação.** Uma ontologia OWL especifica as contagens
+   que a decisão lê e o escopo que ela exporta. A consulta do banco de logs é compilada a
+   partir dela, e por isso um sinal novo de igualdade entra sem mudar o código. Nenhum
+   padrão de troca examinado expressa o filtro JA4 resultante no seu vocabulário central.
+
+Os demais resultados apoiam essas três contribuições, e o artigo os detalha ao longo do texto:
+o limite da razão, os gatilhos *post hoc*, a fronteira do método, a rotatividade de
+impressões e os veredictos do WAF.
 
 ## 2. O problema
 
@@ -2081,7 +2288,7 @@ diferença máxima de 0,0.
   de rede desde a versão 1.3.0 (agosto de 2024) e nas evidências de achados desde a
   1.4.0 (janeiro de 2025). Ele não define filtro nem remediação sobre JA4: as classes de
   remediação carregam contramedidas do D3FEND.
-- **É a contribuição (iii) do artigo**: dos padrões examinados, STIX 2.1, DOTS e Flowspec
+- **É a lacuna por trás da contribuição (iii), a ontologia**: dos padrões examinados, STIX 2.1, DOTS e Flowspec
   não têm propriedade para JA4 no vocabulário central, e o OCSF a registra sem filtro
   sobre ela. O artigo sugere um casamento de JA4 nos filtros do DOTS e uma propriedade
   JA4 no STIX, por exemplo numa extensão TLS do objeto *network-traffic*.
@@ -2475,8 +2682,9 @@ Com contagens de classe, a admissão é constante (~0,37 µs por sessão) e a ag
 (26,4 s a 100.000 sessões); com arestas de pares, 52,8 s já a 1.000.
 
 **"Por que falar de STIX e DOTS?"**
-Porque o escopo precisa ser trocado, e essa é a terceira contribuição: nenhum padrão
-examinado expressa um filtro sobre JA4 no vocabulário central. O STIX leva as impressões
+Porque o escopo precisa ser trocado entre ferramentas. A terceira contribuição é a ontologia
+que especifica o escopo, e esses padrões mostram por que ele precisa de uma especificação
+própria: nenhum padrão examinado expressa um filtro sobre JA4 no vocabulário central. O STIX leva as impressões
 pelo TAXII numa extensão, o MISP as descarta, o OCSF as registra em eventos e achados sem
 filtro sobre elas, e o DOTS não consegue expressá-las.
 

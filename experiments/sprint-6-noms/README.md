@@ -1692,3 +1692,155 @@ the added length came out of our own text:
 V-D's new sentence was fixed for case, `1\,152` and `$P$`, and split under 45 words. 12
 pages, the Acknowledgment ends on page 8, abstract 250 words. `make audit`: 253 checks, 0
 mismatches, with the phrases updated to the new wording over the same numbers.
+
+## 34. Round 31: the abstract, for a first-time reader
+
+Read as by someone who has not read the paper, the abstract used terms before defining
+them: the scope was never defined, "gate" came two sentences before the gate, "test-day
+behavior" pointed at days the abstract never names, and "4 to 19 windows" read as a count.
+Not saying that the production botnets were injected left room to read them as real attacks.
+The rewrite keeps 250 words and the same 26 lines, and every sentence stays under 41 words.
+- The scope is "the TLS fingerprints to block", and the gate is "a gate on distinct
+  origins", both given before they are used.
+- "Once the botnet spans five TLS stacks" removes the double reading of "legitimate traffic
+  from five stacks on".
+- Each misfire blocks "a median third of the window's clients".
+- Sizes are in typical windows, and the botnet is "injected".
+- The gate sentence gives the cause: the gate seldom opens, so the configuration stops 12%.
+- The post hoc arm is "triggering on unseen fingerprints alone".
+- The user's held-out sentence now reads "consistent with that rate".
+
+To make room, three items left the abstract and stay in the body, where the audit now
+checks them: the WAF sentence (V-D's heading), the ratio limit (V-B) and the beta-binomial's
+20% on new stacks (Table VI). 12 pages, the Acknowledgment ends on page 8. `make audit`: 253
+checks, 0 mismatches.
+
+## 35. Round 32: paragraphs of even length
+
+The main text had paragraphs from 21 to 318 words (median 132), with twelve over 190. In
+the appendices they ran to 300. Long paragraphs were split where the topic changes, with
+no word changed at the split:
+- the introduction's contributions;
+- the threat model's TLS-stack assumption;
+- the botnet's spread over stacks;
+- the five choices made on the test days;
+- the table columns beyond FA and collateral;
+- the floor's growth with stacks and rank;
+- "(ii) Next";
+- the conclusion's evidence;
+- in the appendices, V-D's details (three parts), known fleets against the scope as a
+  trigger, and the held-out day's protocol.
+
+K's short paragraph joined the controlled evaluation, and V-A's one-sentence lead-in joined
+the paragraph it leads into. One sentence moved inside its paragraph: the rate times the mean
+collateral now follows the collateral it multiplies.
+
+Each split costs about a line, so short last lines paid for them. The trims were "each
+staying below per-source thresholds", "five-minute" (already defined), "that" and "imposed
+on", the table pointer folded into "Pooled over the endpoints (Table IV)", "in the first
+30 s", "legitimate" in "a more concentrated population", "has too few pairs" and "on test
+and held-out days".
+
+Now the main text runs from 21 to 196 words (median 120), with three paragraphs over 190.
+The three short ones are section lead-ins. The appendices run up to 202 words. 12 pages,
+the Acknowledgment ends on page 8, no sentence over 45 words. `make audit`: 253 checks, 0
+mismatches, with three phrases updated to the trimmed wording.
+
+## 36. Round 33: the abstract says what, the contributions say less
+
+At the user's request, the abstract now states what was done and found, not how, and it
+leaves the reader wanting the details. The mechanism is named once as "a calibrated
+statistical test over the TLS fingerprints of an endpoint's clients". The binomial
+background, the profile, the gate, the unseen filter, the beta-binomial, the seasonal
+gate and cross-fitting all stay in the body. Four numbers remain: 39%, 90%, 0.1% and "a
+median third". Each qualifier stays, in a shorter form: on generated traffic, with no
+observed collateral, on the days it was chosen on, injected, post hoc, and "no exchange
+standard we examined ... in its core vocabulary". The user's held-out sentence stays, minus
+the gate clause, which the abstract no longer explains. The closing sentence says what the
+results give an operator: where fingerprint scoping pays off and where to fall back to
+rate limits or challenges.
+
+The contributions went from 191 to 127 words, one short sentence or two per point. They
+drop the 2.2-3.4% shared-stack collateral, the ratio limit, the post hoc triggers and each
+standard's gap, all still in V-A, III-D, V-C and VI.
+
+The audit checks each number where it now lives: the floor's 8% and 4 to 19 windows in
+V-B, the ratio limit in III-D, the shared-stack collateral in V-A, and the standards in VI.
+The abstract's checks read the new phrases over the same data. The main text now ends
+with about 8 lines to spare on page 8, and the references start there. 12 pages, abstract
+248 words. `make audit`: 253 checks, 0 mismatches.
+
+## 37. Round 34: even vertical spacing
+
+IEEEtran sets `\flushbottom` in two columns. When a column cannot be filled exactly, for
+instance because the next heading does not fit at its foot with two lines of text, LaTeX
+spreads the remainder over the paragraph gaps. After rounds 31-33 two columns showed it:
+page 1 at the maximum badness (10000), where the shorter abstract and contributions left
+the right column about a line short of "II. Related Work", and page 5 (badness 3417).
+- Page 1: the introduction's first paragraph gets its original wording back, "each sending
+  too little to cross any per-source threshold", and the column fills.
+- Page 5: V-A's lead-in is again its own paragraph, like the other section lead-ins, and
+  "a more concentrated legitimate population" gets "legitimate" back.
+
+The log now reports no underfull column, against one in commit 52eb7b6. `\raggedbottom`
+was tried and rejected: it removes the stretching but leaves page 5's right column about
+two lines short and page 4's left one a line and a half short. 12 pages, the
+Acknowledgment ends on page 8. `make audit`: 253 checks, 0 mismatches.
+
+## 38. Round 35: contributions and the method paragraph, more direct
+
+At the user's request, each contribution now opens with a label that names it, and one or
+two sentences back it up:
+- (i) *Profile-relative scoping*;
+- (ii) *What calibration costs on real traffic*, where the floor's definition moves into
+  parentheses so that it no longer reads as a list item;
+- (iii) *A gap in exchange standards*.
+
+The method paragraph now follows the method's two steps: a volume trigger first raises the
+alarm, and the test then chooses the scope. It says what the calibration buys (a filter in
+at most 1% of attack-free windows) and that the attacker, not "their operator", cannot
+cheaply replace the stacks. The contributions check in `make audit` reads the new (iii).
+12 pages, the Acknowledgment ends on page 8 with little room to spare, and no column is
+stretched. `make audit`: 253 checks, 0 mismatches.
+
+The study guide's section 0.7 now takes each table and figure in turn: the question it
+answers, how to read it, a worked reading with the paper's numbers, what to conclude and
+what not to.
+
+## 39. Round 36: contributions (ii) and (iii) name what the work delivers
+
+At the user's request, contribution (ii) is now the calibration method and (iii) is the
+ontology. (ii), *A calibration method for the scope*, sets the test's level per endpoint so
+that it names a filter in at most 1% of attack-free windows, and derives the calibration
+floor. The CDN measurements and the held-out day follow as its evaluation. (iii), *A session
+ontology as the specification*, says that the ontology specifies the counts and the scope,
+that the log store's query is compiled from it, and that a new equality signal needs no
+change to the code. The standards gap becomes its supporting finding. (iii) claims
+specification only, since Section VI states that the ontology adds nothing to detection.
+The method paragraph keeps "Its threshold is calibrated on attack-free windows" and leaves
+the 1% budget to (ii), so the two do not repeat each other. The layout is unchanged: 12
+pages, the Acknowledgment ends on page 8, and no column is stretched. `make audit`: 253
+checks, 0 mismatches, with the contributions check reading the new (iii). The study guide's
+three passages on the contributions follow.
+
+## 40. Round 37: contribution (ii) shorter, and no stretched column
+
+Contribution (ii) keeps its label, *A calibration method for the scope*, and now reads:
+"We calibrate the test per endpoint to a false-alarm budget of 1% of attack-free windows,
+which sets a calibration floor: the botnet size from which it names a typical stack. We
+evaluate both on eight days of four CDN endpoints and a held-out day." It is 43 words,
+down from 72.
+
+A correction to rounds 35-36. The stretched-column counter added to the build check in
+round 34 matched two backslashes and so always printed 0. Rebuilding the saved states
+showed that round 35's longer introduction had stretched two columns. Those two to four
+extra lines no longer let "V. Results" and its lead-in fit at the foot of page 5's left
+column. The heading block jumped to the right column and left the left one short
+(badness 5787), which pushed the rest about five lines down. That took the references off
+page 8, and the column that ends with the Acknowledgment was stretched as well. Removing
+the method paragraph's "Its threshold is calibrated on attack-free windows" (which (ii) now
+states), and writing "given as a median" for "which the tables give as a median", lets
+the block fit again. The counter now uses `grep -F 'Underfull \vbox'` and reports 0,
+confirmed by a direct grep of the log. A trim on page 3 was tried and undone: it stretched
+page 4's right column, whose foot is fixed by the footnote. The references start on page 8
+again, 12 pages. `make audit`: 253 checks, 0 mismatches.

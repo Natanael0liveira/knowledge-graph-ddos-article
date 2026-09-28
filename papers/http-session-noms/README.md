@@ -114,7 +114,8 @@ Fig. 1, the scoping pipeline, is a draw.io drawing; its source is
 [`../http-session-noms-pt/`](../http-session-noms-pt/) holds three things:
 - a Portuguese rendering of the paper, not bound by the NOMS page rules; it still
   follows round 8 and needs a port of the later rounds;
-- the study guide (`guia-de-estudo.md`), whose Part 0 explains the work without formulas
-  and includes a presentation outline and likely questions;
+- the study guide (`guia-de-estudo.md`), for understanding the paper. Its Part 0 explains
+  the work without formulas and reads each table and figure. It keeps the paper's English
+  terms (fingerprint, gate, no gate) and defines them in its glossary;
 - `por-que-mudamos.md`, which explains why the paper moved from a knowledge-graph
   framing to calibrated fingerprint scoping.

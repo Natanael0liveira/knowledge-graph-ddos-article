@@ -1,4 +1,4 @@
-# Guia de estudo: escopo calibrado por impressão digital TLS
+# Guia de estudo: escopo calibrado por fingerprint TLS
 
 *TLS-Fingerprint Scoping of Application-Layer DDoS Mitigation: Calibration Floors and
 Collateral on a CDN Operator's Endpoints*
@@ -11,13 +11,9 @@ figuras citadas aqui são as dele. Os números vêm do artigo ou dos arquivos de
 `experiments/sprint-6-noms/results/`, que `make audit` confere contra o texto. Os
 exemplos numéricos marcados como *hipotéticos* servem só para ensinar a conta.
 
-**Como ler.** Se você não é da área, comece pela **Parte 0**, que explica tudo sem
-fórmulas, com uma analogia, um exemplo com números redondos, um roteiro de apresentação e
-as perguntas prováveis. Depois, a Parte I apresenta o problema e a ideia, e a Parte II
+**Como ler.** Se você não é da área, comece pela **Parte 0**, que explica tudo sem fórmulas, com uma analogia, um exemplo com números redondos e um roteiro de leitura de cada tabela e figura. Depois, a Parte I apresenta o problema e a ideia, e a Parte II
 ensina o método, fórmula por fórmula. A Parte III explica como ele foi avaliado e com que
-métricas, e a Parte IV percorre os resultados, tabela por tabela. A Parte V prepara a
-defesa: o que recomendar, os limites, os números de cor e as perguntas difíceis. Com
-pouco tempo, leia a Parte 0 e as seções 19 e 20. A história de por que o artigo deixou
+métricas, e a Parte IV percorre os resultados, tabela por tabela. A Parte V reúne o que o artigo recomenda, os seus limites, os números principais, o glossário e onde está cada coisa. Com pouco tempo, leia a Parte 0 e a seção 19. A história de por que o artigo deixou
 de ser sobre grafos de conhecimento está em `por-que-mudamos.md`, nesta pasta.
 
 **Notação.** Vírgula decimal (0,1%). Potências de dez como 10⁻⁶⁰. ⌈x⌉ é o menor inteiro
@@ -38,8 +34,8 @@ Partes I a V aprofundam cada ponto, com as contas.*
    pouco tráfego que nenhuma chama atenção sozinha.
 2. Perceber que um serviço está sob ataque é fácil, porque aparecem visitantes demais. O
    difícil é decidir **quem bloquear** sem bloquear os usuários de verdade.
-3. Nós bloqueamos pelo "sotaque" do software de cada visitante, a **impressão digital TLS**
-   (JA4). Só entram no bloqueio os sotaques que aparecem **muito mais que o normal**
+3. Nós bloqueamos pelo "fingerprint" do software de cada visitante, a **fingerprint TLS**
+   (JA4). Só entram no bloqueio os fingerprints que aparecem **muito mais que o normal**
    naquele serviço.
 4. Um teste estatístico decide o que é "muito mais que o normal". Ele é **calibrado** em
    dias sem ataque, para errar raramente.
@@ -50,28 +46,28 @@ Partes I a V aprofundam cada ponto, com as contas.*
 
 Pense na portaria de um prédio comercial muito movimentado. O porteiro não conhece
 ninguém, mas repara em duas coisas em cada pessoa que entra: **de onde ela vem** (o
-endereço de rede, que o artigo chama de *origem*) e **como ela fala** (o sotaque).
+endereço de rede, que o artigo chama de *origem*) e **como ela se apresenta** (o *fingerprint*).
 
-O sotaque é a impressão digital TLS. Quando um navegador ou um programa abre uma conexão
+O fingerprint TLS funciona como um sotaque. Quando um navegador ou um programa abre uma conexão
 segura (HTTPS), ele se apresenta de um jeito característico: quais versões aceita, que
 lista de cifras oferece, em que ordem. A JA4 resume essa apresentação numa sequência
 curta de letras e números. O Chrome se apresenta de um jeito, o Safari de outro, e o
 firmware de uma câmera IP barata de um terceiro jeito.
 
-**Um dia normal.** Das pessoas que entram, 40% falam com o sotaque "Chrome", 25% "Safari",
-10% "Firefox", e o resto se divide entre muitos sotaques raros. Essa distribuição é o
+**Um dia normal.** Das pessoas que entram, 40% apresentam o fingerprint "Chrome", 25% "Safari",
+10% "Firefox", e o resto se divide entre muitos fingerprints raros. Essa distribuição é o
 **perfil** do prédio, e o porteiro a anota em dias tranquilos.
 
 **O ataque.** Chegam 300 pessoas extras, cada uma de um endereço diferente e cada uma
 educada, sem correr nem gritar. Nenhuma chama atenção sozinha. Mas elas são aparelhos
-invadidos, câmeras e roteadores, e falam com poucos sotaques raros, os do software desses
+invadidos, câmeras e roteadores, e usam poucos fingerprints raros, os do software desses
 aparelhos.
 
 **Duas formas de reagir:**
-- **A óbvia:** barrar o sotaque mais comum no saguão agora. É o "Chrome", e com isso o
+- **A óbvia:** barrar o fingerprint mais comum no saguão agora. É o "Chrome", e com isso o
   porteiro barra os próprios clientes e nenhum invasor. Esse é o primeiro resultado do
   artigo: a escolha óbvia é a pior.
-- **A nossa:** comparar o saguão de agora com um dia normal e barrar só os sotaques que
+- **A nossa:** comparar o saguão de agora com um dia normal e barrar só os fingerprints que
   de repente ficaram muito mais frequentes do que costumam ser.
 
 **As regras do porteiro.** Ele precisa decidir o que é "muito mais frequente". Se for
@@ -80,11 +76,16 @@ de menos, ele barra grupos legítimos que chegam juntos, como uma excursão, e i
 **falso alarme**. Por isso ajustamos a exigência em dias normais, para que o porteiro dê
 falso alarme em no máximo 1% dos períodos de cinco minutos: isso é a **calibração**.
 
-**O alarme da portaria.** O porteiro só confere os sotaques quando o saguão está
-anormalmente cheio. Esse é o **gatilho**. Num prédio enorme, 300 pessoas a mais quase não
+**O alarme da portaria.** O porteiro só confere os fingerprints quando o saguão está
+anormalmente cheio. Esse é o **gatilho**, que o artigo chama de *gate*: o porteiro só age quando o gate "abre". Num prédio enorme, 300 pessoas a mais quase não
 mudam a lotação, então o alarme não toca e os invasores entram, mesmo que o porteiro
 fosse capaz de reconhecê-los. Esse é um dos achados principais do artigo: **o gatilho
 decide**.
+
+**Sem alarme (*no gate*).** Se o porteiro conferisse os fingerprints de todo mundo, com o
+saguão cheio ou vazio, não haveria gate: a própria lista de fingerprints barrados seria o
+alarme. Assim ele pegaria grupos pequenos de invasores que hoje passam, mas também daria mais
+falsos alarmes. O artigo examina essa opção depois do dia novo (Tabela VI).
 
 ### 0.3 As palavras do artigo, uma por uma
 
@@ -94,25 +95,27 @@ decide**.
 | Origem | o endereço de rede (IP) de onde vem a sessão | de onde a pessoa vem |
 | Janela | um intervalo de 5 minutos; um dia tem 288 | um período de observação |
 | Endpoint | o serviço atacado (E1 a E4 no artigo) | o prédio |
-| Impressão TLS, JA4 | o resumo de como o software do cliente abre a conexão segura | o sotaque |
-| Pilha TLS | o software que produz uma impressão (um navegador, uma biblioteca) | quem ensinou o sotaque |
+| Fingerprint TLS, JA4 | o resumo de como o software do cliente abre a conexão segura | o fingerprint |
+| Pilha TLS | o software que produz um fingerprint (um navegador, uma biblioteca) | quem ensinou o fingerprint |
 | Botnet | os aparelhos invadidos que o atacante controla | os invasores |
-| Perfil | a distribuição normal das impressões, medida em dias sem ataque | o dia normal anotado |
-| Escopo | o conjunto de impressões que o filtro bloqueia | a lista de sotaques barrados |
-| Gatilho de origens distintas | o alarme: dispara quando há origens demais na janela | o saguão lotado |
+| Perfil | a distribuição normal dos fingerprints, medida em dias sem ataque | o dia normal anotado |
+| Escopo | o conjunto de fingerprints que o filtro bloqueia | a lista de fingerprints barrados |
+| Gatilho (*trigger*) e *gate* | a condição de volume que dispara o alarme. O escopo só age nas janelas em que o gate "abre" | o alarme da portaria |
+| *Origin gate* (gate de origens distintas) | o gate do protocolo: abre quando as origens distintas da janela chegam ao percentil 99 dos dias sem ataque | o saguão mais cheio que em 99% dos dias normais |
+| *No gate* (sem gate) | não há condição de volume: o escopo roda em toda janela e age sempre que aponta um fingerprint, sendo ele mesmo o gatilho. As figuras chamam isso de *scope alone* e *own trigger* | o porteiro confere todo mundo, com o saguão cheio ou vazio |
 | Falso alarme | o escopo bloqueia algo numa janela sem ataque | barrar uma excursão |
 | Dano colateral | a parte dos clientes legítimos que o filtro bloqueia | clientes barrados por engano |
 | Orçamento (1%) | a meta de falsos alarmes: no máximo 1% das janelas limpas | "errar no máximo 3 vezes por dia" |
 | Calibração, nível | ajustar o quão exigente o teste é, olhando dias normais | a regra do porteiro |
 | Piso de calibração | o menor ataque que o teste consegue apontar | o menor grupo que o porteiro percebe |
-| Limite da razão | sotaques comuns demais nunca parecem "muito acima do normal" | invasores que falam "Chrome" |
+| Limite da razão | fingerprints comuns demais nunca parecem "muito acima do normal" | invasores que falam "Chrome" |
 | Frota | clientes legítimos que chegam juntos, como robôs de monitoramento | uma excursão |
 | Frotas conhecidas | as frotas que aparecem sempre, postas numa lista de exceções | excursões conhecidas |
-| Filtro de impressões inéditas | bloqueia sotaques nunca vistos no perfil | sotaques que nunca passaram por ali |
-| União | o teste junto com o filtro de inéditas | as duas regras juntas |
+| Filtro de fingerprints inéditos | bloqueia fingerprints nunca vistos no perfil | fingerprints que nunca passaram por ali |
+| União | o teste junto com o filtro de inéditos | as duas regras juntas |
 | z-score | uma regra mais simples que o teste binomial, usada como comparação | outro porteiro, menos cuidadoso |
 | Beta-binomial | um modelo estatístico que aceita que as pessoas cheguem em grupos | o porteiro que já espera excursões |
-| Gatilho sazonal | um alarme que compara com a mesma hora dos dias anteriores | "está cheio para uma segunda às 10h?" |
+| *Seasonal gate* (gate sazonal) | um gate *post hoc* que compara as origens da janela com a mediana da mesma hora nos dias de calibração | "está cheio para uma segunda às 10h?" |
 | Calibração cruzada | calibrar com uns dias e conferir em outros | estudar com uma prova e fazer outra |
 | Em amostra | calibrar e medir nos mesmos dias | estudar com a própria prova |
 | Dia novo (*held-out*) | um nono dia analisado com tudo fixado antes | a prova final, com questões inéditas |
@@ -133,10 +136,10 @@ decide**.
 
 ### 0.4 O teste, sem fórmula
 
-O **teste binomial de enriquecimento** faz uma pergunta simples para cada sotaque: *isto
+O **teste binomial de enriquecimento** faz uma pergunta simples para cada fingerprint: *isto
 pode ser sorte?*
 
-Suponha que, num dia normal, 1 em cada 1.000 visitantes tenha o sotaque X. Numa janela
+Suponha que, num dia normal, 1 em cada 1.000 visitantes tenha o fingerprint X. Numa janela
 com 1.300 visitantes, esperamos ver cerca de uma pessoa com X. Se aparecem 101, é como
 lançar uma moeda que dá cara uma vez em mil e tirar 101 caras em 1.300 lançamentos: pode
 acontecer, mas a chance é tão pequena que ninguém acredita em sorte.
@@ -145,13 +148,13 @@ O teste calcula essa **chance de sorte** e aponta X quando duas condições vale
 1. X aparece pelo menos **três vezes mais** do que no perfil;
 2. a chance de ver tanto X por sorte é **menor que um limite** (o *nível*).
 
-**Um cuidado extra.** Em cada janela testamos centenas de sotaques. Se cada um tivesse
+**Um cuidado extra.** Em cada janela testamos centenas de fingerprints. Se cada um tivesse
 chance de 1 em 100 de parecer suspeito por sorte, algum sempre pareceria. Por isso o
-limite é dividido pelo número de sotaques testados (a *correção de Bonferroni*): quanto
-mais sotaques, mais exigente fica cada teste.
+limite é dividido pelo número de fingerprints testados (a *correção de Bonferroni*): quanto
+mais fingerprints, mais exigente fica cada teste.
 
 **Por que calibrar.** Em dados reais, as frotas chegam juntas: dezenas de robôs de
-monitoramento com o mesmo sotaque, no mesmo minuto. Para o teste, isso parece
+monitoramento com o mesmo fingerprint, no mesmo minuto. Para o teste, isso parece
 improvável, mas é normal. Então ajustamos o limite olhando dias sem ataque: escolhemos o
 mais permissivo que ainda erra em no máximo 1% das janelas. Nos serviços com muitas
 frotas, esse limite fica extremamente exigente (uma chance de 1 em 10²¹ no E1), e por
@@ -160,16 +163,16 @@ isso o piso sobe.
 ### 0.5 Um exemplo completo, com números redondos (hipotético)
 
 Uma janela normal de um serviço tem **1.000 visitantes legítimos**:
-- sotaque A (um navegador comum): 40%, ou 400 pessoas;
+- fingerprint A (um navegador comum): 40%, ou 400 pessoas;
 - B: 25%, ou 250;
 - C: 10%, ou 100;
-- o resto (250 pessoas) se espalha por muitos sotaques raros, cada um com 1% ou menos;
+- o resto (250 pessoas) se espalha por muitos fingerprints raros, cada um com 1% ou menos;
 - entre eles estão X, Y e Z, com 0,1% cada, ou seja, **1 pessoa** cada.
 
-Chega uma botnet de **300 aparelhos**, com 100 em cada um dos sotaques X, Y e Z. A janela
+Chega uma botnet de **300 aparelhos**, com 100 em cada um dos fingerprints X, Y e Z. A janela
 passa a ter 1.300 visitantes.
 
-**1. A escolha óbvia falha.** O sotaque mais comum no saguão continua sendo A, com 400
+**1. A escolha óbvia falha.** O fingerprint mais comum no saguão continua sendo A, com 400
 pessoas (X, Y e Z têm 101 cada). Barrar A bloqueia 400 usuários legítimos, ou 40% deles, e
 nenhum aparelho da botnet. No artigo, com tráfego gerado, esse número é 39%.
 
@@ -179,51 +182,51 @@ nenhum aparelho da botnet. No artigo, com tráfego gerado, esse número é 39%.
 - Para X: esperaríamos cerca de 1,3 pessoa e vemos 101, quase 80 vezes mais. A chance de
   sorte é praticamente zero, então X entra, e Y e Z também.
 - Barrar X, Y e Z bloqueia os 300 aparelhos e 3 usuários legítimos (a 1 pessoa normal de
-  cada sotaque). O dano colateral é de 0,3%, pequeno, mas diferente de zero.
+  cada fingerprint). O dano colateral é de 0,3%, pequeno, mas diferente de zero.
 
-**3. O piso.** Agora a botnet tem só **5 aparelhos** por sotaque. Em X vemos 6 pessoas em
+**3. O piso.** Agora a botnet tem só **5 aparelhos** por fingerprint. Em X vemos 6 pessoas em
 vez de 1. Isso é seis vezes mais que o normal, mas a chance de sorte ainda é de cerca de
-6 em 10.000. Com cem sotaques testados e o limite dividido entre eles, essa chance não é
+6 em 10.000. Com cem fingerprints testados e o limite dividido entre eles, essa chance não é
 pequena o bastante, e X não entra. Ataques pequenos ficam **abaixo do piso**: o teste não
 consegue separá-los do acaso.
 
-**4. O limite da razão.** Suponha que os 300 aparelhos falem com o sotaque A, o do
+**4. O limite da razão.** Suponha que os 300 aparelhos usem o fingerprint A, o do
 navegador comum. Para A ficar "três vezes mais frequente que o normal", ele teria que ser
 120% dos visitantes, o que é impossível. Um bot que imita um navegador comum nunca é
-apontado, e isso vale para qualquer tamanho de botnet. No artigo, com 25 sotaques na
-botnet, cada um fica com no máximo 3,6% da janela. Então só os sotaques com menos de 1,2%
-do perfil podem ser apontados, e os 4 a 28 sotaques mais comuns de cada serviço, que
+apontado, e isso vale para qualquer tamanho de botnet. No artigo, com 25 fingerprints na
+botnet, cada um fica com no máximo 3,6% da janela. Então só os fingerprints com menos de 1,2%
+do perfil podem ser apontados, e os 4 a 28 fingerprints mais comuns de cada serviço, que
 somam 86% a 94% dos visitantes, estão fora de alcance.
 
 **5. O gatilho.** No E1, uma janela normal tem cerca de 3.000 visitantes. Uma botnet de
 300 acrescenta 10%, e o alarme, que só dispara quando a janela está entre as 1% mais
 cheias dos dias normais, raramente toca: em só 6% a 13% das janelas para botnets desse
-tamanho. Quando o alarme não toca, ninguém confere os sotaques, e a botnet passa.
+tamanho. Quando o alarme não toca, ninguém confere os fingerprints, e a botnet passa.
 
 ### 0.6 O que o trabalho mostrou, em linguagem simples
 
-1. **A escolha óbvia é perigosa.** No tráfego gerado, barrar o sotaque mais comum
-   bloqueia 39% dos usuários e nenhum atacante quando a botnet usa cinco sotaques ou
+1. **A escolha óbvia é perigosa.** No tráfego gerado, barrar o fingerprint mais comum
+   bloqueia 39% dos usuários e nenhum atacante quando a botnet usa cinco fingerprints ou
    mais. Comparar com o perfil bloqueia 90% da botnet sem dano observado, com até 25
-   sotaques novos.
+   fingerprints novos.
 2. **Em dados reais, a configuração calibrada erra pouco, mas cada erro pesa.** Ela dá
    falso alarme em 0,1% das janelas limpas (5 de 5.643), e cada um bloqueia, em mediana,
    um terço dos clientes daquela janela. Na média, isso dá 0,03% dos clientes por janela.
 3. **Há um tamanho mínimo de ataque que se consegue apontar, o piso.**
-   - Em sotaques novos, 139 atacantes por janela.
-   - Em sotaques raros que clientes reais também usam, 254 atacantes no E1 (8% da janela)
+   - Em fingerprints novos, 139 atacantes por janela.
+   - Em fingerprints raros que clientes reais também usam, 254 atacantes no E1 (8% da janela)
      e de 4 a 19 janelas inteiras nos serviços pequenos.
-   - Nos sotaques mais comuns, em expectativa, nunca.
+   - Nos fingerprints mais comuns, em expectativa, nunca.
 
    Abaixo do piso, o recurso do operador é limitar a taxa ou desafiar todos os clientes.
 4. **O alarme é o gargalo.** No E1, o teste sozinho bloquearia 90% de uma botnet de um
    décimo da janela, mas o alarme toca em poucas janelas, e a configuração detém só 12%.
-5. **Ideias testadas depois recuperam parte disso.** Usar o próprio filtro de sotaques
-   inéditos como alarme detém 90% em sotaques novos com poucos falsos alarmes. Como foi
+5. **Ideias testadas depois recuperam parte disso.** Usar o próprio filtro de fingerprints
+   inéditos como alarme detém 90% em fingerprints novos com poucos falsos alarmes. Como foi
    pensado depois de ver o dia novo, isso precisa de um teste novo, marcado antes, para
    valer.
 6. **O firewall da Azion não serve de gabarito**, porque bloqueia por outros critérios.
-   **E os padrões de troca não sabem dizer "bloqueie este sotaque":** o STIX só leva a JA4
+   **E os padrões de troca não sabem dizer "bloqueie este fingerprint":** o STIX só leva a JA4
    numa extensão, o importador do MISP a descarta, e DOTS e Flowspec só filtram campos de
    rede e de transporte.
 
@@ -251,18 +254,18 @@ concluir demais. A ordem é a do artigo.
 **Fig. 1, o método numa fileira de caixas**
 - **A pergunta:** como o sistema decide quem barrar, a cada cinco minutos?
 - **Como ler:** da esquerda para a direita, para cada serviço e cada janela de cinco minutos.
-  1. *access log*: cada requisição traz o sotaque (JA4), a origem e o serviço.
+  1. *access log*: cada requisição traz o fingerprint (JA4), a origem e o serviço.
   2. *count query*: uma consulta gerada automaticamente a partir da ontologia (a caixa de
      baixo, com a seta *compiles*) e executada no banco de logs.
   3. *class sizes*: as contagens que a consulta devolve. São quantas origens falam cada
-     sotaque, c(f), o total de origens, n, e os pares de origens na mesma vizinhança de rede
+     fingerprint, c(f), o total de origens, n, e os pares de origens na mesma vizinhança de rede
      (/24).
   4. *trigger*: o alarme. Toca quando o número de origens passa do percentil 99 dos dias
      normais, isto é, quando o saguão está mais cheio do que em 99% dos períodos normais.
-  5. *scope*: a lista de sotaques barrados. Entra um sotaque que está pelo menos 3 vezes
+  5. *scope*: a lista de fingerprints barrados. Entra um fingerprint que está pelo menos 3 vezes
      (ρ = 3) mais frequente do que no perfil e que seria improvável por acaso. Entram também
-     os sotaques inéditos, e saem as frotas conhecidas.
-  6. As duas saídas. Se a lista tem sotaques, o sistema desafia ou bloqueia esses sotaques
+     os fingerprints inéditos, e saem as frotas conhecidas.
+  6. As duas saídas. Se a lista tem fingerprints, o sistema desafia ou bloqueia esses fingerprints
      naquele serviço e exporta a justificativa em STIX 2.1. Se ela sai vazia, o operador cai
      para um limite de taxa ou para um desafio a todos.
   - A caixa larga de baixo, *calibration on attack-free days*, é de onde vêm todos os
@@ -270,7 +273,7 @@ concluir demais. A ordem é a do artigo.
     em no máximo 1% das janelas) e as frotas conhecidas. As setas tracejadas mostram que ela
     alimenta o alarme e a lista. Em nenhum ponto entra um rótulo do tipo "isto é ataque".
 - **Exemplo de leitura (hipotético):** numa janela com 500 origens, o alarme toca porque 500
-  passa do percentil 99. O sotaque X aparece em 200 delas (40%), mas no perfil tem só 0,1%.
+  passa do percentil 99. O fingerprint X aparece em 200 delas (40%), mas no perfil tem só 0,1%.
   Ele está 400 vezes acima do normal, muito além das 3 vezes exigidas, e isso seria
   impossível por acaso. X entra na lista, e só quem fala X é barrado.
 - **O que concluir:** o método conta e compara com o normal do próprio serviço. Nenhum passo
@@ -287,15 +290,14 @@ concluir demais. A ordem é a do artigo.
 - **Exemplo de leitura:** o *Blackholing* descarta o tráfego do endereço atacado, e quem paga
   é todo o tráfego desse endereço, inclusive o legítimo. O *Bot management* dos produtos
   comerciais filtra por JA4, mas não publica como escolhe nem quanto custa (*Undisclosed*).
-- **O que concluir:** só a última linha filtra pela impressão TLS **e** mede o custo, por
+- **O que concluir:** só a última linha filtra pelo fingerprint TLS **e** mede o custo, por
   alarme e por janela.
 - **Cuidado:** é uma comparação de desenho, e não de desempenho. Não rodamos essas soluções
   nos nossos dados.
 
 **Tabela II, as quatro configurações de produção**
 - **A pergunta:** o que exatamente foi testado nos dados reais?
-- **Como ler:** cada linha é uma configuração completa, e cada coluna é uma peça dela.
-  - *Gate*: o alarme. Na regra de referência é Ω ≥ τ, e nas outras é o número de origens.
+- **Como ler:** cada linha é uma configuração completa, e cada coluna é uma peça dela.  - *Gate*: o gatilho de volume, que precisa abrir antes de a lista agir (veja *gate* na seção 0.3). Na regra de referência é Ω ≥ τ, e nas outras é o *origin gate*, o número de origens distintas.
   - *Scope*: a regra que monta a lista.
   - *Background*: o modelo do que é normal, binomial ou beta-binomial.
   - *Exempt*: o que fica fora da lista, ou seja, as frotas conhecidas.
@@ -310,21 +312,21 @@ concluir demais. A ordem é a do artigo.
   novo, mas não fazia parte do que o protocolo prometia avaliar.
 
 **Tabela III, o tráfego gerado**
-- **A pergunta:** quem acerta a botnet quando ela fala 1, 5, 25 ou 100 sotaques?
-- **Como ler:** cada linha é um cenário. M é o número de sotaques da botnet. *Shared* quer dizer
-  sotaques que clientes reais também usam, e *adversarial* quer dizer que a botnet copia os
-  sotaques mais comuns do serviço. As colunas são:
+- **A pergunta:** quem acerta a botnet quando ela fala 1, 5, 25 ou 100 fingerprints?
+- **Como ler:** cada linha é um cenário. M é o número de fingerprints da botnet. *Shared* quer dizer
+  fingerprints que clientes reais também usam, e *adversarial* quer dizer que a botnet copia os
+  fingerprints mais comuns do serviço. As colunas são:
   - para o teste binomial, *Recall* (quanto da botnet é barrado), FPR (quanto do tráfego
     legítimo é barrado) e F1, uma nota de 0 a 1 que junta as duas coisas;
   - o *Recall* das outras listas: *Modal* (a escolha óbvia), *z-score* e *Unseen* (inéditos);
   - o *Recall* dos modelos que aprendem com rótulos, travados em zero falso positivo.
 - **Exemplo de leitura:** na linha M = 25, o teste barra 90,3% da botnet e 0,00% dos
   legítimos, enquanto a escolha óbvia (*Modal*) barra 0,0%, nenhum atacante.
-- **Por que nunca passa de uns 90%:** em cada botnet, 10% dos atacantes usam um sotaque só deles,
+- **Por que nunca passa de uns 90%:** em cada botnet, 10% dos atacantes usam um fingerprint só deles,
   que nenhuma lista pega. É um teto do experimento, e não uma falha do teste.
-- **O que concluir:** a partir de cinco sotaques, a escolha óbvia falha por completo, e as
+- **O que concluir:** a partir de cinco fingerprints, a escolha óbvia falha por completo, e as
   listas relativas ao perfil funcionam sem rótulo nenhum.
-- **Cuidado:** o tráfego gerado é fácil por construção, porque os sotaques da botnet nunca
+- **Cuidado:** o tráfego gerado é fácil por construção, porque os fingerprints da botnet nunca
   aparecem no tráfego legítimo. A última linha (*adversarial*, 30,4%) mostra a fronteira: se a
   botnet fala "Chrome", o método pouco pode fazer.
 
@@ -334,19 +336,17 @@ concluir demais. A ordem é a do artigo.
 - **Como ler:** há três blocos de linhas: os dias de teste calibrados em amostra, os mesmos dias
   com calibração cruzada (\*), e o dia novo. As colunas se dividem em dois grupos.
   - **Clean windows**, as janelas sem botnet:
-    - FA: em quantas das janelas limpas a configuração barrou alguém;
-    - *No gate*: o mesmo número se a lista agisse sem esperar o alarme, que serve de
-      diagnóstico;
+    - FA: em quantas das janelas limpas a configuração barrou alguém;    - *No gate*: o mesmo número sem gate, isto é, se a lista agisse em toda janela sem esperar o gatilho. Serve de diagnóstico;
     - *Coll.*: quando um falso alarme acontece, a fração dos clientes da janela que é barrada
       (a mediana);
     - *Fl. 1k*: em quantas janelas um pico de 1.000 usuários reais dispara o filtro.
-  - **New stacks** e **Shared**, com sotaques novos ou compartilhados: quanto de uma botnet
+  - **New stacks** e **Shared**, com fingerprints novos ou compartilhados: quanto de uma botnet
     injetada é barrado, quando ela tem um décimo da janela típica (0,1×) ou uma janela inteira
     (1×).
 - **Exemplo de leitura:** na linha *binomial* dos dias de teste, FA é 0,1, cerca de um falso
   alarme a cada mil janelas (5 em 5.643). Mas cada um barra, na mediana, 32,9% dos clientes
   da janela, um terço. Um pico de 1.000 usuários dispara o filtro em 22,2% das janelas. E de
-  uma botnet de um décimo da janela, com sotaques novos, só 3,0% é barrado.
+  uma botnet de um décimo da janela, com fingerprints novos, só 3,0% é barrado.
 - **O que concluir:** os falsos alarmes são raros, mas caros quando acontecem. E botnets
   pequenas passam, como a Fig. 2 explica.
 - **Cuidado:** com poucos eventos, a incerteza é grande. O intervalo de 95% dos 5 falsos
@@ -360,30 +360,28 @@ concluir demais. A ordem é a do artigo.
   - λₑ é o nível calibrado. Quanto menor, mais exigente o teste: 10⁻²¹ é muito mais exigente
     que 10⁻².
   - As colunas de piso dão quantos atacantes por janela a botnet precisa ter para o teste
-    apontar um sotaque típico dela. Cada uma vem como "em amostra / cruzado", para sotaques
+    apontar um fingerprint típico dela. Cada uma vem como "em amostra / cruzado", para fingerprints
     novos (*new*) e compartilhados (*shared*), com o binomial e com o beta-binomial (\*,
     *post hoc*).
-- **Exemplo de leitura:** o E1 tem uma janela típica de 2.983 origens, e com sotaques
+- **Exemplo de leitura:** o E1 tem uma janela típica de 2.983 origens, e com fingerprints
   compartilhados o piso é de 254 atacantes, uns 8% da janela. O E2 tem janela de 62 origens e
   precisa de 1.090 atacantes, mais de 17 vezes o seu tráfego normal.
-- **Por que o 139 aparece tanto:** é o piso dos sotaques novos, fixado pelo filtro de inéditos,
-  e ele não depende do nível. O filtro exige 5 origens por sotaque. Com 25 sotaques e 90% da
+- **Por que o 139 aparece tanto:** é o piso dos fingerprints novos, fixado pelo filtro de inéditos,
+  e ele não depende do nível. O filtro exige 5 origens por fingerprint. Com 25 fingerprints e 90% da
   botnet neles, isso dá 5 × 25 ÷ 0,9 ≈ 139 atacantes.
-- **O que concluir:** nos serviços pequenos, uma botnet em sotaques compartilhados só é
+- **O que concluir:** nos serviços pequenos, uma botnet em fingerprints compartilhados só é
   apontada quando é muito maior que o tráfego normal. Abaixo do piso, o operador precisa de
   um limite de taxa ou de um desafio.
-- **Cuidado:** o piso não é um degrau. Abaixo dele, o teste ainda pega os sotaques que o acaso
+- **Cuidado:** o piso não é um degrau. Abaixo dele, o teste ainda pega os fingerprints que o acaso
   deixou maiores, e por isso as curvas da Fig. 2 sobem aos poucos.
 
 **Fig. 2, o que a configuração barra conforme o tamanho da botnet**
 - **A pergunta:** por que botnets pequenas passam no serviço grande?
 - **Como ler:** há um painel por serviço, do E1 ao E4. O eixo horizontal traz os atacantes por
-  janela, em escala logarítmica, e o vertical, a porcentagem.
-  - Linha pontilhada: em quantas janelas o alarme toca.
-  - Tracejada cinza: quanto a lista barraria se agisse sozinha, com sotaques novos.
-  - Cheia, com bolinhas pretas: o que a configuração de fato barra, com sotaques novos.
-  - Cheia, com bolinhas vazadas: o mesmo, com sotaques compartilhados.
-  - Linha vertical cinza: o piso dos sotaques novos (Tabela V).
+  janela, em escala logarítmica, e o vertical, a porcentagem.  - Linha pontilhada (*gate opens*): em quantas janelas o gate abre.  - Tracejada cinza (*scope alone*): quanto a lista barraria sem gate, agindo em toda janela, com fingerprints novos.
+  - Cheia, com bolinhas pretas: o que a configuração de fato barra, com fingerprints novos.
+  - Cheia, com bolinhas vazadas: o mesmo, com fingerprints compartilhados.
+  - Linha vertical cinza: o piso dos fingerprints novos (Tabela V).
   - Triângulo no eixo: o tamanho da janela típica.
 - **Exemplo de leitura (E1):** com 100 atacantes, a lista sozinha barraria 43% (tracejada).
   Mas para botnets de 25 atacantes até um décimo da janela o alarme toca em só 6% a 13% das
@@ -394,14 +392,11 @@ concluir demais. A ordem é a do artigo.
   linha vertical.
 - **O que concluir:** no serviço grande, uma botnet pequena não enche o saguão o bastante para
   tocar o alarme. Nos pequenos, o limite é o piso.
-- **Cuidado:** é uma botnet injetada, de uma forma só (25 sotaques divididos por igual).
+- **Cuidado:** é uma botnet injetada, de uma forma só (25 fingerprints divididos por igual).
 
 **Tabela VI, os alarmes alternativos**
 - **A pergunta:** trocar o alarme recupera a botnet pequena sem encher o dia de falsos alarmes?
-- **Como ler:** os blocos de linhas são três alarmes.
-  - *Origin gate*: o do protocolo.
-  - *Seasonal gate*: compara o saguão com a mesma hora dos dias anteriores (\*).
-  - *No gate*: a própria lista funciona como alarme (\*).
+- **Como ler:** os blocos de linhas são três alarmes.  - *Origin gate*: o gate de origens distintas, o do protocolo.  - *Seasonal gate*: o gate sazonal, que compara o saguão com a mesma hora dos dias anteriores (\*).  - *No gate*: sem gate. A lista roda em toda janela e é o próprio gatilho (\*).
 
   Dentro de cada bloco há três listas: o binomial, o beta-binomial cruzado (†) e os inéditos.
   As colunas trazem:
@@ -411,8 +406,8 @@ concluir demais. A ordem é a do artigo.
   - *Fl. 1k* e *Coll.*, como na Tabela IV.
 - **Exemplo de leitura:** na linha *No gate / unseen*, os falsos alarmes ficam em 0,28% no E1
   e em no máximo 0,42% nos serviços pequenos, dentro do orçamento de 1%. Ela barra 89,6% da
-  botnet de um décimo com sotaques novos, e 0,0% com sotaques compartilhados.
-- **O que concluir:** para sotaques novos, o melhor candidato é usar os inéditos como alarme
+  botnet de um décimo com fingerprints novos, e 0,0% com fingerprints compartilhados.
+- **O que concluir:** para fingerprints novos, o melhor candidato é usar os inéditos como alarme
   próprio. Para os compartilhados, o beta-binomial cruzado atrás do alarme sazonal chega a
   15,1%. É essa comparação que o bloco de 14 dias, fixado antes, vai testar.
 - **Cuidado:** tudo o que tem \* foi examinado depois do dia novo. É uma hipótese para o
@@ -420,16 +415,15 @@ concluir demais. A ordem é a do artigo.
 
 **Fig. 3, o equilíbrio de cada configuração**
 - **A pergunta:** qual configuração faz o melhor acordo entre falsos alarmes e detecção?
-- **Como ler:** há dois painéis, um para sotaques novos e outro para compartilhados. O eixo
+- **Como ler:** há dois painéis, um para fingerprints novos e outro para compartilhados. O eixo
   horizontal traz os falsos alarmes (% das janelas limpas), em escala logarítmica de 0,01 a
   10, e o vertical, a porcentagem barrada de uma botnet de 100 atacantes.
-  - O melhor lugar é **em cima e à esquerda**: muita detecção e poucos falsos alarmes.
-  - Cada forma é uma configuração, conforme a legenda.
+  - O melhor lugar é **em cima e à esquerda**: muita detecção e poucos falsos alarmes.  - Cada forma é uma configuração, conforme a legenda. Nela, *scope alone* e *own trigger* querem dizer sem gate: a lista, ou o filtro de inéditos, é o próprio gatilho.
   - Cheio são os dias de teste, vazado é o dia novo, e cinza é a calibração cruzada, com uma
     seta saindo do ponto em amostra.
   - As taxas zero aparecem desenhadas em 0,01%.
 - **Exemplo de leitura:** o losango (binomial, a do protocolo) fica perto de 0,1% de falsos
-  alarmes e de 38% da botnet em sotaques novos. O X (a lista sozinha, com beta-binomial) chega
+  alarmes e de 38% da botnet em fingerprints novos. O X (a lista sozinha, com beta-binomial) chega
   a uns 86%, mas com cerca de 4,5% de falsos alarmes. Com a calibração cruzada (a seta), ele
   cai para cerca de 1,1% e 66%.
 - **O que concluir:** nenhum ponto chega ao canto ideal, porque ganhar detecção custa falsos
@@ -461,9 +455,9 @@ concluir demais. A ordem é a do artigo.
 - **Como ler:** é um registro em JSON-LD com as seguintes partes:
   - a regra que disparou (*CoordinatedHTTPFlood*);
   - o tamanho do grupo (1.991 origens) e a massa Ω (1.303.422,8);
-  - a divisão da massa por tipo de ligação: pares com o mesmo sotaque (peso 1,0), o mesmo
+  - a divisão da massa por tipo de ligação: pares com o mesmo fingerprint (peso 1,0), o mesmo
     serviço (0,6) e a mesma vizinhança /24 (0,3);
-  - por fim, a lista barrada, com o serviço e os 25 sotaques.
+  - por fim, a lista barrada, com o serviço e os 25 fingerprints.
 - **Exemplo de leitura:** os 1.981.045 pares ligados pelo mesmo serviço, vezes 0,6, dão 91%
   de Ω. É por isso que o artigo diz que Ω mede sobretudo volume.
 - **O que concluir:** o operador vê o que foi barrado e por quê, numa forma que outras
@@ -477,107 +471,29 @@ concluir demais. A ordem é a do artigo.
   caíram os dois falsos alarmes do dia novo, um desafio pode ser a primeira resposta mais
   segura.
 - **Depois:** um teste novo, planejado antes, em semanas de dados, comparando o filtro de
-  inéditas como alarme próprio (a base) com as duas alternativas promissoras. Só esse
+  inéditos como alarme próprio (a base) com as duas alternativas promissoras. Só esse
   teste pode transformar as ideias *post hoc* em recomendação.
 
 ### 0.9 Os limites, ditos com honestidade
 
-- A botnet injetada tem um só formato: 25 sotaques, divididos por igual.
+- A botnet injetada tem um só formato: 25 fingerprints, divididos por igual.
 - São nove dias de um único operador, poucos para ver um ciclo semanal.
 - Cinco escolhas do método foram feitas nos mesmos dias em que ele foi medido. Só o dia
   novo as testa, e ele é um teste fraco.
 - Não existe captura pública de um ataque furtivo real para testar.
-- Um bot que imita o sotaque de um navegador comum escapa. É a fronteira declarada do
+- Um bot que imita o fingerprint de um navegador comum escapa. É a fronteira declarada do
   método.
 - A avaliação é offline, sobre contagens exportadas. Uma implantação ao vivo ainda
   precisa ser construída.
 - Não medimos se um ataque no tamanho do piso derrubaria o serviço, nem um atacante que
   tente enganar o perfil.
 
-### 0.10 Roteiro para uma apresentação de 15 minutos
-
-| Slide | Conteúdo | Mensagem |
-|---|---|---|
-| 1 | Título e a pergunta | "Quem bloquear?" |
-| 2 | O ataque lento e distribuído (analogia da portaria) | ninguém chama atenção sozinho |
-| 3 | A escolha óbvia (Tabela III, coluna Modal) | 39% dos usuários e nenhum atacante |
-| 4 | A ideia: comparar com o normal (Fig. 1) | o teste binomial, calibrado |
-| 5 | Tráfego gerado (Tabela III) | 90% da botnet, sem dano observado |
-| 6 | Os dados reais: 4 serviços da Azion, 8 dias e um dia novo | tráfego real, botnet injetada |
-| 7 | Falsos alarmes (Tabela IV) | 0,1%, mas cada um pesa um terço da janela |
-| 8 | O piso e o limite da razão (Tabela V) | onde o filtro deixa de ser possível |
-| 9 | O gatilho decide (Fig. 2) | 90% possíveis, 12% detidos no E1 |
-| 10 | Alarmes alternativos (Tabela VI, Fig. 3) | o que testar a seguir |
-| 11 | Troca e ontologia | os padrões não sabem dizer "bloqueie esta JA4" |
-| 12 | Limites e conclusão | o que é sólido e o que falta |
-
-Se perguntarem por que o título não fala em *knowledge graph*, a resposta está na seção
-0.12 e no arquivo `por-que-mudamos.md`.
-
-### 0.11 Perguntas prováveis e respostas curtas
-
-**"Por que não bloquear por endereço IP?"**
-Cada atacante vem de um endereço diferente e manda pouco tráfego, então não há um
-endereço para bloquear. Bloquear faixas de endereços pega também os usuários que
-compartilham a mesma saída de rede.
-
-**"E se o bot imitar o Chrome?"**
-Aí o sotaque dele é o mais comum, e o teste não aponta nada. É o limite da razão, e o
-artigo mede isso: só 7% e 24% de 100 e 1.000 atacantes são detidos. É a fronteira
-declarada do método, e nesse caso o recurso é limitar a taxa ou desafiar.
-
-**"O ECH (Encrypted Client Hello) não esconde a JA4?"**
-Esconde de quem está no meio do caminho. Quem termina a conexão segura, que é o próprio
-serviço ou a CDN, continua vendo tudo, e é aí que o método roda.
-
-**"Por que o limite de 1% de falsos alarmes?"**
-É cerca de 3 janelas em 288 por dia. O operador pode escolher outro valor. O artigo
-mostra quanto cada escolha custa e onde ela põe o piso.
-
-**"0,1% é pouco. Por que dizer que o falso alarme pesa?"**
-Porque cada um bloqueia, em mediana, um terço dos clientes daquela janela. Num serviço
-pequeno, como o console, isso é sensível, e por isso um desafio pode ser melhor que um
-bloqueio ali.
-
-**"O dia novo prova que o método funciona?"**
-Ele é consistente com os dias de teste (2 falsos alarmes em 1.152 janelas), mas é fraco.
-O alarme quase não abriu, e uma taxa três vezes maior só seria notada em 37% das vezes. O
-artigo diz isso com essas palavras.
-
-**"Por que não usar o firewall como gabarito?"**
-Porque ele bloqueia por outros critérios. Com um perfil sem os clientes bloqueados, a
-concordância aparece por construção. Com o perfil completo, ela fica abaixo do acaso.
-
-**"Por que não usar aprendizado de máquina?"**
-Porque ele precisa de rótulos (quem é atacante), que o operador não tem durante o ataque.
-E o modelo testado não se transfere quando a botnet muda de forma: cai de 0,95 para
-0,48–0,75.
-
-**"Por que um gerador de tráfego, e não um ataque real?"**
-Não existe captura pública de um ataque furtivo desse tipo. O gerador controla o cenário
-e sabe quem é atacante. Os dados reais medem os falsos alarmes, e a botnet é injetada
-neles.
-
-**"O que a ontologia acrescenta?"**
-Ela é a especificação: dela se compila a consulta que o log da operadora executa, que
-bateu com as contagens da Azion em todas as janelas de dois dias. Ela também define o
-formato do escopo exportado, e foi assim que achamos a lacuna nos padrões de troca.
-
-**"Isso roda ao vivo?"**
-Ainda não. A avaliação é offline, e o Apêndice D descreve como particionar por serviço
-numa CDN, sem implementação.
-
-**"Qual é a novidade, afinal?"**
-Tratar **quem bloquear** como uma decisão estatística calibrada. Medir quanto ela custa
-aos usuários e onde ela deixa de ser possível, em tráfego real de uma CDN. Ninguém na
-literatura mede o custo e o limite de um filtro por impressão TLS.
-
-### 0.12 Por que o artigo não fala mais em "knowledge graph"
+### 0.10 Por que o artigo não fala mais em "knowledge graph"
 
 O artigo prometia que um grafo de conhecimento detecta ataques melhor e explica o porquê.
 Os testes não confirmaram isso, por três motivos:
 1. **O grafo não detectava melhor do que uma planilha.** A vantagem vinha de contar
-   quantas conexões têm a mesma impressão TLS, e uma tabela simples faz a mesma conta.
+   quantas conexões têm o mesmo fingerprint TLS, e uma tabela simples faz a mesma conta.
    Em ataques reais de laboratório, olhar cada conexão sozinha já bastava.
 2. **Detectar era a parte fácil.** Contar visitantes distintos percebe o ataque. O difícil,
    e que ninguém media, é decidir quem bloquear sem bloquear os usuários.
@@ -596,8 +512,7 @@ bloqueio exportado. A explicação completa, com analogias e os números, está 
 **Parte 0. Para entender sem matemática**
 0.1 O trabalho em cinco frases · 0.2 Uma analogia · 0.3 As palavras do artigo · 0.4 O
 teste, sem fórmula · 0.5 Um exemplo completo · 0.6 O que o trabalho mostrou · 0.7 Como
-ler cada tabela e figura · 0.8 O que recomendamos · 0.9 Os limites · 0.10 Roteiro de
-apresentação · 0.11 Perguntas prováveis · 0.12 Por que não "knowledge graph"
+ler cada tabela e figura · 0.8 O que recomendamos · 0.9 Os limites · 0.10 Por que não "knowledge graph"
 
 **Parte I. A ideia**
 1. O artigo em um minuto
@@ -624,18 +539,17 @@ apresentação · 0.11 Perguntas prováveis · 0.12 Por que não "knowledge grap
 16. Tráfego de produção (Tabelas IV, V e VI, Figs. 2 e 3)
 17. Especificação, troca e custo (Fig. 4)
 
-**Parte V. A defesa**
+**Parte V. Recomendações, limites e consulta**
 18. Qual configuração recomendar, e os limites
-19. Números para saber de cor
-20. Perguntas difíceis e como responder
-21. Glossário
-22. Onde está cada coisa
+19. Os números do artigo, num só lugar
+20. Glossário
+21. Onde está cada coisa
 
 **Elementos flutuantes do artigo.** Tabela I: trabalhos relacionados. Tabela II: as
 configurações avaliadas em produção. Tabela III: o escopo no tráfego gerado, com a
-coluna da impressão modal. Tabela IV: as configurações em produção, todos os endpoints.
+coluna do fingerprint modal. Tabela IV: as configurações em produção, todos os endpoints.
 Tabela V: o piso de calibração das configurações. Tabela VI: os escopos atrás de cada
-gatilho, com o filtro de inéditas sozinho (Seção V-C). A tabela por endpoint saiu na rodada
+gatilho, com o filtro de inéditos sozinho (Seção V-C). A tabela por endpoint saiu na rodada
 29 (os valores estão na seção 16.9), e a da regra por janela virou uma frase do Apêndice E
 na rodada 23. Fig. 1: o pipeline de escopo calibrado. Fig. 2: o
 que a configuração binomial detém, por tamanho da botnet e por endpoint (Seção V-C). Fig.
@@ -655,21 +569,20 @@ número de origens distintas cresce. A decisão difícil é o **escopo** da miti
 quais clientes desafiar ou bloquear, com um filtro estreito o bastante para poupar os
 usuários legítimos do serviço atacado.
 
-O artigo escolhe o escopo pela **impressão digital TLS** (JA4) dos clientes. Um **teste
-binomial de enriquecimento** aponta as impressões super-representadas entre as origens
+O artigo escolhe o escopo pela **fingerprint TLS** (JA4) dos clientes. Um **teste
+binomial de enriquecimento** aponta os fingerprints super-representados entre as origens
 do alarme em relação a um **perfil** do tráfego normal do endpoint. O nível do teste é
 um **quantil empírico** de janelas sem ataque: o maior nível, até 0,01, com que o escopo
 produziria filtro em no máximo 1% delas.
 
 O que se mediu, em seis pontos:
 
-1. **No tráfego gerado**, a escolha natural, a impressão mais comum do alarme, bloqueia
+1. **No tráfego gerado**, a escolha natural, o fingerprint mais comum do alarme, bloqueia
    0% dos atacantes e 39% do tráfego legítimo quando a botnet se espalha por cinco
    pilhas TLS. Os escopos relativos ao perfil bloqueiam 90% de uma botnet de até 25
    pilhas ausentes do tráfego legítimo, sem dano colateral observado e sem rótulos.
 2. **Em oito dias de quatro endpoints dos serviços da própria CDN**, a configuração
-   binomial (o teste com as frotas conhecidas isentas, unido a um filtro de impressões
-   inéditas, atrás de um gatilho de origens distintas), a que foi fixada para o dia novo,
+   binomial (o teste com as frotas conhecidas isentas, unido a um filtro de fingerprints inéditos, atrás de um gatilho de origens distintas), a que foi fixada para o dia novo,
    dá falso alarme em
    0,1% das janelas limpas dos dias em que foi escolhida, e seus falsos alarmes bloqueiam uma mediana de um terço dos
    clientes da janela. O escopo sozinho dispara em 2,2% contra a meta de 1%.
@@ -677,17 +590,17 @@ O que se mediu, em seis pontos:
    beta-binomial e no z-score, bem mais do que se fossem independentes.
 3. **Frotas legítimas**, clientes que se ativam juntos, elevam um **piso de
    calibração** (no SSO a maior parte dele vem do tamanho da janela: 56 atacantes no
-   nível nominal, 84 calibrado). Uma botnet de 25 pilhas em impressões raras que clientes reais também
+   nível nominal, 84 calibrado). Uma botnet de 25 pilhas em fingerprints raros que clientes reais também
    usam só é apontada acima de 8% da janela do endpoint mais movimentado e de 4 a 19
    janelas inteiras nos demais. Nas posições 11 a 35 do perfil, ela nunca é apontada no E1
-   nem no E2. Nas impressões que carregam a maior parte das origens, em
+   nem no E2. Nos fingerprints que carregam a maior parte das origens, em
    expectativa, ela não é apontada nunca: a fatia esperada de uma pilha fica abaixo de 0,9/M da janela, e uma
-   botnet de 25 pilhas não deve enriquecer nenhuma impressão acima de 0,9/(ρM) = 1,2%.
+   botnet de 25 pilhas não deve enriquecer nenhum fingerprint acima de 0,9/(ρM) = 1,2%.
    O piso cresce com o número de pilhas: no E1, 50, 254 e 1.026 atacantes para 5, 25 e
    100 pilhas.
 4. **Apontar não é deter (Fig. 2).** Onde o escopo aponta uma botnet pequena, o gatilho de
    origens raramente dispara: só 12% de uma botnet de um décimo da janela do endpoint
-   mais movimentado é detida. Examinado *post hoc*, o filtro de impressões inéditas
+   mais movimentado é detida. Examinado *post hoc*, o filtro de fingerprints inéditos
    como gatilho próprio detém ali 90% dela em pilhas novas, porque cada pilha dela tem ao
    menos k_min origens, e os seus falsos alarmes ficam dentro do orçamento em todo
    endpoint. A alternativa, a beta-binomial cruzada atrás de um gatilho sazonal, detém
@@ -698,7 +611,7 @@ O que se mediu, em seis pontos:
    rótulo. O dia novo, analisado com a configuração fixada de antemão, não contradiz a
    taxa de falso alarme, mas é um teste fraco e passou sobretudo porque o gatilho quase
    não abriu.
-6. **Nenhum padrão examinado expressa o escopo**, um filtro sobre impressões JA4, no seu
+6. **Nenhum padrão examinado expressa o escopo**, um filtro sobre fingerprints JA4, no seu
    vocabulário central. O STIX 2.1 só leva a JA4 numa extensão, que o importador do MISP
    descarta. O OCSF registra JA4 em eventos de rede desde a versão 1.3.0 (2024) e nas
    evidências de achados desde a 1.4.0 (2025), mas não define filtro nem remediação sobre
@@ -709,7 +622,7 @@ O que se mediu, em seis pontos:
 
 As três contribuições declaradas na Seção I são:
 1. **Escopo relativo ao perfil.** No tráfego gerado, os escopos relativos ao perfil barram o
-   ataque sem rótulos, enquanto a impressão mais comum do alarme barra usuários e nenhum
+   ataque sem rótulos, enquanto o fingerprint mais comum do alarme barra usuários e nenhum
    atacante assim que a botnet usa várias pilhas.
 2. **Um método de calibração do escopo.** O teste é calibrado por serviço para um orçamento
    de falsos alarmes de 1% das janelas sem ataque. Essa calibração define o **piso de
@@ -722,7 +635,7 @@ As três contribuições declaradas na Seção I são:
 
 Os demais resultados apoiam essas três contribuições, e o artigo os detalha ao longo do texto:
 o limite da razão, os gatilhos *post hoc*, a fronteira do método, a rotatividade de
-impressões e os veredictos do WAF.
+fingerprints e os veredictos do WAF.
 
 ## 2. O problema
 
@@ -741,7 +654,7 @@ Se o atacante controla K = 1.000 dispositivos e cada um se comporta como um usu�
 nenhum limite por IP dispara sem bloquear usuários. Uma campanha furtiva também molda
 cada sessão para parecer legítima nos sinais por sessão que os detectores usam, como
 duração da conexão e entropia de rotas. O que sobra de discriminante está **entre** as
-sessões: a mesma impressão de cliente repetida em muitas origens que convergem num
+sessões: o mesmo fingerprint de cliente repetida em muitas origens que convergem num
 endpoint.
 
 ### 2.3 A decisão é o escopo
@@ -768,7 +681,7 @@ escolhe e quanto custa aos usuários legítimos.
 | DOTS, Flowspec | Campos de rede e transporte | Quem pede a mitigação | O do filtro transportado |
 | Detectores L7 (PCA, ML supervisionado, KLAGE) | Nada (só veredicto) | Perfil ou modelo aprendido | Só a FPR de detecção |
 | Gestão de bots (sinais JA4) | JA4 | Não divulgado | Não divulgado |
-| **Este trabalho** | Impressões TLS (JA4) | Enriquecimento calibrado contra o perfil | Medido por alarme e por janela |
+| **Este trabalho** | Fingerprints TLS (JA4) | Enriquecimento calibrado contra o perfil | Medido por alarme e por janela |
 
 As distribuições de atributos (a entropia de endereços e portas, de Lakhina, Crovella e
 Diot) detectam e classificam anomalias, e a extração de anomalias faz a pergunta mais
@@ -779,9 +692,9 @@ Picos legítimos se distinguem de inundações pela forma como os pedidos se esp
 documentos do site (Xie e Yu). Todos esses trabalhos operam sobre atributos de rede,
 fluxo, sessão ou *payload*. O canal de dados do DOTS
 instala filtros em campos de rede e transporte, como o Flowspec: nenhum dos dois expressa
-uma impressão de cliente como a JA4. A
+um fingerprint de cliente como a JA4. A
 fronteira que o artigo traça é esta: nenhuma abordagem publicada deriva um escopo sobre
-impressões de clientes de aplicação por um teste calibrado contra o tráfego do próprio
+fingerprints de clientes de aplicação por um teste calibrado contra o tráfego do próprio
 serviço, com o dano colateral e os limites medidos.
 
 ## 3. Vocabulário
@@ -789,16 +702,16 @@ serviço, com o dano colateral e os limites medidos.
 - **TLS e ClientHello.** O ClientHello é a primeira mensagem do *handshake* TLS,
   enviada pelo cliente. Ela lista versões, conjuntos de cifras, extensões e protocolos
   de aplicação (ALPN). Seu conteúdo depende da biblioteca TLS do cliente, não do usuário.
-- **JA4.** Uma impressão digital do ClientHello. A primeira parte resume transporte,
+- **JA4.** Um fingerprint do ClientHello. A primeira parte resume transporte,
   versão, presença de SNI, número de cifras, número de extensões e o primeiro ALPN,
   abreviado; as duas outras partes são *hashes* truncados das cifras ordenadas e das
   extensões ordenadas (com os algoritmos de assinatura). O
   formato é `t13d1516h2_…_…`; o gerador usa valores sintéticos como
   `t13d1516h2_synth_0001_00`.
-- **Impressão digital** (*fingerprint*). O valor JA4 de um cliente.
-- **Pilha TLS** (*stack*). A biblioteca TLS com sua configuração, que produz uma
-  impressão. Muitas aplicações construídas sobre a mesma biblioteca compartilham uma
-  impressão, e é isso que faz de uma pilha um escopo e também o que o limita. Uma botnet
+- **Fingerprint.** O valor JA4 de um cliente. O guia usa o termo em inglês, como o artigo.
+- **Pilha TLS** (*stack*). A biblioteca TLS com sua configuração, que produz um
+  fingerprint. Muitas aplicações construídas sobre a mesma biblioteca compartilham um
+  fingerprint, e é isso que faz de uma pilha um escopo e também o que o limita. Uma botnet
   de roteadores, câmeras e DVRs se espalha por várias pilhas; M é o número de pilhas.
 - **Origem.** Um endereço de origem distinto. É a unidade de contagem de tudo: o gatilho,
   as classes e o teste contam origens, não conexões nem requisições.
@@ -815,14 +728,30 @@ serviço, com o dano colateral e os limites medidos.
   próprias.
 - **CDN.** Rede de distribuição de conteúdo. Os dados de produção vêm dos serviços da
   própria Azion.
-- **Perfil.** A contagem de origens por impressão no tráfego normal do endpoint, fora de
+- **Perfil.** A contagem de origens por fingerprint no tráfego normal do endpoint, fora de
   episódios de ataque.
 - **Referência** (*background*). A distribuição que o teste supõe para as contagens sob
   tráfego normal: binomial ou beta-binomial.
-- **Escopo.** O conjunto de impressões a que a mitigação se aplica. "Produzir um filtro"
+- **Escopo.** O conjunto de fingerprints a que a mitigação se aplica. "Produzir um filtro"
   é o escopo não ser vazio; "apontar" uma pilha é incluí-la no escopo.
 - **Desafio.** Uma prova pedida ao cliente antes de um bloqueio. O artigo recomenda
   aplicar o escopo como desafio, porque um falso alarme atinge uma frota.
+
+- **Gatilho e *gate*.** O gatilho é o que dispara o alarme numa janela. O artigo chama de *gate*
+  o gatilho de volume que precisa "abrir" antes de o escopo poder barrar alguém. Com o gate
+  fechado, nada é barrado, mesmo que o escopo tenha apontado a botnet. Há três gates:
+  - o *origin gate*, ou gate de origens distintas, que abre quando n chega ao percentil 99 das
+    janelas de calibração (seção 6.1). É o da configuração recomendada;
+  - o gate de Ω, Ω ≥ τ_cluster, que é o da regra de referência (seção 6.2);
+  - o *seasonal gate*, ou gate sazonal, *post hoc*, que compara n com a mediana da mesma hora
+    nos dias de calibração (seção 6.1).
+- ***No gate*** (sem gate). Não há gatilho de volume: o escopo roda em toda janela e, sempre
+  que aponta um fingerprint, o filtro age. O escopo vira o próprio gatilho, e as legendas das
+  Figs. 2 e 3 chamam isso de *scope alone* e *own trigger*.
+  - Na Tabela IV, a coluna *No gate* é um diagnóstico: mostra em quantas janelas limpas o
+    escopo apontaria algo se não esperasse o gate.
+  - Na Tabela VI e na Fig. 3, *No gate* é uma configuração *post hoc*. Ela pega muito mais das
+    botnets pequenas, mas também dispara mais vezes.
 
 ## 4. O modelo de ameaça (Seção III-A)
 
@@ -844,7 +773,7 @@ muitos modelos de roteador, câmera e DVR (como a Mirai). Apresentar o ClientHel
 navegador exige uma biblioteca de imitação mantida em dia com as versões dos
 navegadores.
 
-**A fronteira.** Bots que apresentam impressões comuns, como fazendas de navegadores
+**A fronteira.** Bots que apresentam fingerprints comuns, como fazendas de navegadores
 *headless* ou bots sobre bibliotecas de imitação de TLS, ficam fora do modelo. O artigo
 os avalia como a fronteira do método (o modo adversarial), no gerador e em produção.
 
@@ -864,7 +793,7 @@ log de acesso (por requisição: JA4, origem, endpoint)
    ──► consulta de contagem compilada da ontologia
    ──► por endpoint e janela: origens por JA4 c(f), origens n, pares no mesmo /24
    ──► gatilho: origens distintas ≥ p99, ou Ω(S) ≥ τ
-   ──► escopo: toda f com c(f)/n ≥ ρ·b(f) e P[X ≥ c(f)] < λ_e/|F|, ∪ inéditas, − frotas conhecidas
+   ──► escopo: toda f com c(f)/n ≥ ρ·b(f) e P[X ≥ c(f)] < λ_e/|F|, ∪ inéditos, − frotas conhecidas
    ──► desafio ou bloqueio de f no endpoint, com a cadeia em STIX 2.1
        (nada apontado ──► limite de taxa ou desafio a todos)
 
@@ -960,19 +889,18 @@ confirmam:
 
 Por isso o gatilho implantado é a contagem de origens, e **o discriminador vem do
 escopo**. O termo TLS de Ω ainda engana de um jeito específico: uma frota se concentra
-numa impressão e infla esse termo. As 13 janelas limpas de produção que só Ω admite
+num fingerprint e infla esse termo. As 13 janelas limpas de produção que só Ω admite
 têm uma mediana de 33% de Ω fora do termo de endpoint, contra 12% nas outras.
 
 ## 7. O escopo (Seção III-C)
 
-### 7.1 Por que a impressão mais comum falha
+### 7.1 Por que o fingerprint mais comum falha
 
-A escolha natural é filtrar a impressão modal do alarme, a mais comum. Ela seleciona o
+A escolha natural é filtrar o fingerprint modal do alarme, o mais comum. Ela seleciona o
 que é comum, e num serviço sob ataque o que é comum é a população legítima.
 
 Uma botnet de A atacantes espalhada uniformemente por M pilhas põe cerca de 0,9 · A/M
-atacantes em cada pilha (os outros 10% ficam em impressões avulsas). A impressão
-legítima mais comum tem uma fração p₁ das n_b origens legítimas.
+atacantes em cada pilha (os outros 10% ficam em fingerprints avulsos). O fingerprint legítimo mais comum tem uma fração p₁ das n_b origens legítimas.
 
 > **A moda é uma pilha de ataque só enquanto 0,9 · A/M > p₁ · n_b.**
 
@@ -980,19 +908,19 @@ Com o p₁ = 38,4% medido (uma fração de requisições, usada como aproximaç�
 
 > 0,9/M > 0,384  ⟹  M < 2,34
 
-A partir de três pilhas a moda é uma impressão legítima, e o filtro bloqueia usuários e
+A partir de três pilhas a moda é um fingerprint legítimo, e o filtro bloqueia usuários e
 nenhum atacante. Exemplo: A = n_b = 1.000 e M = 5 dão 180 atacantes por pilha contra
-384 usuários na impressão legítima mais comum.
+384 usuários no fingerprint legítimo mais comum.
 
 ### 7.2 O perfil
 
-O perfil é a contagem de origens por impressão no tráfego normal do endpoint, mantida
-pelo operador fora dos episódios de ataque. Seja N o total de pares origem–impressão do
-perfil. A prevalência de uma impressão f é
+O perfil é a contagem de origens por fingerprint no tráfego normal do endpoint, mantida
+pelo operador fora dos episódios de ataque. Seja N o total de pares origem–fingerprint do
+perfil. A prevalência de um fingerprint f é
 
 > **b(f) = (contagem de f no perfil)/N + 1/N**
 
-O 1/N evita prevalência zero: uma impressão nunca vista recebe 1/N, e uma única
+O 1/N evita prevalência zero: um fingerprint nunca visto recebe 1/N, e uma única
 observação não vira enriquecimento infinito.
 
 Três propriedades do perfil importam:
@@ -1007,11 +935,11 @@ Três propriedades do perfil importam:
 ### 7.3 O teste binomial de enriquecimento
 
 Seja c(f) o número de origens do alarme que apresentam f e n = Σ_f c(f). Se as n origens
-sorteassem impressões como o tráfego normal, o número delas com f seguiria uma binomial:
+sorteassem fingerprints como o tráfego normal, o número delas com f seguiria uma binomial:
 
 > X ~ Bin(n, b(f)),  P[X ≥ c] = Σ_{k=c}^{n} C(n, k) · b^k · (1 − b)^{n−k}
 
-O teste admite toda impressão f que passa em duas condições:
+O teste admite todo fingerprint f que passa em duas condições:
 
 > **Efeito:** c(f)/n ≥ ρ · b(f), com ρ = 3
 >
@@ -1019,17 +947,17 @@ O teste admite toda impressão f que passa em duas condições:
 
 - O **efeito** exige que f seja pelo menos três vezes mais comum no alarme que no perfil.
 - A **significância** exige que uma contagem tão alta seja improvável se o alarme
-  sorteasse impressões como o tráfego normal.
-- **|F|** é o número de impressões do perfil e do alarme juntos: a correção de Bonferroni
-  sobre todas as impressões que poderiam ser testadas. Contar só as presentes no alarme
+  sorteasse fingerprints como o tráfego normal.
+- **|F|** é o número de fingerprints do perfil e do alarme juntos: a correção de Bonferroni
+  sobre todos os fingerprints que poderiam ser testadas. Contar só as presentes no alarme
   subestimaria a família, porque quais aparecem também é aleatório.
 - **λ_e** é o nível do endpoint e, calibrado (seção 8), nunca passa de 0,01.
 
-O resultado é um **conjunto** de impressões, e é isso que cobre uma botnet fragmentada
+O resultado é um **conjunto** de fingerprints, e é isso que cobre uma botnet fragmentada
 em várias pilhas.
 
-**Exemplo.** Alarme com n = 100 origens; uma impressão com b = 0,001 no perfil;
-c = 5 origens com ela; |F| = 500; λ = 0,01.
+**Exemplo.** Alarme com n = 100 origens; um fingerprint com b = 0,001 no perfil;
+c = 5 origens com ele; |F| = 500; λ = 0,01.
 
 1. Efeito: c/n = 0,05 ≥ 3 × 0,001 = 0,003. Passa.
 2. Significância: P[Bin(100; 0,001) ≥ 5] = 6,96 × 10⁻⁸. Vezes |F| = 500, dá
@@ -1068,21 +996,21 @@ No exemplo acima, z = (5 − 0,1)/√(0,1 × 0,999) = 15,5.
 - **Calibrado**, o limiar é o percentil 99 do maior z de cada janela de calibração,
   nunca abaixo de 3, o mesmo orçamento do teste.
 
-### 7.5 O filtro de impressões inéditas e a união
+### 7.5 O filtro de fingerprints inéditos e a união
 
-O **filtro de impressões inéditas** (*unseen*) aponta toda impressão ausente do perfil
+O **filtro de fingerprints inéditos** (*unseen*) aponta todo fingerprint ausente do perfil
 que aparece em pelo menos k_min = 5 origens. Ele não precisa de estatística do perfil.
 
-A **união** junta o teste e o filtro: escopo = teste ∪ inéditas. O motivo é que as
-frotas que empurram o nível para baixo apresentam impressões do perfil, e nenhuma frota
-apresenta uma impressão ausente dele. A união recupera pilhas novas pequenas demais para
+A **união** junta o teste e o filtro: escopo = teste ∪ inéditos. O motivo é que as
+frotas que empurram o nível para baixo apresentam fingerprints do perfil, e nenhuma frota
+apresenta um fingerprint ausente dele. A união recupera pilhas novas pequenas demais para
 o nível estrito, quase sem custo em falsos alarmes. Em produção, o filtro sozinho detém
 29,4% de 100 atacantes em pilhas novas e nenhum em pilhas compartilhadas; a união detém
 38,4%. No tráfego gerado, a FPR média do filtro é 0,03%.
 
 ### 7.6 O que o escopo recusa
 
-Um adversário escondido numa impressão legítima popular não é enriquecido, e o escopo é
+Um adversário escondido num fingerprint legítimo popular não é enriquecido, e o escopo é
 recusado. É o relato correto quando não existe discriminador: em vez de um filtro que só
 atinge usuários, o operador recebe "nenhum escopo" e recorre ao limite de taxa ou ao
 desafio a todos.
@@ -1101,7 +1029,7 @@ independentes). Por isso tudo conta origens, e o nível é calibrado.
 
 Para cada janela de calibração sem ataque (com n ≥ k_min), calcula-se
 
-> m = o menor p-valor ajustado, P[X ≥ c(f)] · |F|, entre as impressões da janela que passam no efeito
+> m = o menor p-valor ajustado, P[X ≥ c(f)] · |F|, entre os fingerprints da janela que passam no efeito
 > (as frotas conhecidas, se isentas, ficam de fora)
 
 e então
@@ -1122,7 +1050,7 @@ isenção, o E1 fica em 10⁻⁶⁰.
 
 ### 8.3 O limiar do z-score calibrado
 
-Para cada janela de calibração, o maior z entre as suas impressões; o limiar é o
+Para cada janela de calibração, o maior z entre os seus fingerprints; o limiar é o
 percentil 99 desses máximos, nunca abaixo de 3. É o mesmo orçamento de 1%.
 
 ### 8.4 O limiar do gatilho
@@ -1206,7 +1134,7 @@ empurra o piso para cima.
 
 ### 9.3 Pilhas novas sob a união
 
-O filtro de inéditas aponta uma pilha ausente do perfil assim que ela tem k_min = 5
+O filtro de inéditos aponta uma pilha ausente do perfil assim que ela tem k_min = 5
 origens, qualquer que seja o nível:
 
 > **Piso de uma pilha nova = ⌈k_min · M/0,9⌉** = ⌈5 × 25/0,9⌉ = ⌈138,9⌉ = **139** atacantes (M = 25)
@@ -1216,9 +1144,8 @@ Com 5 pilhas, 28; com 100, 556. O teste pode apontar antes do filtro: no E4, ond
 
 ### 9.4 Pilhas compartilhadas: o nível decide
 
-Numa pilha que clientes reais também usam, o filtro de inéditas não aponta nada e o nível
-decide. Na conta do piso, b é a prevalência mediana das impressões do perfil além das dez
-mais comuns, mais 1/N (e, na beta-binomial, a correlação mediana delas). É aí que o piso
+Numa pilha que clientes reais também usam, o filtro de inéditos não aponta nada e o nível
+decide. Na conta do piso, b é a prevalência mediana dos fingerprints do perfil além dos dez mais comuns, mais 1/N (e, na beta-binomial, a correlação mediana deles). É aí que o piso
 morde: na configuração binomial, 254 atacantes no E1 (8% da janela) e de 4 a 19 janelas
 inteiras nos endpoints pequenos (seção 16.3).
 
@@ -1231,7 +1158,7 @@ aponta é, então,
 
 > **0,9 · P[Bin(A − 1; 0,9/M) ≥ c_min − 1]**, com c_min o menor entre k_min e a contagem do teste no nível
 
-Exemplo: no E1, com M = 25 e c_min = 5 (o filtro de inéditas), o modelo dá 9%, 43% e 88%
+Exemplo: no E1, com M = 25 e c_min = 5 (o filtro de inéditos), o modelo dá 9%, 43% e 88%
 a 50, 100 e 250 atacantes, e as botnets injetadas dão o mesmo. No próprio piso (139), a
 fração é cerca de dois terços. O piso é o tamanho em que uma pilha típica é apontada;
 abaixo dele o escopo ainda aponta as pilhas que o acaso deixou maiores.
@@ -1239,12 +1166,12 @@ abaixo dele o escopo ainda aponta as pilhas que o acaso deixou maiores.
 ### 9.6 O limite da razão
 
 Por maior que seja a botnet, a fatia esperada de uma pilha fica abaixo de 0,9/M da
-janela. A condição de efeito c/n ≥ ρ · b falha, portanto, em média, para toda impressão
+janela. A condição de efeito c/n ≥ ρ · b falha, portanto, em média, para todo fingerprint
 com
 
 > **b > 0,9/(ρ · M)** = 0,9/(3 × 25) = **1,2%** (M = 25; com M = 5, 6%)
 
-Nos quatro endpoints de produção, as impressões acima desse limite são as 4 a 28 mais
+Nos quatro endpoints de produção, os fingerprints acima desse limite são as 4 a 28 mais
 comuns de cada um, e carregam de 86% a 94% das origens. Um bot escondido atrás de uma
 delas não é apontado por um teste com 25 pilhas, salvo quando o acaso deixa uma pilha bem
 maior que a média: é a aritmética da fronteira adversarial.
@@ -1252,7 +1179,7 @@ maior que a média: é a aritmética da fronteira adversarial.
 ### 9.7 Como ler o piso
 
 Para o operador, o piso é uma quantidade de planejamento. Acima dele, o escopo pode ser
-um filtro de impressões. Abaixo, o recurso é o limite de taxa ou o desafio a todos. Se
+um filtro de fingerprints. Abaixo, o recurso é o limite de taxa ou o desafio a todos. Se
 uma campanha no piso esgota o serviço depende da folga de capacidade dele, que o artigo
 não mediu.
 
@@ -1260,11 +1187,11 @@ não mediu.
 
 ### 10.1 Frotas conhecidas
 
-As **frotas conhecidas** são as impressões que o teste aponta no nível nominal (0,01) em
+As **frotas conhecidas** são os fingerprints que o teste aponta no nível nominal (0,01) em
 pelo menos 5% das janelas de calibração. Elas saem do escopo e da calibração do nível.
 No E1 são cinco ou seis, e isentá-las eleva o nível de 10⁻⁶⁰ para cerca de 10⁻²¹.
 
-É uma **lista de exceções**: um bot que apresente a impressão de uma frota não entra no
+É uma **lista de exceções**: um bot que apresente o fingerprint de uma frota não entra no
 escopo. A fração de 5% foi escolhida nos três primeiros dias de teste, como a única cujos
 falsos alarmes não passaram os da regra básica (5 contra 6; as outras frações deram de 12
 a 16).
@@ -1281,7 +1208,7 @@ agora seria *post hoc*; o artigo mantém os 5% e declara isso na nota da Tabela 
 ### 10.2 A referência beta-binomial
 
 **A intuição.** Uma frota põe várias origens na mesma janela de uma vez. A contagem de
-uma impressão varia de janela para janela mais do que a binomial permite: ela é
+um fingerprint varia de janela para janela mais do que a binomial permite: ela é
 **sobredispersa**, com variância maior que n · b · (1 − b).
 
 **O modelo.** Em cada janela, a probabilidade de uma origem apresentar f é ela mesma
@@ -1297,16 +1224,16 @@ são
 
 > a = b · (1 − φ)/φ,  β = (1 − b) · (1 − φ)/φ,  e então φ = 1/(a + β + 1)
 
-**A estimativa de φ.** Para cada impressão f do perfil, pelo método dos momentos, nas
+**A estimativa de φ.** Para cada fingerprint f do perfil, pelo método dos momentos, nas
 janelas de calibração w com pelo menos k_min origens:
 
 > **φ = Σ_w [(c_w − n_w · b)² − n_w · b · (1 − b)] / Σ_w [n_w · (n_w − 1) · b · (1 − b)]**, limitado a [0; 0,99]
 
-Aqui b é a fração da impressão no perfil, sem o 1/N, e n_w é o total de origens TLS da
+Aqui b é a fração do fingerprint no perfil, sem o 1/N, e n_w é o total de origens TLS da
 janela. O numerador é o excesso do desvio quadrático observado sobre a variância
 binomial; o denominador é quanto esse excesso valeria por unidade de φ.
 
-*Exemplo hipotético de φ.* Três janelas com n = 100 e uma impressão com b = 0,01
+*Exemplo hipotético de φ.* Três janelas com n = 100 e um fingerprint com b = 0,01
 (esperada: 1 origem por janela), com contagens 0, 0 e 5 (a frota ligou na terceira).
 Numerador: (0 − 1)² − 0,99 = 0,01, duas vezes, mais (5 − 1)² − 0,99 = 15,01, total 15,03.
 Denominador: 3 × 100 × 99 × 0,01 × 0,99 = 294,03. φ = 0,051.
@@ -1323,14 +1250,14 @@ Sob a beta-binomial, uma frota que põe 8 origens numa janela não é improváve
 precisa mais empurrar o nível para 10⁻⁶⁰ para calar as frotas.
 
 **As regras do teste.** Cada contagem é testada contra uma beta-binomial com a mesma
-média. Uma impressão ausente do perfil mantém a binomial, porque não há de onde estimar
+média. Um fingerprint ausente do perfil mantém a binomial, porque não há de onde estimar
 φ. O nível λ_e é calibrado como na seção 8.2.
 
 **O efeito em produção.**
 
 - O nível sobe: cerca de 10⁻⁴ (7 × 10⁻⁵) no E1, onde três origens apontam uma pilha, e o
   teto de 0,01 nos demais, onde duas bastam.
-- Nenhuma impressão se qualifica como frota conhecida em amostra, então a lista de
+- Nenhum fingerprint se qualifica como frota conhecida em amostra, então a lista de
   exceções não é necessária ali (na calibração cruzada, uma aparece no E1 em três dos
   cinco dias).
 - O piso de pilhas novas cai para ⌈2 × 25/0,9⌉ = 56 atacantes onde o nível está no teto.
@@ -1338,7 +1265,7 @@ média. Uma impressão ausente do perfil mantém a binomial, porque não há de 
   1,4–4,2 janelas nos demais.
 
 **A correlação da própria pilha entra no piso.** O piso das pilhas compartilhadas usa a
-correlação mediana das impressões da cauda. Em três endpoints ela é 0, e o piso é o mesmo
+correlação mediana dos fingerprints da cauda. Em três endpoints ela é 0, e o piso é o mesmo
 da cauda binomial. No E4 ela é cerca de 3 × 10⁻⁴, e mesmo isso eleva o piso de 56 para
 84 atacantes: a correlação soma b · (1 − b) · φ à variância da probabilidade por janela,
 o que rivaliza com b² quando b é pequeno.
@@ -1353,7 +1280,7 @@ resultados são *post hoc*.
 A classe central é `ApplicationSession`. Ela se liga:
 
 - por `hasIdentity` a uma `Identity` composta (cookie, token JWT, nome de usuário,
-  impressão TLS);
+  fingerprint TLS);
 - por `originatesFrom` ao seu `IPAddress` de origem;
 - por `targets` a um `Endpoint`;
 - por `mitigatedBy` a uma `Mitigation` (`RateLimitPolicy`, `ChallengeResponse`,
@@ -1458,11 +1385,11 @@ verdade de coordenação conhecida. Os parâmetros:
   com sinal por sessão desprezível);
 - **M**, o número de pilhas: 1, 5, 25 e 100, com 25 canônico. 90% da campanha se espalha
   uniformemente pelas M pilhas (a escolha conservadora para um dado M) e o resto por
-  impressões avulsas;
-- **α**, o expoente da curva de Zipf das impressões legítimas: 1,5 canônico e 2,0;
+  fingerprints avulsos;
+- **α**, o expoente da curva de Zipf dos fingerprints legítimos: 1,5 canônico e 2,0;
 - **modo furtivo**: os atributos de cada sessão atacante são sorteados das mesmas
   distribuições das legítimas, então a campanha só se revela pela estrutura entre sessões;
-- **modo adversarial**: a botnet adota as impressões legítimas mais comuns, como faria um
+- **modo adversarial**: a botnet adota os fingerprints legítimos mais comuns, como faria um
   bot que imita navegadores;
 - **modo compartilhado**: as pilhas são sorteadas da cauda do perfil.
 
@@ -1473,26 +1400,25 @@ entre sessões geradas e reais só conferem o amostrador. Os atacantes começam 
 primeiros 30 s, então a campanha é uma fração grande do tráfego que ela sobrepõe: uma
 mediana de 34–45% das origens de uma janela e 50% do *cluster* do alarme. No gerador cada
 origem carrega uma sessão, e o nível fica em 0,01 em todo cenário. O conjunto de
-impressões legítimas tem 2.000 valores.
+fingerprints legítimos tem 2.000 valores.
 
 ### 12.3 A curva de Zipf
 
-A popularidade da k-ésima impressão legítima mais comum, num vocabulário de V impressões:
+A popularidade do k-ésimo fingerprint legítimo mais comum, num vocabulário de V fingerprints:
 
 > **p_k = k^(−α) / Σ_{j=1}^{V} j^(−α)**
 
 Com V = 2.000:
 
-| α | Impressão mais comum | Dez mais comuns |
+| α | Fingerprint mais comum | Dez mais comuns |
 |---|---|---|
 | 1,5 | 38,9% | 77,7% |
 | 2,0 | 60,8% | 94,2% |
 
 A curva foi calibrada contra 6,33 milhões de requisições TLS de um ponto de presença da
-Azion (medidas em 22 de agosto de 2026, só impressões e frequências): 495 impressões, a
-mais comum com 38,4% das requisições e as dez mais comuns com 93,8%. A cabeça bate com
+Azion (medidas em 22 de agosto de 2026, só fingerprints e frequências): 495 fingerprints, o mais comum com 38,4% das requisições e os dez mais comuns com 93,8%. A cabeça bate com
 α = 1,5 e as dez primeiras com α = 2,0; α = 1,5 é o canônico. Os endpoints de produção
-mostram de 76 a 818 impressões distintas.
+mostram de 76 a 818 fingerprints distintos.
 
 ### 12.4 As capturas de laboratório (Apêndice C)
 
@@ -1514,7 +1440,7 @@ mediana de pelo menos k_min origens:
 | E3 | API | 41 |
 | E4 | *Single sign-on* (SSO) | 20 |
 
-**Os dados.** As exportações contam origens distintas e conexões por impressão e janela de
+**Os dados.** As exportações contam origens distintas e conexões por fingerprint e janela de
 cinco minutos, e pares no mesmo /24 por janela, sem endereços, portas ou URIs. Os dias de
 calibração são supostos sem ataque: um ataque entre eles baixaria o nível e subiria o
 gatilho, e o escopo ficaria mais conservador. Elas ficam no disco
@@ -1531,11 +1457,11 @@ calibração cruzada vieram depois de o dia ser lido.
 **A botnet injetada.** Em cada janela injeta-se uma botnet construída como o gerador
 constrói: de 25 a 1.000 atacantes em 1 a 100 pilhas, ou um décimo (0,1×), metade ou a
 totalidade (1×) da janela mediana do endpoint em 25 pilhas. Ela põe 90% dos atacantes em 25 pilhas, uniformemente, e o resto em
-impressões avulsas, vindos de 2.000 /24 disjuntos dos reais. As pilhas são:
+fingerprints avulsos, vindos de 2.000 /24 disjuntos dos reais. As pilhas são:
 
 - **novas**: ausentes do tráfego;
-- **compartilhadas**: sorteadas do perfil depois das suas dez impressões mais comuns;
-- **adversariais**: as 25 impressões mais comuns do endpoint.
+- **compartilhadas**: sorteadas do perfil depois das suas dez fingerprints mais comuns;
+- **adversariais**: as 25 fingerprints mais comuns do endpoint.
 
 **Os picos legítimos.** Um pico acrescenta 100 ou 1.000 usuários, sorteados dos clientes
 do próprio dia, a uma janela.
@@ -1545,15 +1471,15 @@ do próprio dia, a uma janela.
 | Configuração | Gatilho | Escopo | Referência | Isenção | Escolhida | Dia novo |
 |---|---|---|---|---|---|---|
 | Regra básica | Ω ≥ τ | teste | binomial | nenhuma | nos dias de teste | no protocolo |
-| **Binomial** | origens | teste ∪ inéditas | binomial | frotas conhecidas | nos dias de teste | no protocolo |
+| **Binomial** | origens | teste ∪ inéditos | binomial | frotas conhecidas | nos dias de teste | no protocolo |
 | z-score | origens | z > seu p99 | binomial | nenhuma | nos dias de teste | fora dele (ver nota) |
-| Beta-binomial | origens | teste ∪ inéditas | beta-binomial | nenhuma | *post hoc* | *post hoc* (ver nota) |
+| Beta-binomial | origens | teste ∪ inéditos | beta-binomial | nenhuma | *post hoc* | *post hoc* (ver nota) |
 
 - **Gatilho**: Ω ≥ τ_cluster, ou origens distintas no seu percentil 99 ou acima.
 - Limiares, níveis e frotas conhecidas são ajustados em dias sem ataque, em amostra ou
   por calibração cruzada.
 - **Cinco escolhas foram feitas nos dias de teste**: contar origens, calibrar λ_e, o
-  gatilho de origens, a união com o filtro de inéditas e a fração de 5% das frotas. Só o
+  gatilho de origens, a união com o filtro de inéditos e a fração de 5% das frotas. Só o
   dia novo as põe à prova. Das quatro frações, só a de 5% não teve mais falsos alarmes
   que a regra base nos três primeiros dias de teste, embora a de 0,5% bloqueasse cerca de
   25 vezes menos clientes legítimos e detivesse mais de uma botnet de 100 atacantes
@@ -1565,8 +1491,8 @@ do próprio dia, a uma janela.
 - **Nota do z-score**: ele estava no código antes de o dia novo ser lido, mas fora do
   protocolo.
 
-No tráfego gerado, os escopos são comparados no *cluster* do alarme: a impressão modal,
-o filtro de inéditas, o z-score (z > 3) e o teste binomial. A linha de base aprendida é um
+No tráfego gerado, os escopos são comparados no *cluster* do alarme: o fingerprint modal,
+o filtro de inéditos, o z-score (z > 3) e o teste binomial. A linha de base aprendida é um
 *Random Forest* treinado com os rótulos da campanha sobre a evidência entre sessões das
 três sub-relações (a configuração (d)), forçado ao ponto de operação do teste.
 
@@ -1631,7 +1557,7 @@ esperados seriam
 
 que dá 3,5, 7,5 e 11,9 para a binomial, a beta-binomial e o z-score, contra 5, 22 e 20
 observados. Uma frota pode causar o excesso, porque sobe a contagem de origens e enriquece
-a própria impressão na mesma janela. Para saber se o excesso é real, faz-se um teste de
+o próprio fingerprint na mesma janela. Para saber se o excesso é real, faz-se um teste de
 contagem. Sob independência, os alarmes conjuntos são a soma de muitos eventos raros de
 janela, uma contagem quase de **Poisson** com aquela média, e P[X ≥ observado] mede a
 surpresa:
@@ -1682,7 +1608,7 @@ aquelas em que o gatilho não dispara), de
 em que a cobertura é a fração dos atacantes da janela que o filtro casa. Os três fatores
 são reportados separados, e é isso que mostra **qual** parte falha. Com 100 atacantes em
 pilhas novas, a configuração binomial produz filtro em toda janela, o gatilho dispara em
-68,4% delas, e 38,4% dos atacantes são detidos. Os 10% em impressões avulsas limitam
+68,4% delas, e 38,4% dos atacantes são detidos. Os 10% em fingerprints avulsos limitam
 qualquer escopo a cerca de 90%.
 
 ### 14.7 O dia novo como teste da taxa
@@ -1722,8 +1648,8 @@ Os clientes que o WAF bloqueou são tomados como rótulos. Por configuração:
 - **dano colateral**: a fração dos clientes não bloqueados casados.
 
 **O piso de precisão embutido.** Se o perfil exclui os clientes bloqueados e o WAF
-bloqueia uma fração S da janela, uma impressão cujos clientes não bloqueados mantêm a
-prevalência b do perfil só é enriquecida no tráfego completo quando uma fração s dos
+bloqueia uma fração S da janela, um fingerprint cujos clientes não bloqueados mantêm a
+prevalência b do perfil só é enriquecido no tráfego completo quando uma fração s dos
 seus próprios clientes foi bloqueada, com
 
 > **s ≥ 1 − (1 − S)/ρ**
@@ -1770,27 +1696,27 @@ sinalizado, sem treino nem rótulo.
 | M = 25, compartilhada | 85,4% | 2,23% | 0,910 | 0,0% | 89,9% | 0,0% | – | – |
 | M = 25, adversarial | 30,4% | 3,78% | 0,452 | 3,6% | 57,3% | 0,0% | 7,8% | 6,6% |
 
-Notas: a coluna Moda é a impressão mais comum do alarme, com FPR de 0% a M = 1 e de 39,0%
+Notas: a coluna Moda é o fingerprint mais comum do alarme, com FPR de 0% a M = 1 e de 39,0%
 nas outras linhas (61,1% com α = 2,0); a FPR do z-score é 0% exceto 3,37% (compartilhada)
 e 11,3% (adversarial); a FPR
-média do filtro de inéditas é 0,03% (no máximo 0,5% numa semente). Com as pilhas
+média do filtro de inéditos é 0,03% (no máximo 0,5% numa semente). Com as pilhas
 compartilhadas sorteadas do vocabulário do gerador (na maior parte ausente do perfil
-amostrado), o filtro de inéditas bloqueia 84,4% e o teste 89,8%.
+amostrado), o filtro de inéditos bloqueia 84,4% e o teste 89,8%.
 
 **Como ler.**
 
 - **A escolha natural falha.** Contra uma botnet monolítica, a moda e o teste concordam
   (89,8%, sem dano colateral). A partir de cinco pilhas, como a condição da seção 7.1
-  prevê, a moda é uma impressão legítima: a regra por frequência bloqueia 0,0% do ataque
+  prevê, a moda é um fingerprint legítimo: a regra por frequência bloqueia 0,0% do ataque
   e 39,0% do tráfego legítimo, e 61,1% com uma população mais concentrada (α = 2,0).
 - **Os escopos relativos ao perfil funcionam.** O teste bloqueia 90,0% a cinco pilhas e
   90,3% a 25, sem dano colateral observado, e o z-score também. Os 10% restantes são a
-  cauda de impressões avulsas: o escopo troca completude por precisão.
+  cauda de fingerprints avulsos: o escopo troca completude por precisão.
 - **A 100 pilhas**, uma pilha de cerca de dez sessões entre duas mil não se distingue da
   cauda de um perfil de 1.000 sessões, e o teste cai para 38,6%, abaixo do z-score (80,4%) e do
-  filtro de inéditas (88,1%). Um perfil acumulado em 30 períodos sem ataque devolve o teste a 89,6%. O tamanho do
+  filtro de inéditos (88,1%). Um perfil acumulado em 30 períodos sem ataque devolve o teste a 89,6%. O tamanho do
   perfil governa a menor pilha que o teste aponta.
-- **O filtro de inéditas** empata até 25 pilhas e vai melhor a 100 (88,1%), porque as
+- **O filtro de inéditos** empata até 25 pilhas e vai melhor a 100 (88,1%), porque as
   pilhas geradas nunca aparecem no vocabulário legítimo, mas não bloqueia nenhuma das
   pilhas sorteadas da cauda do perfil. Ali o teste bloqueia 85,4% com 2,23% de dano e o
   z-score 89,9% com 3,37%.
@@ -1799,7 +1725,7 @@ amostrado), o filtro de inéditas bloqueia 84,4% e o teste 89,8%.
 
 A coluna Moda resume o que a moda faz: bloqueia 89,8% do ataque quando a botnet é
 monolítica e nenhum atacante a partir de cinco pilhas, sempre atingindo 39,0% do tráfego
-legítimo (a fração da impressão legítima mais comum). É a leitura da seção 7.1 em números.
+legítimo (a fração do fingerprint legítimo mais comum). É a leitura da seção 7.1 em números.
 
 ### 15.3 Os modelos aprendidos
 
@@ -1810,7 +1736,7 @@ O modelo aprendido precisa de rótulos que nenhum operador tem durante um ataque
 - A 25 pilhas o teste passa à frente, 90,3% contra 36,4% com FPR = 0. Com 1% de FPR
   permitido, de que o teste não precisa, o modelo chega a 66,8% (AUC 0,979), e a 94,6%
   com o perfil.
-- Com o perfil dado como dois atributos por sessão (a prevalência da impressão e o seu
+- Com o perfil dado como dois atributos por sessão (a prevalência do fingerprint e o seu
   enriquecimento no *cluster*), ele recupera 87,4% a 25 pilhas e 86,9% a 100, treinado
   com os rótulos da mesma campanha que avalia.
 - Na botnet adversarial, onde o teste opera com 3,78% de dano, o modelo aprendido é
@@ -1820,13 +1746,12 @@ O modelo aprendido precisa de rótulos que nenhum operador tem durante um ataque
 
 ### 15.4 As duas condições que limitam o resultado
 
-- **A fronteira do modelo de ameaça.** Quando a botnet adota impressões legítimas comuns,
+- **A fronteira do modelo de ameaça.** Quando a botnet adota fingerprints legítimos comuns,
   pouco é enriquecido: o teste bloqueia 30,4% do ataque com 3,78% de dano, o z-score 57,3%
   com 11,3%, e a regra por frequência 3,6% com 39,0%. Com um ρ mais estrito, o escopo se
   recusa a apontar.
 - **O perfil.** Uma deriva moderada é tolerável: um perfil com α = 2,0 contra um episódio
-  com α = 1,5 dá 90,3% de cobertura sem dano. Um perfil plano ou ausente faz toda
-  impressão parecer rara, e o dano salta para 77,6%.
+  com α = 1,5 dá 90,3% de cobertura sem dano. Um perfil plano ou ausente faz todo fingerprint parecer raro, e o dano salta para 77,6%.
 
 ### 15.5 A regra por janela (Apêndice E)
 
@@ -1848,7 +1773,7 @@ fração das sessões legítimas bloqueada.
 | Pico, 50 | 30 | 100% | 0,0% | – | – |
 | Pico, 100 | 30 | 100% | 0,0% | – | – |
 
-Ω sozinho dispara nos picos legítimos. Exigir que o teste aponte uma impressão remove
+Ω sozinho dispara nos picos legítimos. Exigir que o teste aponte um fingerprint remove
 esses falsos alarmes, porque esses picos sorteiam usuários do mesmo *mix* que o perfil
 descreve (um surto de um só tipo de cliente seria enriquecido, como as frotas de produção
 mostram). Com o teste, a regra não dispara em nenhuma janela limpa (limite superior
@@ -1880,7 +1805,7 @@ e (c) a 0,499 e 0,659. Nos testes de Wilcoxon pareados com Bonferroni,
 p_Bonf = 7,5 × 10⁻⁹ para (d)−(c) e (d)−(a) a K = 1.000.
 
 **A separabilidade não se transfere.** Fragmentar a botnet em M pilhas torna a evidência
-entre sessões não monotônica no rótulo: a K = 1.000, um atacante compartilha a impressão
+entre sessões não monotônica no rótulo: a K = 1.000, um atacante compartilha o fingerprint
 com algumas dezenas de pares, e um cliente legítimo na cabeça da curva com centenas.
 Treinado com cinco pilhas e
 testado com 25 ou 100, (d) cai para 0,61 e 0,63; treinado com 25, cai para 0,48 com cinco e
@@ -1943,7 +1868,7 @@ A Tabela IV reúne as configurações em todos os endpoints, em %:
   **Pico 1k**: a taxa de disparo com um pico legítimo de 1.000 usuários.
 - **Bloqueado** (as quatro últimas colunas): fração média de uma botnet de 25 pilhas do
   tamanho da janela mediana do endpoint (1×) ou de um décimo dela (0,1×), em pilhas novas
-  ou compartilhadas; as impressões avulsas limitam o valor a cerca de 90%.
+  ou compartilhadas; os fingerprints avulsos limitam o valor a cerca de 90%.
 - \* construída depois de o dia novo ter sido lido (*post hoc*).
 
 **Como ler (Seção V-B).**
@@ -1981,16 +1906,15 @@ A Tabela IV reúne as configurações em todos os endpoints, em %:
   conhecidas isentas na binomial.
 - **Piso**: a menor botnet de 25 pilhas, em atacantes por janela, cujas pilhas a
   configuração aponta, **em amostra / cruzada**, medianas dos cinco dias de teste.
-- Em pilhas novas o filtro de inéditas limita o piso a 139. Uma pilha compartilhada toma
-  a prevalência mediana do perfil além das dez impressões mais comuns e, na
-  beta-binomial, a correlação mediana delas. \* *post hoc*.
+- Em pilhas novas o filtro de inéditos limita o piso a 139. Uma pilha compartilhada toma
+  a prevalência mediana do perfil além dos dez fingerprints mais comuns e, na beta-binomial, a correlação mediana deles. \* *post hoc*.
 
 **Como ler.**
 
 - No E1 as frotas empurram λ_e para 10⁻⁶⁰, onde o teste só aponta uma pilha a partir de
   15 a 18 origens; isentar as cinco ou seis frotas conhecidas eleva λ_e para cerca de
   10⁻²¹.
-- Unida ao filtro de inéditas, a binomial aponta pilhas novas a partir de 139 atacantes
+- Unida ao filtro de inéditos, a binomial aponta pilhas novas a partir de 139 atacantes
   do E1 ao E3 (o limite que k_min impõe) e a partir de 84 no E4, onde o próprio teste as
   aponta primeiro.
 - Em pilhas compartilhadas o nível decide: 254 atacantes no E1, 8% da janela, e de 4 a
@@ -2006,10 +1930,10 @@ A Tabela IV reúne as configurações em todos os endpoints, em %:
   atacantes em pilhas novas, abaixo do piso de 139, como o modelo de tamanho das pilhas
   prevê.
 - **As pilhas compartilhadas são, na maior parte, raras**: são sorteadas além das dez
-  impressões mais comuns, e a prevalência mediana ali é de 2 × 10⁻⁶ no E1. Nas posições
+  fingerprints mais comuns, e a prevalência mediana ali é de 2 × 10⁻⁶ no E1. Nas posições
   36 a 100 do perfil, o piso da binomial no E1 sobe para 743 atacantes (um quarto da
   janela), e nas posições 11 a 35 nenhuma botnet de 25 pilhas é apontada no E1 nem no E2.
-  Acima do limite da razão (seção 9.6), nas 4 a 28 impressões mais comuns de
+  Acima do limite da razão (seção 9.6), nos 4 a 28 fingerprints mais comuns de
   cada endpoint, que carregam 86–94% das origens, nenhuma botnet de 25 pilhas é apontada.
 
 As posições do perfil, na binomial / na beta-binomial (a correlação de cada faixa):
@@ -2019,7 +1943,7 @@ As posições do perfil, na binomial / na beta-binomial (a correlação de cada 
 | E1 | nenhuma / nenhuma | 743 / 480 | 252 / 85 | 254 / 86 |
 | E2 | nenhuma / nenhuma | 1.898 / 140 | 846 / 56 | 1.090 / 84 |
 | E3 | 808 / 612 | 227 / 84 | 168 / 56 | 168 / 56 |
-| E4 | 114 / 84 | 84 / 84 | (poucas impressões) | 84 / 84 |
+| E4 | 114 / 84 | 84 / 84 | (poucos fingerprints) | 84 / 84 |
 
 "Nenhuma": nenhuma botnet de 25 pilhas, de qualquer tamanho.
 
@@ -2054,38 +1978,38 @@ em pilhas novas (Tabela V), e o triângulo, a janela mediana. As mesmas curvas e
   gatilho em 14–33% das janelas e fica abaixo dos pisos (2–5% detidos em pilhas novas).
 - **Outros gatilhos** (*post hoc*, Tabela VI). O **gatilho sazonal** (seção 6.1) e o
   **escopo como gatilho próprio**, cada um com a binomial (em amostra), com a
-  beta-binomial cruzada e com o **filtro de inéditas sozinho**, em %:
+  beta-binomial cruzada e com o **filtro de inéditos sozinho**, em %:
 
 | Gatilho | Escopo | FA E1 teste | FA E1 novo | FA E2–E4 teste (maior) | FA E2–E4 novo (maior) | Novas teste | Novas novo | Compart. teste | Pico 1k | Dano |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Origens | binomial | 0,00 | 0,00 | 0,28 | 0,69 | 11,8 | 0,0 | 7,7 | 22,2 | 32,9 |
 | | beta cruzada* | 0,14 | 0,00 | 0,28 | 0,00 | 11,9 | 0,0 | 8,3 | 10,9 | 2,0 |
-| | inéditas | 0,00 | 0,00 | 0,07 | 0,00 | 11,8 | 0,0 | 0,0 | 3,4 | 3,3 |
+| | inéditos | 0,00 | 0,00 | 0,07 | 0,00 | 11,8 | 0,0 | 0,0 | 3,4 | 3,3 |
 | Sazonal* | binomial | 0,00 | 0,00 | 2,64 | 0,69 | 20,4 | 15,3 | 14,4 | 22,3 | 35,2 |
 | | beta cruzada | 0,07 | 0,00 | 0,21 | 0,00 | 20,4 | 15,3 | 15,1 | 10,9 | 16,9 |
-| | inéditas | 0,00 | 0,00 | 0,00 | 0,00 | 20,4 | 15,3 | 0,0 | 3,4 | – |
+| | inéditos | 0,00 | 0,00 | 0,00 | 0,00 | 20,4 | 15,3 | 0,0 | 3,4 | – |
 | Sem gatilho* | binomial | 0,97 | 0,00 | 4,38 | 1,04 | 89,6 | 89,7 | 61,1 | 22,4 | 32,6 |
 | | beta cruzada | 0,90 | 1,74 | 1,46 | 1,39 | 89,7 | 90,1 | 65,7 | 11,0 | 6,6 |
-| | inéditas | 0,28 | 0,00 | 0,42 | 0,35 | 89,6 | 89,7 | 0,0 | 3,4 | 5,7 |
+| | inéditos | 0,28 | 0,00 | 0,42 | 0,35 | 89,6 | 89,7 | 0,0 | 3,4 | 5,7 |
 
   Novas e Compart.: fração detida da botnet de um décimo da janela do E1. Pico 1k:
   disparos com 1.000 usuários, todos os endpoints. Dano: mediana sobre os falsos alarmes
   dos dias de teste. \* *post hoc*.
 
-  - **Em pilhas novas com ao menos k_min origens, o filtro de inéditas sozinho faz o
+  - **Em pilhas novas com ao menos k_min origens, o filtro de inéditos sozinho faz o
     mesmo** que qualquer escopo, sob todo gatilho, com menos falsos alarmes e menos
     disparos em picos. É o caso da botnet de um décimo do E1 (cerca de 11 atacantes por
     pilha). Como gatilho próprio, erra em 0,28% das janelas limpas do E1 e em no máximo
     0,42% nos demais, dentro do orçamento em todo endpoint nos dois conjuntos de dias, mas
     os erros se concentram: os 4 do E1 e os 2 do console caem num só dia, e 5 dos 6 da API
     em outro.
-  - **O que o teste acrescenta são as pilhas compartilhadas**, que o filtro de inéditas
+  - **O que o teste acrescenta são as pilhas compartilhadas**, que o filtro de inéditos
     nunca aponta (14,4–15,1% atrás do sazonal e 61,1–65,7% como gatilho próprio), **e as
     pilhas novas menores que k_min**, a beta-binomial cruzada nos endpoints pequenos e a
-    binomial só no SSO (no E1, E2 e E3 ela empata exatamente com o filtro de inéditas, sob
+    binomial só no SSO (no E1, E2 e E3 ela empata exatamente com o filtro de inéditos, sob
     qualquer gatilho): com 100 atacantes (3,6 por
     pilha), a beta-binomial cruzada atrás do sazonal detém 53–84% ali, contra 43% do filtro
-    de inéditas, mas só 3,9% no E1, onde o sazonal abre em 7,4% dessas janelas. No E1 ela
+    de inéditos, mas só 3,9% no E1, onde o sazonal abre em 7,4% dessas janelas. No E1 ela
     troca a maior parte da detecção em pilhas novas (20,4% contra 89,6% da botnet de um
     décimo) por 15,1% em compartilhadas. Como gatilho próprio ela detém 57–84% em todo
     endpoint, mas passa do orçamento.
@@ -2097,10 +2021,10 @@ em pilhas novas (Tabela V), e o triângulo, a janela mediana. As mesmas curvas e
     janelas), com disparos de mediana 1,0% dos clientes. Sem a isenção de frotas, dispara em
     92 das 1.440 janelas de teste do E1 e em 95 das 288 do dia novo.
 - **A leitura**: o gatilho decide o que é detido; em pilhas novas basta o filtro de
-  inéditas, e o teste calibrado serve para as compartilhadas (seção 18.1).
+  inéditos, e o teste calibrado serve para as compartilhadas (seção 18.1).
 - **Os números agregados**, que os endpoints pequenos dominam: a binomial detém 38,4% e
   77,7% de 100 e 1.000 atacantes em pilhas novas, e 21,7% e 63,3% em compartilhadas. De
-  100 em pilhas novas, o filtro de inéditas sozinho detém 29,4%, e o z-score calibrado
+  100 em pilhas novas, o filtro de inéditos sozinho detém 29,4%, e o z-score calibrado
   54,7% (23,7% em compartilhadas).
 - **Dano nas janelas de ataque**: os escopos calibrados bloqueiam uma mediana de 0% dos
   clientes legítimos, no máximo 3% em nove janelas de cada dez e até 71% na pior janela
@@ -2127,10 +2051,10 @@ exportações, escrito antes de o dia ser lido):
 - os picos de 100 usuários, a métrica 3 do protocolo, disparam a configuração em 1,1% das
   janelas;
 - no SSO (E4), os picos de 1.000 usuários disparam a configuração em 97,2% das janelas,
-  contra 34,1% nos dias de teste. Dos 280 disparos, 98% apontam a mesma impressão: como
-  o pico é sorteado do tráfego do próprio dia, essa impressão estava bem mais comum entre
+  contra 34,1% nos dias de teste. Dos 280 disparos, 98% apontam o mesmo fingerprint: como
+  o pico é sorteado do tráfego do próprio dia, esse fingerprint estava bem mais comum entre
   os clientes daquele dia do que no perfil. É uma deriva do *mix* de clientes que só um
-  pico grande torna visível (o filtro de inéditas não disparou), e os filtros são leves,
+  pico grande torna visível (o filtro de inéditos não disparou), e os filtros são leves,
   com mediana de 1,1% dos clientes da janela. A beta-binomial cruzada atrás do sazonal
   dispara em 97,6% desses picos;
 - a binomial detém 38,9% e 73,4% de 100 e 1.000 atacantes em pilhas novas, e 21,5% e 60,9%
@@ -2148,7 +2072,7 @@ lido: seus resultados são *post hoc*.
 
 - O nível do E1 sobe para cerca de 10⁻⁴, onde três origens apontam uma pilha, e o dos
   demais para o teto de 0,01, onde duas bastam.
-- Nenhuma impressão se qualifica como frota conhecida em amostra, então a lista de
+- Nenhum fingerprint se qualifica como frota conhecida em amostra, então a lista de
   exceções não é necessária ali.
 - O piso em pilhas compartilhadas cai para 86 atacantes no E1 (3%) e para 1,4 a 4,2
   janelas nos demais, e nas posições 36 a 100 do E1 para 480.
@@ -2183,36 +2107,35 @@ lido: seus resultados são *post hoc*.
 por janela): no eixo horizontal, a fração de janelas limpas com falso alarme (escala
 logarítmica, com as taxas zero desenhadas em 0,01%); no vertical, a fração da botnet
 bloqueada. São sete configurações: a regra básica, a binomial do protocolo, o z-score
-calibrado, a beta-binomial, o filtro de inéditas e o escopo sozinho, da binomial e da
+calibrado, a beta-binomial, o filtro de inéditos e o escopo sozinho, da binomial e da
 beta-binomial. Marcadores cheios são os dias de teste; vazados, o dia novo; cinza, a
 calibração cruzada. As setas ligam os pontos em amostra da binomial, da beta-binomial e
 do z-score aos cruzados; a beta-binomial e a calibração cruzada são *post hoc*.
 
 ### 16.7 A fronteira e a rotatividade de JA4 (Seção V-D)
 
-- **A fronteira vale em tráfego real.** Uma botnet nas 25 impressões mais comuns do
+- **A fronteira vale em tráfego real.** Uma botnet nas 25 fingerprints mais comuns do
   endpoint (o caso adversarial) passa em sua maior parte: a binomial detém 7,0% e 23,8% de
-  100 e 1.000 atacantes, e nenhum nos dois maiores endpoints, onde quase todas essas
-  impressões estão acima do limite da razão, mas 73,5% de 1.000 no SSO, onde só 4 ou 5
+  100 e 1.000 atacantes, e nenhum nos dois maiores endpoints, onde quase todos esses
+  fingerprints estão acima do limite da razão, mas 73,5% de 1.000 no SSO, onde só 4 ou 5
   estão.
-- **Impressões inéditas aparecem todo dia**, até 345 por dia no E1, mas raramente se
+- **Fingerprints inéditos aparecem todo dia**, até 345 por dia no E1, mas raramente se
   concentram: 0,21% das janelas dos dias de teste têm uma com pelo menos k_min origens, um
-  candidato para o filtro de inéditas.
+  candidato para o filtro de inéditos.
 
 ### 16.8 O WAF não serve de rótulo
 
 - O WAF bloqueou clientes em toda janela do E2 ao E4, uma mediana de 9%, 63% e 39% de cada
-  janela, e nenhum no E1. Esses clientes estão, na maior parte, em impressões comuns: a
-  mais comum da janela tem 13–55% deles, e só 25–37% estão em impressões que nenhum
+  janela, e nenhum no E1. Esses clientes estão, na maior parte, em fingerprints comuns: o mais comum da janela tem 13–55% deles, e só 25–37% estão em fingerprints que nenhum
   cliente não bloqueado da mesma janela apresenta.
 - **Perfil sem os bloqueados** (o do escopo atrás do WAF): 84–99% dos clientes que os
   escopos bloqueariam no tráfego completo da API e do SSO foram bloqueados pelo WAF. Essa
-  concordância está embutida: uma impressão estável só é enriquecida ali se 70–88% dos seus
+  concordância está embutida: um fingerprint estável só é enriquecido ali se 70–88% dos seus
   clientes foram bloqueados (70% no console, 88% na API, 80% no SSO; seção 14.8).
 - **Perfil com todos os clientes** (o de um escopo na frente do WAF): na API e no SSO os
   escopos produzem filtro em 2–3% das janelas, e do E2 ao E4 0,4–33% dos clientes que
   bloqueariam foram bloqueados, menos que uma escolha aleatória em todo endpoint (10–63%),
-  para os três escopos relativos ao perfil. O filtro de inéditas é a exceção no console
+  para os três escopos relativos ao perfil. O filtro de inéditos é a exceção no console
   (precisão de 29% contra 10%, em 0,14% das janelas). Eles pegam de 0 a 2 dos 38 surtos de bloqueios
   do WAF, mais ou menos como o acaso (no máximo 0,5), e, no console, dois escopos pegam 5
   de 33 surtos contra menos de 1 por acaso, mas casam menos de 1% dos clientes bloqueados.
@@ -2275,11 +2198,11 @@ diferença máxima de 0,0.
 - Os pacotes STIX 2.1 do escopo e da cadeia de evidência passam no validador da OASIS em
   modo estrito e atravessam o servidor TAXII 2.1 de referência sem mudança, exceto a
   definição de extensão, que o servidor não serve.
-- O importador STIX do MISP descarta as impressões: o STIX 2.1 só as carrega numa extensão
+- O importador STIX do MISP descarta os fingerprints: o STIX 2.1 só as carrega numa extensão
   que o importador não mapeia para o objeto JA4 do próprio MISP.
 - Os filtros do DOTS casam só campos de rede e transporte. O modelo de ACL que eles imitam
   casa parâmetros TLS do cliente desde a RFC 9761 (2025), como os valores que o perfil MUD
-  de um dispositivo permite, mas não nomeia nenhuma impressão, e o DOTS define os seus
+  de um dispositivo permite, mas não nomeia nenhum fingerprint, e o DOTS define os seus
   próprios filtros em vez de estender esse modelo.
 - Nos dois casos o escopo se alargaria para o endpoint ou para prefixos de endereço. O
   que falta: uma propriedade padrão para JA4 no STIX e no DOTS, e um mapeamento da extensão
@@ -2332,15 +2255,15 @@ implementado, precisaria ter a revocação medida antes.
 ### 17.6 A calibração dos pesos (Apêndice B)
 
 Nas capturas de laboratório, com poucas dezenas de JA4, a otimização inverte o sinal do
-TLS, porque sessões legítimas compartilham impressões mais do que campanhas parcialmente
+TLS, porque sessões legítimas compartilham fingerprints mais do que campanhas parcialmente
 coordenadas. Os pesos foram calibrados em cenários de vocabulário legítimo quase uniforme
-(cerca de 800 impressões por 1.000 sessões) contra uma botnet monolítica, maximizando a
+(cerca de 800 fingerprints por 1.000 sessões) contra uma botnet monolítica, maximizando a
 AUC por sessão de
 
 > w_tls · z(ja4) + w_ep · z(convergência de endpoint) + w_net · z(proximidade de rede)
 
 na grade {0,3 … 1,0}³ (125 combinações, 60 cenários, 91.500 sessões). O resultado é
-(w_tls = 1,0; w_ep = 0,3; w_net = 0,3). Só a impressão TLS discrimina sozinha (AUC isolada
+(w_tls = 1,0; w_ep = 0,3; w_net = 0,3). Só o fingerprint TLS discrimina sozinha (AUC isolada
 0,93, contra 0,50 da convergência de endpoint e 0,58 da proximidade de rede). Com os pesos
 de TLS e de rede fixos, todo peso de endpoint da grade atinge a mesma AUC ótima de 0,943,
 assim como os pesos da ontologia (1,0; 0,6; 0,3). A calibração sustenta só o topo da
@@ -2349,7 +2272,7 @@ com pesos uniformes.
 
 ---
 
-# Parte V. A defesa
+# Parte V. Recomendações, limites e consulta
 
 ## 18. Qual configuração recomendar, e os limites (Seção VI; Apêndice C)
 
@@ -2377,19 +2300,19 @@ com pesos uniformes.
   alarmes do dia novo (mediana de 41,2% dos clientes), um desafio pode ser a primeira
   resposta mais segura. O próximo teste, pré-especificado
   em dias novos, num ciclo semanal e com carimbo de tempo externo, teria como **base o
-  filtro de inéditas como gatilho próprio**, que igualou todo escopo em pilhas novas de ao
+  filtro de inéditos como gatilho próprio**, que igualou todo escopo em pilhas novas de ao
   menos k_min origens dentro do orçamento em todo endpoint, e cobriria botnets de 100
   atacantes além das de um décimo da janela. Contra ela rodariam a **beta-binomial cruzada
   atrás do gatilho sazonal**, cujo ganho está nas pilhas compartilhadas e nas pilhas novas
   menores, e, só no E1, o **escopo binomial com frotas como gatilho próprio**, no limite do
   orçamento ali, subindo dia a dia e dependente da isenção de frotas. A beta-binomial
   cruzada como gatilho próprio fica de fora: no E1 ela detém 58% de 100 atacantes em
-  pilhas novas (contra 43% do filtro de inéditas), mas disparou em 1,74% das janelas do
+  pilhas novas (contra 43% do filtro de inéditos), mas disparou em 1,74% das janelas do
   dia novo (5 de 288).
 - **Como se chegou aqui.** A rodada 17 dizia que o escopo sozinho cabia no orçamento no E1
   também na beta-binomial, o que era falso (2,08% em amostra); a rodada 18 corrigiu e
   propôs a beta-binomial atrás do sazonal como primária. A revisão da rodada 19 mostrou que
-  em pilhas novas o filtro de inéditas sozinho faz o mesmo com menos alarmes, e a
+  em pilhas novas o filtro de inéditos sozinho faz o mesmo com menos alarmes, e a
   recomendação passou a tê-lo como base de comparação. A da rodada 20 mostrou que essa
   paridade vale só com ao menos k_min origens por pilha, e o texto passou a dizê-lo.
 
@@ -2403,7 +2326,7 @@ as campanhas distribuídas **e** furtivas precisam de evidência entre sessões.
 ### 18.3 O que cada avaliação estabelece
 
 - O gerador mostra o mecanismo, com uma imitação imposta por construção. Suas pilhas nunca
-  aparecem no vocabulário legítimo (por isso o filtro de inéditas empata com o escopo
+  aparecem no vocabulário legítimo (por isso o filtro de inéditos empata com o escopo
   ali), e um modelo ajustado a um número de pilhas não se transfere para outro.
 - A produção mede falsos alarmes em clientes reais, e detecção só para uma botnet injetada
   de uma forma, 25 pilhas uniformes, em nove dias dos endpoints de um operador, poucos
@@ -2414,12 +2337,12 @@ as campanhas distribuídas **e** furtivas precisam de evidência entre sessões.
 
 ### 18.4 O escopo depende de um discriminador observável
 
-- Um bot fora do modelo de ameaça que apresente uma impressão comum o derrota, no gerador e
+- Um bot fora do modelo de ameaça que apresente um fingerprint comum o derrota, no gerador e
   em produção.
 - O *Encrypted Client Hello* (ECH) esconde a JA4 de observadores no caminho, mas não de um
   defensor que termina o TLS, como aqui.
-- O perfil precisa ser renovado. Uma versão de software que dê uma impressão nova a uma
-  população grande chegaria de imediato ao filtro de inéditas, e os nove dias não mostraram
+- O perfil precisa ser renovado. Uma versão de software que dê um fingerprint novo a uma
+  população grande chegaria de imediato ao filtro de inéditos, e os nove dias não mostraram
   nenhum evento assim.
 - Os picos legítimos sorteiam usuários do *mix* do próprio dia; um surto de um só tipo de
   cliente, o caso mais difícil, não foi injetado.
@@ -2432,14 +2355,14 @@ Ela não acrescenta nada aos números de detecção nem ao gatilho, e o teste do
 estatístico. Ela é a especificação que o operador implanta e troca: o que cada sub-relação
 de igualdade iguala, seu peso e a unidade das suas classes, compilados na consulta que o
 armazenamento de logs executa e levados à cadeia de evidência. O título nomeia o que a
-evidência sustenta: o escopo por impressão TLS, os pisos de calibração e o dano colateral
+evidência sustenta: o escopo por fingerprint TLS, os pisos de calibração e o dano colateral
 nos endpoints de um operador. O grafo de conhecimento não é o método; a ontologia é a
 especificação.
 
 ### 18.6 Outras limitações (Apêndice C)
 
 - **Instrumentação e implantação.** Extração parcial ou ruidosa de sessões, identidades e
-  impressões degrada o método. Contar origens por endereço subconta usuários atrás de um
+  fingerprints degrada o método. Contar origens por endereço subconta usuários atrás de um
   CGNAT e sobreconta clientes que trocam endereços IPv6 de privacidade (a unidade natural
   deles é o /64). A execução em produção é *offline*, sobre contagens agregadas por
   endpoint; uma implantação ao vivo ainda precisa do particionamento da seção 17.5.
@@ -2454,10 +2377,10 @@ especificação.
 
 ### 18.7 O trabalho futuro (Seção VII)
 
-Um teste pré-especificado, em dias novos, desses gatilhos contra o filtro de inéditas
+Um teste pré-especificado, em dias novos, desses gatilhos contra o filtro de inéditos
 como gatilho próprio, ataques HTTP/2 e uma campanha furtiva capturada.
 
-## 19. Números para saber de cor
+## 19. Os números do artigo, num só lugar
 
 **O método**
 - ρ = 3; k_min = 5; λ_e ≤ 0,01; orçamento de 1% das janelas de calibração, 2,9 de 288 por
@@ -2467,11 +2390,11 @@ como gatilho próprio, ataques HTTP/2 e uma campanha furtiva capturada.
 - Piso de pilha nova sob a união: ⌈5M/0,9⌉ = 139 (M = 25); 28 (M = 5); 556 (M = 100).
 
 **O gerador**
-- Medição real: 495 impressões, 38,4% na mais comum, 93,8% nas dez mais comuns; Zipf
+- Medição real: 495 fingerprints, 38,4% no mais comum, 93,8% nos dez mais comuns; Zipf
   α = 1,5 canônico.
 - Moda: 0,0% do ataque e 39,0% do legítimo a partir de 5 pilhas (61,1% com α = 2,0).
 - Teste e z-score: 90% até 25 pilhas, sem dano observado; teste 38,6% a 100 pilhas (89,6%
-  com perfil maior); inéditas 88,1% a 100.
+  com perfil maior); inéditos 88,1% a 100.
 - Adversarial: teste 30,4% com 3,78% de dano.
 - (d): AUC 0,927/0,982; entre valores de M, 0,48–0,75; (a) no acaso (0,498/0,503).
 
@@ -2491,7 +2414,7 @@ como gatilho próprio, ataques HTTP/2 e uma campanha furtiva capturada.
   janelas; beta 86 (3%) e 1,4–4,2 janelas; cruzada beta 6% e ≤ 4,4 janelas. Por M, no
   E1 em compartilhadas: 50 / 254 / 1.026 (M = 5 / 25 / 100).
 - Picos de 1.000: a binomial dispara em 22,2%, com filtros de mediana 4,3% (p90 20,6%).
-- Limite da razão: b > 0,9/(ρM) = 1,2%; as 4 a 28 impressões mais comuns, 86–94% das
+- Limite da razão: b > 0,9/(ρM) = 1,2%; os 4 a 28 fingerprints mais comuns, 86–94% das
   origens, nunca são apontadas por uma botnet de 25 pilhas.
 - O gatilho no E1: abre em 6–13% das janelas de 25 atacantes a um décimo da janela; a
   binomial detém 3,4% de 100, 11,8% de um décimo (0,6–37,2% por dia), 70,8% de uma janela.
@@ -2501,13 +2424,13 @@ como gatilho próprio, ataques HTTP/2 e uma campanha furtiva capturada.
   no E1 (14 de 1.440, IC 0,53–1,63%; 0, 0, 1, 5, 8 por dia; 92 sem frotas, 95 de 288 no
   dia novo), beta cruzada 0,90% e 1,74% no dia novo; nos pequenos, a binomial dá 1,5–4,4%.
 - Com 100 atacantes em pilhas novas (abaixo de k_min por pilha), a beta-binomial cruzada
-  atrás do sazonal detém 53–84% nos pequenos e 3,9% no E1, contra 43% do filtro de inéditas.
-- O filtro de inéditas sozinho (*post hoc*, Tabela VI): atrás do sazonal, 0 falsos
+  atrás do sazonal detém 53–84% nos pequenos e 3,9% no E1, contra 43% do filtro de inéditos.
+- O filtro de inéditos sozinho (*post hoc*, Tabela VI): atrás do sazonal, 0 falsos
   alarmes e os mesmos 20,4% / 15,3%; como gatilho próprio, 0,28% no E1 (no máximo 0,42% nos
   demais) e 89,6% / 89,7%; em pilhas compartilhadas, 0%. O teste: 14,4–15,1% das
   compartilhadas atrás do sazonal e 61,1–65,7% como gatilho próprio.
 - Detido pela binomial, agregado: 38,4% / 77,7% de 100 / 1.000 (novas), 21,7% / 63,3%
-  (compartilhadas); inéditas sozinho 29,4%.
+  (compartilhadas); inéditos sozinho 29,4%.
 - Cruzada: binomial 6 contra 5 alarmes; z-score 13 alarmes, 2,5% sozinho, 33,6% contra
   54,7% de 100 atacantes; beta 1,1% sozinho, 6 alarmes, dano mediano 2,0%.
 - Adversarial: 7,0% / 23,8%, nenhum no E1 e E2.
@@ -2515,7 +2438,7 @@ como gatilho próprio, ataques HTTP/2 e uma campanha furtiva capturada.
   precisão 0,4–33% contra 10–63% aleatória, 0–2 de 38 surtos na API e no SSO.
 - Dia novo: 2 alarmes em 1.152, P = 0,27, poder 0,37; gatilho aberto em 3 janelas
   (0,26% contra 3,0%), escopo errou em 2 (P = 0,003); picos de 100: 1,1%; picos de 1.000
-  no SSO: 97,2% (34,1% nos de teste), 98% numa impressão, filtros de 1,1%.
+  no SSO: 97,2% (34,1% nos de teste), 98% num fingerprint, filtros de 1,1%.
 
 **Especificação e custo**
 - Consulta compilada: origens e pares /24 iguais em todas as janelas de dois dias; tamanhos
@@ -2524,185 +2447,7 @@ como gatilho próprio, ataques HTTP/2 e uma campanha furtiva capturada.
 - Admissão constante ~0,37 µs; agregação linear, 26,4 s a 100.000 sessões; arestas de
   pares 52,8 s a 1.000.
 
-## 20. Perguntas difíceis e como responder
-
-**"Por que impressões TLS? O atacante não troca de impressão?"**
-Uma botnet de dispositivos comprometidos fala TLS pela biblioteca do dispositivo, e imitar
-um navegador pede uma biblioteca de imitação mantida em dia. Bots que fazem isso estão fora
-do modelo, e o artigo mede o que acontece com eles: passam em sua maior parte. O teste
-bloqueia só 30,4% deles no gerador (com 3,78% de dano), e a binomial 7,0% e 23,8% de 100 e
-1.000 atacantes em produção.
-
-**"Isso não é extração de anomalias ou *heavy hitters* com outro atributo?"**
-A pergunta de super-representação é parecida, mas o escopo aqui é um filtro sobre
-impressões de clientes, escolhido por um teste calibrado contra o tráfego do próprio
-serviço, com o dano colateral e o piso medidos. A extração de anomalias só diagnostica, e
-os HHH escolhem prefixos por volume, não por desvio de um perfil.
-
-**"Por que não bloquear a impressão mais comum do alarme?"**
-Porque ela é legítima assim que a botnet tem três pilhas ou mais: com p₁ = 38,4% e uma
-campanha do tamanho do tráfego legítimo (A = n_b), 0,9 · A/M > p₁ · n_b só vale para
-M < 2,3. No gerador, 0% do ataque e 39% do legítimo a partir de cinco pilhas.
-
-**"O modelo binomial está errado em produção. Por que usá-lo?"**
-Porque o nível é calibrado como um quantil empírico, e o artigo diz com todas as letras que
-a 10⁻⁶⁰ o p-valor é um escore. A beta-binomial é a versão que modela as frotas, e ela quase
-cumpre a meta fora da amostra.
-
-**"A meta de 1% não vale fora da amostra. A calibração não está quebrada?"**
-Os componentes passam da meta (escopo 2,2%, gatilho 3,0%), e o artigo reporta isso. A
-configuração fica em 0,1% porque exige os dois, que raramente erram juntos, e se mantém na
-calibração cruzada (6 contra 5 alarmes) e no dia novo (2 em 1.152).
-
-**"Se a beta-binomial parece melhor, por que recomendar a binomial?"**
-Porque só a binomial foi testada num dia que não tinha visto, como fixado de antemão. A
-beta-binomial foi construída depois; a proposta é testá-la, atrás do gatilho sazonal e
-contra o filtro de inéditas como gatilho próprio, num teste pré-especificado em dias
-novos antes de trocar (Tabela VI).
-
-**"O escopo como gatilho próprio detém 90% no E1. Por que não é ele a proposta?"**
-Porque em pilhas novas o filtro de inéditas sozinho, como gatilho próprio, detém os
-mesmos 90% com 0,28% de falsos alarmes no E1 e no máximo 0,42% nos demais, enquanto o
-escopo binomial fica no limite do orçamento no E1 (0,97%, intervalo de 0,53% a 1,63%,
-subindo dia a dia), passa dele nos pequenos (até 4,38%) e depende da isenção de frotas.
-Por isso o filtro de inéditas é a base do próximo teste.
-
-**"Se o filtro de inéditas faz o mesmo, para que serve o teste calibrado?"**
-Para as pilhas compartilhadas, que o filtro de inéditas nunca aponta: atrás do sazonal o
-teste detém 14–15% da botnet de um décimo do E1 nelas, e como gatilho próprio 61–66%. E
-para as pilhas novas com menos de k_min origens, que o filtro não alcança, mas só onde o
-gatilho abre: com 100 atacantes, a beta-binomial cruzada atrás do sazonal detém 53–84% nos
-endpoints pequenos e 3,9% no E1, contra 43%. É nesses casos que o teste ganha, e o artigo
-diz isso.
-
-**"E o SSO no dia novo, com 97% dos picos de 1.000 disparando?"**
-É uma deriva do *mix* de clientes: 98% desses disparos apontam a mesma impressão, bem
-mais comum entre os clientes daquele dia do que no perfil (o pico é sorteado do tráfego
-do dia). Nas janelas limpas o escopo quase não dispara ali; só um pico grande torna o
-desvio visível. Os filtros são leves (mediana de 1,1% dos clientes), e o artigo reporta o
-caso na Seção V-D.
-
-**"Um dia com 1.152 janelas prova alguma coisa?"**
-Prova compatibilidade, não confirmação: P = 0,27, e o poder contra uma taxa triplicada é só
-37%. O artigo diz exatamente isso.
-
-**"Por que injetar a botnet em vez de usar um ataque real?"**
-Os autores não encontraram captura independente do regime furtivo, e os veredictos do WAF
-não rotulam inundações. A injeção mede detecção para uma forma de botnet; os falsos
-alarmes são medidos em clientes reais.
-
-**"Por que os veredictos do WAF não servem de rótulo?"**
-Com o perfil sem os bloqueados, a concordância é construída: uma impressão estável só é
-enriquecida se 70–88% dos seus clientes foram bloqueados. Com o perfil de todos, os escopos
-ficam abaixo de uma escolha aleatória e pegam os surtos perto do acaso. As populações do WAF são
-tráfego de todo dia, e o escopo lê desvios dele.
-
-**"O que o grafo de conhecimento acrescenta?"**
-Nada à detecção nem ao gatilho. A ontologia é a especificação: dela sai a consulta que o
-armazenamento de logs executa (conferida em dois dias de produção) e a cadeia de evidência
-exportada em STIX. Um sinal novo custa quatro triplas e nenhum código.
-
-**"Ω é quase todo termo de endpoint. Para que ele serve?"**
-É a regra da ontologia, e o artigo mostra que ela mede volume: pesos uniformes detectam
-igual, e sem o termo de endpoint Ω pega só 33,3% das janelas de ataque (K = 1.000) e
-nenhuma (K = 50). Por isso o gatilho implantado é a contagem de
-origens, e o discriminador é o escopo.
-
-**"E NAT e IPv6?"**
-Contar por endereço subconta usuários atrás de CGNAT e sobreconta clientes com endereços
-IPv6 de privacidade (a unidade natural é o /64). Está nas limitações.
-
-**"E o ECH?"**
-Esconde a JA4 de quem observa o caminho, não de um defensor que termina o TLS, que é o caso
-do operador da aplicação.
-
-**"A isenção de frotas não é uma porta para o atacante?"**
-É uma lista de exceções, e o artigo diz isso: um bot com a impressão de uma frota não é
-apontado. A beta-binomial dispensa a lista. Um atacante que molde o perfil não foi
-avaliado; a recomendação é reconstruir os perfis a partir das janelas que o escopo não
-apontou.
-
-**"Um modelo aprendido com o perfil faz quase o mesmo. Por que não ML?"**
-Porque ele treina com os rótulos da mesma campanha que avalia. A configuração (d), sem o
-perfil, não se transfere entre números de pilhas (AUC de 0,48 a 0,75); a transferência do
-modelo com o perfil não foi testada. O escopo não usa rótulo nenhum.
-
-**"Por que só 38% de 100 atacantes são detidos?"**
-Porque o número agregado mistura regimes. No E1 o gatilho abre em só 6–13% das janelas de
-botnets pequenas, e a binomial detém 3,4% de 100 atacantes; nos endpoints pequenos, 100
-atacantes são de 1,6 a 5 janelas, abrem o gatilho, e a binomial detém 28–79%. Dentro das
-janelas em que o gatilho abre, as pilhas com menos de k_min origens escapam do filtro de
-inéditas, e os 10% em impressões avulsas escapam de qualquer escopo (seção 14.6).
-
-**"O piso é um limite rígido?"**
-Não. É o tamanho em que a pilha média alcança a contagem mínima; abaixo dele o escopo ainda
-aponta as pilhas que o acaso deixou maiores (43% de 100 atacantes no E1, abaixo do piso de
-139, exatamente como o modelo binomial do tamanho das pilhas prevê). O limite rígido é o da
-razão: nenhuma impressão acima de 0,9/(ρM) = 1,2% é enriquecida por uma botnet de 25
-pilhas, e essas impressões carregam 86–94% das origens.
-
-**"Os intervalos de confiança não são estreitos demais?"**
-O exato trata as janelas como independentes, e os falsos alarmes se concentram por dia:
-13 dos 22 da beta-binomial caem num só dia do console. Para as taxas concentradas, então, o
-exato subestima a incerteza, e o artigo diz isso. Um *bootstrap* por endpoint-dia não
-resolve com cinco dias por endpoint: para a binomial ele dá um intervalo mais estreito que
-o exato. O remédio seria um modelo sobredisperso ou mais dias.
-
-**"Gatilho e escopo não erram juntos?"**
-Na beta-binomial e no z-score, sim, bem mais do que se fossem independentes (22 contra 7,5
-e 20 contra 11,9; P < 10⁻⁴ e P = 0,02 num teste de Poisson), porque uma frota sobe as
-origens e enriquece a própria impressão ao mesmo tempo. Na binomial do protocolo, 5 contra
-3,5 cabe no acaso (P = 0,27), e o artigo só afirma a dependência onde ela é significativa.
-
-**"O dia novo não foi só um gatilho quieto?"**
-Em boa parte, sim. O gatilho abriu em só 3 das 1.152 janelas limpas (0,26%, contra 3,0%
-nos dias de teste), e o escopo errou em duas delas (P = 0,003 contra a taxa condicional dos dias de teste). A contagem total é
-compatível com a taxa, mas o dia informa pouco sobre o escopo, e o artigo diz isso.
-
-**"Por que o título fala em pisos de calibração, e não em escopo calibrado?"**
-Porque os componentes calibrados passam da meta fora da amostra. O que o artigo mede é o
-preço da calibração, os pisos e o dano colateral, nos endpoints de um operador.
-
-**"Nos endpoints pequenos o piso é de várias janelas. O método é inútil ali?"**
-Para pilhas compartilhadas, sim, e o artigo diz: o recurso é o limite de taxa ou o
-desafio. Pilhas novas ainda são filtradas a partir de 84 a 139 atacantes.
-
-**"Quantas escolhas foram feitas olhando os dias de teste?"**
-Cinco: contar origens, calibrar λ_e, o gatilho de origens, a união com as inéditas e a
-fração de 5% das frotas. Só o dia novo as põe à prova. A fração de 5% foi escolhida pela
-contagem de falsos alarmes; pelo dano esperado, a de 0,5% seria mais leve, e o artigo
-declara isso.
-
-**"Por que janelas de cinco minutos?"**
-São as exportações de produção, agregadas em janelas de cinco minutos. No gerador, a
-insensibilidade a W é uma propriedade dos cenários, registrada no README da sprint 6.
-
-**"Quanto custa rodar?"**
-Com contagens de classe, a admissão é constante (~0,37 µs por sessão) e a agregação linear
-(26,4 s a 100.000 sessões); com arestas de pares, 52,8 s já a 1.000.
-
-**"Por que falar de STIX e DOTS?"**
-Porque o escopo precisa ser trocado entre ferramentas. A terceira contribuição é a ontologia
-que especifica o escopo, e esses padrões mostram por que ele precisa de uma especificação
-própria: nenhum padrão examinado expressa um filtro sobre JA4 no vocabulário central. O STIX leva as impressões
-pelo TAXII numa extensão, o MISP as descarta, o OCSF as registra em eventos e achados sem
-filtro sobre elas, e o DOTS não consegue expressá-las.
-
-**"O que a ontologia acrescenta, então?"**
-Aos números de detecção e ao gatilho, nada. Ela é a especificação que o operador implanta:
-dela se compila a consulta de contagem, que conferiu com as exportações em dois dias de
-produção, e ela é o vocabulário da cadeia de evidência exportada. As três relações que os
-dados exercitam (JA4, endpoint e /24) são igualdades: particionam as sessões em classes, e
-o grafo vira uma contagem por grupo (um GROUP BY). O grafo seria necessário de fato nas
-relações de similaridade, o padrão temporal (DTW) e a assinatura de *payload* (cosseno),
-que não formam classes e exigem arestas entre pares. Elas estão especificadas, mas não são
-exercitadas, porque as exportações não trazem sequências nem *payloads* por sessão.
-
-**"O protocolo do dia novo foi versionado depois?"**
-Sim, 17 horas depois do horário que ele declara, e nenhum carimbo externo atesta a ordem.
-O artigo diz isso no Apêndice F.
-
-## 21. Glossário
+## 20. Glossário
 
 ### Siglas
 
@@ -2721,7 +2466,7 @@ O artigo diz isso no Apêndice F.
 | FA | Falso alarme |
 | FPR | Taxa de falsos positivos |
 | HHH | *Hierarchical heavy hitters* |
-| JA4 | Impressão digital do ClientHello TLS |
+| JA4 | Fingerprint digital do ClientHello TLS |
 | JSON-LD | JSON para dados ligados |
 | JWT | *JSON Web Token* |
 | KS | Teste de Kolmogorov–Smirnov |
@@ -2753,10 +2498,10 @@ O artigo diz isso no Apêndice F.
 | n₀ | Origens da janela mediana do endpoint |
 | n_b | Origens legítimas |
 | n_k | Tamanho, em origens, da classe k de uma sub-relação |
-| c(f) | Origens do alarme com a impressão f |
-| N | Pares origem–impressão do perfil |
+| c(f) | Origens do alarme com o fingerprint f |
+| N | Pares origem–fingerprint do perfil |
 | b(f) | Prevalência de f no perfil, mais 1/N |
-| \|F\| | Impressões do perfil e do alarme juntos (divisor de Bonferroni) |
+| \|F\| | Fingerprints do perfil e do alarme juntos (divisor de Bonferroni) |
 | ρ | Razão mínima de enriquecimento (3) |
 | λ_e | Nível calibrado do endpoint e |
 | c_min | Menor contagem que o nível aponta |
@@ -2766,14 +2511,35 @@ O artigo diz isso no Apêndice F.
 | wᵢ, Eᵢ(S) | Peso e pares ligados da sub-relação i |
 | φ | Correlação dentro da janela (beta-binomial) |
 | a, β | Parâmetros da beta |
-| z | z-score de uma impressão |
+| z | z-score de um fingerprint |
 | α | Expoente da curva de Zipf |
-| p₁ | Fração das origens legítimas na impressão mais comum |
-| S, s | Fração bloqueada pelo WAF na janela; na impressão |
+| p₁ | Fração das origens legítimas no fingerprint mais comum |
+| S, s | Fração bloqueada pelo WAF na janela; no fingerprint |
 | p₀, L | Taxa de acerto fora dos surtos; duração de um surto |
 | r | Taxa de falso alarme dos dias de teste (5/5.643) |
 
-## 22. Onde está cada coisa
+### Termos em inglês das tabelas e figuras
+
+| Termo | Onde aparece | O que quer dizer |
+|---|---|---|
+| *Gate* | Tabelas II e VI | o gatilho de volume que precisa abrir antes de o escopo agir |
+| *Origin gate* | Tabela VI | o gate de origens distintas, no percentil 99 (o do protocolo) |
+| *Seasonal gate* | Tabela VI | o gate sazonal, *post hoc*, contra a mediana da mesma hora |
+| *No gate* | Tabelas IV e VI, Fig. 3 | sem gate: o escopo age em toda janela e é o próprio gatilho |
+| *Scope alone* | Figs. 2 e 3 | o mesmo que *no gate*: o que o escopo barraria sem esperar o gate |
+| *Own trigger* | Fig. 3 | o filtro de inéditos como o próprio gatilho, sem gate |
+| *Gate opens* | Fig. 2 | a fração das janelas em que o gate abriu |
+| FA | Tabelas IV e VI | *false alarms*: a fração das janelas limpas em que algo foi barrado |
+| *Coll.* | Tabelas IV e VI | *collateral*: a fração dos clientes da janela que um falso alarme barra (mediana) |
+| *Fl. 1k* | Tabelas IV e VI | *flash crowd* de 1.000 usuários reais: em quantas janelas ele dispara o filtro |
+| *New*, *Shared* | Tabelas IV a VI, Figs. 2 e 3 | fingerprints da botnet ausentes do tráfego legítimo, ou que clientes reais também usam |
+| 0.1×, 1× | Tabela IV | uma botnet de um décimo da janela típica, ou de uma janela inteira |
+| *In sample*, *cross-fitted* | Tabelas IV e V, Fig. 3 | a calibração em amostra, ou a cruzada, contra os outros dias |
+| *Held-out day*, *held* | Tabelas II, IV e VI | o dia novo, analisado com tudo fixado antes |
+| *Post hoc* (\*) | todas | analisado depois de ver o dia novo |
+| *Budget* | texto | o orçamento de 1% das janelas sem ataque |
+
+## 21. Onde está cada coisa
 
 **Os artigos**
 - `papers/http-session-noms/article.tex`: o artigo em inglês, a versão submetida (12
@@ -2785,7 +2551,7 @@ O artigo diz isso no Apêndice F.
 
 **O código do método e da produção** (`experiments/sprint-6-noms/scripts/`)
 - `rule_detection_production.py`: a avaliação por janela em produção (teste, z-score,
-  inéditas, união, frotas, calibração do nível, beta-binomial com `--overdispersion`,
+  inéditos, união, frotas, calibração do nível, beta-binomial com `--overdispersion`,
   calibração cruzada com `--split crossfit`, perfil com todos os clientes com
   `--waf-in-profile`, `log_tail`).
 - `production_tables.py`: as Tabelas IV a VII, os dados das Figs. 2 e 3, o gatilho
@@ -2793,13 +2559,13 @@ O artigo diz isso no Apêndice F.
   só contagens), além de taxas, intervalos, dano, piso (`floor`, `deployed_floor`) e o
   bloco `sweep`.
 - `waf_labels.py`: os veredictos do WAF como rótulos, sob os dois perfis.
-- `ja4_churn.py`: a rotatividade de impressões.
+- `ja4_churn.py`: a rotatividade de fingerprints.
 - `compile_counts.py`: compila a consulta de contagem a partir da ontologia.
 - `symbolic_detector.py`, `unseen_synth.py`, `rule_detection.py`, `cross_m_generalization.py`,
   `bench_latency.py`: Tabela III, a regra por janela, os testes entre valores de M e o custo
   (Fig. 4).
 - `floor_bands.py`: o piso em pilhas compartilhadas por faixa de popularidade, na
-  correlação de cada faixa, e as impressões acima do limite da razão (`make floor-bands`).
+  correlação de cada faixa, e os fingerprints acima do limite da razão (`make floor-bands`).
 - `audit_paper.py`: confere cada número do artigo contra os resultados (`make audit`).
 
 **Os resultados** (`experiments/sprint-6-noms/results/`)

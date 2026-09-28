@@ -297,7 +297,8 @@ concluir demais. A ordem é a do artigo.
 
 **Tabela II, as quatro configurações de produção**
 - **A pergunta:** o que exatamente foi testado nos dados reais?
-- **Como ler:** cada linha é uma configuração completa, e cada coluna é uma peça dela.  - *Gate*: o gatilho de volume, que precisa abrir antes de a lista agir (veja *gate* na seção 0.3). Na regra de referência é Ω ≥ τ, e nas outras é o *origin gate*, o número de origens distintas.
+- **Como ler:** cada linha é uma configuração completa, e cada coluna é uma peça dela.
+  - *Gate*: o gatilho de volume, que precisa abrir antes de a lista agir (veja *gate* na seção 0.3). Na regra de referência é Ω ≥ τ, e nas outras é o *origin gate*, o número de origens distintas.
   - *Scope*: a regra que monta a lista.
   - *Background*: o modelo do que é normal, binomial ou beta-binomial.
   - *Exempt*: o que fica fora da lista, ou seja, as frotas conhecidas.
@@ -336,7 +337,8 @@ concluir demais. A ordem é a do artigo.
 - **Como ler:** há três blocos de linhas: os dias de teste calibrados em amostra, os mesmos dias
   com calibração cruzada (\*), e o dia novo. As colunas se dividem em dois grupos.
   - **Clean windows**, as janelas sem botnet:
-    - FA: em quantas das janelas limpas a configuração barrou alguém;    - *No gate*: o mesmo número sem gate, isto é, se a lista agisse em toda janela sem esperar o gatilho. Serve de diagnóstico;
+    - FA: em quantas das janelas limpas a configuração barrou alguém;
+    - *No gate*: o mesmo número sem gate, isto é, se a lista agisse em toda janela sem esperar o gatilho. Serve de diagnóstico;
     - *Coll.*: quando um falso alarme acontece, a fração dos clientes da janela que é barrada
       (a mediana);
     - *Fl. 1k*: em quantas janelas um pico de 1.000 usuários reais dispara o filtro.
@@ -378,15 +380,22 @@ concluir demais. A ordem é a do artigo.
 **Fig. 2, o que a configuração barra conforme o tamanho da botnet**
 - **A pergunta:** por que botnets pequenas passam no serviço grande?
 - **Como ler:** há um painel por serviço, do E1 ao E4. O eixo horizontal traz os atacantes por
-  janela, em escala logarítmica, e o vertical, a porcentagem.  - Linha pontilhada (*gate opens*): em quantas janelas o gate abre.  - Tracejada cinza (*scope alone*): quanto a lista barraria sem gate, agindo em toda janela, com fingerprints novos.
+  janela, em escala logarítmica, e o vertical, a porcentagem.
+  - Pontilhada cinza-clara (*gate opens*): em quantas janelas o gate abre.
+  - Tracejada escura (*scope alone*): quanto a lista barraria sem gate, agindo em toda janela, com fingerprints novos.
   - Cheia, com bolinhas pretas: o que a configuração de fato barra, com fingerprints novos.
   - Cheia, com bolinhas vazadas: o mesmo, com fingerprints compartilhados.
+  - Área sombreada: a parte da botnet que a lista apontaria, mas o gate deixa passar. No E1 ela
+    vem marcada *lost to the gate*. É o problema que a figura mostra, e ela só é grande no E1.
   - Linha vertical cinza: o piso dos fingerprints novos (Tabela V).
-  - Triângulo no eixo: o tamanho da janela típica.
+  - Triângulos no eixo: o preto é a janela típica, e o vazado é um décimo dela, a botnet "de um
+    décimo" do texto.
 - **Exemplo de leitura (E1):** com 100 atacantes, a lista sozinha barraria 43% (tracejada).
   Mas para botnets de 25 atacantes até um décimo da janela o alarme toca em só 6% a 13% das
   janelas (pontilhada), e a configuração barra só 3,4% (cheia). A linha cheia segue a
-  pontilhada, e não a tracejada: quem manda é o alarme.
+  pontilhada, e não a tracejada: quem manda é o alarme. A área sombreada entre a tracejada e a
+  cheia é o que ele deixa passar. No triângulo vazado, um décimo da janela, a lista pegaria 90%
+  da botnet, e a configuração barra 12%.
 - **Exemplo de leitura (E2 a E4):** o alarme toca cedo, porque 100 atacantes já valem várias
   janelas típicas desses serviços. Aí quem manda é o piso, e as linhas cheias sobem perto da
   linha vertical.
@@ -396,7 +405,10 @@ concluir demais. A ordem é a do artigo.
 
 **Tabela VI, os alarmes alternativos**
 - **A pergunta:** trocar o alarme recupera a botnet pequena sem encher o dia de falsos alarmes?
-- **Como ler:** os blocos de linhas são três alarmes.  - *Origin gate*: o gate de origens distintas, o do protocolo.  - *Seasonal gate*: o gate sazonal, que compara o saguão com a mesma hora dos dias anteriores (\*).  - *No gate*: sem gate. A lista roda em toda janela e é o próprio gatilho (\*).
+- **Como ler:** os blocos de linhas são três alarmes.
+  - *Origin gate*: o gate de origens distintas, o do protocolo.
+  - *Seasonal gate*: o gate sazonal, que compara o saguão com a mesma hora dos dias anteriores (\*).
+  - *No gate*: sem gate. A lista roda em toda janela e é o próprio gatilho (\*).
 
   Dentro de cada bloco há três listas: o binomial, o beta-binomial cruzado (†) e os inéditos.
   As colunas trazem:
@@ -418,14 +430,18 @@ concluir demais. A ordem é a do artigo.
 - **Como ler:** há dois painéis, um para fingerprints novos e outro para compartilhados. O eixo
   horizontal traz os falsos alarmes (% das janelas limpas), em escala logarítmica de 0,01 a
   10, e o vertical, a porcentagem barrada de uma botnet de 100 atacantes.
-  - O melhor lugar é **em cima e à esquerda**: muita detecção e poucos falsos alarmes.  - Cada forma é uma configuração, conforme a legenda. Nela, *scope alone* e *own trigger* querem dizer sem gate: a lista, ou o filtro de inéditos, é o próprio gatilho.
-  - Cheio são os dias de teste, vazado é o dia novo, e cinza é a calibração cruzada, com uma
-    seta saindo do ponto em amostra.
-  - As taxas zero aparecem desenhadas em 0,01%.
+  - O melhor lugar é **em cima e à esquerda**: muita detecção e poucos falsos alarmes.
+  - Cada forma é uma configuração, conforme a legenda. Nela, *scope alone* e *own trigger* querem dizer sem gate: a lista, ou o filtro de inéditos, é o próprio gatilho.
+  - Preto são os dias de teste, e cinza é a calibração cruzada, com uma seta saindo do ponto em
+    amostra.
+  - A linha tracejada vertical é o orçamento de 1%: o que fica à direita dela passa do orçamento.
+  - O dia novo ficou fora da figura. Com o gate quase sem abrir, as taxas zero dele cairiam no
+    canto "ideal" sem querer dizer nada. Os números dele estão nas Tabelas IV e VI.
 - **Exemplo de leitura:** o losango (binomial, a do protocolo) fica perto de 0,1% de falsos
   alarmes e de 38% da botnet em fingerprints novos. O X (a lista sozinha, com beta-binomial) chega
-  a uns 86%, mas com cerca de 4,5% de falsos alarmes. Com a calibração cruzada (a seta), ele
-  cai para cerca de 1,1% e 66%.
+  a uns 86%, mas com cerca de 4,5% de falsos alarmes, bem à direita do orçamento. Com a
+  calibração cruzada (a seta), ele cai para cerca de 1,1% e 66%, ainda um pouco além do
+  orçamento.
 - **O que concluir:** nenhum ponto chega ao canto ideal, porque ganhar detecção custa falsos
   alarmes. As setas mostram quanto do resultado em amostra era otimismo.
 - **Cuidado:** os 100 atacantes estão somados sobre os quatro serviços, e o total é puxado

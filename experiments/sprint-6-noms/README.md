@@ -1844,3 +1844,32 @@ the block fit again. The counter now uses `grep -F 'Underfull \vbox'` and report
 confirmed by a direct grep of the log. A trim on page 3 was tried and undone: it stretched
 page 4's right column, whose foot is fixed by the footnote. The references start on page 8
 again, 12 pages. `make audit`: 253 checks, 0 mismatches.
+
+## 41. Round 38: Figs. 2 and 3 show their point
+
+A read of the figures on their own, without the text, found two problems. Fig. 2 held the
+evidence but did not show the problem: nothing marked the gap between what the scope alone
+would block and what the configuration stops, and the tenth-size botnet the text quotes had
+no place on the axis. Fig. 3 was too dense (eight shapes in three fills). It had no budget
+line, and it drew the held-out day's zero rates, which come from a gate that barely opened,
+in the plot's best corner.
+- Fig. 2:
+  - the area between the scope alone and the configuration on new stacks is shaded, and
+    labeled "lost to the gate" on E1;
+  - an open triangle marks a tenth of each endpoint's median window, next to the filled one
+    for the whole window;
+  - the scope-alone line is now dark and the gate line light.
+  The caption states the shading, including "most of a small botnet on the busiest
+  endpoint".
+- Fig. 3:
+  - it shows the test days only, with the cross-fitted points and arrows;
+  - a dashed line marks the 1% budget, so the two scope-alone configurations are seen past it;
+  - the held-out day is left to Tables IV and VI, and the caption drops "Zero rates are drawn
+    at 0.01%" and the open markers.
+  Fig. 3 grew from 2.2 to 2.5 in. The shorter caption had let page 7's right column end
+  short of "VI. Discussion" at badness 10000, and the taller figure fills it and is easier to
+  read. At 2.3 in and 2.4 in the column still stretched.
+
+No stretched column, 12 pages, the Acknowledgment ends on page 8. `make audit`: 253 checks,
+0 mismatches. The study guide's readings of Figs. 2 and 3 describe the new elements. A
+formatting slip from round 35 is fixed: five list items had been joined to the line above.

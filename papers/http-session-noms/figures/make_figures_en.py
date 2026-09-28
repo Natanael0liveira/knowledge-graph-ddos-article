@@ -3,12 +3,12 @@
 
 Generates the DATA figures. Fig. 1 (fig1_scoping) is a draw.io schematic and is NOT
 produced here -- see figures/README.md and figures/src-drawio/.
-  fig6_stops.png      -- Fig. 2 (Section V-B), one column at print size: what the binomial
-                         configuration stops per endpoint, by botnet size, with the gate
-                         and the scope alone.
-  fig4_operating.png  -- Fig. 3 (Section V-B), one column at print size: operating points
+  fig6_stops.png      -- Fig. 2 (Section V-C), one column at print size: what the binomial
+                         configuration stops per endpoint, by botnet size, with the gate,
+                         the scope alone and, shaded, what the gate lets through.
+  fig4_operating.png  -- Fig. 3 (Section V-C), one column at print size: operating points
                          on production traffic, false alarms against blocked share (test
-                         days, the held-out day and the cross-fitted calibration).
+                         days and the cross-fitted calibration), with the 1% budget.
   fig5_latency.png    -- Fig. 4 (Appendix D), single column: the cost of both layers.
   fig3_collateral.png -- no longer in the paper (Table III carries its modal column): the
                          modal scope, the unseen-fingerprint filter and the enrichment scope
@@ -161,9 +161,10 @@ def fig_collateral(root):
 def fig_operating(root):
     """False alarms against blocked share on production traffic, 100 attackers.
 
-    Drawn at print size (one column, 3.45 in). Filled markers: test days; open: the
-    held-out day; grey, joined by an arrow to its in-sample point: the cross-fitted
-    calibration of the three calibrated configurations.
+    Drawn at print size (one column, 3.45 in). Black markers: test days, calibrated in
+    sample; grey, joined by an arrow to its in-sample point: the cross-fitted calibration.
+    The dashed line is the 1% false-alarm budget. The held-out day is left to Tables IV and
+    VI: its gate barely opened, so its zero rates would sit in the best corner of the plot.
     """
     T = json.load(open(os.path.join(root, "experiments/sprint-6-noms/results/production_tables.json")))
     scopes = [  # (label, run, key, marker, size)
@@ -178,14 +179,14 @@ def fig_operating(root):
     ]
     xfit = [("fleets", "xfit_fleets", "union|origins", "D", 13), ("od", "xfit_od", "union|origins", "h", 18),
             ("base", "xfit", "zcal|origins", "^", 18), ("od", "xfit_od", "union|none", "X", 18)]
-    fig, axes = plt.subplots(1, 2, figsize=(3.45, 2.2), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(3.45, 2.5), sharey=True)
     for ax, cell, title in ((axes[0], "new:A100", "new stacks"), (axes[1], "shared:A100", "shared stacks")):
+        ax.axvline(1, color=CHANCE, lw=0.7, ls=(0, (3, 2)), zorder=1)
         for lab, run, key, mk, s in scopes:
-            for block, filled in (("test_days", True), ("fresh_day", False)):
-                r = T[block][run]["all"][key]
-                ax.scatter(max(r["clean_rate"] * 100, 0.01), r[cell]["blocked"] * 100, marker=mk, s=s,
-                           facecolors=NAVY if filled else "white", edgecolors=NAVY, linewidths=0.6, zorder=3,
-                           label=lab if (filled and ax is axes[0]) else None)
+            r = T["test_days"][run]["all"][key]
+            ax.scatter(max(r["clean_rate"] * 100, 0.01), r[cell]["blocked"] * 100, marker=mk, s=s,
+                       facecolors=NAVY, edgecolors=NAVY, linewidths=0.6, zorder=3,
+                       label=lab if ax is axes[0] else None)
         for run0, run, key, mk, s in xfit:
             r0, r = T["test_days"][run0]["all"][key], T["test_days"][run]["all"][key]
             p0 = (max(r0["clean_rate"] * 100, 0.01), r0[cell]["blocked"] * 100)
@@ -204,6 +205,7 @@ def fig_operating(root):
         ax.grid(alpha=.25, lw=0.5, zorder=0)
         ax.spines[["top", "right"]].set_visible(False)
     axes[0].set_ylabel("% of 100 attackers blocked", fontsize=7, labelpad=1)
+    axes[0].text(0.8, 99, "1% budget", fontsize=5.8, ha="right", va="top", color=CHANCE)
     h, l = axes[0].get_legend_handles_labels()
     # one x label for both panels, just under the tick labels, then a clear gap before the legend
     fig.tight_layout(pad=0.2, w_pad=0.5, rect=(0, 0.29, 1, 1))
@@ -237,13 +239,18 @@ def fig_stops(root):
         pts.sort()
         xs = [p[0] for p in pts]
         get = lambda mode, f: [S[e][f"{mode}:{k}"][f] * 100 for _, k in pts]
-        ax.plot(xs, get("new", "gate"), ":", color=CHANCE, lw=1.1, label="gate opens (% of windows)")
-        ax.plot(xs, get("new", "blocked_alone"), "--", color=GRAYB, lw=1.1, label="scope alone, new stacks")
-        ax.plot(xs, get("new", "blocked"), "o-", color=NAVY, lw=1.1, ms=2.6, label="configuration, new stacks")
+        alone, conf = get("new", "blocked_alone"), get("new", "blocked")
+        # what the scope names but the gate lets through: the paper's point on the busiest endpoint
+        ax.fill_between(xs, conf, alone, where=[a > c for a, c in zip(alone, conf)], interpolate=True,
+                        color="#dcdcdc", lw=0, zorder=1)
+        ax.plot(xs, get("new", "gate"), ":", color=GRAYB, lw=1.1, label="gate opens (% of windows)")
+        ax.plot(xs, alone, "--", color=CHANCE, lw=1.1, label="scope alone, new stacks")
+        ax.plot(xs, conf, "o-", color=NAVY, lw=1.1, ms=2.6, label="configuration, new stacks")
         ax.plot(xs, get("shared", "blocked"), "o-", color=NAVY, lw=0.8, ms=2.6, mfc="white",
                 label="configuration, shared stacks")
         ax.axvline(floor_new[e], color=GRAYB, lw=0.6, zorder=0)
         ax.plot([n0[e]], [-6], marker="^", color=NAVY, ms=3.5, clip_on=False, zorder=4)
+        ax.plot([0.1 * n0[e]], [-6], marker="^", color=NAVY, mfc="white", mew=0.6, ms=3.5, clip_on=False, zorder=4)
         ax.set_xscale("log")
         ax.set_xlim(1.5, 4000)
         ax.set_ylim(-6, 100)
@@ -251,6 +258,7 @@ def fig_stops(root):
         ax.grid(alpha=.25, lw=0.5, zorder=0)
         ax.tick_params(labelsize=6.5, length=2, pad=1.5)
         ax.spines[["top", "right"]].set_visible(False)
+    axes[0, 0].text(400, 64, "lost to\nthe gate", fontsize=5.8, ha="center", va="center", color=NAVY, zorder=5)
     for ax in axes[1]:
         ax.set_xlabel("attackers per window", fontsize=7, labelpad=1)
     for ax in axes[:, 0]:

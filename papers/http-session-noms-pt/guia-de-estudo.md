@@ -371,15 +371,20 @@ literatura mede o custo e o limite de um filtro por impressão TLS.
 
 ### 0.12 Por que o artigo não fala mais em "knowledge graph"
 
-O trabalho começou como um grafo de conhecimento que detectaria ataques e explicaria o
-veredicto. Os dados mostraram duas coisas. Primeiro, a vantagem na detecção vinha de
-contagens que qualquer tabela calcula. Segundo, perceber o ataque é fácil quando se
-contam os visitantes distintos.
+O artigo prometia que um grafo de conhecimento detecta ataques melhor e explica o porquê.
+Os testes não confirmaram isso, por três motivos:
+1. **O grafo não detectava melhor do que uma planilha.** A vantagem vinha de contar
+   quantas conexões têm a mesma impressão TLS, e uma tabela simples faz a mesma conta.
+   Em ataques reais de laboratório, olhar cada conexão sozinha já bastava.
+2. **Detectar era a parte fácil.** Contar visitantes distintos percebe o ataque. O difícil,
+   e que ninguém media, é decidir quem bloquear sem bloquear os usuários.
+3. **Um artigo só pode prometer o que os dados mostram.** Com a promessa antiga, as
+   revisões simuladas ficavam em "rejeição fraca". Com a nova, chegaram a "aceitação
+   fraca".
 
-O que era novo e medido em tráfego real era a decisão de **quem bloquear**, com seu custo
-e seus limites. O artigo passou a prometer só isso. O grafo ficou como a especificação
-de onde sai a consulta e o formato da exportação. A história completa, com os números,
-está em **`por-que-mudamos.md`**, nesta mesma pasta.
+O grafo ficou como a especificação: dele sai a consulta que roda nos logs e o formato do
+bloqueio exportado. A explicação completa, com analogias e os números, está em
+**`por-que-mudamos.md`**, nesta mesma pasta.
 
 ---
 

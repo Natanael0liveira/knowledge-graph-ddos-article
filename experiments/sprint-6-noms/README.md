@@ -1560,3 +1560,55 @@ in words), III-A's list of what the attacker randomizes, V-A's fallback clause, 
 0.97% (Table VII prints it) and E1 collateral (now in App. E), and VI's cost sentence
 (App. D keeps it). Table VII's note stays at two lines. The body and the Acknowledgment
 end on page 8, 12 pages, abstract 250 words. `make audit`: 259 checks, 0 mismatches.
+
+## 28. Round 27: B1, readability
+
+At the user's choice ("Commit + B1 e fim"), round 26 was committed and one readability
+pass followed, the round-26 review's B1, with no new data:
+- terms are marked where they are defined: the *budget* (III-C), *new*, *shared*,
+  *adversarial* and *tenth-size* (IV-A), *in sample* (each calibration day judged against
+  a profile that includes it) and *cross-fitting* (IV-B), the *seasonal gate* and the
+  *scope as its own trigger* (No gate) in V-C;
+- V-C's "Other triggers" is in two parts: the triggers, then "What the unseen filter and
+  the test add";
+- VI's recommendation reads as (i) *Now*, the binomial configuration on every endpoint
+  with the fallback below its floor, and (ii) *Next*, the pre-specified test of the post
+  hoc triggers, its baseline and its arms;
+- App. E's single "Details of Section V" paragraph is three, "Details of V-B", "V-C"
+  and "V-D".
+
+Space came from numbers the tables print (Table III's learned-model recall with the
+profile, Table V's cross-fitted beta-binomial floors), V-A's "15 campaigns" and its
+stealth-mode clause, a shorter RFC 9761 sentence in VI, App. A's near-variant
+parenthesis, and one App. E sentence merging the pooled and held-out blocked shares. The
+body and the Acknowledgment end on page 8, 12 pages, abstract 250 words. `make audit`:
+259 checks, 0 mismatches.
+
+## 29. Round 28: the final review
+
+The final review (scope-bound, round-27 text) found no class A item: weak accept, 3/4/2/4,
+confidence 4, 65-75th percentile, "clears the acceptance bar, narrowly", ready to submit.
+Its one-line items were applied after checking each against the result files:
+- B1: "it alone was tested" (a round-27 regression) is now "behind the distinct-origin
+  gate it alone was tested", since the base rule was also in protocol, behind the Omega gate;
+- B2: on the busiest endpoint a botnet that leaves the gate shut meets neither filter nor
+  fallback;
+- B3: on new stacks too small for the filter, the cross-fitted beta-binomial adds on the
+  small endpoints and the binomial only on the single sign-on (on E1-E3 its new:A100 cells
+  equal the unseen filter's exactly, under every trigger, test days and held-out day);
+- B4: the adversarial botnet is stopped on no fingerprint of E1 and E2, where nearly all
+  25 lie past the limit, but 73.5% of 1,000 on E4;
+- B6: the abstract says the unseen trigger stops none on shared stacks;
+- B7: App. F says the protocol named JA4 class sizes and the check compared pair counts;
+- B8: V-C drops the exact interval of the E1 rate (the day counts stay; the endpoint-day
+  bootstrap gives 0.07-2.01%);
+- polish: {JA4} braced in the OCSF note, "every row the learned model runs", 2.2-3.4%
+  collateral, the measured curve's head and top ten, "its typical stack", "the tenth-size
+  botnet", "more common that day" with 98.2% of 280 firings in App. E, App. E's post hoc
+  marks, the all-client profile for the console's surges.
+
+Space came from V-D's in-sample beta-binomial floors (Table V prints them), V-D's closing
+WAF sentence, the next test's size sentence folded into (ii), a shorter conclusion, and in
+the appendices the one-run-profile sentence (its audit check went with it), "Dataset
+breadth" folded into "Coverage", and a shorter seeds sentence. 12 pages, the
+Acknowledgment ends on page 8, abstract 250 words. `make audit`: 258 checks, 0 mismatches.

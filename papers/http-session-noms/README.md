@@ -27,7 +27,7 @@ decides; Fig. 2, Table VII with the scopes behind each trigger ("No gate": the s
 operating points) and D what the evidence supports (the held-out day, the post hoc
 analyses, the boundary and this WAF's verdicts). Specification and
 exchange are in Section VI. Section V keeps the central numbers in its text and leaves
-the rest to Tables IV to VII and to the "Details of Section V" paragraph of Appendix E.
+the rest to Tables IV to VII and to the "Details of V-B", "V-C" and "V-D" paragraphs of Appendix E.
 Section III keeps the trigger, the scope, its calibration and the floor; Ω is defined
 there in words and its equation and weights are in Appendix A.
 

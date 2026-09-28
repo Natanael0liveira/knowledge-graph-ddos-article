@@ -1502,8 +1502,10 @@ em pilhas novas (Tabela V), e o triângulo, a janela mediana. As mesmas curvas e
     os erros se concentram: os 4 do E1 e os 2 do console caem num só dia, e 5 dos 6 da API
     em outro.
   - **O que o teste acrescenta são as pilhas compartilhadas**, que o filtro de inéditas
-    nunca aponta (14,4–15,1% atrás do sazonal e 61,1–65,7% como gatilho próprio), **e, só
-    nos endpoints pequenos, as pilhas novas menores que k_min**: com 100 atacantes (3,6 por
+    nunca aponta (14,4–15,1% atrás do sazonal e 61,1–65,7% como gatilho próprio), **e as
+    pilhas novas menores que k_min**, a beta-binomial cruzada nos endpoints pequenos e a
+    binomial só no SSO (no E1, E2 e E3 ela empata exatamente com o filtro de inéditas, sob
+    qualquer gatilho): com 100 atacantes (3,6 por
     pilha), a beta-binomial cruzada atrás do sazonal detém 53–84% ali, contra 43% do filtro
     de inéditas, mas só 3,9% no E1, onde o sazonal abre em 7,4% dessas janelas. No E1 ela
     troca a maior parte da detecção em pilhas novas (20,4% contra 89,6% da botnet de um
@@ -1613,7 +1615,8 @@ do z-score aos cruzados; a beta-binomial e a calibração cruzada são *post hoc
 - **A fronteira vale em tráfego real.** Uma botnet nas 25 impressões mais comuns do
   endpoint (o caso adversarial) passa em sua maior parte: a binomial detém 7,0% e 23,8% de
   100 e 1.000 atacantes, e nenhum nos dois maiores endpoints, onde quase todas essas
-  impressões estão acima do limite da razão.
+  impressões estão acima do limite da razão, mas 73,5% de 1.000 no SSO, onde só 4 ou 5
+  estão.
 - **Impressões inéditas aparecem todo dia**, até 345 por dia no E1, mas raramente se
   concentram: 0,21% das janelas dos dias de teste têm uma com pelo menos k_min origens, um
   candidato para o filtro de inéditas.

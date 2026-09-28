@@ -11,11 +11,14 @@ figuras citadas aqui são as dele. Os números vêm do artigo ou dos arquivos de
 `experiments/sprint-6-noms/results/`, que `make audit` confere contra o texto. Os
 exemplos numéricos marcados como *hipotéticos* servem só para ensinar a conta.
 
-**Como ler.** A Parte I apresenta o problema e a ideia. A Parte II ensina o método,
-fórmula por fórmula. A Parte III explica como ele foi avaliado e com que métricas. A
-Parte IV percorre os resultados, tabela por tabela. A Parte V prepara a defesa: o que
-recomendar, os limites, os números de cor e as perguntas difíceis. Com pouco tempo, leia
-as seções 1, 19 e 20.
+**Como ler.** Se você não é da área, comece pela **Parte 0**, que explica tudo sem
+fórmulas, com uma analogia, um exemplo com números redondos, um roteiro de apresentação e
+as perguntas prováveis. Depois, a Parte I apresenta o problema e a ideia, e a Parte II
+ensina o método, fórmula por fórmula. A Parte III explica como ele foi avaliado e com que
+métricas, e a Parte IV percorre os resultados, tabela por tabela. A Parte V prepara a
+defesa: o que recomendar, os limites, os números de cor e as perguntas difíceis. Com
+pouco tempo, leia a Parte 0 e as seções 19 e 20. A história de por que o artigo deixou
+de ser sobre grafos de conhecimento está em `por-que-mudamos.md`, nesta pasta.
 
 **Notação.** Vírgula decimal (0,1%). Potências de dez como 10⁻⁶⁰. ⌈x⌉ é o menor inteiro
 maior ou igual a x. C(n, 2) = n(n − 1)/2 é o número de pares distintos entre n elementos.
@@ -23,7 +26,370 @@ Bin(n, b) é a distribuição binomial de n sorteios com probabilidade b.
 
 ---
 
+## Parte 0. Para entender sem matemática
+
+*Se você não é da área, comece aqui. Esta parte explica o trabalho com uma analogia, um
+exemplo pequeno com números redondos e o significado de cada resultado, sem fórmulas. As
+Partes I a V aprofundam cada ponto, com as contas.*
+
+### 0.1 O trabalho em cinco frases
+
+1. Um ataque DDoS lento e distribuído usa milhares de máquinas, e cada uma manda tão
+   pouco tráfego que nenhuma chama atenção sozinha.
+2. Perceber que um serviço está sob ataque é fácil, porque aparecem visitantes demais. O
+   difícil é decidir **quem bloquear** sem bloquear os usuários de verdade.
+3. Nós bloqueamos pelo "sotaque" do software de cada visitante, a **impressão digital TLS**
+   (JA4). Só entram no bloqueio os sotaques que aparecem **muito mais que o normal**
+   naquele serviço.
+4. Um teste estatístico decide o que é "muito mais que o normal". Ele é **calibrado** em
+   dias sem ataque, para errar raramente.
+5. Medimos isso em tráfego gerado e em oito dias de quatro serviços reais da Azion: quanto
+   o método acerta, quanto custa aos usuários e onde deixa de funcionar.
+
+### 0.2 Uma analogia: a portaria de um prédio
+
+Pense na portaria de um prédio comercial muito movimentado. O porteiro não conhece
+ninguém, mas repara em duas coisas em cada pessoa que entra: **de onde ela vem** (o
+endereço de rede, que o artigo chama de *origem*) e **como ela fala** (o sotaque).
+
+O sotaque é a impressão digital TLS. Quando um navegador ou um programa abre uma conexão
+segura (HTTPS), ele se apresenta de um jeito característico: quais versões aceita, que
+lista de cifras oferece, em que ordem. A JA4 resume essa apresentação numa sequência
+curta de letras e números. O Chrome se apresenta de um jeito, o Safari de outro, e o
+firmware de uma câmera IP barata de um terceiro jeito.
+
+**Um dia normal.** Das pessoas que entram, 40% falam com o sotaque "Chrome", 25% "Safari",
+10% "Firefox", e o resto se divide entre muitos sotaques raros. Essa distribuição é o
+**perfil** do prédio, e o porteiro a anota em dias tranquilos.
+
+**O ataque.** Chegam 300 pessoas extras, cada uma de um endereço diferente e cada uma
+educada, sem correr nem gritar. Nenhuma chama atenção sozinha. Mas elas são aparelhos
+invadidos, câmeras e roteadores, e falam com poucos sotaques raros, os do software desses
+aparelhos.
+
+**Duas formas de reagir:**
+- **A óbvia:** barrar o sotaque mais comum no saguão agora. É o "Chrome", e com isso o
+  porteiro barra os próprios clientes e nenhum invasor. Esse é o primeiro resultado do
+  artigo: a escolha óbvia é a pior.
+- **A nossa:** comparar o saguão de agora com um dia normal e barrar só os sotaques que
+  de repente ficaram muito mais frequentes do que costumam ser.
+
+**As regras do porteiro.** Ele precisa decidir o que é "muito mais frequente". Se for
+exigente demais, grupos pequenos de invasores passam: esse é o **piso**. Se for exigente
+de menos, ele barra grupos legítimos que chegam juntos, como uma excursão, e isso é um
+**falso alarme**. Por isso ajustamos a exigência em dias normais, para que o porteiro dê
+falso alarme em no máximo 1% dos períodos de cinco minutos: isso é a **calibração**.
+
+**O alarme da portaria.** O porteiro só confere os sotaques quando o saguão está
+anormalmente cheio. Esse é o **gatilho**. Num prédio enorme, 300 pessoas a mais quase não
+mudam a lotação, então o alarme não toca e os invasores entram, mesmo que o porteiro
+fosse capaz de reconhecê-los. Esse é um dos achados principais do artigo: **o gatilho
+decide**.
+
+### 0.3 As palavras do artigo, uma por uma
+
+| Termo | O que é | Na analogia |
+|---|---|---|
+| Sessão | uma conexão de um cliente com o serviço | uma pessoa entrando |
+| Origem | o endereço de rede (IP) de onde vem a sessão | de onde a pessoa vem |
+| Janela | um intervalo de 5 minutos; um dia tem 288 | um período de observação |
+| Endpoint | o serviço atacado (E1 a E4 no artigo) | o prédio |
+| Impressão TLS, JA4 | o resumo de como o software do cliente abre a conexão segura | o sotaque |
+| Pilha TLS | o software que produz uma impressão (um navegador, uma biblioteca) | quem ensinou o sotaque |
+| Botnet | os aparelhos invadidos que o atacante controla | os invasores |
+| Perfil | a distribuição normal das impressões, medida em dias sem ataque | o dia normal anotado |
+| Escopo | o conjunto de impressões que o filtro bloqueia | a lista de sotaques barrados |
+| Gatilho de origens distintas | o alarme: dispara quando há origens demais na janela | o saguão lotado |
+| Falso alarme | o escopo bloqueia algo numa janela sem ataque | barrar uma excursão |
+| Dano colateral | a parte dos clientes legítimos que o filtro bloqueia | clientes barrados por engano |
+| Orçamento (1%) | a meta de falsos alarmes: no máximo 1% das janelas limpas | "errar no máximo 3 vezes por dia" |
+| Calibração, nível | ajustar o quão exigente o teste é, olhando dias normais | a regra do porteiro |
+| Piso de calibração | o menor ataque que o teste consegue apontar | o menor grupo que o porteiro percebe |
+| Limite da razão | sotaques comuns demais nunca parecem "muito acima do normal" | invasores que falam "Chrome" |
+| Frota | clientes legítimos que chegam juntos, como robôs de monitoramento | uma excursão |
+| Frotas conhecidas | as frotas que aparecem sempre, postas numa lista de exceções | excursões conhecidas |
+| Filtro de impressões inéditas | bloqueia sotaques nunca vistos no perfil | sotaques que nunca passaram por ali |
+| União | o teste junto com o filtro de inéditas | as duas regras juntas |
+| z-score | uma regra mais simples que o teste binomial, usada como comparação | outro porteiro, menos cuidadoso |
+| Beta-binomial | um modelo estatístico que aceita que as pessoas cheguem em grupos | o porteiro que já espera excursões |
+| Gatilho sazonal | um alarme que compara com a mesma hora dos dias anteriores | "está cheio para uma segunda às 10h?" |
+| Calibração cruzada | calibrar com uns dias e conferir em outros | estudar com uma prova e fazer outra |
+| Em amostra | calibrar e medir nos mesmos dias | estudar com a própria prova |
+| Dia novo (*held-out*) | um nono dia analisado com tudo fixado antes | a prova final, com questões inéditas |
+| *Post hoc* | análise pensada depois de ver o dia novo | ideia que surgiu depois da prova |
+| Pico legítimo (*flash crowd*) | muita gente de verdade chegando de uma vez | a liquidação que lota a loja |
+| WAF | o firewall de aplicação da Azion, que bloqueia por outras regras | a segurança do prédio vizinho |
+| STIX, DOTS, Flowspec, OCSF | padrões para ferramentas trocarem alertas e pedidos de bloqueio | os formulários oficiais |
+| Ontologia OWL | um dicionário formal do que é sessão, origem e relação | a planta do sistema |
+
+**Os quatro serviços da Azion** (os *endpoints*):
+- **E1**, sinais de monitoramento de usuários reais. São pequenos avisos que os
+  navegadores mandam para medir o desempenho das páginas. É o mais movimentado, com cerca
+  de 3.000 origens por janela.
+- **E2**, o console web, onde os clientes da Azion configuram os serviços (cerca de 62
+  origens por janela).
+- **E3**, a API (41 origens).
+- **E4**, o login único, o SSO (20 origens).
+
+### 0.4 O teste, sem fórmula
+
+O **teste binomial de enriquecimento** faz uma pergunta simples para cada sotaque: *isto
+pode ser sorte?*
+
+Suponha que, num dia normal, 1 em cada 1.000 visitantes tenha o sotaque X. Numa janela
+com 1.300 visitantes, esperamos ver cerca de uma pessoa com X. Se aparecem 101, é como
+lançar uma moeda que dá cara uma vez em mil e tirar 101 caras em 1.300 lançamentos: pode
+acontecer, mas a chance é tão pequena que ninguém acredita em sorte.
+
+O teste calcula essa **chance de sorte** e aponta X quando duas condições valem juntas:
+1. X aparece pelo menos **três vezes mais** do que no perfil;
+2. a chance de ver tanto X por sorte é **menor que um limite** (o *nível*).
+
+**Um cuidado extra.** Em cada janela testamos centenas de sotaques. Se cada um tivesse
+chance de 1 em 100 de parecer suspeito por sorte, algum sempre pareceria. Por isso o
+limite é dividido pelo número de sotaques testados (a *correção de Bonferroni*): quanto
+mais sotaques, mais exigente fica cada teste.
+
+**Por que calibrar.** Em dados reais, as frotas chegam juntas: dezenas de robôs de
+monitoramento com o mesmo sotaque, no mesmo minuto. Para o teste, isso parece
+improvável, mas é normal. Então ajustamos o limite olhando dias sem ataque: escolhemos o
+mais permissivo que ainda erra em no máximo 1% das janelas. Nos serviços com muitas
+frotas, esse limite fica extremamente exigente (uma chance de 1 em 10²¹ no E1), e por
+isso o piso sobe.
+
+### 0.5 Um exemplo completo, com números redondos (hipotético)
+
+Uma janela normal de um serviço tem **1.000 visitantes legítimos**:
+- sotaque A (um navegador comum): 40%, ou 400 pessoas;
+- B: 25%, ou 250;
+- C: 10%, ou 100;
+- o resto (250 pessoas) se espalha por muitos sotaques raros, cada um com 1% ou menos;
+- entre eles estão X, Y e Z, com 0,1% cada, ou seja, **1 pessoa** cada.
+
+Chega uma botnet de **300 aparelhos**, com 100 em cada um dos sotaques X, Y e Z. A janela
+passa a ter 1.300 visitantes.
+
+**1. A escolha óbvia falha.** O sotaque mais comum no saguão continua sendo A, com 400
+pessoas (X, Y e Z têm 101 cada). Barrar A bloqueia 400 usuários legítimos, ou 40% deles, e
+nenhum aparelho da botnet. No artigo, com tráfego gerado, esse número é 39%.
+
+**2. O teste acerta.**
+- Para A: esperaríamos 40% de 1.300, ou 520 pessoas, e vemos 400. A está *abaixo* do
+  normal, então não entra no escopo.
+- Para X: esperaríamos cerca de 1,3 pessoa e vemos 101, quase 80 vezes mais. A chance de
+  sorte é praticamente zero, então X entra, e Y e Z também.
+- Barrar X, Y e Z bloqueia os 300 aparelhos e 3 usuários legítimos (a 1 pessoa normal de
+  cada sotaque). O dano colateral é de 0,3%, pequeno, mas diferente de zero.
+
+**3. O piso.** Agora a botnet tem só **5 aparelhos** por sotaque. Em X vemos 6 pessoas em
+vez de 1. Isso é seis vezes mais que o normal, mas a chance de sorte ainda é de cerca de
+6 em 10.000. Com cem sotaques testados e o limite dividido entre eles, essa chance não é
+pequena o bastante, e X não entra. Ataques pequenos ficam **abaixo do piso**: o teste não
+consegue separá-los do acaso.
+
+**4. O limite da razão.** Suponha que os 300 aparelhos falem com o sotaque A, o do
+navegador comum. Para A ficar "três vezes mais frequente que o normal", ele teria que ser
+120% dos visitantes, o que é impossível. Um bot que imita um navegador comum nunca é
+apontado, e isso vale para qualquer tamanho de botnet. No artigo, com 25 sotaques na
+botnet, cada um fica com no máximo 3,6% da janela. Então só os sotaques com menos de 1,2%
+do perfil podem ser apontados, e os 4 a 28 sotaques mais comuns de cada serviço, que
+somam 86% a 94% dos visitantes, estão fora de alcance.
+
+**5. O gatilho.** No E1, uma janela normal tem cerca de 3.000 visitantes. Uma botnet de
+300 acrescenta 10%, e o alarme, que só dispara quando a janela está entre as 1% mais
+cheias dos dias normais, raramente toca: em só 6% a 13% das janelas para botnets desse
+tamanho. Quando o alarme não toca, ninguém confere os sotaques, e a botnet passa.
+
+### 0.6 O que o trabalho mostrou, em linguagem simples
+
+1. **A escolha óbvia é perigosa.** No tráfego gerado, barrar o sotaque mais comum
+   bloqueia 39% dos usuários e nenhum atacante quando a botnet usa cinco sotaques ou
+   mais. Comparar com o perfil bloqueia 90% da botnet sem dano observado, com até 25
+   sotaques novos.
+2. **Em dados reais, a configuração calibrada erra pouco, mas cada erro pesa.** Ela dá
+   falso alarme em 0,1% das janelas limpas (5 de 5.643), e cada um bloqueia, em mediana,
+   um terço dos clientes daquela janela. Na média, isso dá 0,03% dos clientes por janela.
+3. **Há um tamanho mínimo de ataque que se consegue apontar, o piso.**
+   - Em sotaques novos, 139 atacantes por janela.
+   - Em sotaques raros que clientes reais também usam, 254 atacantes no E1 (8% da janela)
+     e de 4 a 19 janelas inteiras nos serviços pequenos.
+   - Nos sotaques mais comuns, em expectativa, nunca.
+
+   Abaixo do piso, o recurso do operador é limitar a taxa ou desafiar todos os clientes.
+4. **O alarme é o gargalo.** No E1, o teste sozinho bloquearia 90% de uma botnet de um
+   décimo da janela, mas o alarme toca em poucas janelas, e a configuração detém só 12%.
+5. **Ideias testadas depois recuperam parte disso.** Usar o próprio filtro de sotaques
+   inéditos como alarme detém 90% em sotaques novos com poucos falsos alarmes. Como foi
+   pensado depois de ver o dia novo, isso precisa de um teste novo, marcado antes, para
+   valer.
+6. **O firewall da Azion não serve de gabarito**, porque bloqueia por outros critérios.
+   **E os padrões de troca não sabem dizer "bloqueie este sotaque":** o STIX só leva a JA4
+   numa extensão, o importador do MISP a descarta, e DOTS e Flowspec só filtram campos de
+   rede e de transporte.
+
+### 0.7 Como ler cada tabela e figura
+
+- **Fig. 1, o método.** Da esquerda para a direita: os logs viram contagens por janela
+  (a consulta compilada da ontologia), o gatilho dispara, o teste compara com o perfil e
+  sai o escopo. Todos os limites vêm de dias sem ataque.
+- **Tabela I, trabalhos relacionados.** Para cada abordagem da literatura: o que o filtro
+  compara, quem escolhe e quanto custa aos usuários. Só este trabalho filtra por
+  impressão TLS **e** mede o custo.
+- **Tabela II, as quatro configurações.** O que muda em cada uma: o alarme, a regra, o
+  modelo estatístico e se ela foi fixada antes do dia novo ("in protocol") ou depois
+  ("post hoc").
+- **Tabela III, tráfego gerado.** Quanto de cada botnet cada regra bloqueia, com 1 a 100
+  sotaques. A coluna "Modal" é a escolha óbvia, e o zero dela a partir de cinco sotaques
+  é o primeiro resultado.
+- **Tabela IV, produção, todos os serviços juntos.** "FA" é a taxa de falso alarme;
+  "Coll." quanto cada alarme falso bloqueia; "Fl. 1k" quantas vezes um pico de 1.000
+  usuários legítimos dispara o filtro. As colunas 0.1× e 1× dizem quanto de uma botnet
+  de um décimo da janela, ou de uma janela inteira, é detido.
+- **Tabela V, o piso por serviço.** Quantos atacantes por janela o teste precisa ver para
+  apontar a botnet: "new" para sotaques novos, "shared" para sotaques que clientes reais
+  também usam.
+- **Fig. 2, o que a configuração detém, por tamanho de botnet.** Um painel por serviço:
+  - pontilhado: com que frequência o alarme toca;
+  - tracejado: o que o escopo bloquearia se o alarme sempre tocasse;
+  - linhas cheias: o que a configuração realmente detém.
+
+  A distância entre o tracejado e as linhas cheias no E1 é o "gatilho decide".
+- **Tabela VI, os alarmes alternativos.** Linhas: três alarmes (o de origens, o sazonal e
+  nenhum, isto é, o próprio escopo como alarme) combinados com três regras. Colunas: os
+  falsos alarmes no E1 e nos serviços pequenos, nos dias de teste ("test") e no dia novo
+  ("held"), e quanto se detém da botnet de um décimo no E1.
+- **Fig. 3, o equilíbrio de cada configuração.** O eixo horizontal é a taxa de falsos
+  alarmes e o vertical a parte de 100 atacantes bloqueada. O melhor fica **em cima e à
+  esquerda**. Os símbolos cheios são os dias de teste, os vazados o dia novo, e as setas
+  cinzas mostram o que muda com a calibração cruzada.
+- **Fig. 4 (Apêndice D), o custo.** O tempo de cálculo cresce com o número de sessões. As
+  linhas cinzas (ligações entre pares) sobem muito rápido; as pretas (contagem por
+  classe) sobem devagar ou ficam planas. É por isso que o método conta classes.
+
+### 0.8 O que recomendamos, e por quê
+
+- **Agora:** usar a configuração binomial em todos os serviços, porque é a única,
+  atrás do gatilho de origens, que foi testada num dia inédito com tudo fixado antes.
+  Abaixo do piso, o recurso é limitar a taxa ou desafiar os clientes. No console, onde
+  caíram os dois falsos alarmes do dia novo, um desafio pode ser a primeira resposta mais
+  segura.
+- **Depois:** um teste novo, planejado antes, em semanas de dados, comparando o filtro de
+  inéditas como alarme próprio (a base) com as duas alternativas promissoras. Só esse
+  teste pode transformar as ideias *post hoc* em recomendação.
+
+### 0.9 Os limites, ditos com honestidade
+
+- A botnet injetada tem um só formato: 25 sotaques, divididos por igual.
+- São nove dias de um único operador, poucos para ver um ciclo semanal.
+- Cinco escolhas do método foram feitas nos mesmos dias em que ele foi medido. Só o dia
+  novo as testa, e ele é um teste fraco.
+- Não existe captura pública de um ataque furtivo real para testar.
+- Um bot que imita o sotaque de um navegador comum escapa. É a fronteira declarada do
+  método.
+- A avaliação é offline, sobre contagens exportadas. Uma implantação ao vivo ainda
+  precisa ser construída.
+- Não medimos se um ataque no tamanho do piso derrubaria o serviço, nem um atacante que
+  tente enganar o perfil.
+
+### 0.10 Roteiro para uma apresentação de 15 minutos
+
+| Slide | Conteúdo | Mensagem |
+|---|---|---|
+| 1 | Título e a pergunta | "Quem bloquear?" |
+| 2 | O ataque lento e distribuído (analogia da portaria) | ninguém chama atenção sozinho |
+| 3 | A escolha óbvia (Tabela III, coluna Modal) | 39% dos usuários e nenhum atacante |
+| 4 | A ideia: comparar com o normal (Fig. 1) | o teste binomial, calibrado |
+| 5 | Tráfego gerado (Tabela III) | 90% da botnet, sem dano observado |
+| 6 | Os dados reais: 4 serviços da Azion, 8 dias e um dia novo | tráfego real, botnet injetada |
+| 7 | Falsos alarmes (Tabela IV) | 0,1%, mas cada um pesa um terço da janela |
+| 8 | O piso e o limite da razão (Tabela V) | onde o filtro deixa de ser possível |
+| 9 | O gatilho decide (Fig. 2) | 90% possíveis, 12% detidos no E1 |
+| 10 | Alarmes alternativos (Tabela VI, Fig. 3) | o que testar a seguir |
+| 11 | Troca e ontologia | os padrões não sabem dizer "bloqueie esta JA4" |
+| 12 | Limites e conclusão | o que é sólido e o que falta |
+
+Se perguntarem por que o título não fala em *knowledge graph*, a resposta está na seção
+0.12 e no arquivo `por-que-mudamos.md`.
+
+### 0.11 Perguntas prováveis e respostas curtas
+
+**"Por que não bloquear por endereço IP?"**
+Cada atacante vem de um endereço diferente e manda pouco tráfego, então não há um
+endereço para bloquear. Bloquear faixas de endereços pega também os usuários que
+compartilham a mesma saída de rede.
+
+**"E se o bot imitar o Chrome?"**
+Aí o sotaque dele é o mais comum, e o teste não aponta nada. É o limite da razão, e o
+artigo mede isso: só 7% e 24% de 100 e 1.000 atacantes são detidos. É a fronteira
+declarada do método, e nesse caso o recurso é limitar a taxa ou desafiar.
+
+**"O ECH (Encrypted Client Hello) não esconde a JA4?"**
+Esconde de quem está no meio do caminho. Quem termina a conexão segura, que é o próprio
+serviço ou a CDN, continua vendo tudo, e é aí que o método roda.
+
+**"Por que o limite de 1% de falsos alarmes?"**
+É cerca de 3 janelas em 288 por dia. O operador pode escolher outro valor. O artigo
+mostra quanto cada escolha custa e onde ela põe o piso.
+
+**"0,1% é pouco. Por que dizer que o falso alarme pesa?"**
+Porque cada um bloqueia, em mediana, um terço dos clientes daquela janela. Num serviço
+pequeno, como o console, isso é sensível, e por isso um desafio pode ser melhor que um
+bloqueio ali.
+
+**"O dia novo prova que o método funciona?"**
+Ele é consistente com os dias de teste (2 falsos alarmes em 1.152 janelas), mas é fraco.
+O alarme quase não abriu, e uma taxa três vezes maior só seria notada em 37% das vezes. O
+artigo diz isso com essas palavras.
+
+**"Por que não usar o firewall como gabarito?"**
+Porque ele bloqueia por outros critérios. Com um perfil sem os clientes bloqueados, a
+concordância aparece por construção. Com o perfil completo, ela fica abaixo do acaso.
+
+**"Por que não usar aprendizado de máquina?"**
+Porque ele precisa de rótulos (quem é atacante), que o operador não tem durante o ataque.
+E o modelo testado não se transfere quando a botnet muda de forma: cai de 0,95 para
+0,48–0,75.
+
+**"Por que um gerador de tráfego, e não um ataque real?"**
+Não existe captura pública de um ataque furtivo desse tipo. O gerador controla o cenário
+e sabe quem é atacante. Os dados reais medem os falsos alarmes, e a botnet é injetada
+neles.
+
+**"O que a ontologia acrescenta?"**
+Ela é a especificação: dela se compila a consulta que o log da operadora executa, que
+bateu com as contagens da Azion em todas as janelas de dois dias. Ela também define o
+formato do escopo exportado, e foi assim que achamos a lacuna nos padrões de troca.
+
+**"Isso roda ao vivo?"**
+Ainda não. A avaliação é offline, e o Apêndice D descreve como particionar por serviço
+numa CDN, sem implementação.
+
+**"Qual é a novidade, afinal?"**
+Tratar **quem bloquear** como uma decisão estatística calibrada. Medir quanto ela custa
+aos usuários e onde ela deixa de ser possível, em tráfego real de uma CDN. Ninguém na
+literatura mede o custo e o limite de um filtro por impressão TLS.
+
+### 0.12 Por que o artigo não fala mais em "knowledge graph"
+
+O trabalho começou como um grafo de conhecimento que detectaria ataques e explicaria o
+veredicto. Os dados mostraram duas coisas. Primeiro, a vantagem na detecção vinha de
+contagens que qualquer tabela calcula. Segundo, perceber o ataque é fácil quando se
+contam os visitantes distintos.
+
+O que era novo e medido em tráfego real era a decisão de **quem bloquear**, com seu custo
+e seus limites. O artigo passou a prometer só isso. O grafo ficou como a especificação
+de onde sai a consulta e o formato da exportação. A história completa, com os números,
+está em **`por-que-mudamos.md`**, nesta mesma pasta.
+
+---
+
 ## Sumário
+
+**Parte 0. Para entender sem matemática**
+0.1 O trabalho em cinco frases · 0.2 Uma analogia · 0.3 As palavras do artigo · 0.4 O
+teste, sem fórmula · 0.5 Um exemplo completo · 0.6 O que o trabalho mostrou · 0.7 Como
+ler cada tabela e figura · 0.8 O que recomendamos · 0.9 Os limites · 0.10 Roteiro de
+apresentação · 0.11 Perguntas prováveis · 0.12 Por que não "knowledge graph"
 
 **Parte I. A ideia**
 1. O artigo em um minuto
@@ -46,7 +412,7 @@ Bin(n, b) é a distribuição binomial de n sorteios com probabilidade b.
 14. As métricas
 
 **Parte IV. Os resultados**
-15. Tráfego gerado (Tabelas III e VII)
+15. Tráfego gerado (Tabela III)
 16. Tráfego de produção (Tabelas IV, V e VI, Figs. 2 e 3)
 17. Especificação, troca e custo (Fig. 4)
 
@@ -97,7 +463,7 @@ O que se mediu, em seis pontos:
    binomial (o teste com as frotas conhecidas isentas, unido a um filtro de impressões
    inéditas, atrás de um gatilho de origens distintas), a que foi fixada para o dia novo,
    dá falso alarme em
-   0,1% das janelas limpas dos dias em que foi escolhida, e cada falso alarme bloqueia uma mediana de um terço dos
+   0,1% das janelas limpas dos dias em que foi escolhida, e seus falsos alarmes bloqueiam uma mediana de um terço dos
    clientes da janela. O escopo sozinho dispara em 2,2% contra a meta de 1%.
    Na configuração binomial, gatilho e escopo erram juntos dentro do acaso; na
    beta-binomial e no z-score, bem mais do que se fossem independentes.

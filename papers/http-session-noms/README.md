@@ -86,21 +86,35 @@ Fig. 1, the scoping pipeline, is a draw.io drawing; its source is
 
 ## Before submitting
 
-1. **Re-verify the NOMS 2027 CFP** (page limit, dates, template). The site does
-   not exist yet; NOMS 2027 is expected in May 2027, venue to be announced. The
-   rules encoded here come from the NOMS 2026 CFP.
+1. **NOMS 2027 CFP.** Done (read 27 Sep 2026):
+   - 8 pages of main text plus references and an optional appendix, 12 in total, with the
+     Acknowledgment inside the 8;
+   - submission via EDAS by 9 November 2026 (Montréal, 10–14 May 2027).
+
+   The PDF is 12 pages of US letter with all 24 fonts embedded and no Type 3 font.
 2. **Make the repository URL of Appendix F resolve to this version.** The public
    `main` still holds the August 2026 state; push and merge this branch, or tag the
-   commit the paper describes.
+   commit the paper describes. Before that URL reaches reviewers, decide what to do with
+   the already-pushed commit `df2ea4d`, which holds an early example binding with real
+   column names.
 3. **License.** Done: the repository root carries an MIT `LICENSE` (Appendix F), with
    the vendored LaTeX files under their own LPPL.
 4. **Confirm the acknowledgment.** The paper currently thanks Azion Technologies
    for authorizing the aggregate fingerprint measurement of Section IV and the
    aggregated traffic statistics of Appendix E. Any
    funding or grant acknowledgment still needs to be added.
+5. **Affiliations.** If an author is also employed by the operator whose endpoints are
+   evaluated, list that affiliation next to UFRGS, since the acknowledgment alone does not
+   disclose it.
+6. **EDAS.** The author list and title registered in EDAS must match the PDF exactly, with
+   every co-author registered.
 
 ## Portuguese version
 
-[`../http-session-noms-pt/`](../http-session-noms-pt/) holds a Portuguese
-rendering of the same paper, kept faithful in meaning, structure and formatting.
-It is not bound by the NOMS page rules.
+[`../http-session-noms-pt/`](../http-session-noms-pt/) holds three things:
+- a Portuguese rendering of the paper, not bound by the NOMS page rules; it still
+  follows round 8 and needs a port of the later rounds;
+- the study guide (`guia-de-estudo.md`), whose Part 0 explains the work without formulas
+  and includes a presentation outline and likely questions;
+- `por-que-mudamos.md`, which explains why the paper moved from a knowledge-graph
+  framing to calibrated fingerprint scoping.

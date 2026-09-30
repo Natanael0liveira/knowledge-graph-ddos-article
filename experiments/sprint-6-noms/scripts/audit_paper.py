@@ -190,7 +190,8 @@ good = (all(v[0] for v in pw.values())
         and all(pw[k][2] == 0 for k in ("clean", "flash_25", "flash_50", "flash_100"))
         and [round(pw[k][3] * 100) for k in ("attack_K1000", "attack_K50")] == [80, 75] and all(pw[k][4] == 0 for k in ("attack_K1000", "attack_K50"))
         and "Over 30 runs each, $\\Omega$ passes $\\tau_{\\mathrm{cluster}}$ in $77.8\\%$ and $85.7\\%$ of the 90 and 35 attack windows at $K = 1000$ and $50$, in $0.6\\%$ of 360 clean windows and in $80$--$100\\%$ of the flash crowds of 25 to 100 users" in TEXN
-        and "and blocks a median $75$--$80\\%$ of attackers in every attack window flagged by $\\Omega$, with no legitimate session hit." in TEXN)
+        and all(len(fired(k)[0][fired(k)[0].omega >= r["tau"]]) == len(fired(k)[1]) for k in ("attack_K1000", "attack_K50"))
+        and "names a filter in every attack window flagged by $\\Omega$ and blocks a median $75$--$80\\%$ of attackers, with no legitimate session hit." in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} App. E: the rule per window on generated traffic (former Table VIII) {[(k, round(v[1]*100, 1)) for k, v in pw.items()]}")
 chk("Omega-only clean false alarms", "0.6", r["clean"]["omega"]*100, pct)
 cal = W[(W.kind == "calib") & (W["size"] >= 5)]; to = cal["size"].quantile(0.99)
@@ -386,7 +387,7 @@ ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B, App. E: E1 
 n1135 = {e: [x["binomial"] for x in bB("fleets", e, "ranks_11_35", "")] for e in ("E1", "E2", "E3", "E4")}
 good = (all(v is None for e in ("E1", "E2") for v in n1135[e]) and all(v is not None for e in ("E3", "E4") for v in n1135[e])
         and [st_.median(n1135[e]) for e in ("E3", "E4")] == [808, 114]
-        and "and with the fingerprints' rank: those of rank 11 to 35 are never named on the two largest endpoints (Appendix~\\ref{app:window})" in TEXN
+        and "and with the fingerprints' popularity: those of rank 11 to 35 are never named on the two largest endpoints (Appendix~\\ref{app:window})" in TEXN
         and "For 25 stacks, fingerprints of rank 11 to 35 need 808 on E3 and 114 on E4" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: ranks 11-35 never named on E1 and E2, named on E3 and E4 {n1135}")
 tailb = [FB["per_endpoint"][e][f]["tail_prevalence_median"] for e in ("E1",) for f in tf]
@@ -716,7 +717,8 @@ cp = json.load(open(R + "compile_production_check.json"))
 good = (cp["origins_equal"] == cp["net24_pairs_equal"] == cp["windows"]
         and "in every window of two production days" in TEXN
         and cp["ja4_pairs_equal_without_waf_blocks"] == cp["windows_without_waf_blocks"]
-        and f"and JA4 pair counts in the {cp['windows_without_waf_blocks']} windows of a day on the endpoint where the WAF blocked no client" in TEXN)
+        and cpf["ja4_pairs_equal_without_waf_blocks"] == cpf["windows_without_waf_blocks"] == cp["windows_without_waf_blocks"]
+        and f"and JA4 pair counts in the {cp['windows_without_waf_blocks']} windows of each day on the endpoint where the WAF blocked no client" in TEXN)
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} compiled query in the operator's store: origins and /24 pairs equal the export "
       f"in {cp['origins_equal']}/{cp['windows']} windows")
@@ -887,8 +889,8 @@ pr = [us("original", s, 0, "enrichment", "recall") for s in (1, 5, 25)]
 pf = [us("original", s, 0, "enrichment", "fpr") for s in (1, 5, 25)]
 good = all(round(x * 100) == 90 for x in pr) and max(pf) == 0 and "The test blocks $90\\%$ of a botnet on up to 25 new stacks with no observed collateral" in ab
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract: the binomial test blocks 90% up to 25 stacks at zero FPR")
-good = (fmt(fz["clean_rate"]) == "0.1" and 0.30 <= fz["clean_collateral_median"] <= 0.36 and alone["bin"] > 0.01
-        and "behind its volume trigger, it misfires in $0.1\\%$ of attack-free windows on the days used to choose it, though alone it exceeds its $1\\%$ budget. Its misfires block a median third of the window's clients" in ab)
+good = (fmt(fz["clean_rate"]) == "0.1" and 0.30 <= fz["clean_collateral_median"] <= 0.36 and alone["bin"] > 0.01 and alone["gate"] > 0.01
+        and "behind its volume trigger, it misfires in $0.1\\%$ of attack-free windows on the days used to choose it, though each alone exceeds its $1\\%$ budget. Its misfires block a median third of the window's clients" in ab)
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} abstract: the binomial configuration misfires on {fz['clean_rate']*100:.2f}%, each misfire blocking a median {fz['clean_collateral_median']*100:.1f}%")
 grows = all(dA("fleets", e, k, 5) < dA("fleets", e, k, 25) < dA("fleets", e, k, 100) for e in ("E1", "E2", "E3", "E4") for k in ("new", "shared"))
@@ -1066,5 +1068,58 @@ ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} App. E: Table VI
 good = ("and past 4 to 19 times the median window on the small ones, as medians of the daily ratios" in TEXN
         and round(dF("fleets", "E1", "shared") * 100) == 8 and round(max(shS)) == 19)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: the floor ratios are medians of the daily ratios")
+# App. B: the weight grid (sprint 4) does not contain the ontology's 0.6, which reaches the grid's best AUC on its own
+WS = json.load(open(HERE.parent / "sprint-4" / "results" / "weights_session_realistic.json"))
+good = (0.6 not in WS["grid"] and WS["paper_weights"] == [1.0, 0.6, 0.3] and round(WS["paper_auc"], 3) == round(WS["best_auc"], 3) == 0.943
+        and "reaches the same optimal AUC of $0.943$, as does the ontology's $(1.0,\\ 0.6,\\ 0.3)$" in TEXN)
+ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} App. B: grid {WS['grid']} excludes 0.6; the ontology's weights reach AUC {WS['paper_auc']} as the best {WS['best_weights']} does")
+# App. C: the strong per-session baseline is FLOW (3 attributes) plus 6 sums, and (b)-(d) all add to it
+import ast as _ast
+def _list_assign(path, name):
+    for n in _ast.walk(_ast.parse(open(path).read())):
+        if isinstance(n, _ast.Assign) and any(getattr(t, 'id', None) == name for t in n.targets):
+            return n.value
+_flow = _list_assign(HERE.parent / 'sprint-3' / 'scripts' / 'run_ablation.py', 'FLOW')
+_strong = _list_assign(HERE.parent / 'sprint-5' / 'scripts' / 'run_klage_comparison.py', 'STRONG_FLOW')
+_sets = _list_assign(HERE.parent / 'sprint-4' / 'scripts' / 'run_sprint4.py', 'STRONG_SETS')
+n_flow = len(_flow.elts) + len(_strong.right.elts)
+adds = all(isinstance(v, _ast.BinOp) and getattr(v.left, 'id', None) == 'STRONG_FLOW' for v in _sets.values[1:])
+good = (n_flow == 9 and adds and 'a strong per-session baseline using nine flow attributes' in TEXN
+        and '(c) adds only network proximity, and (d) adds cross-session evidence' in TEXN)
+ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} App. C: the strong baseline has {n_flow} flow attributes, and (b)-(d) add to it: {adds}")
+# III-E and contribution (iii): the ontology declares every term the exported evidence chain uses,
+# and each property's domain admits the node it is used on (the scope node is a Mitigation).
+import rdflib as _rdf
+from rdflib.namespace import RDF as _RDF, RDFS as _RDFS, OWL as _OWL
+_o = _rdf.Graph(); _o.parse(str(HERE.parent.parent / 'ontology' / 'ddos_ontology.owl'), format='xml')
+_c = _rdf.Graph(); _c.parse(R + 'example_chain.jsonld', format='json-ld')
+def _supers(x, seen=None):
+    seen = set() if seen is None else seen
+    if x in seen: return seen
+    seen.add(x)
+    for y in _o.objects(x, _RDFS.subClassOf): _supers(y, seen)
+    return seen
+def _allowed(p):
+    out = set()
+    for d in _o.objects(p, _RDFS.domain):
+        u = _o.value(d, _OWL.unionOf)
+        out |= set(_o.items(u)) if u is not None else {d}
+    return out
+_declared = set(_o.subjects(_RDF.type, _OWL.ObjectProperty)) | set(_o.subjects(_RDF.type, _OWL.DatatypeProperty)) | set(_o.subjects(_RDF.type, _OWL.AnnotationProperty))
+_types = {s: set(_c.objects(s, _RDF.type)) for s in set(_c.subjects())}
+for _s, _p, _v in _c:
+    for _r in _o.objects(_p, _RDFS.range):
+        if (_r, _RDF.type, _OWL.Class) in _o: _types.setdefault(_v, set()).add(_r)
+_undeclared = sorted({str(p).split('#')[-1] for s, p, v in _c if p != _RDF.type and p not in _declared})
+_conflicts = sorted({str(p).split('#')[-1] for s, p, v in _c if p != _RDF.type and _allowed(p)
+                     and not any(_allowed(p) & _supers(t) for t in _types.get(s, set()))})
+_XS = 'http://www.w3.org/2001/XMLSchema#'
+_badrange = sorted({f"{str(p).split('#')[-1]}:{str(v.datatype or _XS + 'string').split('#')[-1]}" for s, p, v in _c
+                    if isinstance(v, _rdf.Literal) and _o.value(p, _RDFS.range) is not None
+                    and str(_o.value(p, _RDFS.range)).startswith(_XS)
+                    and str(v.datatype or _XS + 'string') != str(_o.value(p, _RDFS.range))})
+good = (not _undeclared and not _conflicts and not _badrange and len(_c) > 40
+        and 'links a session to its \\texttt{Identity}, source \\texttt{IPAddress} and \\texttt{Endpoint}. An \\texttt{Attack} links to its \\texttt{Mitigation}, whose scope the evidence chain carries' in TEXN)
+ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} III-E: the OWL declares every term of the exported chain ({len(_c)} triples); undeclared {_undeclared}, domain conflicts {_conflicts}, literals outside their range {_badrange}")
 print(f"\nTOTAL: {ok} OK, {bad} mismatches")
 sys.exit(1 if bad else 0)

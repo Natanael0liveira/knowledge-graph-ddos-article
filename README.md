@@ -178,10 +178,10 @@ its result file.
 | Ablation numbers (Appendix C) | `canonical_realistic.json`, `canonical_baselines.json`, `cross_m_generalization.json` |
 | Table III (the scope on generated traffic, with the modal fingerprint's column) | `symbolic_detector.json` via [`symbolic_detector.py`](experiments/sprint-6-noms/scripts/symbolic_detector.py), `unseen_synth_summary.csv` via [`unseen_synth.py`](experiments/sprint-6-noms/scripts/unseen_synth.py) |
 | Table II (configurations), Tables IV, V and VI (production) | `production_tables.json` via [`production_tables.py`](experiments/sprint-6-noms/scripts/production_tables.py), `floor_bands.json` via [`floor_bands.py`](experiments/sprint-6-noms/scripts/floor_bands.py), `waf_labels.json` via [`waf_labels.py`](experiments/sprint-6-noms/scripts/waf_labels.py), `ja4_churn.json`; their inputs are the operator's exports and stay off the repository |
-| Table VII (the rule per window, App. E) | `rule_detection_*.json` via [`rule_detection.py`](experiments/sprint-6-noms/scripts/rule_detection.py) |
-| Cost numbers (Section V-C, App. D) | `latency_summary.json`, `latency_raw.csv` via [`bench_latency.py`](experiments/sprint-6-noms/scripts/bench_latency.py) |
-| Listing 1 (SWRL + SPARQL) | the SWRL of [`relatedBy.swrl`](experiments/pillar2-symbolic-reasoning/rules/relatedBy.swrl); the aggregation as printed in the paper, whose session-counting form the cost model times in `bench_latency.py` |
-| Listing 2 (evidence chain) | [`example_chain.py`](experiments/sprint-6-noms/scripts/example_chain.py) → `experiments/sprint-6-noms/results/example_chain.jsonld` |
+| The rule per window (App. E, in text) | `rule_detection_*.json` via [`rule_detection.py`](experiments/sprint-6-noms/scripts/rule_detection.py) |
+| Cost numbers (App. D) | `latency_summary.json`, `latency_raw.csv` via [`bench_latency.py`](experiments/sprint-6-noms/scripts/bench_latency.py) |
+| The SWRL sub-relations and the Ω aggregation (App. A, not printed as a listing) | the SWRL of [`relatedBy.swrl`](experiments/pillar2-symbolic-reasoning/rules/relatedBy.swrl); the aggregation as printed in the paper, whose session-counting form the cost model times in `bench_latency.py` |
+| Listing 1 (evidence chain, App. D) | [`example_chain.py`](experiments/sprint-6-noms/scripts/example_chain.py) → `experiments/sprint-6-noms/results/example_chain.jsonld` |
 
 The Sprint-1 query [`coordinatedHTTPFlood.rq`](experiments/sprint-1/queries/coordinatedHTTPFlood.rq)
 is the legacy gate of the laboratory pipeline, not Listing 1.

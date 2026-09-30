@@ -685,8 +685,8 @@ ainda seguram conexões abertas, como HULK e GoldenEye. Cada origem manda pouco.
 Se o atacante controla K = 1.000 dispositivos e cada um se comporta como um usuário,
 nenhum limite por IP dispara sem bloquear usuários. Uma campanha furtiva também molda
 cada sessão para parecer legítima nos sinais por sessão que os detectores usam, como
-duração da conexão e entropia de rotas. O que sobra de discriminante está **entre** as
-sessões: o mesmo fingerprint de cliente repetida em muitas origens que convergem num
+duração da conexão e taxa de pacotes. O que sobra de discriminante está **entre** as
+sessões: o mesmo fingerprint de cliente repetido em muitas origens que convergem num
 endpoint.
 
 ### 2.3 A decisão é o escopo
@@ -711,7 +711,7 @@ escolhe e quanto custa aos usuários legítimos.
 | Geração de assinaturas (Hamsa) | *Tokens* de *payload* | Cobertura contra um conjunto normal | Falsos positivos no tráfego normal |
 | Quebra-cabeças (Kill-Bots) | Todo cliente sob ataque | O custo que o cliente paga | Um desafio para cada um |
 | DOTS, Flowspec | Campos de rede e transporte | Quem pede a mitigação | O do filtro transportado |
-| Detectores L7 (PCA, ML supervisionado, KLAGE) | Nada (só veredicto) | Perfil ou modelo aprendido | Só a FPR de detecção |
+| Detectores (PCA, ML supervisionado, KLAGE) | Nada (só veredicto) | Perfil ou modelo aprendido | Só a FPR de detecção |
 | Gestão de bots (sinais JA4) | JA4 | Não divulgado | Não divulgado |
 | **Este trabalho** | Fingerprints TLS (JA4) | Enriquecimento calibrado contra o perfil | Medido por alarme e por janela |
 
@@ -801,7 +801,8 @@ Tempos, identidades e *payloads* podem ser variados, trocados ou aleatorizados. 
 capacidade esgotada: nenhuma taxa por sessão sobe, e o agregado só cresce na medida da
 fatia da campanha no tráfego do endpoint.
 
-**Por que a pilha TLS é difícil de trocar.** Um bot fala TLS pela biblioteca que seu
+**Por que o bot mantém o fingerprint da sua pilha TLS.** O artigo supõe que o bot não
+sorteia cifras e extensões, embora uma biblioteca TLS permita escolhê-las. Um bot fala TLS pela biblioteca que seu
 dispositivo ou sua ferramenta traz, e botnets de dispositivos comprometidos abrangem
 muitos modelos de roteador, câmera e DVR (como a Mirai). Apresentar o ClientHello de um
 navegador exige rodar um navegador de verdade ou usar uma biblioteca de imitação mantida
@@ -1324,9 +1325,13 @@ A classe central é `ApplicationSession`. Ela se liga:
 - por `hasIdentity` a uma `Identity` composta (cookie, token JWT, nome de usuário,
   fingerprint TLS);
 - por `originatesFrom` ao seu `IPAddress` de origem;
-- por `targets` a um `Endpoint`;
-- por `mitigatedBy` a uma `Mitigation` (`RateLimitPolicy`, `ChallengeResponse`,
-  `WAFRule`), cujo escopo a cadeia de evidência carrega.
+- por `targets` a um `Endpoint`.
+
+Quem se liga à `Mitigation` (`RateLimitPolicy`, `ChallengeResponse`, `WAFRule`) é o
+ataque, por `mitigatedBy`. Na cadeia de evidência exportada, o ataque aponta o escopo por
+`derivedMitigationScope`, e o escopo traz as condições do filtro (`tlsJa4`, `endpoint`,
+`srcNet24`). A ontologia declara todos os termos que essa cadeia usa, e a auditoria confere
+que nenhum termo exportado fique fora dela.
 
 ### 11.2 As seis sub-relações e os pesos
 
@@ -1340,8 +1345,8 @@ quebrar o sinal:
 | `relatedByReusedIdentity` (cookie, token ou usuário reutilizado) | 1,0 | especificada |
 | `relatedByTemporalPattern` (sequências de chegada parecidas, DTW) | 0,9 | especificada |
 | `relatedByPayloadSignature` (resumos de *payload* parecidos, cosseno) | 0,6 | especificada |
-| `relatedByEndpointConvergence` (mesmo endpoint) | 0,6 | sim |
-| `relatedByNetworkProximity` (mesmo /24 ou ASN) | 0,3 | sim |
+| `relatedByEndpointConvergence` (mesmo endpoint: um host, ou endereço e porta; a normalização de caminho está especificada, mas não é usada) | 0,6 | sim |
+| `relatedByNetworkProximity` (mesmo /24, ou /48 em IPv6; o ASN está especificado, mas não é usado) | 0,3 | sim |
 
 A proximidade de rede pesa pouco porque um NAT de operadora (CGNAT) faz de um /24
 compartilhado um mau discriminador. A calibração dos pesos sustenta só o topo da ordem
@@ -1838,14 +1843,15 @@ aprendidos nas suas próprias 15), com cada campanha dividida 70/30
 em sessões de treino e teste.
 
 - (a) só atributos de fluxo por sessão, num *Random Forest* deliberadamente forte,
-  repetido com *gradient boosting*, perceptron e regressão logística;
-- (b) acrescenta atributos ontológicos por sessão;
-- (c) só a proximidade de rede;
-- (d) a evidência entre sessões das três sub-relações: a fração do *cluster* que
+  repetido com *gradient boosting*, perceptron multicamadas e regressão logística;
+- (b) acrescenta aos atributos de (a) os atributos ontológicos por sessão;
+- (c) acrescenta só a proximidade de rede;
+- (d) acrescenta a evidência entre sessões das três sub-relações: a fração do *cluster* que
   compartilha uma JA4 ou um /24, mais o tamanho dele.
 
 Também foram reimplementados três trabalhos: perfil por PCA, PCA com *k-means* sobre uma
-matriz comportamental e RF/SVM supervisionado sobre atributos de sessão.
+matriz comportamental e um RF/SVM supervisionado sobre atributos de sessão, no estilo de Kemp et al. (que
+treinam RF, C4.5, 5NN, NB e JRip, sem SVM).
 
 **Os números.** A K = 50 e K = 1.000, (a) chega a AUC por sessão de 0,498 e 0,503, (b) a
 0,500 e 0,502 e os três trabalhos a 0,495–0,518. (a) fica em 0,488–0,503 com todas as
@@ -1864,8 +1870,8 @@ coisa que dependa de M: uma divisão na mesma semente daria a (a) 0,88–0,94 po
 
 **Capturas de laboratório e KLAGE.** No *DDoS Slowloris* do CIC-IoT2023, cujos
 *clusters* de ataque têm sete origens num de 143 prefixos /24, uma linha de base por sessão
-enxuta (três atributos) cai para F₁ = 0,179 (AUC 0,551). Uma forte (oito atributos de
-fluxo) chega a 0,900 (AUC 0,987) e a representação entre sessões a 0,911 (AUC 0,982),
+enxuta (três atributos) cai para F₁ = 0,179 (AUC 0,551). Uma forte (nove atributos de
+fluxo) chega a 0,900 (AUC 0,987) e três deles mais a evidência entre sessões a 0,911 (AUC 0,982),
 porque o Slowloris real, ao contrário das campanhas furtivas, deixa uma assinatura de
 fluxo por sessão. A comparação com o KLAGE **não é controlada**: a linha de base forte também
 supera o 0,841 publicado, e o código liberado parte de um grafo de construção não

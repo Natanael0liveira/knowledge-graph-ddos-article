@@ -38,7 +38,7 @@ log = logging.getLogger(__name__)
 
 STEALTH_CFG = S2.parent / "configs" / "scenario_stealth.yaml"
 
-# Baseline por-sessão FORTE (8 features de fluxo) — para não inflar o gap cross-session
+# Baseline por-sessão FORTE (9 features de fluxo: os 3 de FLOW + 6 somas) — para não inflar o gap cross-session
 # com um baseline sub-dimensionado. Espelha STRONG_FLOW de run_real_multiattack.
 STRONG_FLOW = FLOW + ["fwd_bytes_sum", "bwd_bytes_sum", "fwd_pkts_sum",
                       "bwd_pkts_sum", "iat_mean_mean", "iat_std_mean"]
@@ -106,7 +106,7 @@ def main():
     ap.add_argument("--work", required=True, type=Path)
     ap.add_argument("--out-dir", required=True, type=Path)
     ap.add_argument("--strong", action="store_true",
-                    help="usa baseline por-sessão FORTE (8 features de fluxo) em todas as "
+                    help="usa baseline por-sessão FORTE (9 features de fluxo) em todas as "
                          "configs — gap cross-session honesto, não inflado por baseline magro")
     args = ap.parse_args()
     args.work.mkdir(parents=True, exist_ok=True)

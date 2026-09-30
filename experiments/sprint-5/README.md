@@ -15,7 +15,7 @@ One-vs-rest detection, `make run`:
 |---|---|---|---|---|---|
 | **KLAGE** (node-level, Graph-BERT) | 0.841 | — | — | — | not reported |
 | Ours **(a)** per-session ML, **lean** (3 feat.) | 0.179 | 0.691 | 0.103 | 0.551 | 1.06% |
-| Ours **(a′)** per-session ML, **strong** (8 feat.) | 0.900 | — | — | 0.987 | — |
+| Ours **(a′)** per-session ML, **strong** (9 feat.) | 0.900 | — | — | 0.987 | — |
 | Ours **(d)** full, cross-session | **0.911** | 0.908 | 0.915 | 0.982 | 2.73% |
 
 **The "per-session collapse to F₁ = 0.18" was an artifact of the lean baseline.**

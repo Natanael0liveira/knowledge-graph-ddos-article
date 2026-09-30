@@ -8,8 +8,10 @@ mesmo dataset/ataque e reportamos F1 lado a lado, MAIS a métrica distintiva de
 dano colateral (FPR em tráfego BENIGN).
 
 Detecção de Slowloris one-vs-rest (análogo ao F1 por classe do KLAGE). Comparamos
-a config (a) ML por-sessão vs (d) arcabouço completo: no CIC-IoT2023 o Slowloris é
-per-sessão indistinguível do benigno (n_req≈1, dur≈0), distribuído em 143 /24s —
+a config (a) ML por-sessão vs (d) arcabouço completo: no CIC-IoT2023 o Slowloris parece
+benigno nos 3 atributos de FLOW (n_req≈1, dur≈0), embora a linha de base forte (9 atributos)
+o separe, com os clusters de ataque
+concentrando sete origens num único dos 143 /24 da captura —
 exatamente onde a estrutura cross-session importa.
 
 Mapeamento de granularidade (honesto): KLAGE classifica NÓS DE REDE; nós
@@ -39,7 +41,7 @@ log = logging.getLogger(__name__)
 
 KLAGE_F1 = 0.841
 ATTACK = "Slowloris"
-# baseline por-sessão FORTE (8 features de fluxo) — o honesto, não os 3 de FLOW.
+# baseline por-sessão FORTE (9 features de fluxo: os 3 de FLOW + 6 somas) — o honesto, não só os 3 de FLOW.
 STRONG_FLOW = FLOW + ["fwd_bytes_sum", "bwd_bytes_sum", "fwd_pkts_sum",
                       "bwd_pkts_sum", "iat_mean_mean", "iat_std_mean"]
 
@@ -91,7 +93,7 @@ def main():
     print("-" * 72)
     print(f"{'KLAGE (node-level, Graph-BERT)':<34}{KLAGE_F1:>8.3f}{'—':>8}{'—':>8}{'—':>8}{'não reportado':>13}")
     names = {"a_ml_sem_ontologia": "nosso (a) ML por-sessão (3 feat)",
-             "a_ml_forte": "nosso (a') ML por-sessão FORTE (8 feat)",
+             "a_ml_forte": "nosso (a') ML por-sessão FORTE (9 feat)",
              "d_completo": "nosso (d) cross-session completo"}
     for c, r in res.items():
         print(f"{names[c]:<40}{r['f1']:>8.3f}{r['precision']:>8.3f}{r['recall']:>8.3f}"

@@ -2390,3 +2390,149 @@ percentile, "Ready to submit: yes", with no class A item.
 
 Layout unchanged: no page changes its line count. Two pins were remapped. `make audit`:
 255 checks, 0 mismatches.
+
+## 59. Round 57: a skeptical review of the whole paper, references included
+
+A last pass took the committee's skeptical reader as its role. It was asked for the strongest
+reasons to reject, and it read the appendices and the references, which earlier briefs had
+let reviewers skip. It gave 3/3/4/3/4, about the 60th-70th percentile, "Ready to submit: no"
+because of one class A item. Its lower score reflects the role. Each item below was checked
+against its source before it was applied.
+
+- A, Section I: Kemp et al. [4] never measure "route entropy". Their 12 NetFlow features
+  are packet, byte, flag, duration, payload and rate counts, and "entropy" appears only in
+  their feature ranking. The phrase had come from `docs/concepts.md`. It is now "such as
+  connection duration and packet rate".
+- B:
+  - App. C: Kemp et al. train RF, C4.5, 5NN, NB and JRip, with no SVM. The text now says "a
+    supervised RF/SVM over session features, after [4]", and "(Table III uses 15)", since
+    every Table III column uses 15 seeds.
+  - App. B: the sprint-4 grid is {0.3, 0.5, 0.7, 0.9, 1.0}, so the ontology's 0.6 was never
+    on it. The text now reads "as does the ontology's (1.0, 0.6, 0.3)". The ontology's
+    weights, evaluated alone, reach the grid's best AUC (0.9428). A new audit check reads
+    `weights_session_realistic.json`.
+  - V-A and VI: "new stacks never occur in legitimate traffic". The generator also has shared
+    stacks, which the next sentence of V-A names.
+  - III-A: "We also assume a bot keeps the fingerprint of its TLS stack". A TLS library lets
+    a bot set its cipher and extension lists, so the assumption that matters is the
+    fingerprint, and VI's "a fresh one per device" is now plainly outside the threat model.
+    The reviewer's matching VI edit cost a line and was not needed.
+  - Abstract: "though each alone exceeds its 1% budget". The gate (3.0%) and the scope (2.2%)
+    each exceed their budget, and only the two together reach 0.1%. The audit now checks
+    both.
+- Not applied:
+  - naming the unseen filter's parity in contribution (i), which is the user's call on the
+    framing;
+  - further abstract changes, since the abstract is at 250 words;
+  - pages for three references, since that risks the layout;
+  - the OCSF version, whose note already gives the versions and the access date.
+- Checked on the web: the NOMS 2027 technical-paper deadline is 9 November 2026 (ComSoc
+  page). NOMS 2026 ran an Artifact Evaluation track for accepted papers. Confirm that the
+  2027 CFP keeps it, since App. F names it.
+
+Layout unchanged: no page changes its line count. The study guide follows the paper.
+`make audit`: 256 checks, 0 mismatches.
+
+## 60. Round 58: the second skeptical review
+
+The second skeptical pass confirmed round 57's six changes. It again scored 3/3/4/3/4,
+about the 60th-70th percentile, and "no" because of one class A item.
+
+- A, App. C: "a strong per-session baseline using nine flow attributes". The code's strong
+  baseline is FLOW's three attributes (requests, duration, rate) plus six byte, packet and
+  inter-arrival sums. The paper's "eight" came from a wrong comment in the scripts, which now
+  say 9, and the study guide follows. A new audit check reads the lists from the scripts.
+- B:
+  - App. C: "(c) adds only network proximity, and (d) adds cross-session evidence". In the
+    code, (b) to (d) all add to (a)'s attributes.
+  - V-B: "and with the fingerprints' popularity". The floor falls as the rank number rises
+    (ranks 11-35 never named, 36-100 at 743, the typical tail at 254 on E1).
+  - II: "None of these preserves relations across sessions", which limits the claim to the
+    detectors cited. Paid for on page 2 by "One bot-management platform", dropping
+    "industrial".
+- C: V-A's "in generated legitimate traffic", since production shows new fingerprints daily.
+  I cites "75 application-layer DDoS studies", since the survey counts studies.
+- Checked, no change: "seven origins in one of 143 /24 prefixes" for CIC-IoT2023 agrees with
+  `docs/concepts.md`, the evidence-chain script and the PT paper. The outdated sprint-5
+  docstring ("distributed over 143 /24s") was corrected.
+- Not applied: defining "admission" in App. D (page 11 is full), the HULK/GoldenEye nuance in
+  I (it costs words on page 1), and the reviewer's four framing risks, which the text already
+  answers.
+
+Layout unchanged: Section II gains a line and loses one within page 2's left column.
+`make audit`: 257 checks, 0 mismatches.
+
+## 61. Round 59: the third skeptical review, and the ontology declares its export
+
+The third skeptical pass scored 3/3/4/3/4 again, about the 60th-70th percentile, and "no"
+because of one class A item, this time in the repository's ontology.
+
+- A, III-E and contribution (iii). The text said `ApplicationSession` links a session to its
+  `Mitigation`, whose scope the evidence chain carries. The OWL had no such link: its
+  `mitigatedBy` starts at `Attack`. None of the terms the exported chain uses (Listing 1) was
+  declared, and the scope's fingerprint condition used `tlsJa4`, whose domain was only
+  sessions. Two fixes:
+  - `ontology/ddos_ontology.owl` declares the chain's vocabulary: `derivedMitigationScope`
+    (Attack to Mitigation), `activatedSubRelations`, `clusterSize`, `coordinationScore`,
+    `verdict`, `scopeLevel`, `linkedPairs`, `weightedContribution`, and the scope conditions
+    `endpoint` and `srcNet24`. The domain of `tlsJa4` now also admits a Mitigation, and the
+    rule's target class `CoordinatedHTTPFlood` has a general comment. The change only adds
+    declarations. The recompiled query is identical (`compile_check.json` unchanged,
+    four-triple extension included).
+  - III-E now reads "links a session to its Identity, source IPAddress and Endpoint. An
+    Attack links to its Mitigation, whose scope the evidence chain carries."
+  A new audit check parses the OWL and `example_chain.jsonld` together. It fails if the chain
+  uses an undeclared term, or a property whose domain does not admit the node it is on. On the
+  old ontology it fails with the nine terms; on the new one it passes.
+- B:
+  - App. C: in the KLAGE comparison, configuration (d) builds on FLOW's three attributes, so
+    the text reads "while three of them plus cross-session evidence reach 0.911".
+  - II: "Flow-based and Layer-7 HTTP DDoS detectors [5]". Fernandes et al. profile IP flows,
+    not HTTP.
+- C:
+  - Table I: "Detectors" (KLAGE is not an L7 detector).
+  - App. C: "the nine per-session flow attributes in a Random Forest (RF), repeated with
+    gradient boosting, a multilayer perceptron and logistic regression". The perceptron is a
+    64-32 MLP.
+  - App. E: the rule "names a filter in every attack window flagged by Ω and blocks a median
+    75-80% of attackers". The audit now checks that every flagged window is named.
+  - Artifacts: `run_klage_comparison.py` and `sprint-5/README.md` say 9 attributes, and the
+    script's docstring no longer calls real Slowloris indistinguishable per session.
+
+Layout unchanged: no page changes its line count. The study guide follows, including the
+ontology's links. `make audit`: 258 checks, 0 mismatches.
+
+## 62. Round 60: the fourth skeptical review says "yes"
+
+The fourth skeptical pass found no class A item. It scored 4/3/4/3/4, about the 65th-75th
+percentile, "Ready to submit: yes": the first time the skeptical role approved. It loaded the
+OWL with `example_chain.jsonld` and found every term declared and every domain respected, and
+it recomputed about 35 numbers outside the audit.
+
+- B, App. A: path-pattern normalization, the `exact` and `strong` flags and ASN matching were
+  described as if implemented. No code runs them, and only OWL comments and `docs/` mention
+  them. The text now reads "same endpoint, here a host or an address and port, with
+  path-pattern normalization specified but not exercised" and "shared IPv4 /24 or IPv6 /48,
+  with a shared ASN specified but not exercised". IPv6 /48 is exercised: the binding keeps
+  the first 6 bytes. The appendix is one line shorter, so page 12 now has one free line.
+- B, OWL: round 59 declared `coordinationScore`, `weightedContribution` and `scopeLevel` as
+  xsd:decimal. JSON-LD 1.1 reads fractional numbers as xsd:double, and OWL 2 keeps the two
+  value spaces disjoint, so a reasoner would find the chain inconsistent. They are now
+  xsd:double. The ontology audit check also compares every literal's datatype with its
+  property's declared range.
+- C:
+  - III-E: "annotates each equality", since only the equalities carry a class key, and "(the
+    rule, cluster, scope and split …)", since the chain lists no session instances;
+  - App. F: "the 288 windows of each day". Both checked days matched, and the audit now
+    checks both.
+- Repository:
+  - OWL: the six sub-properties are also declared as classes, because the chain types its
+    evidence nodes by them (OWL 2 punning). The count comments say origins, and two section
+    pointers and the family comment were updated.
+  - The root README's artifact map no longer lists "Table VII", "Listing 1 (SWRL + SPARQL)"
+    or "Listing 2".
+  - `example_chain.py` says Listing 1.
+- Not applied: "detection benchmark" in II (a word on the tight page 2), and rewording the
+  abstract's "each alone" (two words over 250).
+
+`compile_check.json` is unchanged. `make audit`: 258 checks, 0 mismatches.

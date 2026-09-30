@@ -193,7 +193,7 @@
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#SlowHTTPDoSFamily">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#ApplicationLayerAttack"/>
         <rdfs:label>Slow HTTP DoS Family</rdfs:label>
-        <rdfs:comment>Family of distributed Slow HTTP DoS attacks. Specializes into ConnectionExhaustionAttack (connection-holding) and CoordinatedHTTPFlood (rate-based). Both exhibit cross-session structure when Ω(S) exceeds the threshold.</rdfs:comment>
+        <rdfs:comment>Family of distributed Slow HTTP DoS attacks. Specializes into ConnectionExhaustionAttack (connection-holding) and CoordinatedHTTPFlood (coordinated across many origins, including rate-based variants). Both exhibit cross-session structure when Ω(S) exceeds the threshold.</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#ConnectionExhaustionAttack">
@@ -205,7 +205,7 @@
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#CoordinatedHTTPFlood">
         <rdfs:subClassOf rdf:resource="http://security.example.org/ontology/ddos#SlowHTTPDoSFamily"/>
         <rdfs:label>Coordinated HTTP Flood</rdfs:label>
-        <rdfs:comment>Rate-based variants that still use sustained connections (HULK, GoldenEye). Target class of the central detection rule, based on the weighted sum Omega(S).</rdfs:comment>
+        <rdfs:comment>HTTP DoS coordinated across many origins, including rate-based variants that still use sustained connections (HULK, GoldenEye). Target class of the central detection rule, based on the weighted sum Omega(S).</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#Slowloris">
@@ -526,7 +526,7 @@
     // sub-properties, each instantiated from one specific coordination signal. Detection
     // works by a WEIGHTED SUM: Ω(S) = Σ_i coordinationWeight(i) · |pairs linked by
     // relatedBy_i in S|. The weights reflect the attacker's cost of evasion (high = costly
-    // to forge). See docs/concepts.md, section 4, and Section III-D (sec:family) of
+    // to forge). See docs/concepts.md, section 4, and Appendix A of
     // papers/http-session-noms/article.tex.
     ///////////////////////////////////////////////////////////////////////////////////////
     -->
@@ -569,9 +569,16 @@
 
     <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#tlsJa4">
         <rdfs:label>TLS JA4</rdfs:label>
-        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#ApplicationSession"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://security.example.org/ontology/ddos#ApplicationSession"/>
+                    <rdf:Description rdf:about="http://security.example.org/ontology/ddos#Mitigation"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-        <rdfs:comment>JA4 fingerprint of the session's TLS ClientHello.</rdfs:comment>
+        <rdfs:comment>JA4 fingerprint of the session's TLS ClientHello, or the fingerprint a mitigation scope matches.</rdfs:comment>
     </owl:DatatypeProperty>
 
     <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#srcPrefix">
@@ -1060,7 +1067,7 @@
     // The detection rule is cross-session: CoordinatedHTTPFlood holds when the sessions to
     // one endpoint span at least k_min origins and their Omega(S), summed over the weighted
     // relatedTo family, reaches tauCluster, calibrated per endpoint on attack-free traffic
-    // (Section III-E, sec:rule, of papers/http-session-noms/article.tex). It is not stored
+    // (Section III-B, sec:rule, of papers/http-session-noms/article.tex). It is not stored
     // here as DetectionRule individuals: the SWRL rules that instantiate the sub-relations
     // are in experiments/pillar2-symbolic-reasoning/rules/relatedBy.swrl, and
     // experiments/sprint-6-noms/scripts/compile_counts.py compiles the count query from the
@@ -1069,5 +1076,104 @@
     //
     ///////////////////////////////////////////////////////////////////////////////////////
     -->
+
+    <!-- Evidence-chain vocabulary. When the rule fires, the exported chain states the
+         flagged attack, its score, the activated sub-relations and the derived scope in
+         these terms (Listing 1 of the paper). -->
+
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#derivedMitigationScope">
+        <rdfs:label>derived mitigation scope</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:range rdf:resource="http://security.example.org/ontology/ddos#Mitigation"/>
+        <rdfs:comment>The mitigation derived for a flagged attack. Its scope is the conjunction of the conditions it states (tlsJa4, endpoint, srcNet24).</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#activatedSubRelations">
+        <rdfs:label>activated sub-relations</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:comment>One evidence node per sub-relation of relatedTo that links the flagged sessions, typed by that sub-property (OWL 2 punning), with its coordinationWeight, linkedPairs and weightedContribution to Omega(S).</rdfs:comment>
+    </owl:ObjectProperty>
+
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#clusterSize">
+        <rdfs:label>cluster size</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment>Size of the flagged cluster, in the unit relatedTo counts in (distinct origins).</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#coordinationScore">
+        <rdfs:label>coordination score</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>Omega(S) of the flagged cluster.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#verdict">
+        <rdfs:label>verdict</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>The rule's verdict on the flagged cluster.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#scopeLevel">
+        <rdfs:label>scope level</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Attack"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>Significance level of the test that derived the scope.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#linkedPairs">
+        <rdfs:label>linked pairs</rdfs:label>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment>Pairs, in the count unit, that one activated sub-relation links in the flagged cluster.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#weightedContribution">
+        <rdfs:label>weighted contribution</rdfs:label>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>The weighted contribution of one activated sub-relation to Omega(S).</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#endpoint">
+        <rdfs:label>endpoint condition</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Mitigation"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Endpoint condition of a mitigation scope (address:port).</rdfs:comment>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="http://security.example.org/ontology/ddos#srcNet24">
+        <rdfs:label>source /24 condition</rdfs:label>
+        <rdfs:domain rdf:resource="http://security.example.org/ontology/ddos#Mitigation"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Source /24 prefix condition of a mitigation scope.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+
+    <!-- OWL 2 punning: an exported chain types the evidence node of each activated
+         sub-relation by that sub-property, so each sub-property is also declared a class. -->
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByTLSFingerprint">
+        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByTLSFingerprint in an exported chain.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByReusedIdentity">
+        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByReusedIdentity in an exported chain.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByTemporalPattern">
+        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByTemporalPattern in an exported chain.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByPayloadSignature">
+        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByPayloadSignature in an exported chain.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByEndpointConvergence">
+        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByEndpointConvergence in an exported chain.</rdfs:comment>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByNetworkProximity">
+        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByNetworkProximity in an exported chain.</rdfs:comment>
+    </owl:Class>
 
 </rdf:RDF>

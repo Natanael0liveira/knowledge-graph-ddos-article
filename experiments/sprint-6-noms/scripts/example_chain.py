@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Sprint 6 (NOMS) — the evidence chain of Listing 2, from a canonical campaign.
+"""Sprint 6 (NOMS) — the evidence chain of Listing 1, from a canonical campaign.
 
-Listing 2 used to show a CICIDS2017 DoS-Other cluster. Counted in origins, as the
+The listing used to show a CICIDS2017 DoS-Other cluster. Counted in origins, as the
 rule now counts, that cluster holds two sources and does not fire: the laboratory
 attacks come from one to seven origins, single-source floods that per-source
 controls address. The listing therefore shows the fired cluster of a canonical

@@ -1888,3 +1888,505 @@ and gives the panels more room. `make_figures_en.py` draws the approved version 
 byte. No stretched column, 12 pages, the Acknowledgment ends on page 8. `make audit`: 253
 checks, 0 mismatches. The study guide's readings of Fig. 2 (0.7, 16.4 and the glossary)
 follow.
+
+## 43. Round 40: the review of the current state, and the AI-use disclosure
+
+A scope-bound review of the current state (read-only, no data drive) gave a weak accept: 4/3/4/3/4, confidence 4,
+about the 70th percentile. It recomputed a sample of numbers beyond `make audit`, and all
+matched. Its only blocking item, A1, was IEEE's rule that AI-generated content be disclosed
+in the Acknowledgment. The Acknowledgment now carries the authors' wording: "The authors used
+an AI assistant (Claude, Anthropic) to edit text in all sections and to write the figure code.
+The authors reviewed and verified all content and take full responsibility for it." The
+semicolon of the authors' draft became a full stop, as the paper uses semicolons only in
+enumerations. The lines were paid for in Section VI's last paragraph: "an extension the
+importer does not map" and "such as a TLS extension". The audit phrase for MISP now reads the
+new text. The Section III lead-in was kept, since every section opens with one.
+
+The review's B1-B5 and C1-C6 are listed for the authors' choice:
+- B1: the abstract's "calibrated test" on generated traffic, and the gate behind the 0.1%;
+- B2: hedge "No published method";
+- B3: the botnet spreads over stacks uniformly at random, not evenly, as the generator's
+  `rng.choice` and the injector's `rng.integers` confirm;
+- B4: the conclusion's "within the budget" lacks "pooled over the days";
+- B5: Fig. 1 has no exit for a gate that does not open;
+- C: the Listing 1 citation for 91%, "base rule" in Table IV, citing Fig. 3 in V-C and its
+  "in protocol" label, a hard sentence in V-C, the note on the learned models, and the PDF
+  metadata.
+The figures check out technically: 307-435 ppi as placed, all fonts embedded (no Type 3),
+pure grayscale. The review asks for two changes to Fig. 3: a marker for the base rule
+distinct from the beta-binomial's hexagon, and a larger "1% budget" label.
+
+12 pages, the Acknowledgment ends on page 8, no stretched column. `make audit`: 253 checks, 0
+mismatches.
+
+## 44. Round 41: the review's B and C items, and two figure fixes
+
+At the authors' request, every B and C item of the round-40 review was applied:
+- B1: in the abstract, "The test blocks 90%", since on generated traffic the level stays at
+  0.01, and "behind its volume trigger, it misfires in 0.1%", since the scope alone names a
+  filter in 2.2% of clean windows. "five-minute" came out, the abstract stays at 250 words,
+  and "its misfires block a median third" replaces "each misfire blocks", which pinned a
+  median to every misfire.
+- B2: "We found no published method that blocks ...".
+- B3: the botnet's stacks are drawn uniformly at random (the generator's `rng.choice`, the
+  injector's `rng.integers`), not spread evenly. IV-A says "uniformly at random" and "the
+  hardest case in expectation", and III-C "spread uniformly". The random stack sizes are why
+  V-B's floor is no cliff.
+- B4: the conclusion's unseen filter is "within the budget pooled over the days". The
+  sentence, then 49 words, was split, and "gives up most new-stack detection" became Table
+  VI's number, "only 20% on new ones".
+- B5: Fig. 1's trigger box reads "otherwise: no action". It is exported with `drawio -x -f png
+  -s 3 -b 6`, which reproduces the earlier export pixel for pixel, so the figure keeps its
+  3104 x 797 size.
+- C1: III-B cites Listing 1 for the 91%.
+- C2: "base rule" in Table IV, and "a tenth of the median window" in V-C.
+- C3: V-C cites Fig. 3, whose legend says "binomial configuration".
+- C4: the console sentence in V-C leads with its claim.
+- C5: "The learned models were not run on shared stacks", since `symbolic_detector.py`'s grid
+  has no shared mode, and "an F1 of 0.900" in Appendix C.
+- C6: Fig. 4's caption says "Dotted: reference slopes", and the PDF has title, author and
+  keywords metadata.
+
+Fig. 3's base rule is now an open circle, the one open marker, so it reads apart from the
+beta-binomial's hexagon at print size. The "1% budget" label is 6.5 pt.
+
+The added words had pushed the Acknowledgment's last line onto page 9. Section VI's "(25
+stacks drawn uniformly, ...)" went back to "(25 stacks, ...)", and the conclusion's split
+sentence is shorter. `make audit` learned Table IV's "base rule" row name. 12 pages, the
+Acknowledgment ends on page 8, no stretched column. `make audit`: 253 checks, 0 mismatches.
+
+## 45. Round 42: the second review, the Azion affiliation, and its B and C items
+
+A second scope-bound review (read-only, no data drive) gave a weak accept: 4/3/4/3/4,
+confidence 4, about the 70th-75th percentile. It found the 14 fixes of round 41 correct and
+recomputed a sample of numbers from `production_tables.json`, and all matched. Its only
+blocking item, A1, was the author block. The first author is also with Azion Technologies,
+whose services the paper evaluates, so the author block now reads "Also with Azion
+Technologies, Brazil". There is no funding to acknowledge. B3, the scope of the AI-use
+disclosure (drafting as well as editing, analysis as well as figure code), is left to the
+authors and their advisor.
+
+- B1: IV-A defines the *cluster*: the endpoint's sessions chained while each starts within
+  300 s of the previous one (`assign_detection_clusters` starts a new cluster when the gap
+  between starts exceeds 300 s). III-B no longer uses the word before IV-A defines it.
+- B2: Section VI says that a bot presenting a common fingerprint, or a fresh one per device,
+  defeats the scope, and that an alarm then leads only to the fallback.
+- C: "the hardest case in expectation for naming a stack at a given M", since above the floor
+  an even spread is the easiest case, with every stack named at once. "The 99th percentile
+  for tau_cluster". The conclusion reads "only 20% of it on new stacks, and 15% on shared
+  ones, which the filter cannot name". V-C's console sentence leads with the set it ranges
+  over. III-B's n counts each origin once per fingerprint it presents, which is how the
+  exports count (n = sum of c(f)). The seasonal gate divides the distinct origins by their
+  same-hour median and fires at that ratio's 99th percentile (`production_tables.py`, never
+  below 1). Appendix C notes that Table III runs its learned models on its own 15 seeds.
+  Table IV's header "New" matches its note ("New, Shared: blocked, all attack windows") and
+  Table VI. Section V's lead-in states the held-out day's finding. The layout comment in the
+  source is current.
+- Figures: Fig. 1's trigger box reads "distinct origins >= p99 (base rule: Omega(S) >= tau)",
+  exported at the same 3104 x 797. Fig. 3's legend says "unseen filter (origin gate)", and its
+  caption "with an arrow from in sample where the two are apart". Fig. 4's caption names the
+  two layers: admission, per request, and the Omega aggregation, per window.
+
+The lines were paid for by Section VI's STIX/TAXII validation sentence (Appendix F keeps it),
+IV-A's "The generator also varies ...", Section II's lead-in ("Table I compares prior scopes
+and detectors."), and a few words in paragraphs whose last line held one or two words. The
+affiliation line took the space that p. 4's right column left above IV-B's heading. The study
+guide follows the changes. 12 pages, the Acknowledgment ends on page 8, no stretched column,
+no sentence over 45 words. `make audit`: 253 checks, 0 mismatches.
+
+## 46. Round 43: the third review's B and C items
+
+A third scope-bound review gave a weak accept: 4/3/4/3/4, confidence 4, about the 75th
+percentile, and "Ready to submit: yes", with no class A item. It found the 13 fixes of round
+42 correct and recomputed Tables IV-VI, the points of Fig. 3, App. E's floors and the P values
+on its own, and all matched.
+
+- B1: Section VI now says an alarm "leads mostly to the fallback". V-B reports 73.5% of 1,000
+  attackers stopped on common fingerprints on the single sign-on, and V-A 30.4% in the
+  adversarial mode, so "only" contradicted the paper.
+- B2: IV-B and App. E say that each fleet share was added to the base rule.
+  `fleet_selection.py` counts clean false alarms with the Omega gate and the test's scope, and
+  `results/fleet_profile.json` gives 6 for the rule alone, 5 with the 5% share and 12 to 16
+  with the others. That 5 is not the binomial configuration's count, which is also 5 over
+  the five test days.
+- B3, for the authors: App. F's repository URL opens on `main`, which is still the 28 August
+  state without the LICENSE. Merge or tag before submission.
+- C: III-B reads "kept by the held-out day's protocol", since "the protocol" was used there
+  before any introduction. App. A's class sizes are "counted as in Section III-B". V-C cites
+  Fig. 3 on the No-gate sentence, since the figure has no seasonal-gate point. The conclusion
+  reads "which the unseen filter misses", and Table III's caption "Scopes of the largest-Omega
+  cluster as detectors.". V-A's "moderate drift" is "a profile drifted to alpha = 2.0", the
+  drifted profile of `profile_drift.py`. WAF stays unexpanded, since expanding it costs a line
+  on a full page and the paper does not expand common acronyms.
+
+Every edit is line-neutral: 12 pages, the Acknowledgment ends on page 8, no stretched
+column, no sentence over 45 words. Four audit strings follow the new wording. `make audit`:
+253 checks, 0 mismatches.
+
+## 47. Round 44: the fourth review's B1 and C items
+
+A fourth scope-bound review gave a weak accept: 4/3/4/3/4, confidence 4, about the 75th
+percentile, and "Ready to submit: yes", with no class A item. It found the 8 fixes of round
+43 correct, and it checked numbers the audit does not cover (App. D latencies, App. B weights,
+the KLAGE comparison, the JA4 measurement, the ratio-limit counts). All matched.
+
+- B1, a regression of round 43. The compiled query (`results/compiled_counts_clickhouse_example.sql`)
+  counts every class, and the per-window total, as `COUNT(DISTINCT client_ip)`. The
+  production gate and Omega's endpoint term use III-B's n, the per-fingerprint sum
+  (`rule_detection_production.py`). App. A now says the class sizes are in distinct
+  addresses, and that on production traffic the gate and endpoint term use III-B's n. VI and
+  App. F say "exported address and /24-pair counts".
+- C: V-C cites "dashed in Fig. 2" for the No-gate result. That is E1's tenth-size botnet at
+  89.6%, while Fig. 3 pools 100 attackers, where the scope alone blocks 52%. The introduction
+  cites Cambiaso et al. for Slow HTTP DoS and CICIDS2017, which documents both, for HULK and
+  GoldenEye. III-D gains a comma. App. E says that windows with fewer than k_min origins are
+  left out (117 of E4's 1,440 test-day windows, none on the held-out day; `production_tables.py`
+  keeps `size >= k_min`). App. D's rdflib times are "likely" an upper bound.
+- Not applied: the funding line (there is none), and the old table numbers in
+  `fresh_day_protocol_addendum.md`, a dated record that is not edited after the fact.
+
+The App. A sentence first pushed App. D's heading past Fig. 4 and Listing 1, which stretched
+pp. 10-11 and made 13 pages. Trims in App. A, C, E and F brought it back: "aggregated", a repeated
+"restricted to network proximity", "also", "the production", "the busiest endpoint" as "E1",
+and "between ... and" as a range. The audit follows the new wording. 12 pages, the
+Acknowledgment ends on page 8, no stretched column. `make audit`: 253 checks, 0 mismatches.
+
+## 48. Round 45: the fifth review's B and C items
+
+A fifth scope-bound review gave a weak accept: 4/3/4/3/4, confidence 4, about the 70th-75th
+percentile, and "Ready to submit: yes", with no class A item. It recomputed about 45 numbers
+outside the audit, and all matched.
+
+- B1: III-D names the known fleets of the busiest endpoint and the API. On the API the
+  binomial configuration exempts 1 or 2 fingerprints on four of the five test days, up to
+  6.9% of its profile (`results/fleet_profile.json`). The console and the single sign-on
+  exempt none. The audit now checks all four endpoints.
+- B2: App. A says the production gate and endpoint term add plain-HTTP clients to III-B's n.
+  `rule_detection_production.py` counts them in `n_legit`, while the test's n sums the TLS
+  fingerprints only. The share of plain-HTTP clients on E1-E4 was not measured, since reading
+  the exports on the data drive was not permitted in this session. The text is correct
+  whatever that share is.
+- C:
+  - App. E: "one fingerprint would be a known fleet on E1". The count comes from the fleets
+    diagnostic `xfit_od_fleets`, and the cross-fitted beta-binomial exempts nothing.
+  - App. C: "Each configuration, (a) to (d)".
+  - App. D: "to within 10^-11", since the largest difference is 7.28e-12. Also "The pair-edge
+    path takes 0.84 s ... 52.8 s", since materializing alone takes 0.79 and 50.8 s
+    (`latency_summary.json`).
+  - IV-B: "windows under k_min origins left out", paid for by "We also report".
+  - App. A: "A near variant, ja4_distance = 1," is in an `\mbox`, without "annotated", so it
+    no longer breaks across lines.
+  - App. F: "per-window address and /24-pair counts".
+
+The first App. A wording and C1 added three appendix rows and a 13th page. Shorter wording
+restored the previous layout. 12 pages, the Acknowledgment ends on page 8, no stretched
+column. `make audit`: 253 checks, 0 mismatches.
+
+## 49. Round 46: the sixth review, and a three-line title
+
+A sixth scope-bound review gave a weak accept: 4/3/4/3/4, confidence 4, about the 70th-75th
+percentile, and "Ready to submit: yes", with no class A item for the sixth time. It
+recomputed about 60 numbers outside the audit, and all matched. The run stalled once and was
+resumed.
+
+- B1: App. A says that III-B's n counts an address once per fingerprint, whereas the compiled
+  query counts it once (`COUNT(DISTINCT client_ip)` in
+  `results/compiled_counts_clickhouse_example.sql`, against the per-fingerprint sum of
+  `rule_detection_production.py`).
+- C1: V-B's stack-size example (43.1% against 43.2%) is "for 100 new-stack attackers on E1".
+- C2: Fig. 3 draws the cross-fitted twin of "scope alone, binomial", which the caption's grey
+  promised.
+- C3: the title no longer forces a line break after "Mitigation:" and sets in three lines.
+  That frees enough of page 1 for IV-B's heading to fit at the foot of p. 4, so the lines
+  saved on pp. 1-4 over the last rounds reach page 8. The Acknowledgment now ends about five
+  lines before the references, which start on page 8.
+- Audit labels: Table VI (the trigger table) and "about 250 numbers".
+- Left for the artifact submission: the two binding examples in `bindings/` treat WAF-blocked
+  requests differently, so neither alone reproduces App. F's check on E2-E4.
+
+12 pages, the Acknowledgment ends on page 8 with about five lines to spare, no stretched
+column. `make audit`: 253 checks, 0 mismatches.
+
+## 50. Round 47: the seventh review, and the fallback's cost
+
+A seventh scope-bound review gave overall 4, novelty 3, technical quality 4, clarity 3,
+relevance 5, confidence 4, about the 75th percentile, and "Ready to submit: yes", with no
+class A item.
+
+- B1: VI(i) states the fallback's own cost. The fallback acts on every gate opening that names
+  nothing, in 2.9% of clean test-day windows (163 of 5,643: the gate opened in 168, the
+  configuration fired in 5) and 5.4% on the busiest endpoint (78 of 1,440, none named). The
+  audit gained a check that recomputes both from `production_tables.json`. The sentence was
+  paid for by VI's "No evaluation covers a captured stealthy campaign, and", since the
+  conclusion names a captured stealthy campaign as the next step.
+- C: V-A names the two profile features of the learned model, "log b(f) and its log
+  enrichment per session" (`symbolic_detector.py`, `profile_features`), made line-neutral with
+  "trains on labels of the campaign it scores" and "At 1% false positives". IV-A reads "We
+  compared that curve with". IV-B reads "Their gate is either Omega >= tau_cluster, for the
+  base rule, or distinct origins ...". App. A's sentence on n is split in two. Fig. 3 draws
+  the base rule's cross-fitted twin (0.21% against 0.25%).
+- Not applied: a III-B pointer to App. A, which would put a line at risk on pp. 1-4, and
+  larger figure fonts, for which there is no height.
+
+Layout lesson: the lines "free" on page 8 hold the start of the references. The body can
+grow by about one line before the references' heading moves to page 9. Past that, the
+appendix shifts by about six rows, App. D's heading jumps past Fig. 4 and Listing 1, and the
+paper grows to 13 pages. A line added on pp. 5-7 can also move a float and stretch columns,
+as the first V-A wording did. In a scratch copy, the longer AI-use disclosure ("draft and
+edit text ... analysis and figure code") fits without changing any line.
+
+12 pages, the Acknowledgment and the start of the references on page 8, no stretched column.
+`make audit`: 254 checks, 0 mismatches.
+
+## 51. Round 49: a selective merge of a language revision
+
+A language-only revision of the paper (`papers/http-session-noms/article_revised_zero_growth.tex`,
+not committed) rewrote about 74% of the sentences and cut 523 words. It kept every number,
+citation and reference. But it also dropped qualifiers ("drops all traffic", "the unseen filter
+alone", "fires there", "any production data", "post hoc"), changed claims ("in which it is
+selected" in the abstract, "may be the legitimate population", fleets that "create" the floor)
+and changed key terms ("specify" to "represent", "present" to "use"). It introduced a few
+subject errors ("the busiest endpoint stops", "removing the endpoint term ... flags"), 27
+semicolon joins, 2 em dashes and an "X, not Y" antithesis.
+
+Each of its 318 changed sentences was read against the original. The merge accepted 114 as
+written, adapted 74 (a qualifier restored, a semicolon split, the paper's term kept) and kept
+130 unchanged. The abstract and the contributions keep the authors' wording except for small
+clarity edits. Number comparisons now read "versus" throughout (21), and "against" remains
+only in its other senses. Relative to the text before the merge, no number, citation,
+reference or label changed, and the body is 139 words shorter.
+
+Layout: shorter Related Work left p. 2's left column a line short of Section III's heading
+block, so the full Section II lead-in came back. A few adapted sentences that each added a
+line in IV-A, IV-B, V-D and VI were taken back to the original. 12 pages, the Acknowledgment
+and the start of the references on page 8 as before, no stretched column. The audit's pinned
+phrases were mapped onto the merged wording by a word alignment. The chk templates follow
+that alignment, and six f-string pins were updated by hand. `make audit`: 254 checks, 0 mismatches.
+
+## 52. Round 50: the ninth review, after the language merge
+
+A ninth scope-bound review, the first after the language merge, gave 4/3/4/3/4, confidence 4,
+about the 70th-80th percentile, and "Ready to submit: yes", with no class A item. It judged the
+English "plain, natural and consistent".
+
+- B1: V-B's components exceed the 1% budget "on the test days", not "on the days after
+  calibration". On the held-out day the scope alone fires in 0.5% and the gate in 0.26%.
+- B2: V-D reads "a tenth-size botnet on the busiest endpoint never opened the gate". It no
+  longer follows "flash crowds" as if it were a crowd.
+- B3: VI (ii) reads "stayed within the budget everywhere, pooled over the days, and matched
+  every scope ...", paid for by two words of the same paragraph.
+- B4: "Gray" in Fig. 3's caption (American spelling).
+- C:
+  - Terms that drifted in the merge: "The obvious scope fails", the beta-binomial "nearly meets
+    its budget", "class counts", KLAGE's "$F_1 = 0.841$", "the compiled query keeps them", and
+    "The Trigger Decides" in the V-C heading.
+  - Two dangling modifiers ("Its false alarms as its own trigger ...").
+  - VII: "90% of a botnet on up to 25 new stacks ... or label".
+  - III-D: fingerprints "that together carry up to about 7%" of the profiles.
+  - II: "One industrial bot-management platform ... publishes no model", since the claim rests
+    on one source. Paid for by "still" in the next sentence.
+  - IV-A: an attack "would lower the level and raise the gate's threshold, making both more
+    cautious".
+- Not applied: "stops little of a small botnet" in VI (i), which cost a line on page 8.
+
+Twelve audit pins were remapped. The one for the held-out gate was written out in full
+("a tenth-size botnet on the busiest endpoint never opened the gate"), because the automatic
+mapping had shortened it to "the gate.". 12 pages, the Acknowledgment and the start of the
+references on page 8 as before, no stretched column. `make audit`: 254 checks, 0 mismatches.
+
+## 53. Round 51: the four-criteria review and the independent review
+
+A tenth review judged four things: whether the paper delivers what it promises, the results,
+grammar and fluency, and how the text connects to the figures and tables. It gave
+3/3/4/3/4, confidence 4, about the 70th percentile. Its one class A item was a qualifier
+missing from the abstract. An independent NOMS-style review asked for two cheap fixes.
+
+- A1 and B1, abstract: "a botnet on rare fingerprints that real clients share is singled out
+  only once it is large, and one on the most common mostly escapes". Paid for by shorter
+  wording elsewhere in the abstract, which stays at 250 words.
+- B2: VII now says the scope alone exceeds its budget on the test days ("though its scope
+  alone exceeds its budget there (2.2%)"). V's lead-in no longer credits calibration alone
+  ("false alarms stay low but calibration sets a floor"). Paid for by the first sentence of
+  V-D's "Post hoc analyses", which repeated III-C, the heading and the table notes.
+- B4: VI (i) gives the flash-crowd cost ("Crowds of 1 000 users trigger the configuration in
+  22.2% of windows"). Paid for by ", none on the held-out day", which V-D states.
+- B5 to B11:
+  - V-C's console sentence reordered;
+  - "on the days used to choose it" in the abstract and VII;
+  - "without labels and with no observed collateral";
+  - "an expected 0.03%";
+  - "the ACL model that DOTS filters copy";
+  - Fig. 3 cited at the z-score's in-sample threshold, where its arrows show the change,
+    rather than at "barely changes";
+  - "(No gate, scope as trigger)" in IV-B.
+- C:
+  - "P = 0.27 at the test days' rate" in V-D;
+  - "The fallback thus acts";
+  - V-C's clause order;
+  - two sentences split, in IV-A (the cluster) and VI (ii);
+  - Table III's caption ("the alarm's cluster");
+  - Table IV's "Config." header;
+  - Table VI's "E2–E4: max." ("their maximum" and "highest endpoint" made the note three lines);
+  - Fig. 1: the trigger box gains "and ≥ k_min", and the ontology box puts the unit on
+    `relatedTo`, as III-E does.
+- Independent review: I reads "Existing detectors flag the attack but leave that decision
+  open", and III-C calls N "the profile's pooled origin–fingerprint pairs".
+- Not applied:
+  - B3, because the contributions carry no numbers;
+  - C3, because the measured 88% is what the configuration misses, not only what the gate
+    lets through;
+  - C10, "(Listing 1, App. D)", because it would cost a line on pages 2 and 3, where the layout
+    is fragile.
+
+The first pass made the PDF 13 pages. The Table VI note, B4 and B2 each cost more than
+the review expected. Shortening them restored the layout: 12 pages, no stretched column,
+and the references starting at the same point of page 8 as before (y = 670 pt). 14 audit
+pins were remapped:
+- 12 automatically;
+- the post hoc disclosure, which now pins III-C's "built after the held-out day was read" and
+  "Cross-fitting, built post hoc";
+- the held-out day's f-string.
+
+VII's 2.2% and VI (i)'s 22.2% are now tied to the data. `make audit`: 254 checks,
+0 mismatches. The study guide follows the new wording.
+
+## 54. Round 52: the second four-criteria review
+
+The same four-criteria review, run again, gave 3/3/4/3/4, confidence 4, about the 72nd
+percentile (up from the 70th), "Ready to submit: yes", with no class A item. Its reviewer
+calls 3 "weak accept", where the NOMS-style reviews of rounds 43 to 50 called 4 "weak
+accept". Both use a 1 to 5 scale, so compare the verdicts and percentiles, not the numbers.
+
+- B1 and B2, abstract:
+  - it now says the test alone exceeds its budget ("though alone it exceeds its 1% budget");
+  - "One on the most common mostly escapes" stands as its own sentence, because the ratio
+    limit causes it at any level, not calibration;
+  - paid for by "what it stops and costs", "production traffic", "adds limited evidence" and
+    two split sentences. "the obvious choice", which the reviewer's version cut, stays. 250
+    words.
+- B3, App. F: `make compile-check` also runs "after a fourth equality signal is added as
+  four triples". `compile_check.json` records this (4 triples, 0 lines of code, Ω exact), but
+  the paper had never said it was tested. Page 12 is full, so App. E and F pay for it:
+  "per-window", "just", "still", "separates" and "the profile describes".
+- B4, contribution (i): "block most of the attack without labels", still with no number.
+- B5 to B7:
+  - V-C's console sentence names the four variants first;
+  - V-D splits the test's power from the quiet gate;
+  - Fig. 3 is cited at the beta-binomial's 1.1%, the point just past the budget line, and a
+    repeated "in Table V" goes.
+- C:
+  - III-C's "plus 1/N" moves to the end of the definition;
+  - "This share is averaged";
+  - III-E's "scope and split of Ω(S) by sub-relation";
+  - "DOTS, whose filters reuse that model, does not adopt it";
+  - VI (i) "where the scope names nothing" and "stops little of a small botnet".
+- Not applied:
+  - the flash-crowd filters' 4.3% in VI (i), because it would take page 8's one line of
+    slack;
+  - the notes on Tables III and V and on terms, which the reviewer accepted as they are.
+
+The reviewer's claim that page 12 had room was wrong: both columns end at y = 718 pt. The
+layout is unchanged: 12 pages, no stretched column, the references at y = 670 pt on page 8,
+and page 12 full. App. E lost one line and App. F gained one. Ten audit pins were
+remapped, two of them trimmed by hand. The abstract's new clause and App. F's fourth signal
+are tied to the data. `make audit`: 254 checks, 0 mismatches.
+
+## 55. Round 53: the tenth NOMS-style review
+
+The NOMS-style review, given the ninth pass's brief, scored the paper after rounds 51-52 at
+4/3/4/3/4, confidence 4, 70th-80th percentile, "Ready to submit: yes", with no class A
+item. That is the ninth pass's score.
+
+- B1, Section I: "Existing detectors at most flag the attack and leave that decision
+  open." Round 51's "Existing detectors flag the attack" contradicted the paragraph
+  before it, which says a stealthy campaign looks legitimate on per-session signals, and
+  Appendix C, where per-session detectors sit at chance.
+- B2, III-C: "Let b(f) be 1/N plus the share of fingerprint f among the profile's N pooled
+  origin–fingerprint pairs, c(f) …". Round 52's ", plus 1/N, c(f)" read as if c(f) were a
+  second addend.
+- C:
+  - the abstract's "One on common fingerprints mostly escapes" (249 words);
+  - IV-B's "where the gate does not fire";
+  - V-D's "metrics set in advance";
+  - App. F's 58-word sentence split in two;
+  - App. E: "the binomial behind it stops 10.0–44.7% of E1's tenth-size botnet", since a gate
+    alone stops nothing (the audit computes the range from the binomial behind the
+    seasonal gate).
+- Not applied: C1, which asked to restore round 51's order of V-C's console sentence.
+  Round 52's reviewer had asked for the opposite, and both orders are correct.
+
+Layout unchanged: no page changes its line count, the paper stays at 12 pages with no
+stretched column, and the references start at y = 670 pt on page 8. Sentences over 45
+words fell from 4 to 3. Two audit pins were updated by hand, and the App. E pin now
+includes "the binomial behind it". `make audit`: 254 checks, 0 mismatches.
+
+## 56. Round 54: the eleventh NOMS-style review
+
+The eleventh pass scored 4/3/4/3/4 again, confidence 4, 70th-80th percentile, "Ready to
+submit: yes", with no class A item. It checked about 50 numbers, and the two "P = 0.27"
+come from two different tests that both recompute.
+
+- B1, V-D: "Exported after the configuration was fixed, then analyzed with metrics set in
+  advance". The old wording read as if the configuration had been analyzed.
+- B2, V-C: "as in E1's tenth-size botnet". Only E1's tenth-size botnet puts at least k_min
+  origins on each of its 25 stacks (about 11 per stack), while E2–E4's has 2 to 6 attackers
+  in all. The audit now checks this against the median windows.
+- C:
+  - III-C: "the test names no fingerprint" (instead of "no scope"; "names nothing" would
+    repeat "nothing" in the same sentence);
+  - V-D: the console's crowd rate (16.1%) moves out of the colon that supports "nearly
+    meets its budget";
+  - App. F: the TAXII server's clause is its own sentence, with the list kept in pipeline
+    order (validator, TAXII, MISP; the reviewer's reordering would have put MISP first);
+  - IV-A: "Test-day windows before injection (clean)", since every window is scored clean
+    and again with the injected botnet;
+  - the abstract's "A botnet on common fingerprints mostly escapes" (250 words);
+  - the footnote's "August 22, 2026".
+
+Layout unchanged: no page changes its line count. Three audit pins were remapped, two of
+them trimmed by hand. `make audit`: 254 checks, 0 mismatches. The last three NOMS-style
+passes gave the same score, and their items are now precision fixes. They put clarity at 3
+because of number density, which the page budget leaves no room to reduce.
+
+## 57. Round 55: the twelfth NOMS-style review
+
+The twelfth pass scored 4/3/4/3/4 again, confidence 4, 70th-80th percentile, "Ready to
+submit: yes", with no class A item.
+
+- B1, V-D: "Cross-fitted, only the beta-binomial nearly meets its budget: …". The paper
+  defines in sample and cross-fitted, and "out of sample", used only here, read as false:
+  the in-sample beta-binomial's scope alone fires in 4.4% of the test days' clean windows.
+- C:
+  - III-C: "the test does not name it". Round 54's "names no fingerprint" said too much,
+    because a window can still name a fleet's fingerprint;
+  - VI: "(25 stacks, new, shared and mostly rare, or the endpoint's most common)";
+  - the footnote's "August 22, 2026, from";
+  - V-D: the held-out day's 1.1% for 100-user crowds now gives the test days' 4.6%, with a
+    new audit check;
+  - App. E: "halves the base rule's false alarms".
+
+Layout unchanged: no page changes its line count. Three pins were remapped, and one check
+was added. `make audit`: 255 checks, 0 mismatches.
+
+## 58. Round 56: the thirteenth NOMS-style review
+
+The thirteenth pass scored 4/3/4/3/4 ("accept") a fourth time in a row, about the 75th
+percentile, "Ready to submit: yes", with no class A item.
+
+- B1, III-C: "Conversely, attackers hidden inside a popular legitimate fingerprint do not
+  enrich it, so the test leaves it unnamed, which is correct when nothing distinguishes the
+  attack from legitimate traffic." Enrichment belongs to fingerprints, and "does not name it,
+  as it should" could read as "though it should".
+- B2, VI: "shared but mostly rare". Because the paper uses no serial comma, "new, shared and
+  mostly rare" read as three items.
+- B3, III-A, which twelve passes had missed: "requires a full browser or an impersonation
+  library". Headless-browser farms, the next sentence's example, run a real browser and need
+  no impersonation library.
+- C: V-D's "outside the protocol" (no "also"). In VI, a comma limits "where the WAF blocked no
+  client" to the JA4 counts, as App. F says.
+- Not applied:
+  - C1, "of the three", which would have cost the z-score's Fig. 3 citation or "of windows";
+  - C4, "origin gate" versus "distinct-origin gate", which the reviewer left as is.
+
+Layout unchanged: no page changes its line count. Two pins were remapped. `make audit`:
+255 checks, 0 mismatches.

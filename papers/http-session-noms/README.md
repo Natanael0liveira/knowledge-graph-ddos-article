@@ -99,13 +99,14 @@ Fig. 1, the scoping pipeline, is a draw.io drawing; its source is
    column names.
 3. **License.** Done: the repository root carries an MIT `LICENSE` (Appendix F), with
    the vendored LaTeX files under their own LPPL.
-4. **Confirm the acknowledgment.** The paper currently thanks Azion Technologies
-   for authorizing the aggregate fingerprint measurement of Section IV and the
-   aggregated traffic statistics of Appendix E. Any
-   funding or grant acknowledgment still needs to be added.
-5. **Affiliations.** If an author is also employed by the operator whose endpoints are
-   evaluated, list that affiliation next to UFRGS, since the acknowledgment alone does not
-   disclose it.
+4. **Confirm the acknowledgment.** The paper thanks Azion Technologies for authorizing
+   the aggregate fingerprint measurement of Section IV and the aggregated traffic
+   statistics of Appendix E. There is no funding or grant to acknowledge. Still open: the
+   scope of the AI-use disclosure, which the authors will settle with their advisor. The
+   paper says "edit text"; a review asks for "draft and edit text" and "analysis and
+   figure code".
+5. **Affiliations.** Done: the first author, who is also with the operator whose endpoints
+   are evaluated, is marked "Also with Azion Technologies, Brazil" in the author block.
 6. **EDAS.** The author list and title registered in EDAS must match the PDF exactly, with
    every co-author registered.
 

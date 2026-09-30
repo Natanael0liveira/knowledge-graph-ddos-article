@@ -169,23 +169,27 @@ def fig_operating(root):
     T = json.load(open(os.path.join(root, "experiments/sprint-6-noms/results/production_tables.json")))
     scopes = [  # (label, run, key, marker, size)
         ("base rule ($\\Omega$ gate)", "base", "enrichment|omega", "o", 16),
-        ("binomial (in protocol)", "fleets", "union|origins", "D", 13),
+        ("binomial configuration", "fleets", "union|origins", "D", 13),
         ("$z$-score, calibrated", "base", "zcal|origins", "^", 18),
         ("beta-binomial$^{*}$", "od", "union|origins", "h", 18),
-        ("unseen filter", "base", "unseen|origins", "P", 18),
+        ("unseen filter (origin gate)", "base", "unseen|origins", "P", 18),
         ("scope alone, binomial$^{*}$", "fleets", "union|none", "*", 34),
         ("scope alone, beta-binomial$^{*}$", "od", "union|none", "X", 18),
         ("unseen filter, own trigger$^{*}$", "fleets", "unseen|none", "s", 14),
     ]
     xfit = [("fleets", "xfit_fleets", "union|origins", "D", 13), ("od", "xfit_od", "union|origins", "h", 18),
-            ("base", "xfit", "zcal|origins", "^", 18), ("od", "xfit_od", "union|none", "X", 18)]
+            ("base", "xfit", "zcal|origins", "^", 18), ("od", "xfit_od", "union|none", "X", 18),
+            ("fleets", "xfit_fleets", "union|none", "*", 34), ("base", "xfit", "enrichment|omega", "o", 16)]
     fig, axes = plt.subplots(1, 2, figsize=(3.45, 2.5), sharey=True)
     for ax, cell, title in ((axes[0], "new:A100", "new stacks"), (axes[1], "shared:A100", "shared stacks")):
         ax.axvline(1, color=CHANCE, lw=0.7, ls=(0, (3, 2)), zorder=1)
         for lab, run, key, mk, s in scopes:
             r = T["test_days"][run]["all"][key]
+            # the base rule, the protocol's reference, is the one open marker, so it reads apart
+            # from the beta-binomial's filled hexagon at print size
             ax.scatter(max(r["clean_rate"] * 100, 0.01), r[cell]["blocked"] * 100, marker=mk, s=s,
-                       facecolors=NAVY, edgecolors=NAVY, linewidths=0.6, zorder=3,
+                       facecolors="white" if key == "enrichment|omega" else NAVY, edgecolors=NAVY,
+                       linewidths=0.8 if key == "enrichment|omega" else 0.6, zorder=3,
                        label=lab if ax is axes[0] else None)
         for run0, run, key, mk, s in xfit:
             r0, r = T["test_days"][run0]["all"][key], T["test_days"][run]["all"][key]
@@ -205,7 +209,7 @@ def fig_operating(root):
         ax.grid(alpha=.25, lw=0.5, zorder=0)
         ax.spines[["top", "right"]].set_visible(False)
     axes[0].set_ylabel("% of 100 attackers blocked", fontsize=7, labelpad=1)
-    axes[0].text(0.8, 99, "1% budget", fontsize=5.8, ha="right", va="top", color=CHANCE)
+    axes[0].text(0.8, 99, "1% budget", fontsize=6.5, ha="right", va="top", color=CHANCE)
     h, l = axes[0].get_legend_handles_labels()
     # one x label for both panels, just under the tick labels, then a clear gap before the legend
     fig.tight_layout(pad=0.2, w_pad=0.5, rect=(0, 0.29, 1, 1))

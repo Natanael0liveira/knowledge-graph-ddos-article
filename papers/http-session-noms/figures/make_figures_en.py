@@ -6,7 +6,7 @@ produced here -- see figures/README.md and figures/src-drawio/.
   fig6_stops.png      -- Fig. 2 (Section V-C), one column at print size: what the binomial
                          configuration stops per endpoint, by botnet size, against what the
                          scope alone would block, with the gap the gate lets through shaded.
-  fig4_operating.png  -- Fig. 3 (Section V-C), one column at print size: operating points
+  fig4_operating.png  -- Fig. 3 (Section V-D), one column at print size: operating points
                          on production traffic, false alarms against blocked share (test
                          days and the cross-fitted calibration), with the 1% budget.
   fig5_latency.png    -- Fig. 4 (Appendix D), single column: the cost of both layers.
@@ -175,7 +175,7 @@ def fig_operating(root):
         ("unseen filter (origin gate)", "base", "unseen|origins", "P", 18),
         ("scope alone, binomial$^{*}$", "fleets", "union|none", "*", 34),
         ("scope alone, beta-binomial$^{*}$", "od", "union|none", "X", 18),
-        ("unseen filter, own trigger$^{*}$", "fleets", "unseen|none", "s", 14),
+        ("unseen filter alone$^{*}$", "fleets", "unseen|none", "s", 14),
     ]
     xfit = [("fleets", "xfit_fleets", "union|origins", "D", 13), ("od", "xfit_od", "union|origins", "h", 18),
             ("base", "xfit", "zcal|origins", "^", 18), ("od", "xfit_od", "union|none", "X", 18),

@@ -648,7 +648,7 @@ operator's log store for 2026-09-23, the compiled query returned the
 exported origin and /24-pair counts in all 1,152 windows**
 (`results/compile_production_check.json`; the fresh day is in
 `compile_production_check_fresh.json`). `--compare` reproduces the origin and
-/24-pair match. Its JA4 class sizes lie between the export's clean and total counts
+/24-pair match. Its JA4 pair counts lie between the export's clean and total counts
 in every window and equal the clean ones in all 288 windows without a WAF-blocked
 client: the export drops a client the WAF blocked part of the time, the compiled
 filter (requests the WAF did not block) keeps it. That JA4 comparison was run ad hoc
@@ -813,7 +813,7 @@ calibrated on 2026-09-17 to 24.
   configuration's 5.
 - The ontology-compiled count query, run in the operator's store for the day,
   returned distinct origins and /24 pairs equal to the export in all 1,152 windows
-  and the JA4 class sizes in the 288 windows where the WAF blocked no client
+  and the JA4 pair counts in the 288 windows where the WAF blocked no client
   (`results/compile_production_check_fresh.json`).
 
 **The stealthy regime, per day** (`stealth_E1` in `production_tables.json`). With
@@ -1422,7 +1422,7 @@ applied its B items and cheap polish, each checked against the result files:
   hoc. **B4** the "Alone" column of Tables IV and VI is "No gate"; the ratio limit has its
   own paragraph; the floors by stack count and by profile rank moved to Appendix E, with
   two numbers left in the body. **B5** Section VI says the compiled query reproduced the
-  origin and /24-pair counts and the JA4 class sizes where the WAF blocked no client
+  origin and /24-pair counts and the JA4 pair counts where the WAF blocked no client
   (`compile_production_check.json` note); App. F gives medallion 3.0.0 and misp-stix
   2026.9.16. **B6** Fig. 3 adds the unseen filter as its own trigger and the cross-fitted
   point of the beta-binomial scope alone. **B7** the binomial scope as its own trigger is
@@ -2536,3 +2536,171 @@ it recomputed about 35 numbers outside the audit.
   abstract's "each alone" (two words over 250).
 
 `compile_check.json` is unchanged. `make audit`: 258 checks, 0 mismatches.
+
+## 63. Round 61: the fifth skeptical review
+
+The fifth skeptical pass found no class A item, and it again said "Ready to submit: yes"
+(4/3/4/3/4, 65th-75th percentile). It checked the figures against `make_figures_en.py` and
+the data, App. D against `latency_summary.json`, Section IV's setup and the standards
+paragraph, and all of them matched.
+
+- B, JSON-LD: JSON-LD 1.1 reads an integral number such as 114710.0 as xsd:integer. The
+  ontology gives `coordinationScore`, `weightedContribution` and `scopeLevel` the range
+  xsd:double, so a spec-conforming processor plus a reasoner would find a violation. rdflib
+  keeps Python's floats as doubles, so the audit had passed.
+  - The chain's context now types the three terms in `evidence_mitigation.py`, and the
+    committed `example_chain.jsonld` got the same context. Only the context changed, and the
+    STIX validation output is identical.
+  - The ontology check now fails if an xsd:double term the chain uses is not typed in its
+    context. It flags the old chain's three terms.
+- B, App. D: "nine endpoints". The benchmark draws 8 benign addresses plus the attacked one,
+  and `bench_latency.py`'s docstring now says so.
+- B, this README: "JA4 pair counts", not class sizes, since pair counts are what
+  `compile_production_check*.json` records. The comparison itself ran ad hoc and has no
+  committed code. `papers/http-session-noms/README.md` lists committing it before the Artifact
+  Evaluation submission, since it needs the exports on the drive.
+- C:
+  - III-B: "the rule for the ontology's class CoordinatedHTTPFlood". It is a class, and the
+    rule is not stored in the ontology.
+  - Listing 1's caption: "counted in origins, abridged".
+  - III-E: "the SQL queries that return".
+  - The OWL's punned-class comments, the header above `targets` and "The base rule reads a
+    weighted sum".
+  - Figure pointers in the root README and `make_figures_en.py` (Fig. 2 in V-C, Fig. 3 in
+    V-D).
+
+Layout unchanged: no page changes its line count. `compile_check.json` is unchanged.
+`make audit`: 258 checks, 0 mismatches.
+
+## 64. Rounds 62-63: the sixth skeptical review, and a clarity pass on Section V
+
+Round 62 applied the sixth skeptical pass (no class A item, "Ready to submit: yes"):
+- App. B's production profiles now read 76 to 1 163 fingerprints, since the held-out day's
+  E1 profile holds 1 163. The audit reads `ja4_churn.json`.
+- App. F says "regenerate from its make target".
+- VI and VII say "a pre-specified evaluation", since "test" already names the binomial test
+  and the test days.
+- `coordinationWeight` is typed in the chain's context, and `--endpoints` has help text.
+- The OWL says "JA4 distance = 1", as App. A does.
+
+Round 63 is a clarity pass on Section V, where every review put clarity at 3 because of number
+density. It changes no finding:
+- V-A splits its two densest sentences (eight numbers in one, and the unseen filter with the
+  shared stacks).
+- V-B opens with its point: "Each calibrated component alone exceeds its 1% budget on the
+  test days, and only the two together stay within it". It also says who sets the new-stack
+  floor, and why 139.
+- V-C splits the five-number sentence. "What the unseen filter and the test add" now opens
+  with what each covers, and the repeated 43% goes.
+- V-D:
+  - its first paragraph is headed "The held-out day adds limited evidence";
+  - "Post hoc analyses" opens with "Of the post hoc variants, only the cross-fitted
+    beta-binomial nearly meets its budget";
+  - the WAF's three shares read "9-63%".
+
+Measured on the source:
+
+| Subsection | words per sentence | numbers per sentence | sentences with 3+ numbers |
+|---|---|---|---|
+| V-A | 26.0 to 22.1 | 2.6 to 2.2 | 47% to 45% |
+| V-B | 30.1 to 26.5 | 3.7 to 3.3 | 71% to 58% |
+| V-C | 24.1 to 22.9 | 2.2 to 2.0 | 33% to 32% |
+
+V-D stays about as dense (its topic sentences add words), but each paragraph now states its
+point first. Nineteen audit pins were rewritten by hand, and the WAF check now compares a
+range. Layout unchanged (floats in place, about one more line free on page 8). `make audit`:
+259 checks, 0 mismatches.
+
+## 65. Round 64: the clarity review of the Section V pass
+
+A four-criteria review focused on clarity judged Section V "clearly better, a strong 3" (4
+plausible after its fixes), about the 75th percentile. It said "no" because the pass had made
+one claim false. It also found four qualifiers the pass had dropped, and all five are
+restored:
+- A1: "Of the post hoc variants, only the cross-fitted beta-binomial nearly meets its budget" was
+  false. Every post hoc configuration behind a gate stays within 1%, and so does the unseen
+  filter as its own trigger. It now reads "Cross-fitted and used alone, only the beta-binomial
+  scope nearly meets its budget."
+- B1: "Pooled across endpoints" is back in V-B's lead sentence, since E1's scope alone sits at
+  0.97%.
+- B2: "so that the average stack reaches k_min origins", since the floor is defined on the
+  average stack. Paid for by "past 4 to 19 median windows".
+- B3: "(58% versus the filter's 43% of 100 attackers)".
+- B4: "The day passed mostly because its gate seldom opened: 3 clean windows, …" is back.
+
+Clarity items:
+- V-C's console sentence names the other variants' rates: "where the binomial and the
+  in-sample beta-binomial misfire in 2.0-2.6% of windows". The audit checks the range.
+- V-A: "too few to stand out against a 1 000-session profile".
+- V-B: a comma after "the busiest endpoint", "43.1% predicted versus 43.2% measured", and
+  "and an expected 0.03%".
+- V-D: "ranks 36 to 100" and "the three calibrated scopes".
+- IV-B: "It is held to zero false positives, which the test reaches wherever …".
+- App. E: "Compared with".
+- Table IV's note defines 0.1× and 1×.
+- The abstract says "the test and its volume trigger misfire together … though each alone
+  exceeds its 1% budget", paid for by "only when large".
+- Fig. 3's legend says "unseen filter alone", as "scope alone" does.
+
+Paid for in VI: (ii) drops "stopping 90% of 1 000 attackers on each small endpoint", which
+V-C and App. E give, and the standards paragraph drops its example extension. Layout
+unchanged: 12 pages, floats in place, page 12 full again. `make audit`: 259 checks, 0
+mismatches.
+
+## 66. Round 65: the second clarity review
+
+The second clarity review rated clarity 4 once its A1 was fixed, with an overall 4 and about
+the 80th percentile. It said "no" because round 64's rewrite of the console sentence had
+again dropped a restriction: "only the cross-fitted beta-binomial stays within the budget on
+the console" left out the unseen filter behind the seasonal gate, which misfires in 0.00% there.
+
+- A1: "only the cross-fitted beta-binomial and the unseen filter stay within the budget on the
+  console, where the binomial and the in-sample beta-binomial misfire in 2.0-2.6% of windows".
+  The audit now also checks the unseen filter's console rate.
+- B1-B3:
+  - "The strict level ... also raises the floor", since on new stacks the unseen filter sets
+    it on E1 to E3;
+  - "the calibrated z-score loses its lead over the binomial", since in sample the
+    beta-binomial was ahead of it;
+  - V-D's lead: "Of the calibrated scopes used alone, only the cross-fitted beta-binomial nearly
+    meets its budget (1.1%, Fig. 3)". The unseen filter alone sits at 0.21%, and the later
+    1.1% sentence was folded in.
+- B4-B8:
+  - V-A: "each scope flags the sessions it matches";
+  - V-B's lead names "the calibrated scope and gate";
+  - "the level sets the floor, computed at their median share";
+  - V-C: "On the larger new stacks, ... the unseen filter without the test", since "alone"
+    elsewhere means "as its own trigger";
+  - the WAF sentence: "makes the scopes agree with the WAF by construction".
+- C:
+  - I: "We evaluate budget and floor", paid for by "this JA4 filter";
+  - Fig. 3's caption defines "Alone: as its own trigger";
+  - Table IV's note: "botnet size, in median windows".
+- Not applied: rewording III-B to call the base rule "the ontology's rule" (round 61 had just
+  made it "the rule for the ontology's class"), and unifying every "scope alone" in the prose.
+
+Layout unchanged (no page changes its line count, floats in place). `make audit`: 259
+checks, 0 mismatches.
+
+## 67. Round 66: an outside review on how easily the paper digests
+
+An outside NOMS-style review (kept out of the repository, like the other review exchanges)
+rated the paper about 4/5, between weak accept and accept. It gave presentation 3.5-4 and ease
+for the reviewer 7.5/10. Its diagnosis matches the earlier reviews: the English is natural,
+and the load comes from about twenty concepts held at once. Three of its suggestions were
+applied, each tested for layout:
+- V-C: "we examined two other triggers, both exploratory, after the held-out day was read",
+  which says once, before Table VI, that the alternatives are exploratory;
+- VI: "Two limits decide per endpoint: the calibration floor and the trigger's sensitivity";
+- abstract: "Triggers examined post hoc recover part of that loss", paid for by "so what matters
+  is which clients to block. We treat that choice as ..." (still 250 words).
+
+Tested and not applied:
+- a framing sentence at the start of Section V, which moves V-A's heading and gives 13 pages;
+- dropping the abstract's post hoc sentence, which shortens the abstract by a line and moves
+  Section III's heading block (13 pages);
+- the review's "why JA4" sentence as worded, because its antithesis and semicolon break the
+  house style and III-A already states the assumption.
+
+The review's main weakness, a weak held-out day and choices made on the test days, is what the
+pre-specified 14-day block being collected addresses. `make audit`: 259 checks, 0 mismatches.

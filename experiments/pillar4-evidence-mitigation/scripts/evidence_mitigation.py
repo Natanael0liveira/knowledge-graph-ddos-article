@@ -134,7 +134,11 @@ def matches_scope(df: pd.DataFrame, scope: dict) -> pd.Series:
 def evidence_chain_jsonld(decomp: dict, scope: dict, cluster_id: str) -> dict:
     """Cadeia de evidência simbólica em JSON-LD (vocabulário da ontologia)."""
     return {
-        "@context": {"kg": ONT, "xsd": "http://www.w3.org/2001/XMLSchema#"},
+        # Typed terms: JSON-LD 1.1 reads an integral number such as 114710.0 as xsd:integer,
+        # while the ontology gives these properties the range xsd:double.
+        "@context": {"kg": ONT, "xsd": "http://www.w3.org/2001/XMLSchema#",
+                     **{f"kg:{t}": {"@id": f"kg:{t}", "@type": "xsd:double"}
+                        for t in ("coordinationScore", "weightedContribution", "scopeLevel", "coordinationWeight")}},
         "@id": f"kg:cluster/{cluster_id}",
         "@type": "kg:CoordinatedHTTPFlood",
         "kg:clusterSize": decomp["size"],

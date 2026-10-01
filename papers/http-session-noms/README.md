@@ -109,6 +109,11 @@ Fig. 1, the scoping pipeline, is a draw.io drawing; its source is
    are evaluated, is marked "Also with Azion Technologies, Brazil" in the author block.
 6. **EDAS.** The author list and title registered in EDAS must match the PDF exactly, with
    every co-author registered.
+7. **Before the Artifact Evaluation submission: commit the JA4 pair comparison.** App. F reports
+   that the compiled query reproduced the JA4 pair counts in the 288 WAF-free windows of each
+   production day. `compile_production_check*.json` records this, but the comparison ran ad hoc:
+   `compile_counts.py --compare` checks only origins and /24 pairs. It must run on the operator's
+   exports, which stay on the external drive, so the user runs it and commits the code.
 
 ## Portuguese version
 

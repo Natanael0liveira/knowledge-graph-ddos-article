@@ -61,8 +61,8 @@ def make_window(n, coord_frac, n_endpoints, ja4_pool, seed):
     A fraction ``coord_frac`` of sessions are attackers sharing ONE botnet JA4
     and converging on the attacked endpoint, dispersed across /24s. The rest are
     benign: JA4 drawn from a pool of ``ja4_pool`` fingerprints, spread over
-    ``n_endpoints`` endpoints (the attacked one included, so benign traffic
-    shares it), and dispersed /24s.
+    the attacked endpoint and ``n_endpoints`` others (so benign traffic shares
+    the attacked one), and dispersed /24s.
     """
     rng = random.Random(seed)
     n_attack = int(n * coord_frac)
@@ -320,7 +320,7 @@ def main():
     ap.add_argument("--repeats", type=int, default=5)
     ap.add_argument("--coord-frac", type=float, default=0.30,
                     help="fraction of the window that is a coordinated campaign")
-    ap.add_argument("--endpoints", type=int, default=8)
+    ap.add_argument("--endpoints", type=int, default=8, help="benign endpoints besides the attacked one (so 8 means nine in all)")
     ap.add_argument("--ja4-pool", type=int, default=2000,
                     help="distinct benign JA4 fingerprints")
     ap.add_argument("--probes", type=int, default=200,

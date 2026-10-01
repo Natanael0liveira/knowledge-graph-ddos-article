@@ -523,8 +523,8 @@
     // Cross-Session Coordination — the weighted relatedTo family (the relations the coordination mass counts)
     //
     // relatedTo links TWO ApplicationSession individuals and is specialized into six typed
-    // sub-properties, each instantiated from one specific coordination signal. Detection
-    // works by a WEIGHTED SUM: Ω(S) = Σ_i coordinationWeight(i) · |pairs linked by
+    // sub-properties, each instantiated from one specific coordination signal. The base
+    // rule reads a WEIGHTED SUM: Ω(S) = Σ_i coordinationWeight(i) · |pairs linked by
     // relatedBy_i in S|. The weights reflect the attacker's cost of evasion (high = costly
     // to forge). See docs/concepts.md, section 4, and Appendix A of
     // papers/http-session-noms/article.tex.
@@ -618,7 +618,7 @@
         <coordinationWeight rdf:datatype="http://www.w3.org/2001/XMLSchema#decimal">1.0</coordinationWeight>
         <classKey rdf:resource="http://security.example.org/ontology/ddos#tlsJa4"/>
         <rdfs:label>related by TLS fingerprint</rdfs:label>
-        <rdfs:comment>Sessions with an equal JA4, the equivalence whose classes the compiled count query counts. High weight: changing the TLS stack is costly for the attacker. A near-variant match (JA4 distance ≤ 1) is specified in the paper's Appendix A but not exercised: it is not an equivalence, so it would need pair edges.</rdfs:comment>
+        <rdfs:comment>Sessions with an equal JA4, the equivalence whose classes the compiled count query counts. High weight: changing the TLS stack is costly for the attacker. A near-variant match (JA4 distance = 1) is specified in the paper's Appendix A but not exercised: it is not an equivalence, so it would need pair edges.</rdfs:comment>
     </owl:ObjectProperty>
 
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#relatedByReusedIdentity">
@@ -772,7 +772,8 @@
         <rdfs:label>generates</rdfs:label>
     </owl:ObjectProperty>
 
-    <!-- Legacy Relations -->
+    <!-- Relations to endpoints and origins: targets keys the count query's partition, and
+         originatesFrom is its count unit. -->
     
     <owl:ObjectProperty rdf:about="http://security.example.org/ontology/ddos#targets">
         <rdfs:domain>
@@ -1153,27 +1154,27 @@
          sub-relation by that sub-property, so each sub-property is also declared a class. -->
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByTLSFingerprint">
-        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByTLSFingerprint in an exported chain.</rdfs:comment>
+        <rdfs:comment>Also a class (punning): the class of the evidence nodes that report relatedByTLSFingerprint in an exported chain.</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByReusedIdentity">
-        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByReusedIdentity in an exported chain.</rdfs:comment>
+        <rdfs:comment>Also a class (punning): the class of the evidence nodes that report relatedByReusedIdentity in an exported chain.</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByTemporalPattern">
-        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByTemporalPattern in an exported chain.</rdfs:comment>
+        <rdfs:comment>Also a class (punning): the class of the evidence nodes that report relatedByTemporalPattern in an exported chain.</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByPayloadSignature">
-        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByPayloadSignature in an exported chain.</rdfs:comment>
+        <rdfs:comment>Also a class (punning): the class of the evidence nodes that report relatedByPayloadSignature in an exported chain.</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByEndpointConvergence">
-        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByEndpointConvergence in an exported chain.</rdfs:comment>
+        <rdfs:comment>Also a class (punning): the class of the evidence nodes that report relatedByEndpointConvergence in an exported chain.</rdfs:comment>
     </owl:Class>
 
     <owl:Class rdf:about="http://security.example.org/ontology/ddos#relatedByNetworkProximity">
-        <rdfs:comment>Also a class (punning): the evidence node that reports relatedByNetworkProximity in an exported chain.</rdfs:comment>
+        <rdfs:comment>Also a class (punning): the class of the evidence nodes that report relatedByNetworkProximity in an exported chain.</rdfs:comment>
     </owl:Class>
 
 </rdf:RDF>

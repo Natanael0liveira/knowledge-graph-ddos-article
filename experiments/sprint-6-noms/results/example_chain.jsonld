@@ -1,7 +1,23 @@
 {
   "@context": {
     "kg": "http://security.example.org/ontology/ddos#",
-    "xsd": "http://www.w3.org/2001/XMLSchema#"
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "kg:coordinationScore": {
+      "@id": "kg:coordinationScore",
+      "@type": "xsd:double"
+    },
+    "kg:weightedContribution": {
+      "@id": "kg:weightedContribution",
+      "@type": "xsd:double"
+    },
+    "kg:scopeLevel": {
+      "@id": "kg:scopeLevel",
+      "@type": "xsd:double"
+    },
+    "kg:coordinationWeight": {
+      "@id": "kg:coordinationWeight",
+      "@type": "xsd:double"
+    }
   },
   "@id": "kg:cluster/a1.5_m25_adv0_K1000_seed1",
   "@type": "kg:CoordinatedHTTPFlood",

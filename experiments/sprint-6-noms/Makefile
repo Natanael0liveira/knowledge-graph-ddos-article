@@ -50,7 +50,7 @@ CLUSTERFLAG = $(if $(CLUSTER),--label-free-cluster)
 # Attack-free runs of rule_detection.py (calibration, test and flash-crowd donors).
 RULEWORK ?= $(DATA)/synth/sprint6_rule
 
-.PHONY: floor-bands rule-production-wafprof waf-labels rule-production-crossfit ja4-churn rule-production-od help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule rule-production production-summary audit compile-check stix-check stix-ingest rule-production-fleets fleet-selection rule-production-fresh production-tables unseen-synth cross-m rule-production-block production-tables-block
+.PHONY: floor-bands rule-production-wafprof waf-labels rule-production-crossfit ja4-churn rule-production-od help latency ml window realistic canonical purity symbolic drift all-hd check-data clean baselines rule rule-production production-summary audit compile-check stix-check stix-ingest rule-production-fleets fleet-selection rule-production-fresh production-tables unseen-synth cross-m rule-production-block production-tables-block ja4-churn-block block-report block-report-check block-part-check
 
 help:
 	@echo "No external data required:"
@@ -68,6 +68,7 @@ help:
 	@echo "  make rule-production rule-production-fresh rule-production-od rule-production-crossfit"
 	@echo "  make production-tables  # Tables IV and V, anonymized to results/"
 	@echo "  make rule-production-block production-tables-block   # the held-out block, its own directory"
+	@echo "  make ja4-churn-block block-report   # the block's metrics 1-10 (block-report-check: on the paper)"
 	@echo "  make ja4-churn          # fingerprints the rolling profile never saw"
 	@echo "  make waf-labels         # the WAF's verdicts as labels for the scope"
 	@echo "  make floor-bands        # the floor on shared stacks by popularity band, and the ratio limit"
@@ -274,6 +275,26 @@ production-tables-block:
 	  --endpoints-from $(PRODDATA)/results/rule_production_rolling_$(METHOD)_v2.json \
 	  --endpoints-folds 2026-09-20 2026-09-21 2026-09-22 2026-09-23 2026-09-24 \
 	  --test-folds $(BLOCKDAYS) --out $(RESULTS)/production_tables_block.json
+
+# Metric 10 of the block, fingerprints the rolling profile never saw. ja4_churn.py takes
+# its endpoints from the run it is given, so block_report.py matches them to the paper's
+# E1-E4 by role. Then the block's metrics 1 to 10 with their decision rules;
+# block-report-check runs the same code on the paper's reduction against its numbers.
+ja4-churn-block:
+	$(PY) scripts/ja4_churn.py --data-dir $(BLOCKDATA) --results $(BLOCKDATA)/results \
+	  --roles $(PRODDATA)/roles.json --base rule_production_rolling_$(METHOD)_v2.json \
+	  --test-folds $(BLOCKDAYS) --out $(RESULTS)/ja4_churn_block.json
+block-report:
+	$(PY) scripts/block_report.py --tables $(RESULTS)/production_tables_block.json \
+	  --churn $(RESULTS)/ja4_churn_block.json --out $(RESULTS)/block_report.json
+block-report-check:
+	$(PY) scripts/block_report.py --check
+# A blind check of one exported part with the loader at 05ccc0e, before the part's
+# retention deadline; it prints no count:
+#   git worktree add --detach <dir> 05ccc0e; make block-part-check WT=<dir> PART=<part>
+block-part-check:
+	$(PY) scripts/block_part_check.py --code $(WT)/experiments/sprint-6-noms/scripts \
+	  --data-dir $(BLOCKDATA) --part $(PART)
 
 # The binomial configuration and the beta-binomial with every client in the profile,
 # WAF-blocked ones included (--waf-in-profile), so the WAF analysis does not score the

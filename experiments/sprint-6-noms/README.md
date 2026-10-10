@@ -2704,3 +2704,31 @@ Tested and not applied:
 
 The review's main weakness, a weak held-out day and choices made on the test days, is what the
 pre-specified 14-day block being collected addresses. `make audit`: 259 checks, 0 mismatches.
+
+## 68. The held-out block: its three parts, and the report written before the reading
+
+Part 1 of the block (2026-09-26 to 09-30) was exported on 2026-10-01 at 12:49 UTC.
+Part 2 (10-01 to 10-05) followed on 2026-10-07 at 18:55 UTC, and part 3 (10-06 to
+10-09) on 2026-10-10 at 14:53 UTC, so the block holds its 14 days in full.
+`results/heldout_block_addendum_hashes.md` gives each file's SHA-256, rows and first and
+last window, next to the hashes of the history copies. A blind check with the loader at
+`05ccc0e` (`scripts/block_part_check.py`, `make block-part-check`) prints no count: in every
+part each of E1–E4 holds all its windows in both exports, and no host-window is shared
+with the history or another part.
+
+`scripts/block_report.py` computes the block's metrics 1 to 10 and applies their rules,
+from the block's reduction and from `ja4_churn.py` run on the block (`make ja4-churn-block
+block-report`). `make block-report-check` runs the same code on the paper's own reduction and
+reproduces 21 numbers the paper prints, from 5 of 5,643 to the 0.21% churn, so the
+arithmetic is fixed and checked before any block count is read.
+
+Two things surfaced while writing it, both recorded in
+`results/heldout_block_protocol_addendum_metrics.md` before the reading:
+- `ja4_churn.py` takes its endpoints from the run it is given, ordered by that run's median
+  window. On the block it could number them differently from the paper, so the report
+  matches them to E1–E4 by role.
+- Metric 7 as written compares the arms on the tenth-size botnet on every endpoint. On E2–E4
+  that botnet holds 2 to 7 attackers, fewer than its 25 stacks, so no scope can name it, and
+  on the test days the rule would prefer configuration 4 on E4 for 0.1% versus 0.0%. The
+  amendment compares 100 attackers there, the other size Section VI names, and asks for at
+  least one point more. Both versions are reported, and the amended one decides.

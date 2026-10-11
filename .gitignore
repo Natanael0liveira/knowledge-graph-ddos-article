@@ -80,7 +80,8 @@ docs/pdfs/
 # ============================================================
 papers/*/*revisao*.txt
 papers/*/*avaliacao*.txt
-papers/*/*recomendacao*.txt
+papers/*/*recomendac*.txt
+papers/*/*resposta*.txt
 papers/*/information-*.pdf
 
 # LaTeX scratch

@@ -14,9 +14,7 @@ Sources in `src-drawio/*.drawio`.
 compiled from the ontology, class sizes, trigger, scope, challenge or block, with the
 calibration on attack-free days feeding the trigger and the scope. It replaced
 `fig1_ontology` (`src-drawio/fig1_ontology.drawio`, the ontology schematic), which
-is kept in the repository but is no longer in the paper. `fig2_pipeline`
-(`src-drawio/fig_pipeline.drawio`) left the paper in round 7 and describes the
-retired RDF layer.
+is kept in the repository but is no longer in the paper.
 
 **Workflow.** Open the `.drawio` at [app.diagrams.net](https://app.diagrams.net)
 or in the desktop app, edit, then *File ▸ Export as ▸ PDF* with **Crop** on and
@@ -60,9 +58,8 @@ Colour only when it carries meaning, never for emphasis.
 
 `fig6_stops` (Fig. 2), `fig4_operating` (Fig. 3) and `fig5_latency` (Fig. 4) come from
 `make_figures_en.py`, reading the results in
-`experiments/sprint-6-noms/results/` (`unseen_synth_summary.csv`,
-`production_tables.json`, `latency_summary.json`). `fig4_regime` is no longer in
-the paper.
+`experiments/sprint-6-noms/results/` (`production_tables.json`,
+`latency_summary.json`).
 
 ```bash
 python make_figures_en.py
@@ -98,12 +95,10 @@ mapping:
 | Printed | Source | Type |
 |---|---|---|
 | Fig. 1 | `src-drawio/fig1_scoping.drawio` | draw.io schematic |
-| Fig. 2 | `fig6_stops.png` | generated (Section V-B, from the `sweep` block; drawn at print size, one column of 3.45 in, fonts 6.5–7 pt) |
-| Fig. 3 | `fig4_operating.png` | generated (Section V-B; drawn at print size, one column; grey markers and arrows: the cross-fitted calibration) |
+| Fig. 2 | `fig6_stops.png` | generated (Section V-C, from the `sweep` block; drawn at print size, one column of 3.45 in, fonts 6.5–7 pt) |
+| Fig. 3 | `fig4_operating.png` | generated (Section V-D; drawn at print size, one column; grey markers and arrows: the cross-fitted calibration) |
 | Fig. 4 | `fig5_latency.png` | generated (Appendix D) |
-| (none) | `fig3_collateral.png` | generated, no longer in the paper: Table III carries its modal column |
-| Listing 1 | `verbatim` block, Appendix A | SWRL / SPARQL rules |
-| Listing 2 | `verbatim` block, Appendix D | evidence chain |
+| Listing 1 | `verbatim` block, Appendix D | evidence chain |
 
 **If you add or remove a float, check the numbering in the PDF and update this
 table.**

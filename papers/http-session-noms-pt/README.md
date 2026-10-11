@@ -33,7 +33,10 @@ in Portuguese, formula by formula.
 Figures are binary copies of the English ones and keep English labels. To
 generate them in Portuguese, adapt the strings in
 `../http-session-noms/figures/make_figures_en.py` and in
-`../http-session-noms/figures/src-drawio/fig1_scoping.drawio`.
+`../http-session-noms/figures/src-drawio/fig1_scoping.drawio`. Two of the copies the
+Portuguese text still uses, `fig1_ontology.png` and `fig3_collateral.png`, left the English
+paper, and the script no longer draws the second (its code is in the Git history). The port of
+the later rounds replaces both, as the English paper did.
 
 ## Building
 

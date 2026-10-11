@@ -18,7 +18,7 @@ the ratio limit, the analysis of the WAF's verdicts under both profiles and the
 endpoint-day intervals, and its `references.bib` lacks the references added
 since. Until it is ported, read the English article, or the study guide
 [`guia-de-estudo.md`](guia-de-estudo.md), which teaches the current English version
-in Portuguese, formula by formula.
+in Portuguese, from the story to each table and figure, with the formulas folded away.
 
 ## What differs
 

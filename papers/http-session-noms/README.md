@@ -8,7 +8,7 @@ session ontology is the specification the count query is compiled from (Section 
 
 ```
 pp. 1–8    main text (Sections I–VII) and the acknowledgment   <- AT the 8-page limit
-pp. 9–12   references, then appendices A–F
+pp. 8–12   references (from below the acknowledgment), then appendices A–F
 total      12 pages                     <- AT the 12-page limit
 ```
 
@@ -24,15 +24,16 @@ reproducibility.
 Section V has four parts: A generated traffic, then three findings on production
 traffic: B false alarms and the calibration floor, C what is stopped (the trigger
 decides; Fig. 2, Table VI with the scopes behind each trigger ("No gate": the scope as its own trigger), the unseen filter alone included, Fig. 3 with the
-operating points) and D what the evidence supports (the held-out day, the post hoc
-analyses, the boundary and this WAF's verdicts). Specification and
+operating points) and D what the evidence supports (the post hoc analyses, the held-out
+day and the pre-specified 14-day block, the comparison fixed in advance, and this WAF's
+verdicts; Table VII holds the block). Specification and
 exchange are in Section VI. Section V keeps the central numbers in its text and leaves
-the rest to Tables IV to VI and to the "Details of V-B", "V-C" and "V-D" paragraphs of Appendix E.
+the rest to Tables IV to VII and to the "Details of V-B", "V-C" and "V-D" paragraphs of Appendix E.
 Section III keeps the trigger, the scope, its calibration and the floor; Ω is defined
 there in words and its equation and weights are in Appendix A.
 
-> **The body and the Acknowledgment end at the bottom of page 8, and the references (37)
-> open page 9; page 12 has a few lines free.** The NOMS 2027 CFP allows 8 pages of main
+> **The body and the Acknowledgment end on page 8 with about one line to spare, and the
+> references (37) start below the Acknowledgment; page 12 is full.** The NOMS 2027 CFP allows 8 pages of main
 > text plus references and an optional appendix, 12 in total. The Acknowledgment is
 > neither, so it must end on page 8. Submission is via EDAS by 9 November 2026, and the
 > PDF's author list must match the EDAS registration.
@@ -71,10 +72,12 @@ Current placement:
 | Table II (the configurations evaluated on production), Table III (the scopes on generated traffic, with the modal fingerprint) | 5 |
 | Table IV (production, pooled), Table V (the configurations' floor, in sample and cross-fitted), Fig. 2 (what the binomial configuration stops, by botnet size, per endpoint) | 6 |
 | Table VI (the scope behind each trigger), Fig. 3 (production operating points) | 7 |
+| Table VII (the configurations on the 14-day held-out block) | 8 |
 | Fig. 4 (cost), Listing 1 (evidence chain) | 11 |
 
-Table I is declared in Section I so that it lands on page 2. `dbltopnumber` is
-capped at 1 so two full-width floats can never share a page top.
+Table I is declared in Section I so that it lands on page 2. Fig. 3 is declared inside
+V-D and Table VII inside Section VI's first paragraph, so that neither stretches a column.
+`dbltopnumber` is capped at 1 so two full-width floats can never share a page top.
 
 ## Figures
 
@@ -101,10 +104,15 @@ Fig. 1, the scoping pipeline, is a draw.io drawing; its source is
    the vendored LaTeX files under their own LPPL.
 4. **Confirm the acknowledgment.** The paper thanks Azion Technologies for authorizing
    the aggregate fingerprint measurement of Section IV and the aggregated traffic
-   statistics of Appendix E. There is no funding or grant to acknowledge. Still open: the
-   scope of the AI-use disclosure, which the authors will settle with their advisor. The
-   paper says "edit text"; a review asks for "draft and edit text" and "analysis and
-   figure code".
+   statistics of Appendix E. There is no funding or grant to acknowledge. Done
+   (2026-10-11): the AI-use disclosure follows IEEE's policy, which covers AI-generated text,
+   figures, images and code. The assistant was used "to draft and edit text in all sections,
+   to extend the ontology and to write all code and figures", which is what the git history
+   shows. The ontology was created on 2026-04-14 without the assistant, and 9 of its 11
+   commits carry its co-author trailer. Each of the other 73 code files, following renames,
+   was created in a commit with that trailer, and so were both commits of Fig. 1's draw.io
+   source. The data are the operator's measurements and the project's generator output, not
+   AI-generated.
 5. **Affiliations.** Done: the first author, who is also with the operator whose endpoints
    are evaluated, is marked "Also with Azion Technologies, Brazil" in the author block.
 6. **EDAS.** The author list and title registered in EDAS must match the PDF exactly, with

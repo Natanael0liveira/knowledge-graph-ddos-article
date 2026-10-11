@@ -1,0 +1,691 @@
+{
+  "k_min": 5,
+  "endpoints": {
+    "E1": "RUM beacons",
+    "E2": "web console",
+    "E3": "API",
+    "E4": "SSO"
+  },
+  "per_endpoint": {
+    "E1": {
+      "2026-09-26": {
+        "windows": 288,
+        "profile_fingerprints": 1357,
+        "new_fingerprints": 254,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.0062056737588652485
+      },
+      "2026-09-27": {
+        "windows": 288,
+        "profile_fingerprints": 1611,
+        "new_fingerprints": 278,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.008492569002123142
+      },
+      "2026-09-28": {
+        "windows": 288,
+        "profile_fingerprints": 1889,
+        "new_fingerprints": 219,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.007827788649706457
+      },
+      "2026-09-29": {
+        "windows": 288,
+        "profile_fingerprints": 2108,
+        "new_fingerprints": 50,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.0014958863126402393
+      },
+      "2026-09-30": {
+        "windows": 288,
+        "profile_fingerprints": 2158,
+        "new_fingerprints": 16,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.0010179843909060061
+      },
+      "2026-10-01": {
+        "windows": 288,
+        "profile_fingerprints": 2174,
+        "new_fingerprints": 19,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.0011583011583011582
+      },
+      "2026-10-02": {
+        "windows": 288,
+        "profile_fingerprints": 2193,
+        "new_fingerprints": 18,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.0010526315789473684
+      },
+      "2026-10-03": {
+        "windows": 288,
+        "profile_fingerprints": 2211,
+        "new_fingerprints": 8,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.0005227391531625719
+      },
+      "2026-10-04": {
+        "windows": 288,
+        "profile_fingerprints": 2219,
+        "new_fingerprints": 5,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.0003831417624521073
+      },
+      "2026-10-05": {
+        "windows": 288,
+        "profile_fingerprints": 2224,
+        "new_fingerprints": 26,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.001364256480218281
+      },
+      "2026-10-06": {
+        "windows": 288,
+        "profile_fingerprints": 2250,
+        "new_fingerprints": 13,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.0009389671361502347
+      },
+      "2026-10-07": {
+        "windows": 288,
+        "profile_fingerprints": 2263,
+        "new_fingerprints": 13,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.0010548523206751054
+      },
+      "2026-10-08": {
+        "windows": 288,
+        "profile_fingerprints": 2276,
+        "new_fingerprints": 15,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.001037344398340249
+      },
+      "2026-10-09": {
+        "windows": 288,
+        "profile_fingerprints": 2291,
+        "new_fingerprints": 5,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.0005745475438092502
+      },
+      "2026-09-25": {
+        "windows": 288,
+        "profile_fingerprints": 1163,
+        "new_fingerprints": 194,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.00211864406779661
+      }
+    },
+    "E2": {
+      "2026-09-26": {
+        "windows": 288,
+        "profile_fingerprints": 284,
+        "new_fingerprints": 10,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.03508771929824561
+      },
+      "2026-09-27": {
+        "windows": 288,
+        "profile_fingerprints": 294,
+        "new_fingerprints": 8,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.03278688524590164
+      },
+      "2026-09-28": {
+        "windows": 288,
+        "profile_fingerprints": 302,
+        "new_fingerprints": 15,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.031578947368421054
+      },
+      "2026-09-29": {
+        "windows": 288,
+        "profile_fingerprints": 317,
+        "new_fingerprints": 10,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.031578947368421054
+      },
+      "2026-09-30": {
+        "windows": 288,
+        "profile_fingerprints": 327,
+        "new_fingerprints": 4,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.029411764705882353
+      },
+      "2026-10-01": {
+        "windows": 288,
+        "profile_fingerprints": 331,
+        "new_fingerprints": 6,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.0136986301369863
+      },
+      "2026-10-02": {
+        "windows": 288,
+        "profile_fingerprints": 337,
+        "new_fingerprints": 10,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.025974025974025976
+      },
+      "2026-10-03": {
+        "windows": 288,
+        "profile_fingerprints": 347,
+        "new_fingerprints": 6,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.04081632653061224
+      },
+      "2026-10-04": {
+        "windows": 288,
+        "profile_fingerprints": 353,
+        "new_fingerprints": 2,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.019230769230769232
+      },
+      "2026-10-05": {
+        "windows": 288,
+        "profile_fingerprints": 355,
+        "new_fingerprints": 7,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.024390243902439025
+      },
+      "2026-10-06": {
+        "windows": 288,
+        "profile_fingerprints": 362,
+        "new_fingerprints": 8,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.018691588785046728
+      },
+      "2026-10-07": {
+        "windows": 288,
+        "profile_fingerprints": 370,
+        "new_fingerprints": 4,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.017241379310344827
+      },
+      "2026-10-08": {
+        "windows": 288,
+        "profile_fingerprints": 374,
+        "new_fingerprints": 10,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.008403361344537815,
+        "unseen_origin_share_max": 0.031746031746031744
+      },
+      "2026-10-09": {
+        "windows": 288,
+        "profile_fingerprints": 384,
+        "new_fingerprints": 11,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.02666666666666667
+      },
+      "2026-09-25": {
+        "windows": 288,
+        "profile_fingerprints": 273,
+        "new_fingerprints": 11,
+        "new_fingerprints_kmin": 1,
+        "windows_with_candidate": 1,
+        "windows_with_candidate_share": 0.003472222222222222,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.05454545454545454
+      }
+    },
+    "E3": {
+      "2026-09-26": {
+        "windows": 288,
+        "profile_fingerprints": 255,
+        "new_fingerprints": 3,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.027777777777777776
+      },
+      "2026-09-27": {
+        "windows": 288,
+        "profile_fingerprints": 258,
+        "new_fingerprints": 6,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.07692307692307693
+      },
+      "2026-09-28": {
+        "windows": 288,
+        "profile_fingerprints": 264,
+        "new_fingerprints": 4,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.03333333333333333
+      },
+      "2026-09-29": {
+        "windows": 288,
+        "profile_fingerprints": 268,
+        "new_fingerprints": 7,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.07142857142857142
+      },
+      "2026-09-30": {
+        "windows": 288,
+        "profile_fingerprints": 275,
+        "new_fingerprints": 6,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.03225806451612903
+      },
+      "2026-10-01": {
+        "windows": 288,
+        "profile_fingerprints": 281,
+        "new_fingerprints": 4,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.03333333333333333
+      },
+      "2026-10-02": {
+        "windows": 288,
+        "profile_fingerprints": 285,
+        "new_fingerprints": 9,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.11904761904761904
+      },
+      "2026-10-03": {
+        "windows": 288,
+        "profile_fingerprints": 294,
+        "new_fingerprints": 3,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.03225806451612903
+      },
+      "2026-10-04": {
+        "windows": 288,
+        "profile_fingerprints": 297,
+        "new_fingerprints": 6,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.08571428571428572
+      },
+      "2026-10-05": {
+        "windows": 288,
+        "profile_fingerprints": 303,
+        "new_fingerprints": 7,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.03571428571428571
+      },
+      "2026-10-06": {
+        "windows": 288,
+        "profile_fingerprints": 310,
+        "new_fingerprints": 7,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.03278688524590164
+      },
+      "2026-10-07": {
+        "windows": 288,
+        "profile_fingerprints": 317,
+        "new_fingerprints": 4,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.013513513513513514
+      },
+      "2026-10-08": {
+        "windows": 288,
+        "profile_fingerprints": 321,
+        "new_fingerprints": 10,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.13043478260869565
+      },
+      "2026-10-09": {
+        "windows": 288,
+        "profile_fingerprints": 331,
+        "new_fingerprints": 6,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.038461538461538464
+      },
+      "2026-09-25": {
+        "windows": 288,
+        "profile_fingerprints": 251,
+        "new_fingerprints": 4,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.05
+      }
+    },
+    "E4": {
+      "2026-09-26": {
+        "windows": 287,
+        "profile_fingerprints": 127,
+        "new_fingerprints": 9,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.125
+      },
+      "2026-09-27": {
+        "windows": 281,
+        "profile_fingerprints": 136,
+        "new_fingerprints": 6,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.16666666666666666
+      },
+      "2026-09-28": {
+        "windows": 286,
+        "profile_fingerprints": 142,
+        "new_fingerprints": 12,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.1111111111111111
+      },
+      "2026-09-29": {
+        "windows": 285,
+        "profile_fingerprints": 154,
+        "new_fingerprints": 8,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.125
+      },
+      "2026-09-30": {
+        "windows": 283,
+        "profile_fingerprints": 162,
+        "new_fingerprints": 4,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.02631578947368421
+      },
+      "2026-10-01": {
+        "windows": 282,
+        "profile_fingerprints": 166,
+        "new_fingerprints": 6,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.2222222222222222
+      },
+      "2026-10-02": {
+        "windows": 288,
+        "profile_fingerprints": 172,
+        "new_fingerprints": 4,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.1111111111111111
+      },
+      "2026-10-03": {
+        "windows": 288,
+        "profile_fingerprints": 176,
+        "new_fingerprints": 1,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.047619047619047616
+      },
+      "2026-10-04": {
+        "windows": 288,
+        "profile_fingerprints": 177,
+        "new_fingerprints": 2,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.08333333333333333
+      },
+      "2026-10-05": {
+        "windows": 288,
+        "profile_fingerprints": 179,
+        "new_fingerprints": 5,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.07692307692307693
+      },
+      "2026-10-06": {
+        "windows": 288,
+        "profile_fingerprints": 184,
+        "new_fingerprints": 8,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.07142857142857142
+      },
+      "2026-10-07": {
+        "windows": 288,
+        "profile_fingerprints": 192,
+        "new_fingerprints": 2,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.024390243902439025
+      },
+      "2026-10-08": {
+        "windows": 288,
+        "profile_fingerprints": 194,
+        "new_fingerprints": 12,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.09090909090909091
+      },
+      "2026-10-09": {
+        "windows": 287,
+        "profile_fingerprints": 206,
+        "new_fingerprints": 7,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.08
+      },
+      "2026-09-25": {
+        "windows": 288,
+        "profile_fingerprints": 123,
+        "new_fingerprints": 4,
+        "new_fingerprints_kmin": 0,
+        "windows_with_candidate": 0,
+        "windows_with_candidate_share": 0.0,
+        "unseen_origin_share_median": 0.0,
+        "unseen_origin_share_max": 0.06666666666666667
+      }
+    }
+  },
+  "test_days": {
+    "windows": 16103,
+    "windows_with_candidate_share": 0.0,
+    "new_fingerprints_kmin_per_endpoint_day": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "fresh_day": {
+    "windows": 1152,
+    "windows_with_candidate_share": 0.0008680555555555555,
+    "new_fingerprints_kmin_per_endpoint_day": [
+      0,
+      1,
+      0,
+      0
+    ]
+  }
+}

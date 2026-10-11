@@ -2732,3 +2732,152 @@ Two things surfaced while writing it, both recorded in
   on the test days the rule would prefer configuration 4 on E4 for 0.1% versus 0.0%. The
   amendment compares 100 attackers there, the other size Section VI names, and asks for at
   least one point more. Both versions are reported, and the amended one decides.
+
+## 69. The block in the paper
+
+The block ran on 2026-10-10 from a worktree at `05ccc0e`, three minutes after the hashes were
+pushed (GitHub push 15:02:07 UTC, run 15:05 to 18:42 UTC). `results/production_tables_block.json`,
+`results/ja4_churn_block.json` and `results/block_report.json` hold its anonymized output.
+
+What it found, by the protocol's metrics:
+- metric 1: the binomial configuration misfires in 31 of 16,103 clean windows (0.19%, exact 95%
+  0.13-0.27%), twice the test days' rate, so the consistency test fails (P < 1e-4), though the
+  rate stays within the 1% budget;
+- metric 8: the gate opened in 233 clean windows, half the test days' rate, but the scope misfired
+  in 31 of them (13% versus 5 of 168, P < 1e-11); gate and scope misfire together ten times more
+  often than independence predicts (31 versus 2.9), unlike on the test days;
+- metric 9: 30 of the 31 misfires fall on weekdays; 17 on the console, 10 on the API, 4 on the
+  single sign-on, none on the busiest endpoint;
+- metric 2: the unseen filter as its own trigger raised no false alarm on any endpoint; the
+  cross-fitted beta-binomial behind the seasonal gate stays within the budget everywhere
+  (0.05-0.35%); the binomial scope with known fleets as its own trigger exceeds it on E1 (1.56%);
+- metric 7: the seasonal arm is preferred on every endpoint, under the rule as written and as
+  amended. On E2-E4 it stops 68-88% of 100 new-stack attackers versus 43% and 34-66% on shared
+  stacks versus none; on E1 it adds 11.4% of the tenth-size botnet on shared stacks but stops only
+  11.8% on new ones, where the unseen filter stops 89.6%;
+- metric 10: no fingerprint absent from the profile reached k_min origins in a block window.
+
+The paper now reports the block as its own table (Table VII) and V-D's paragraphs "Prospectively,
+the rate doubles" and "The comparison fixed in advance prefers the seasonal gate". The held-out
+day keeps two sentences there and its Table VI columns; its rows left Table IV. Section VI
+recommends the seasonal arm, as the protocol's metric 7 directs, with its costs (crowds of 1,000
+users trigger it in a third of windows, its misfires block a median two thirds of a window, and
+on E1 it gives up new stacks). The abstract, the conclusion and Appendices E and F follow. The
+recommended scope's floors on E2-E4 (3-4 median windows on shared stacks, 2-3 on new ones) replace
+the binomial's in Section VI.
+
+Layout: 12 pages, no stretched column, Acknowledgment and the start of the references on p.8,
+p.12 full; abstract 249 words, still 26 lines. Lines added on pp.1-4 move Sections II and V (one
+extra line in contribution (ii) moved Section II's heading and cost five lines), so those edits
+keep their line counts. `make audit`: 248 checks, 0 mismatches, with a new section that checks
+Table VII cell by cell and every block number against the block's JSON; `make block-report-check`:
+21 of 21.
+
+## 70. Round 67: two reviews of the block
+
+A NOMS-style pass (4/3/4/3/4, about the 80th percentile, "Ready to submit: yes") and a skeptical
+pass focused on the block (4/3/4/3/4, about the 70th, "no" for one class A item) checked every
+block number against the JSON files and found them right. The skeptical pass's A item was real:
+both protocols say that every metric is reported whatever its value, and taking the held-out
+day's rows out of Table IV had left its metrics 2, 3, 4 and 6 unreported. Appendix F now says that
+the repository holds every metric both protocols name (`production_tables.json`'s `fresh_day`,
+`block_report.json` and the block's reduction, all committed).
+
+The other fixes, all verified against the results first:
+- V-D gives metric 1's verdict in the protocol's word ("by the protocol's test, inconsistent with
+  it"), says what P = 0.003 tests, and that on E1 the seasonal arm is preferred only for shared
+  stacks, which the baseline cannot name;
+- VI states the arm's 14 misfires on E1, where the binomial configuration had none, its fallback
+  (235 other gate openings, 1.5% of clean windows), and the calibrated z-score, which misfired as
+  often on fewer crowds but stopped less; it adds that no later day has tested the choice;
+- VII: two of the three post hoc triggers held their budget; the floor it quotes is the
+  binomial test's;
+- App. E gives the two-sample view: counting the test days' own uncertainty, a one-sided Fisher
+  test puts the rate's rise at P = 0.07 and the misfires once the gate opens at P = 0.0002, so the
+  firm finding is the scope's lower reliability, more than the doubling;
+- App. F: the addendum adds three metrics, and the amendment was adopted after the export and
+  before any count was read; Table VII's note says each day is calibrated on all earlier days.
+
+Paid for by one-word last lines (V-B, Table IV's and VII's notes, VI, App. E), App. E's sentences
+on the in-sample beta-binomial's levels and the cross-fitted z-score at 100 attackers, and the
+"median factor of 1.8" clause. A clearer z-score sentence that wrapped one line longer moved
+Section VII's heading and cost four lines, so the shorter wording stayed. Layout: 12 pages, the
+Acknowledgment and the references' heading where they were before the block (y = 579 and 670 on
+p.8), about two free lines on p.12, abstract 249 words and 26 lines. `make audit`: 245 checks,
+0 mismatches.
+
+## 71. Round 68: the skeptical re-review
+
+The skeptical pass, rerun on round 67, judged A1 resolved as long as the three block JSON files
+are committed (4/3/4/3/4, about the 75th percentile, "Ready to submit: yes" on that condition),
+and checked every new number against the files. It left five cheap items, all applied:
+- App. F names the files that hold every metric (`production_tables.json`, `block_report.json`),
+  and says the amended rule was adopted "before any result was computed", since raw rows were
+  seen at export; `results/fresh_day_metrics_location.md` maps each held-out-day metric to its
+  key, now that the day's rows left Table IV (the frozen addendum stays as it was);
+- V-D labels the held-out day's conditional test post hoc (metric 8 was added for the block);
+- VI puts the crowds and misfires before the fallback, so "it" keeps its referent;
+- VII reorders its sentences so that "it" and "there" point to the busiest endpoint;
+- App. E restores "though none qualifies in sample", and states that the z-score reference
+  misfired less than the binomial configuration on the block (20 versus 31), fired on fewer crowds
+  and stopped more of 100 attackers.
+
+Paid for by "The block's 14 days" in V-D and App. E's sentence on the base rule's test-day crowds
+(its block value is in Table VII). Marking Table VII's post hoc rows with an asterisk lengthens
+its note by a line and gives 13 pages, so it stayed out. 12 pages, Acknowledgment and references
+at y = 579 and 670 on p.8, p.12 full; `make audit`: 244 checks, 0 mismatches.
+
+## 72. Round 69: an outside clarity review, and the AI disclosure
+
+An outside clarity review of 2026-10-11 (kept out of the repository) found the English mostly
+natural and no grammar errors. Its points were ellipses, referents far from their words and the
+chronology of the experimental decisions. Six of its ten points were applied, each checked by
+the skeptical pass and for layout:
+- P1, V-D: "The 14-day block was exported after its protocol was public and analyzed after its
+  export hashes were published". It removes the ellipsis "after their hashes were" and names the
+  exact action: the hashes were pushed publicly (`ad7c03b`), not only recorded;
+- P4, V-D: the sentence with 31 of 16,103 splits into the observation and the inference, and keeps
+  the protocol's verdict word, "inconsistent", rather than the review's "differed";
+- P2 and P5, VI: "Now our candidate is the cross-fitted beta-binomial behind the seasonal gate ...
+  It was built post hoc, but the comparison fixed in advance preferred it on every endpoint". It
+  states the recommendation's status, and the paragraph keeps its three caveats (the loss on E1,
+  "Running both there is untested" and "no later day has tested this choice");
+- P8, VII: "because the scope misfires in 13% of gate openings". The review worried that "as"
+  links rates with different denominators. The link is an identity: the joint rate is the gate's
+  rate times the scope's misfires once the gate opens, 1.45% x 13.3% = 0.19% on the block against
+  2.98% x 2.98% = 0.09% on the test days. The gate opened half as often, so the doubling comes from
+  the scope, and the audit checks that decomposition;
+- P9, VII: "two of three post hoc configurations held their budget", since configuration 4 changes
+  the scope too.
+
+Declined, and the skeptical pass agreed:
+- P3, the abstract: "their" refers to "These misfires" in the sentence before, the abstract is at
+  249 words and 26 lines, and the rate once the gate opens is in V-D and VII;
+- P6: the review itself calls "Two limits decide per endpoint" acceptable;
+- P7: IV-B, V-C's first sentence and Table VI's note already say what "No gate" means and that
+  the rates count every window;
+- P10: all four V-D paragraphs already open with their evidence status.
+
+The skeptical pass, rerun on these edits (4/3/4/3/4, about the 75th percentile, no class A item,
+"Ready to submit: yes"), raised one B item: the AI disclosure named text and code, but neither the
+ontology, which is contribution (iii), nor Fig. 1's drawing. The git history agrees with it:
+- the ontology was created on 2026-04-14 without the assistant, and 9 of its 11 commits carry its
+  co-author trailer;
+- each of the other 73 code files, following renames, was created in a commit with that trailer;
+- both commits of Fig. 1's draw.io source carry it.
+
+The Acknowledgment now reads "to draft and edit text in all sections, to extend the ontology and
+to write all code and figures. The authors reviewed and verified all content and take full
+responsibility for it". IEEE's policy asks for this: AI-generated text, figures, images and code
+are disclosed in the Acknowledgment, with the sections and the level of use. The wording keeps
+every line where it was.
+
+Tested and not applied: the pass's C1, "On the block the configuration misfired" in place of
+"There", which can be read as pointing to Appendix F; with its cut it gives 13 pages. Its C2 needs
+no text change: in clients, the candidate's 14 misfires on E1, the busiest endpoint, cost far more
+than the binomial configuration's 31 on the small ones. A reader can infer it from "busiest
+endpoint" and "two thirds", so it is kept for the rebuttal.
+
+Layout: 12 pages, the Acknowledgment and the references' heading at y = 579 and 670 on p.8, p.12
+full, abstract 249 words and 26 lines. `make audit`: 244 checks, 0 mismatches;
+`make block-report-check`: 21 of 21.

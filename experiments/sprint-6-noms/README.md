@@ -2881,3 +2881,33 @@ endpoint" and "two thirds", so it is kept for the rebuttal.
 Layout: 12 pages, the Acknowledgment and the references' heading at y = 579 and 670 on p.8, p.12
 full, abstract 249 words and 26 lines. `make audit`: 244 checks, 0 mismatches;
 `make block-report-check`: 21 of 21.
+
+## 73. Round 70: a sentence-level review
+
+An outside review of single sentences (kept out of the repository) made seven points. Two
+changed the text, and each kept every line where it was:
+- IV-B: "Cross-fitting, built post hoc, judges each calibration day, like a test day, against a
+  profile of the other days". It names the day that "it" stood for and removes the ellipsis "as a
+  test day is". "Built post hoc" stays, the paper's term everywhere, in place of the review's
+  "introduced";
+- V-D: "The gate opened half as often, but the scope misfired in 31 of its 233 openings".
+  Round 69's split had put a sentence between "Its gate" and "the configuration". The review's
+  "compared with 5 of 168 on the test days" gives 13 pages and drops the P value, and the same
+  paragraph already says "the test days' 5 of 168 openings".
+
+Declined: in VI, "It was built post hoc" stays. "It" picks up "our candidate", the subject of the
+sentence before, and the skeptical pass approved the sentence in round 69. Both explicit versions
+("The candidate", "This configuration") reflow the paragraph, move Section VII's heading and give
+13 pages. The review's passive would also drop "the comparison fixed in advance", the name of
+V-D's paragraph. Splitting "20 versus 31, though 14 versus none" in VI also costs lines, and the
+review itself says the sentence can stay.
+
+Checked, with no change: VI gives the candidate's costs right after the recommendation, IV-B
+defines Coll. as a median over alarms, and nowhere does the paper equate the budget with low risk.
+VII's "two of three post hoc configurations held their budget" is prospective: the protocol fixed
+those configurations before the block. What no later day has tested is the choice made on the
+block, and VI says so.
+
+12 pages, the Acknowledgment and the references' heading at y = 579 and 670 on p.8, pages 5-8
+with the same number of lines. `make audit`: 244 checks, 0 mismatches, with three pins moved to
+the new wording; `make block-report-check`: 21 of 21.

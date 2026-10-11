@@ -329,7 +329,7 @@ ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: beta-binomi
 good = ("Five choices were made on the test days: counting origins, calibrating $\\lambda_e$, the gate, the union with the unseen filter and the $5\\%$ fleet share" in TEXN
         and "$^{*}$Post hoc: built after the held-out day was read" in TEXN
         and "The second, built after the held-out day was read (Section~\\ref{sec:posthoc}), is a \\textbf{beta-binomial background}" in TEXN
-        and "\\textit{Cross-fitting}, built post hoc, judges it against a profile of the other days" in TEXN
+        and "\\textit{Cross-fitting}, built post hoc, judges each calibration day, like a test day, against a profile of the other days" in TEXN
         and "$^{*}$Post hoc, as is cross-fitting" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} tab:configs note: the choices made on the test days and the post hoc ones")
 
@@ -773,7 +773,7 @@ good = (xo["clean_fires"] == xb["clean_fires"] and xo["clean_collateral_median"]
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} VI: cross-fitted, the beta-binomial matches the binomial's false alarms with lower shared floors {shO} vs {shB}")
 good = ("A first cross-fitting design, calibrated only on the last calibration day, was dropped" in TEXN
         and "The second, built after the held-out day was read (Section~\\ref{sec:posthoc}), is a \\textbf{beta-binomial background}" in TEXN
-        and "\\textit{Cross-fitting}, built post hoc, judges it against a profile of the other days" in TEXN)
+        and "\\textit{Cross-fitting}, built post hoc, judges each calibration day, like a test day, against a profile of the other days" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: the dropped cross-fit design and the post hoc status are disclosed")
 print("== the WAF's verdicts (waf_labels.json)")
 WL = json.load(open(R + "waf_labels.json")); WC, WA = WL["clean_profile"]["test_days"], WL["all_profile"]["test_days"]
@@ -1122,7 +1122,7 @@ good = (bz["clean_fires"] == 31 and f"{bz['clean_rate']*100:.2f}" == "0.19" and 
         and wk == 30 and pe1["E1"]["clean_fires"] == 0 and pe1["E2"]["clean_fires"] == 17 and pe1["E2"]["clean_gate_windows"] == 29
         and f"{bz['clean_collateral_median']*100:.0f}" == "39"
         and not BR["m1"]["consistent"]
-        and "The 14-day block was exported after its protocol was public and analyzed after its export hashes were published (Appendix~\\ref{app:repro}). There the configuration misfired in 31 of 16\\,103 clean windows ($0.19\\%$, 95\\% interval $0.13$--$0.27\\%$, Table~\\ref{tab:block}). That is twice the test days' rate and, by the protocol's test, inconsistent with it ($P < 10^{-4}$), though within the budget. Its gate opened half as often, but the scope misfired in 31 of the 233 openings ($13\\%$), versus 5 of 168 ($P < 10^{-11}$). The misfires fell on weekdays (30 of 31) and on the small endpoints, 17 of them in the console's 29 gate openings, and blocked a median $39\\%$ of the window's clients." in TEXN)
+        and "The 14-day block was exported after its protocol was public and analyzed after its export hashes were published (Appendix~\\ref{app:repro}). There the configuration misfired in 31 of 16\\,103 clean windows ($0.19\\%$, 95\\% interval $0.13$--$0.27\\%$, Table~\\ref{tab:block}). That is twice the test days' rate and, by the protocol's test, inconsistent with it ($P < 10^{-4}$), though within the budget. The gate opened half as often, but the scope misfired in 31 of its 233 openings ($13\\%$), versus 5 of 168 ($P < 10^{-11}$). The misfires fell on weekdays (30 of 31) and on the small endpoints, 17 of them in the console's 29 gate openings, and blocked a median $39\\%$ of the window's clients." in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-D: block {bz['clean_fires']}/{bz['clean_windows']}, P = {pA:.1e}; gate {gr*100:.2f}% vs {gt_*100:.2f}%; scope {bz['clean_fires']}/{bz['clean_gate_windows']}, P = {pC:.1e}")
 # V-D: the comparison fixed in advance (metric 7)
 m7a, m7w = BR["m7"]["amended"], BR["m7"]["as_written"]

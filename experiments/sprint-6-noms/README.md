@@ -2962,3 +2962,31 @@ Submission Guidelines page still says EDAS; paper registration and submission on
 8 + 4 = 12 pages, the 8-page main part self-contained. The paper README's checklist now lists the
 open decisions this raised: IEEE's preprint notice for the public PDF, an ethics statement, and two
 camera-ready items. Layout unchanged on every page; `make audit`: 244 checks, 0 mismatches.
+
+## 76. Round 73: a non-technical clarity review
+
+An independent reviewer read the paper as a networking researcher who is not a specialist in
+statistics, application-layer DDoS or ontologies, using an outside clarity brief of 2026-10-18 (kept
+out of the repository) as the framework. It scored the current text 7/10, against the brief's 6.5 on
+an earlier version, and judged the brief's three top priorities met (III-C, III-D, and trigger versus
+scope versus end to end). Nine of its local fixes were applied, each tested for layout:
+- VII opens with the lesson: "Fingerprint scoping, a calibrated test specified in a session ontology,
+  pays off where attack fingerprints differ from legitimate ones, botnets pass the floor and the
+  trigger fires", in place of a restatement of the method;
+- III-D: "Lower, stricter levels raise the floor", and "there ρ also limits which fingerprints can be
+  named" for "the ratio sets a harder limit";
+- III-E: `relatedTo` sub-properties "classify" the evidence, where "type" read as a noun;
+- III-B: the base rule "fires when the coordination mass Ω(S) (...) reaches its threshold";
+- IV-B: the sentence repeating the gates (III-B, Table II) is cut, and in-sample calibration says why
+  it matters: "so its own fleets look less enriched";
+- V-D: "On the busiest endpoint the preference rests on shared stacks alone", which no longer reads
+  against "preferred (...) on every endpoint";
+- VI: "On its gate's other clean openings, 1.5% of windows, the scope names nothing and the fallback
+  acts";
+- abstract: "on those 14 days", so the post hoc triggers' days are named (250 words).
+
+Tested and not applied, each giving 13 pages: where 10⁻⁶⁰ comes from in III-C, a pointer from IV-A to
+App. F for the held-out day's caveat, and the post hoc marks on Table VII. Moving VI's paragraph on
+what the scope needs to the section's start fits but was left out. 12 pages, Acknowledgment and
+references in place; `make audit`: 244 checks, 0 mismatches, four pins moved; `make
+block-report-check`: 21 of 21.

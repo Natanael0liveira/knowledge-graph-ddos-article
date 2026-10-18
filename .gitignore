@@ -84,5 +84,9 @@ papers/*/*recomendac*.txt
 papers/*/*resposta*.txt
 papers/*/information-*.pdf
 
+# The paper's PDFs stay local while the paper is under review (IEEE's preprint policy)
+papers/http-session-noms/article.pdf
+papers/http-session-noms-pt/article.pdf
+
 # LaTeX scratch
 texput.log

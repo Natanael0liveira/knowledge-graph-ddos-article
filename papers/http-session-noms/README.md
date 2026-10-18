@@ -128,13 +128,13 @@ Fig. 1, the scoping pipeline, is a draw.io drawing; its source is
    `compile_counts.py --compare` checks only origins and /24 pairs. It must run on the operator's
    exports, which stay on the external drive, so the user runs it and commits the code.
 
-8. **The public preprint.** The public repository serves `article.pdf`. Once the paper is
-   submitted, IEEE asks every posted preprint to carry, on its first screen, the notice "This work
-   has been submitted to the IEEE for possible publication. Copyright may be transferred without
-   notice, after which this version may no longer be accessible." GitHub is not among the preprint
-   places IEEE lists (arXiv, TechRxiv, the author's or the employer's site). Decide whether to add the
-   notice, to keep the PDF out of the public repository until the decision, or to post it on arXiv or
-   TechRxiv.
+8. **The public preprint.** Once the paper is submitted, IEEE asks every posted preprint to carry,
+   on its first screen, the notice "This work has been submitted to the IEEE for possible
+   publication. Copyright may be transferred without notice, after which this version may no longer
+   be accessible." GitHub is not among the preprint places IEEE lists (arXiv, TechRxiv, the author's
+   or the employer's site). Decided 2026-10-18: the paper's PDFs (English and Portuguese) are no
+   longer tracked and stay local while the paper is under review. Still public: the PDFs in earlier
+   commits and on `main` (the August version, until `main` is updated), and the LaTeX sources.
 9. **Ethics statement.** IEEE asks for a statement on research involving human subjects. The data
    are aggregated counts from the operator's own services, with its authorization; decide with the
    advisor whether the paper needs a sentence (the body has no free line).

@@ -2911,3 +2911,32 @@ block, and VI says so.
 12 pages, the Acknowledgment and the references' heading at y = 579 and 670 on p.8, pages 5-8
 with the same number of lines. `make audit`: 244 checks, 0 mismatches, with three pins moved to
 the new wording; `make block-report-check`: 21 of 21.
+
+## 74. Round 71: Listing 1's place, the budget in windows, and a generic review
+
+Two reader questions from the user:
+- the body cited Listing 1 twice (III-B, III-E) with no pointer to Appendix D, where it sits on
+  p.11, and its caption did not show where the 91% comes from. Both citations now add "Appendix D",
+  and the caption says "Endpoint pairs carry 91% of Ω". Explaining in III-B what the listing is ("as
+  its evidence chain shows") gives 13 pages;
+- III-C's "about 2.9 of a day's 288" left "windows" implied. It is the only place the body says a day
+  has 288 windows, which V-C's "8 of 288" relies on, so it stays, as "288 windows".
+
+An outside review of 2026-10-18 (kept out of the repository) made nine general recommendations,
+most of them already met by the text. Four small edits came from it:
+- III-C names λ_e where the test first uses it ("unlikely under the binomial background at level
+  λ_e"), instead of a paragraph later;
+- III-D gives the floor's meaning before its definition ("the calibration floor: the botnet size from
+  which the scope names a typical stack") and drops the later sentence that said it;
+- III-C says in words why the modal fingerprint fails: "With more stacks, each one smaller, the
+  filter blocks users and no attackers";
+- IV-A says the production evaluation is offline ("The scope is evaluated offline, behind the
+  operator's WAF"); only App. C said so.
+
+Not applied: a decision rule at the end of the conclusion, which gives 13 pages in every wording
+tried (the rule is in VI and in the abstract's last sentence), and a rewrite of VII with fewer
+numbers, a structural change.
+
+Layout: 12 pages, every page from 1 to 8 with the same number of lines, the Acknowledgment and the
+references' heading at y = 579 and 670 on p.8. `make audit`: 244 checks, 0 mismatches, with two pins
+moved to the new wording; `make block-report-check`: 21 of 21.

@@ -481,7 +481,7 @@ per_day = {k: s["clean_fires"] / 20 for k, s in (("bin", fz), ("z", zc), ("beta"
 e2m = TD["fleets"]["per_endpoint"]["E2"]["union|origins"]["clean_fires"]
 good = (fz["clean_fires"] == 5 and e2m == 4 and PT["endpoints"]["E2"] == "web console" and fz["clean_windows"] == 5643
         and "(5 of 5\\,643, 95\\% interval $0.03$--$0.21\\%$), 4 of them on the web console" in TEXN and round(288 * 0.01, 1) == 2.9
-        and "about 2.9 of a day's 288" in TEXN)
+        and "about 2.9 of a day's 288 windows." in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: {e2m} of the {fz['clean_fires']} misfires on the web console, budget 2.9 a day")
 chk("V-B: flash crowds of 1,000 and their filters", "trigger the configuration in $22.2\\%$ of windows, with lighter filters blocking a median $4.3\\%$ of the window's clients",
     (fz["flash1000"]*100, fz["flash1000_collateral_median"]*100),
@@ -944,7 +944,7 @@ good = (round(un1 * 100) == 90 and unB == 0 and all(v["clean_rate"] <= 0.01 for 
         and not BR["m2"]["5"]["E1"]["within"]
         and "On the busiest endpoint, the gate lets most of a small botnet through. The unseen filter as its own trigger stops $90\\%$ of it on new stacks with no false alarm, and there a cross-fitted beta-binomial behind a seasonal gate, preferred on every endpoint, adds shared stacks but loses most new ones. Next come weekday calibration, HTTP/2 attacks and a captured stealthy campaign" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} VII: on the block, the unseen filter alone {un1*100:.1f}% with no misfire; the seasonal arm {x4['E1']['shared:x0.1']['blocked']*100:.1f}% on shared, {x4['E1']['new:x0.1']['blocked']*100:.1f}% on new")
-good = ("so no attack label is required." in TEXN and "The scope is evaluated behind the operator's WAF, so the profiles and floors describe the clients the WAF lets through" in TEXN)
+good = ("so no attack label is required." in TEXN and "The scope is evaluated offline, behind the operator's WAF, so the profiles and floors describe the clients the WAF lets through" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} III-C, IV-A: no attack label; the profile excludes WAF-blocked clients, the scope runs behind the WAF")
 SDV = json.load(open(R + "symbolic_detector.json"))["aggregate"]["1.5:25:1"]
 good = f"{SDV['rf_recall_fpr1']*100:.1f}" == "23.4" and "The modal fingerprint blocks $3.6\\%$ at $39.0\\%$, and the learned model $23.4\\%$ at $1\\%$ false positives" in TEXN

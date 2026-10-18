@@ -2990,3 +2990,40 @@ App. F for the held-out day's caveat, and the post hoc marks on Table VII. Movin
 what the scope needs to the section's start fits but was left out. 12 pages, Acknowledgment and
 references in place; `make audit`: 244 checks, 0 mismatches, four pins moved; `make
 block-report-check`: 21 of 21.
+
+## 77. Round 74: a NOMS-style and a skeptical review
+
+Both reviews read the version of round 73 and recomputed its numbers from the results files (the
+skeptical pass about 275 of them); none disagreed with its source.
+- NOMS-style: 4/3/4/3/4, about the 70th-75th percentile, no class A, "Ready to submit: yes".
+- Skeptical: 3/3/4/3/4, about the 65th-70th, "no" for two class A items, both real:
+  - A1: the fallback acts outside the budget and the text did not say so. When the gate opens and the
+    scope names nothing, the operator rate-limits or challenges every client; on the test days that is
+    163 of 5,643 clean windows (2.9%), and 5.4% on E1. V-B now says "the gate's other 163 openings,
+    2.9%, go to the fallback" (paid for by the clause on fleets opening the gate), and VI that "the
+    fallback acts, a cost outside the budget". A new audit check recomputes the 163;
+  - A2: the public default branch, `main`, is the August state, with no LICENSE, protocols or the
+    make targets Appendix F names. That needs a push, a fast-forward of `main` and a tag, no text.
+
+Fixes applied, each tested for layout and then all together:
+- regressions of rounds 71-73: the base rule "is gated by" Ω(S) reaching its threshold (the base rule
+  is the whole configuration elsewhere); "ρ sets a ratio limit", the term V-B uses; the conclusion's
+  "a calibrated test on ontology-specified counts, pays off where attack fingerprints are rare among
+  real clients" (the ontology does not specify the test, and shared stacks are named); contribution
+  (ii) says "scope", as III-D does;
+- precision: VII's arm is "preferred to the filter everywhere", the only comparison fixed in advance;
+  RFC 8783 now supports DOTS reusing the ACL model, which RFC 9761 does not mention; App. E's Fisher
+  tests are marked post hoc; the abstract credits "Profile-relative scopes" with the 90% (the test and
+  the z-score both reach it with no collateral, which the audit now checks); Table VII's base-rule
+  scope reads "test", as in Table II;
+- clarity: "level 0.01" for "nominal level"; "the modal filter"; the compiled query reproduced "the
+  evaluated exports'" counts; the WAF diagnostic holds "on windows that keep those clients"; the
+  introduction says "whose TLS stacks we assume the attacker keeps".
+
+Not applied: the two-sample P = 0.07 in V-D's body fits only without its post hoc mark (it stays in
+App. E, now marked); "preferred it to the unseen filter" in VI, "versus 3%" in VII, a Fisher clause
+and a sentence on the gate's own target give 13 pages; PacketScore (Kim et al., TDSC 2006) only fits
+by replacing another reference; Appendix F's "every generated-traffic table and figure regenerates
+from its make target" needs the Makefile to chain the seeded cache to its readers, a fix for the
+artifact before Artifact Evaluation. 12 pages, the abstract at 26 lines and 250 words, pages 1-4 one
+line looser; `make audit`: 245 checks, 0 mismatches; `make block-report-check`: 21 of 21.

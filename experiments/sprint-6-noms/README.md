@@ -2940,3 +2940,25 @@ numbers, a structural change.
 Layout: 12 pages, every page from 1 to 8 with the same number of lines, the Acknowledgment and the
 references' heading at y = 579 and 670 on p.8. `make audit`: 244 checks, 0 mismatches, with two pins
 moved to the new wording; `make block-report-check`: 21 of 21.
+
+## 75. Round 72: two appendix titles, and the venue's rules rechecked
+
+Two outside reviews of 2026-10-18 (kept out of the repository) covered the abstract and the
+appendices.
+- The abstract they proposed fits the layout but drops qualifiers earlier reviews required: "on the
+  days used to choose them", "though each alone exceeds its 1% budget", the misfires' median third,
+  "pre-specified", the floor's "rare fingerprints that real clients share", "A botnet on common
+  fingerprints mostly escapes", "On the busiest endpoint", the exchange gap. The abstract stays.
+- Two appendix titles now say what the appendices hold: B is "Weight Calibration and Generator
+  Inputs" (the body sends the reader there for the generated sessions), and C is "Additional
+  Experiments and Limitations" (it holds the laboratory captures, KLAGE and the learned models).
+  New subsections and a table do not fit (p.12 is full, and the run-in headings already divide the
+  appendices), renaming E "Supplementary Production Results" would be wrong (E opens with generated
+  traffic), and a sentence in D on deployed latency gives 13 pages.
+
+The NOMS 2027 rules were rechecked on the official pages: submission through JEMS3
+(https://jems3.sbc.org.br/noms2027), which the CFP and the TPC's announcement link, though the
+Submission Guidelines page still says EDAS; paper registration and submission on 9 November 2026;
+8 + 4 = 12 pages, the 8-page main part self-contained. The paper README's checklist now lists the
+open decisions this raised: IEEE's preprint notice for the public PDF, an ethics statement, and two
+camera-ready items. Layout unchanged on every page; `make audit`: 244 checks, 0 mismatches.

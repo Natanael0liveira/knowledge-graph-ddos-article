@@ -5,13 +5,14 @@
 %%
 %% Target: IEEE/IFIP NOMS 2027 (technical session, full paper).
 %% Format: IEEEtran conference, 2 columns, 10pt, US letter.
-%% Rules of the NOMS 2027 CFP and submission guidelines (read 27 Sep 2026):
+%% Rules of the NOMS 2027 CFP and submission guidelines (read 27 Sep 2026, rechecked 18 Oct 2026):
 %%   - up to 8 pages of MAIN TEXT, self-contained (reviewers need not read on);
 %%   - references and an optional appendix may add pages, 12 total maximum,
 %%     so the Acknowledgment must end within page 8;
-%%   - the PDF's author list must match EDAS, so authors are named;
+%%   - the PDF's author list must match the submission's registration, so authors are named;
 %%   - over-length papers are rejected without review;
-%%   - registration and submission via EDAS by 9 November 2026.
+%%   - registration and submission via JEMS3 (jems3.sbc.org.br/noms2027) by 9 November 2026;
+%%     the CFP links JEMS3, while its Submission Guidelines page still says EDAS.
 %% Current layout (with the 14-day block, 2026-10-10): main text and Acknowledgment
 %% pp.1-8, references pp.8-9, appendices pp.9-12, and p.12 is full. The body ends
 %% with a few lines to spare on p.8, but every body line also pushes the references
@@ -525,12 +526,12 @@ The rule's coordination mass is \begin{equation} \Omega(S) \;=\; \sum_{i \in \ma
 \textbf{\texttt{TLSFingerprint}:} exact equality of the full JA4, the relation
 exercised here. A near variant, \mbox{\textit{ja4\_distance = 1}}, would absorb version drift within one client library, but is not an equivalence relation and would require pair edges, so it is specified but not exercised. \textbf{\texttt{ReusedIdentity}}, \textbf{\texttt{TemporalPattern}} and \textbf{\texttt{PayloadSignature}}, also specified but not exercised, match a shared cookie, token or username, inter-arrival sequences within a DTW distance $\tau_{\mathrm{DTW}}$, and payload summaries above a cosine similarity $\tau_{\mathrm{payload}}$. \textbf{\texttt{EndpointConvergence}:} same endpoint, here a host or an address and port, with path-pattern normalization specified but not exercised. \textbf{\texttt{NetworkProximity}:} shared IPv4 /24 or IPv6 /48, with a shared ASN specified but not exercised.
 
-\section{Weight Calibration}
+\section{Weight Calibration and Generator Inputs}
 \label{app:calibration}
 
 On scenarios from earlier runs, a near-uniform benign vocabulary against a monolithic botnet, maximizing the per-session ROC AUC of $w_{\mathrm{tls}}\,z(\mathrm{ja4}) + w_{\mathrm{ep}}\,z(\mathrm{endpoint\ conv.}) + w_{\mathrm{net}}\,z(\mathrm{net\ prox.})$ over the grid $\{0.3\ldots1.0\}^3$ (125 combinations, 60 scenarios), yields $(1.0,\ 0.3,\ 0.3)$. Only the TLS fingerprint discriminates alone (AUC $0.93$, versus $0.50$ for endpoint convergence and $0.58$ for network proximity), and every endpoint weight in the grid reaches the same optimal AUC of $0.943$, as does the ontology's $(1.0,\ 0.6,\ 0.3)$. Thus only the top of the order is identified, and the per-window rule performs equally well with uniform weights (Appendix~\ref{app:window}). Request counts come from all $322\,658$ benign CICIDS2017 sessions and durations from the $40\,351$ with two or more requests. The default pool of $2\,000$ benign fingerprints follows the Zipf shape of the $495$ measured at one point of presence and exceeds the $76$--$1\,163$ observed per production endpoint. Popularity is measured per request, which if anything overstates concentration.
 
-\section{Additional Limitations}
+\section{Additional Experiments and Limitations}
 \label{app:limitations}
 
 \textbf{Instrumentation and deployment.} Counting origins by source address undercounts users behind carrier-grade NAT and overcounts clients rotating IPv6 privacy addresses, whose natural unit is the /64. The production run is offline, over counts per endpoint, so a live CDN deployment still needs the partitioning of Appendix~\ref{app:cost}, not implemented here.

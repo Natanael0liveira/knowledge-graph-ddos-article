@@ -13,7 +13,8 @@ total      12 pages                     <- AT the 12-page limit
 ```
 
 Appendices: **A** sub-relation specification, with Eq. 1 (Ω) and the weights · **B** weight
-calibration · **C** additional limitations, per-session detection and the learned
+calibration and the generator's inputs · **C** additional experiments and limitations:
+per-session detection and the learned
 models (the (a)–(d) ablation), laboratory captures, KLAGE, the learned representation
 across stack counts · **D** cost model (Fig. 4), the evidence chain
 (Listing 1) and CDN-scale partitioning · **E** the rule per window (in text since round 23) and the
@@ -35,8 +36,8 @@ there in words and its equation and weights are in Appendix A.
 > **The body and the Acknowledgment end on page 8 with about one line to spare, and the
 > references (37) start below the Acknowledgment; page 12 is full.** The NOMS 2027 CFP allows 8 pages of main
 > text plus references and an optional appendix, 12 in total. The Acknowledgment is
-> neither, so it must end on page 8. Submission is via EDAS by 9 November 2026, and the
-> PDF's author list must match the EDAS registration.
+> neither, so it must end on page 8. Submission is via JEMS3 by 9 November 2026, and the
+> PDF's author list must match the submission's registration.
 
 Section structure follows the pattern observed in NOMS papers: Introduction ·
 Related Work · Calibrated Fingerprint Scoping · Evaluation Methodology · Results ·
@@ -88,12 +89,16 @@ Fig. 1, the scoping pipeline, is a draw.io drawing; its source is
 
 ## Before submitting
 
-1. **NOMS 2027 CFP.** Done (read 27 Sep 2026):
+1. **NOMS 2027 CFP.** Done (read 27 Sep 2026, rechecked on the official pages 18 Oct 2026):
    - 8 pages of main text plus references and an optional appendix, 12 in total, with the
-     Acknowledgment inside the 8;
-   - submission via EDAS by 9 November 2026 (Montréal, 10–14 May 2027).
+     Acknowledgment inside the 8; over-length papers are rejected without review;
+   - the 8-page main part must be self-contained, since reviewers need not read past it;
+   - paper registration and submission on the same day, 9 November 2026, via JEMS3
+     (https://jems3.sbc.org.br/noms2027), which the CFP and the TPC's announcement link. The
+     Submission Guidelines page still says EDAS, so confirm with the TPC chairs;
+   - notification 15 February 2027, camera-ready 28 February 2027 (Montréal, 10–14 May 2027).
 
-   The PDF is 12 pages of US letter with all 24 fonts embedded and no Type 3 font.
+   The PDF is 12 pages of US letter with all 25 fonts embedded and no Type 3 font.
 2. **Make the repository URL of Appendix F resolve to this version.** The public
    `main` still holds the August 2026 state; push and merge this branch, or tag the
    commit the paper describes. Before that URL reaches reviewers, decide what to do with
@@ -114,13 +119,28 @@ Fig. 1, the scoping pipeline, is a draw.io drawing; its source is
    AI-generated.
 5. **Affiliations.** Done: the first author, who is also with the operator whose endpoints
    are evaluated, is marked "Also with Azion Technologies, Brazil" in the author block.
-6. **EDAS.** The author list and title registered in EDAS must match the PDF exactly, with
-   every co-author registered.
+6. **JEMS3.** The author list and title registered in JEMS3 must match the PDF exactly, with
+   every co-author registered. The author list cannot change after acceptance, and IEEE needs
+   an ORCID for every author at camera-ready.
 7. **Before the Artifact Evaluation submission: commit the JA4 pair comparison.** App. F reports
    that the compiled query reproduced the JA4 pair counts in the 288 WAF-free windows of each
    production day. `compile_production_check*.json` records this, but the comparison ran ad hoc:
    `compile_counts.py --compare` checks only origins and /24 pairs. It must run on the operator's
    exports, which stay on the external drive, so the user runs it and commits the code.
+
+8. **The public preprint.** The public repository serves `article.pdf`. Once the paper is
+   submitted, IEEE asks every posted preprint to carry, on its first screen, the notice "This work
+   has been submitted to the IEEE for possible publication. Copyright may be transferred without
+   notice, after which this version may no longer be accessible." GitHub is not among the preprint
+   places IEEE lists (arXiv, TechRxiv, the author's or the employer's site). Decide whether to add the
+   notice, to keep the PDF out of the public repository until the decision, or to post it on arXiv or
+   TechRxiv.
+9. **Ethics statement.** IEEE asks for a statement on research involving human subjects. The data
+   are aggregated counts from the operator's own services, with its authorization; decide with the
+   advisor whether the paper needs a sentence (the body has no free line).
+10. **Camera-ready.** IEEE PDF eXpress may flag hyperref's links and bookmarks ("No bookmarks or
+    links"). The Event Policies page's "six printed pages, plus one at US$100" contradicts the CFP and
+    is unfinished (its dates say TBD): ask the chairs with the JEMS3 question.
 
 ## Portuguese version
 

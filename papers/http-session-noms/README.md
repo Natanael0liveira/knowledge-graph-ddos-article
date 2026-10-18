@@ -104,8 +104,9 @@ Fig. 1, the scoping pipeline, is a draw.io drawing; its source is
    commit the paper describes. Before that URL reaches reviewers, decide what to do with
    the already-pushed commit `df2ea4d`, which holds an early example binding with real
    column names.
-3. **License.** Done: the repository root carries an MIT `LICENSE` (Appendix F), with
-   the vendored LaTeX files under their own LPPL.
+3. **License.** Done: the repository root carries the plain MIT `LICENSE` (Appendix F), which
+   GitHub detects, and `NOTICE` lists the files under their own licenses (the vendored LaTeX
+   files, LPPL).
 4. **Confirm the acknowledgment.** The paper thanks Azion Technologies for authorizing
    the aggregate fingerprint measurement of Section IV and the aggregated traffic
    statistics of Appendix E. There is no funding or grant to acknowledge. Done

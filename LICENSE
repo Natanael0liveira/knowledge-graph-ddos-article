@@ -19,14 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
---------------------------------------------------------------------------------
-
-Files that keep their own licenses:
-
-- papers/*/IEEEtran.cls, papers/*/IEEEtran.bst and papers/*/stfloats.sty are
-  distributed under the LaTeX Project Public License (LPPL), as their headers
-  state.
-- The aggregate distributions under experiments/sprint-2/distributions/ are
-  derived from the public CICIDS2017 dataset and remain subject to its
-  provider's terms.

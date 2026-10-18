@@ -8,7 +8,8 @@ OWL ontology, from which the per-window count query a log store runs is compiled
 
 This repository holds the ontology, the pipeline, the experiments and the manuscript
 for a paper submitted to IEEE/IFIP NOMS. It is released under the [MIT license](LICENSE);
-the vendored LaTeX class and style files keep their own (LPPL).
+[NOTICE](NOTICE) lists the files that keep their own licenses (the vendored LaTeX files and the
+distributions derived from CICIDS2017).
 
 ---
 

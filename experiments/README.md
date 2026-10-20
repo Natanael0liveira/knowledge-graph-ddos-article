@@ -1,86 +1,102 @@
 # Experiments
 
-Code and configuration for every experimental stage of the paper. **Data**
-(PCAPs, processed datasets, KG output) lives outside the repository on an
-external drive pointed at by an environment variable; only code, configs and
-light logs are versioned.
+Code, configurations and committed results for every experimental stage of the paper
+([`papers/http-session-noms/article.tex`](../papers/http-session-noms/article.tex)). The
+repository versions code, configurations, result files and anonymized production summaries
+(E1–E4, counts and rates). Logs, captures, scenario caches and the operator's exports stay on an
+external data drive.
 
-For why each stage exists and what it can establish, see
-[`../docs/evaluation.md`](../docs/evaluation.md). For the decisions behind each
-one, see [`METHODOLOGY.md`](METHODOLOGY.md). For results on real captures, see
-[`FINDINGS.md`](FINDINGS.md).
+Where to go next:
+- [`FINDINGS.md`](FINDINGS.md): the results in prose, negative ones included, each with its paper
+  pointer and result file.
+- [`METHODOLOGY.md`](METHODOLOGY.md): how the evaluation was built and corrected, and which
+  scenario cache each generated result comes from.
+- [`../docs/evaluation.md`](../docs/evaluation.md) for the experimental design,
+  [`../docs/concepts.md`](../docs/concepts.md) for the method and
+  [`../docs/metrics.md`](../docs/metrics.md) for the metrics.
+- The root README's section [Figures, tables and listings](../README.md#figures-tables-and-listings):
+  which result file backs each table and figure of the paper.
 
-## Setup
+## Prerequisites
 
-### Prerequisites
-
-| Tool | Minimum | Install (macOS) |
+| Tool | Needed for | Install (macOS) |
 |---|---|---|
-| Python | 3.11 | `brew install python@3.11` |
-| Docker Desktop | 4.x | https://www.docker.com/products/docker-desktop |
-| tshark | 4.0+ (has JA4) | `brew install wireshark` |
-| GNU Make | any | ships with macOS |
-| Java | 17+ (for CICFlowMeter) | `brew install openjdk@17` |
+| Python 3.11 | every stage | `brew install python@3.11` |
+| GNU Make | every stage | ships with macOS |
+| tshark with JA4 support | Sprint 1, JA4 extraction | `brew install wireshark`; `tshark -G fields \| grep tls.handshake.ja4` must list the field |
+| Docker Desktop | Sprint 1, the Fuseki store | [docker.com](https://www.docker.com/products/docker-desktop) |
+| Java 17 | Sprint 1, Apache Jena's `tdb2.tdbloader` (`make load-kg-bulk`, `make coordination`) | `brew install openjdk@17` |
+
+Flow features come from the Python `cicflowmeter` package, so flow extraction needs no Java.
+
+## Python environment
+
+Every Makefile runs `../.venv/bin/python`, which is `experiments/.venv`. Sprint 1's
+`make install-deps` creates it but needs `DATA_ROOT`. These commands, run from the repository
+root, need neither the data drive nor `experiments/.env`:
 
 ```bash
-python3 --version && docker --version && tshark --version && make --version && java --version
+cd experiments
+python3.11 -m venv .venv
+.venv/bin/pip install --upgrade pip
+.venv/bin/pip install -r requirements.txt
 ```
 
-### External drive
+Sprint 1's flow extraction also needs `cicflowmeter` with `scapy` 2.5.0 and three bug fixes
+(`sprint-1/scripts/patch_cicflowmeter.py`), which `requirements.txt` leaves out. Run
+`make install-cicflowmeter` in `sprint-1/` once `.env` exists.
+
+## The data drive and `.env`
 
 ```bash
-df -h | grep -i volumes                          # find the mount point
 export DATA_ROOT=/Volumes/YourDrive/kg-ddos-data
-mkdir -p "$DATA_ROOT"
-./scripts/setup-data-storage.sh "$DATA_ROOT"     # creates the tree and experiments/.env
+./scripts/setup-data-storage.sh "$DATA_ROOT"
 ```
 
-Confirm that `experiments/.env` holds `DATA_ROOT=...` and that `experiments/data`
-is a symlink exposing `raw/`, `processed/`, `synth/`, `kg/` and `results/`.
+- The script creates the data tree on the drive, writes `experiments/.env` with `DATA_ROOT`, and
+  links `experiments/data` to the drive.
+- Sprint 1's TDB2 store also needs `FUSEKI_DB` in `.env`, on an internal APFS disk, since exFAT
+  breaks TDB2's memory mapping. The script does not write it; see [`.env.example`](.env.example).
+- `make help` works in every stage without `.env`. In Sprints 1–5 every other target stops while
+  `DATA_ROOT` is unset, since make reads it when it parses the Makefile.
+- Sprint 6 and the two pillars need no `.env`. Sprint 6 reaches the drive through
+  `experiments/data`.
+
+## What runs without the drive
+
+| Where | Command | What it does | Writes |
+|---|---|---|---|
+| `sprint-6-noms/` | `make audit` | recomputes about 250 printed numbers of the paper from `results/` | nothing |
+| `sprint-6-noms/` | `make block-report-check` | runs the block report's code on the paper's own reduction | nothing |
+| `sprint-6-noms/` | `make block-report` | the 14-day block's metrics 1–10, from its committed reduction | `results/block_report.json` |
+| `sprint-6-noms/` | `make compile-check` | the count query compiled from the ontology, checked on generated sessions | `results/compile_check.json` |
+| `sprint-6-noms/` | `make stix-check` | rewrites each committed evidence chain's STIX 2.1 bundle and runs the OASIS validator | the bundles, `results/stix_validation.json` |
+| `sprint-6-noms/` | `make stix-ingest` | the same bundles through a TAXII 2.1 server it starts on localhost, and MISP's importer | `results/stix_ingest.json` |
+| `sprint-6-noms/` | `make latency` | the cost model (App. D, Fig. 4); the full sweep takes long | `results/latency_*` |
+| `pillar2-symbolic-reasoning/` | `make demo` | the SWRL rules and the SPARQL Ω aggregation on a toy graph | nothing |
+| `pillar4-evidence-mitigation/` | `make demo` | an evidence chain and its STIX bundle on a toy cluster, with the modal scope | overwrites `results/evidence.jsonld`, `results/mitigation.stix.json` |
+| repository root | `experiments/.venv/bin/python papers/http-session-noms/figures/make_figures_en.py` | Figs. 2–4, from `production_tables.json` and `latency_summary.json` | the figure files |
+
+Every other target reads the captures, the scenario caches or the operator's exports on the
+drive. In `sprint-6-noms/`, `make clean` deletes every committed `results/*.json` and `*.csv`,
+the production reductions included, which only the drive can rebuild.
 
 ## Stages
 
-```
-experiments/
-├── sprint-1/                     extraction pipeline: PCAP -> JA4 + flows -> sessions -> graph
-├── sprint-2/                     calibrated synthetic generator
-├── sprint-3/                     baselines and ablation (a/b/c/d)
-├── sprint-4/                     statistical run, n = 30
-├── sprint-5/                     comparison against KLAGE on CIC-IoT2023
-├── sprint-6-noms/                realistic scenario, cost model, corrections for submission
-├── pillar2-symbolic-reasoning/   SWRL + SPARQL, verdict as derivation
-├── pillar4-evidence-mitigation/  JSON-LD / STIX chain and scoped mitigation
-├── requirements.txt
-├── METHODOLOGY.md                why each decision was made, per stage
-└── FINDINGS.md                   results on real captures
-```
+Each stage has its own README and a Makefile with fixed seeds.
 
-Each stage is driven by a Makefile with named targets and fixed seeds. Start with
-`make help` inside any of them.
+| Directory | What it holds | Paper | Needs the drive |
+|---|---|---|---|
+| [`sprint-1/`](sprint-1/) | Laboratory pipeline: PCAP → JA4 and flows → sessions, with a legacy Fuseki graph and SPARQL gate | App. B (the benign sessions the generator samples), App. C | yes |
+| [`sprint-2/`](sprint-2/) | The traffic generator, and the CICIDS2017-derived distributions it samples, committed in `distributions/` | IV-A, App. B | for its targets; Sprint 6 reads `distributions/` from the repository |
+| [`sprint-3/`](sprint-3/) | First (a)–(d) ablation (three flow features, one seed), the academic baselines' code, the multi-attack run on the captures | App. C, through code that Sprints 4–6 reuse | yes |
+| [`sprint-4/`](sprint-4/) | Earlier 30-seed run and weight calibration on the sprint-4 cache, and the robustness sweep | App. B (weights) | yes |
+| [`sprint-5/`](sprint-5/) | The uncontrolled comparison with KLAGE on CIC-IoT2023 Slowloris | App. C | yes |
+| [`sprint-6-noms/`](sprint-6-noms/) | The paper's evaluation: the scope on generated traffic, the production evaluation with the held-out day and the 14-day block, the compiled query, the STIX export, the cost model and the audit | III-E, IV, V, VI; Tables II–VII; Figs. 2–4; Apps. B–F | for scenario-cache and production targets |
+| [`pillar2-symbolic-reasoning/`](pillar2-symbolic-reasoning/) | Four sub-relations as SWRL rules and the SPARQL Ω aggregation, on a toy graph; the evaluation runs no reasoner | App. A | no |
+| [`pillar4-evidence-mitigation/`](pillar4-evidence-mitigation/) | Both scope derivations (modal fingerprint and binomial test), level calibration, and the JSON-LD and STIX export; Sprint 6 imports it | III-C, III-E, App. D (Listing 1) | no |
+| [`common/`](common/) | `kg_ontology.py`: the weights, class keys and count unit, read from the ontology | III-E | no |
+| [`scripts/`](scripts/) | `setup-data-storage.sh`: the data tree, `.env` and the data symlink | | |
 
-## Status
-
-All stages are coded and executed. Headline results, matching the paper:
-
-| Stage | Data | Result |
-|---|---|---|
-| 1 — pipeline and KG | CICIDS2017 + CIC-IoT2023 | Both loaded; gates G1–G4 pass in `validate.ipynb` |
-| 2 — synthetic generator | calibrated from stage 1 | KS pass (D = 0.003 duration, 0.002 request count); reproducible; stealth mode |
-| 3 — baselines and ablation | stealthy synthetic, same service on :443 | (d) 0.927 at K = 50 and 0.982 at K = 1000, against 0.498–0.503 for (a), (b) and the three academic baselines |
-| 4 — statistical run | synthetic, n = 30 | (d)−(a) Cohen's *d* = 22.4 and (d)−(c) *d* = 13.5, both p_bonf = 7.5 × 10⁻⁹; rank-biserial +1.00 |
-| 5 — comparison with KLAGE | CIC-IoT2023 (real) | (d) F₁ = 0.911 and a strong per-session baseline at 0.900, both above KLAGE's published 0.841; the cross-session margin is marginal on this conventional dataset |
-| 6 — NOMS additions | synthetic + real | Cost model, window sweep, profile drift |
-| Pillar 2 | synthetic | Rule as detector: 90.3% recall at zero false positives where the learned model reaches 36.4% |
-| Pillar 4 | synthetic + real | Frequency scoping fails (0% attack, 39% legitimate hit); enrichment blocks 85–90% with no collateral observed |
-
-**What this supports.** The cross-session advantage is real and statistically
-strong in the **stealthy distributed** regime. On conventional real datasets a
-strong per-session classifier already suffices, and the paper says so explicitly;
-what remains unconditional there is the framework: the session as an ontological
-entity, the symbolic verdict, the evidence chain and the derived mitigation
-scope.
-
-**Open.** RT-IoT2022 (manual download from IEEE DataPort) and calibration of the
-*absolute* w values against production traffic with partial and conflicting
-signals. In the realistic same-service scenario the calibration corroborates the
-TLS-dominant *ordering*, with the paper's weights reaching the optimal AUC 0.943.
+The [Sprint 6 README](sprint-6-noms/README.md) maps each paper element to its result files and
+make target, and keeps a lab notebook of the experiments and review rounds.

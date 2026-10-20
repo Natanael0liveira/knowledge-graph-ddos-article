@@ -1,8 +1,11 @@
-%% references.bib -- NOMS submission
-%% "Scoped Mitigation of Application-Layer DDoS with a Session-Centric
-%%  Knowledge Graph"
+%% references.bib -- NOMS 2027 submission
+%% "TLS-Fingerprint Scoping of Application-Layer DDoS Mitigation: Calibration Floors
+%%  and Collateral on a CDN Operator's Endpoints"
 %%
-%% Only entries actually cited in article.tex are kept here.
+%% Every entry is cited by article.tex or by its Portuguese translation
+%% (papers/http-session-noms-pt/, which keeps an identical copy of this file).
+%% Entries no longer cited are in the git history.
+
 
 %% =====================================================================
 %% Application-layer DDoS: surveys, detection, taxonomy
@@ -73,19 +76,10 @@
   doi     = {10.1504/IJTMCC.2013.056440}
 }
 
+
 %% =====================================================================
 %% Knowledge graphs and graph-based reasoning for security / management
 %% =====================================================================
-
-%% Graph-BERT: the node-embedding model KLAGE classifies with. Cited in the
-%% introduction to characterize how KLAGE captures coordination implicitly.
-@article{zhang2020graphbertattentionneededlearning,
-  author  = {Zhang, Jiawei and Zhang, Haopeng and Xia, Congying and Sun, Li},
-  title   = {Graph-{BERT}: Only Attention is Needed for Learning Graph Representations},
-  journal = {arXiv preprint arXiv:2001.05140},
-  year    = {2020},
-  doi     = {10.48550/arXiv.2001.05140}
-}
 
 @article{belcastro2025klage,
   author  = {Belcastro, Loris and Carlucci, Carmine and Cosentino, Cristian and Li{\`o}, Pietro and Marozzo, Fabrizio},
@@ -95,25 +89,6 @@
   pages   = {108160},
   year    = {2026},
   doi     = {10.1016/j.future.2025.108160}
-}
-
-@article{jia2018practical,
-  author  = {Jia, Yan and Qi, Yulu and Shang, Huaijun and Jiang, Rong and Li, Aiping},
-  title   = {A Practical Approach to Constructing a Knowledge Graph for Cybersecurity},
-  journal = {Engineering},
-  volume  = {4},
-  number  = {1},
-  pages   = {53--60},
-  year    = {2018},
-  doi     = {10.1016/j.eng.2018.01.004}
-}
-
-@inproceedings{bonagiri2024practical,
-  author    = {Bonagiri, V. and Priyadharshini, P. and PanneerSelvi, P. and Sahitya, S. and Swamy, R. and Varalakshmi, P.},
-  title     = {Practical Applications of Cybersecurity: A Research Paper on Knowledge Graphs for Real-World Security Solutions},
-  booktitle = {Proc. 4th Asian Conf. on Innovation in Technology (ASIANCON)},
-  year      = {2024},
-  doi       = {10.1109/ASIANCON62057.2024.10838144}
 }
 
 @article{liu2022recent,
@@ -127,36 +102,10 @@
   doi     = {10.3390/electronics11152287}
 }
 
-@inproceedings{sadlek2024device,
-  author    = {Sadlek, Luk{\'a}{\v{s}} and Hus{\'a}k, Martin and {\v{C}}eleda, Pavel},
-  title     = {Identification of Device Dependencies Using Link Prediction},
-  booktitle = {Proc. IEEE/IFIP Network Operations and Management Symp. (NOMS)},
-  pages     = {1--10},
-  year      = {2024},
-  doi       = {10.1109/NOMS59830.2024.10575713}
-}
-
-@inproceedings{wang2024intrusion,
-  author    = {Wang, Xiaoxuan and Stadler, Rolf},
-  title     = {{IT} Intrusion Detection Using Statistical Learning and Testbed Measurements},
-  booktitle = {Proc. IEEE/IFIP Network Operations and Management Symp. (NOMS)},
-  pages     = {1--7},
-  year      = {2024},
-  doi       = {10.1109/NOMS59830.2024.10575087}
-}
 
 %% =====================================================================
 %% Modern incident scale (motivation)
 %% =====================================================================
-
-@misc{cve202344487,
-  author       = {{National Institute of Standards and Technology}},
-  title        = {{CVE-2023-44487} Detail},
-  year         = {2023},
-  howpublished = {National Vulnerability Database},
-  url          = {https://nvd.nist.gov/vuln/detail/CVE-2023-44487},
-  note         = {Accessed Sep.~25, 2026}
-}
 
 %% Verified 2026-09-25: authors and date read from the post; it reports the
 %% 398M rps peak and no botnet size.
@@ -167,28 +116,6 @@
   month        = oct,
   howpublished = {Google Cloud Blog},
   url          = {https://cloud.google.com/blog/products/identity-security/how-it-works-the-novel-http2-rapid-reset-ddos-attack},
-  note         = {Accessed Sep.~25, 2026}
-}
-
-%% Verified 2026-09-25: the 201M rps attack "with a botnet of merely 20,000 machines".
-@misc{pardue2023rapidreset,
-  author       = {Pardue, Lucas},
-  title        = {{HTTP/2} Rapid Reset: Deconstructing the Record-Breaking Attack},
-  year         = {2023},
-  month        = oct,
-  howpublished = {Cloudflare Blog},
-  url          = {https://blog.cloudflare.com/technical-breakdown-http2-rapid-reset-ddos-attack/},
-  note         = {Accessed Sep.~25, 2026}
-}
-
-%% Verified 2026-09-25: single byline; "over 6,500 hyper-volumetric DDoS attacks".
-@misc{cloudflare2025q2ddos,
-  author       = {Yoachimik, Omer},
-  title        = {Hyper-Volumetric {DDoS} Attacks Skyrocket: {Cloudflare}'s 2025 {Q2} {DDoS} Threat Report},
-  year         = {2025},
-  month        = jul,
-  howpublished = {Cloudflare Blog},
-  url          = {https://blog.cloudflare.com/ddos-threat-report-for-2025-q2/},
   note         = {Accessed Sep.~25, 2026}
 }
 
@@ -203,6 +130,7 @@
   url          = {https://blog.cloudflare.com/ja4-signals/},
   note         = {Accessed Sep.~25, 2026}
 }
+
 
 %% =====================================================================
 %% Datasets, fingerprinting, standards
@@ -258,15 +186,6 @@
   note         = {Accessed Sep.~25, 2026}
 }
 
-@misc{w3c2012owl2profiles,
-  author       = {{W3C OWL Working Group}},
-  title        = {{OWL 2} Web Ontology Language Profiles, 2nd ed.},
-  year         = {2012},
-  howpublished = {W3C Recommendation},
-  url          = {https://www.w3.org/TR/owl2-profiles/},
-  note         = {Accessed Sep.~25, 2026}
-}
-
 %% Verified 2026-09-25: published as RFC 9849, Proposed Standard, March 2026.
 @techreport{ietf2026ech,
   author       = {Rescorla, Eric and Oku, Kazuho and Sullivan, Nick and Wood, Christopher A.},
@@ -313,34 +232,11 @@
   doi     = {10.3390/info15040195}
 }
 
+
 %% =====================================================================
-%% Mitigation signaling, defensive knowledge, graph-based bot detection
+%% Mitigation signaling and defensive knowledge
 %% (verified 2026-09-25 against the RFC Editor, the D3FEND paper and IEEE Xplore)
 %% =====================================================================
-
-@techreport{dots2020architecture,
-  author       = {Mortensen, Andrew and Reddy.K, Tirumaleswar and Andreasen, Flemming and Teague, Nik and Compton, Rich},
-  title        = {{DDoS} {O}pen {T}hreat {S}ignaling ({DOTS}) {A}rchitecture},
-  institution  = {Internet Engineering Task Force},
-  type         = {RFC},
-  number       = {8811},
-  year         = {2020},
-  month        = aug,
-  doi          = {10.17487/RFC8811},
-  url          = {https://www.rfc-editor.org/rfc/rfc8811}
-}
-
-@techreport{dots2021signal,
-  author       = {Boucadair, Mohamed and Shallow, Jon and Reddy.K, Tirumaleswar},
-  title        = {{D}istributed {D}enial-of-{S}ervice {O}pen {T}hreat {S}ignaling ({DOTS}) {S}ignal {C}hannel {S}pecification},
-  institution  = {Internet Engineering Task Force},
-  type         = {RFC},
-  number       = {9132},
-  year         = {2021},
-  month        = sep,
-  doi          = {10.17487/RFC9132},
-  url          = {https://www.rfc-editor.org/rfc/rfc9132}
-}
 
 @techreport{dots2020data,
   author       = {Boucadair, Mohamed and Reddy.K, Tirumaleswar},
@@ -363,43 +259,18 @@
   note         = {Accessed Sep.~25, 2026}
 }
 
-@inproceedings{aboudaya2019graphbot,
-  author    = {Abou Daya, Abbas and Salahuddin, Mohammad A. and Limam, Noura and Boutaba, Raouf},
-  title     = {A Graph-Based Machine Learning Approach for Bot Detection},
-  booktitle = {Proc. IFIP/IEEE Symp. on Integrated Network and Service Management (IM)},
-  pages     = {144--152},
-  year      = {2019}
-}
 
 %% =====================================================================
-%% Coordination detection, L7 DDoS under flash crowds, anomaly extraction,
-%% signature generation, DOTS telemetry (verified 2026-09-26 against Crossref,
-%% the USENIX proceedings page and the RFC Editor)
+%% L7 DDoS under flash crowds, anomaly extraction, signature generation,
+%% aggregate and source-based mitigation, fingerprinting (verified 2026-09-26
+%% against Crossref, the USENIX proceedings page and the RFC Editor)
 %% =====================================================================
-
-@inproceedings{cao2014synchrotrap,
-  author       = {Cao, Qiang and Yang, Xiaowei and Yu, Jieqi and Palow, Christopher},
-  title        = {Uncovering Large Groups of Active Malicious Accounts in Online Social Networks},
-  booktitle    = {Proc. ACM SIGSAC Conf. on Computer and Communications Security (CCS)},
-  year         = {2014},
-  pages        = {477--488},
-  doi          = {10.1145/2660267.2660269}
-}
 
 @inproceedings{kandula2005botz,
   author       = {Kandula, Srikanth and Katabi, Dina and Jacob, Matthias and Berger, Arthur},
   title        = {{Botz-4-Sale}: Surviving Organized {DDoS} Attacks That Mimic Flash Crowds},
   booktitle    = {Proc. USENIX Symp. on Networked Systems Design and Implementation (NSDI)},
   year         = {2005}
-}
-
-@inproceedings{walfish2006speakup,
-  author       = {Walfish, Michael and Vutukuru, Mythili and Balakrishnan, Hari and Karger, David and Shenker, Scott},
-  title        = {{DDoS} Defense by Offense},
-  booktitle    = {Proc. ACM SIGCOMM},
-  year         = {2006},
-  pages        = {303--314},
-  doi          = {10.1145/1159913.1159948}
 }
 
 @inproceedings{silveira2010urca,
@@ -417,19 +288,6 @@
   year         = {2006},
   doi          = {10.1109/SP.2006.18}
 }
-
-@techreport{dots2022telemetry,
-  author       = {Boucadair, Mohamed and Reddy.K, Tirumaleswar and Doron, E. and Chen, M. and Shallow, Jon},
-  title        = {{D}istributed {D}enial-of-{S}ervice {O}pen {T}hreat {S}ignaling ({DOTS}) {T}elemetry},
-  institution  = {Internet Engineering Task Force},
-  type         = {RFC},
-  number       = {9244},
-  year         = {2022},
-  month        = jun,
-  doi          = {10.17487/RFC9244},
-  url          = {https://www.rfc-editor.org/rfc/rfc9244}
-}
-
 
 @article{mahajan2002pushback,
   author  = {Mahajan, Ratul and Bellovin, Steven M. and Floyd, Sally and Ioannidis, John and Paxson, Vern and Shenker, Scott},
@@ -479,15 +337,6 @@
   doi       = {10.1145/3355369.3355601}
 }
 
-@inproceedings{beutel2013copycatch,
-  author    = {Beutel, Alex and Xu, Wanhong and Guruswami, Venkatesan and Palow, Christopher and Faloutsos, Christos},
-  title     = {{CopyCatch}: Stopping Group Attacks by Spotting Lockstep Behavior in Social Networks},
-  booktitle = {Proc. International World Wide Web Conference (WWW)},
-  pages     = {119--130},
-  year      = {2013},
-  doi       = {10.1145/2488388.2488400}
-}
-
 @inproceedings{lakhina2005mining,
   author    = {Lakhina, Anukool and Crovella, Mark and Diot, Christophe},
   title     = {Mining Anomalies Using Traffic Feature Distributions},
@@ -495,15 +344,6 @@
   pages     = {217--228},
   year      = {2005},
   doi       = {10.1145/1080091.1080118}
-}
-
-@inproceedings{krishnamurthy2003sketch,
-  author    = {Krishnamurthy, Balachander and Sen, Subhabrata and Zhang, Yin and Chen, Yan},
-  title     = {Sketch-Based Change Detection: Methods, Evaluation, and Applications},
-  booktitle = {Proc. ACM Internet Measurement Conference (IMC)},
-  pages     = {234--247},
-  year      = {2003},
-  doi       = {10.1145/948205.948236}
 }
 
 @article{soldo2012filtering,
@@ -546,33 +386,6 @@
   doi       = {10.1109/SP40001.2021.00079}
 }
 
-@inproceedings{fayaz2015bohatei,
-  author    = {Fayaz, Seyed K. and Tobioka, Yoshiaki and Sekar, Vyas and Bailey, Michael},
-  title     = {{Bohatei}: Flexible and Elastic {DDoS} Defense},
-  booktitle = {Proc. USENIX Security Symposium},
-  pages     = {817--832},
-  year      = {2015}
-}
-
-@inproceedings{liu2021jaqen,
-  author    = {Liu, Zaoxing and Namkung, Hun and Nikolaidis, Georgios and Lee, Jeongkeun and Kim, Changhoon and Jin, Xin and Braverman, Vladimir and Yu, Minlan and Sekar, Vyas},
-  title     = {{Jaqen}: A High-Performance Switch-Native Approach for Detecting and Mitigating Volumetric {DDoS} Attacks with Programmable Switches},
-  booktitle = {Proc. USENIX Security Symposium},
-  pages     = {3829--3846},
-  year      = {2021}
-}
-
-@inproceedings{dietzel2016blackholing,
-  author    = {Dietzel, Christoph and Feldmann, Anja and King, Thomas},
-  title     = {Blackholing at {IXPs}: On the Effectiveness of {DDoS} Mitigation in the Wild},
-  booktitle = {Proc. Passive and Active Measurement Conference (PAM)},
-  series    = {LNCS},
-  volume    = {9631},
-  pages     = {319--332},
-  year      = {2016},
-  doi       = {10.1007/978-3-319-30505-9_24}
-}
-
 @inproceedings{dietzel2018stellar,
   author    = {Dietzel, Christoph and Wichtlhuber, Matthias and Smaragdakis, Georgios and Feldmann, Anja},
   title     = {{Stellar}: Network Attack Mitigation Using Advanced Blackholing},
@@ -580,24 +393,6 @@
   pages     = {152--164},
   year      = {2018},
   doi       = {10.1145/3281411.3281413}
-}
-
-@inproceedings{cormode2003hhh,
-  author    = {Cormode, Graham and Korn, Flip and Muthukrishnan, S. and Srivastava, Divesh},
-  title     = {Finding Hierarchical Heavy Hitters in Data Streams},
-  booktitle = {Proc. International Conference on Very Large Data Bases (VLDB)},
-  pages     = {464--475},
-  year      = {2003},
-  doi       = {10.1016/B978-012722442-8/50048-3}
-}
-
-@inproceedings{basat2017hhh,
-  author    = {Ben Basat, Ran and Einziger, Gil and Friedman, Roy and Luizelli, Marcelo C. and Waisbard, Erez},
-  title     = {Constant Time Updates in Hierarchical Heavy Hitters},
-  booktitle = {Proc. ACM SIGCOMM},
-  pages     = {127--140},
-  year      = {2017},
-  doi       = {10.1145/3098822.3098832}
 }
 
 %% Added in round 17 (verified against the RFC Editor, Crossref and the papers).

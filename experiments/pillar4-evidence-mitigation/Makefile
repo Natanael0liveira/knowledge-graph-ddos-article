@@ -1,4 +1,4 @@
-# Pilar 4 — Cadeia de Evidência + Mitigação Cirúrgica
+# Pillar 4: evidence chain and scoped mitigation
 
 SHELL := /bin/bash
 ENV_FILE := $(abspath ../.env)
@@ -13,8 +13,8 @@ PYTHON := $(VENV)/bin/python
 .DEFAULT_GOAL := help
 .PHONY: help demo
 
-help:  ## Lista targets
+help:  ## List the targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-8s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-demo:  ## Demonstra a cadeia evidência+mitigação num cluster-brinquedo (offline)
+demo:  ## Demonstrate the evidence and mitigation chain on a toy cluster (offline; overwrites results/)
 	$(PYTHON) scripts/evidence_mitigation.py --demo --out-dir results

@@ -1,123 +1,141 @@
-# Pillar 4 — Evidence chain and scoped mitigation
+# Pillar 4: evidence chain and scope derivation
 
-When `coordinatedHTTPFlood` fires on a cluster S, this module couples
-**detection → symbolic evidence → mitigation with a derived scope**.
+[`scripts/evidence_mitigation.py`](scripts/evidence_mitigation.py) is the library
+behind the scope and the evidence chain. It splits Ω(S) by sub-relation, derives
+the mitigation scope, measures a scope's collateral and exports the chain as
+JSON-LD and STIX 2.1. Sprint 6 imports it for Table III, the calibration of the
+test level, Listing 1 and the STIX checks. `make demo` runs it on a toy cluster. No
+number of the paper is computed here.
 
-## What `scripts/evidence_mitigation.py` does
+## In the paper
 
-1. **Decomposes Ω(S)** per `relatedBy_*` sub-relation: which signals fired, at
-   which weight.
-2. **Derives the mitigation scope.** Two implementations coexist, deliberately:
-   - `derive_scope` — the original heuristic, by the **modal** JA4 of the
-     coordinated subset. **Fails against a heterogeneous botnet** (below). Kept so
-     the negative result stays reproducible.
-   - `derive_scope_enriched` — the correction, by **enrichment** over a benign
-     background profile. This is what the paper uses.
-3. **Exports the evidence chain** as **JSON-LD** over the ontology vocabulary
-   (`kg:CoordinatedHTTPFlood`, `kg:activatedSubRelations`,
-   `kg:coordinationWeight`, `kg:derivedMitigationScope`) and as **STIX 2.1**
-   (`indicator` + `course-of-action` + a *mitigates* `relationship`). The verdict
-   *is* the derivation that satisfied the rule.
-4. **Estimates collateral damage** of the scoped filter against a global rate
-   limit on the endpoint.
+- **Section III-C.** The binomial enrichment test is
+  `derive_scope_enriched(cluster, profile, min_enrichment=3.0, significance=λ)`. It
+  selects a fingerprint f when c(f)/n ≥ ρ·b(f) and P[X ≥ c(f)] < λ/|F| for
+  X ~ Bin(n, b(f)). b(f) includes the 1/N prior, and |F| counts the fingerprints of
+  profile and alarm. `calibrate_level` sets λ_e, the largest level up to 0.01 at
+  which the scope selects a filter in at most 1% of attack-free clusters.
+- **Table III.** The "Modal" column is `derive_scope` (sprint-6 `unseen_synth.py`,
+  `coverage=0.5`). The binomial test is `derive_scope_enriched` with
+  `matches_scope_multi` (sprint-6 `symbolic_detector.py`).
+- **Section III-E, Appendices D and F.** The chain's JSON-LD (Listing 1, written by
+  sprint-6 [`example_chain.py`](../sprint-6-noms/scripts/example_chain.py)) and its
+  STIX 2.1 bundle (an indicator and a course-of-action linked by *mitigates*).
+  Sprint-6 `make stix-check` runs the OASIS validator in strict mode, and
+  `make stix-ingest` sends the bundles through a TAXII 2.1 server and MISP's
+  importer, which drops the JA4 extension (Section VI).
+- **Sections V-B to V-D.** The production evaluation reimplements the test over
+  counts in sprint-6
+  [`rule_detection_production.py`](../sprint-6-noms/scripts/rule_detection_production.py),
+  with the unseen filter, the union, the z-score and the beta-binomial, and checks
+  it against `derive_scope_enriched`.
 
-## Demo
+## Functions
+
+| Function | What it does | Used in sprint 6 by |
+|---|---|---|
+| `decompose_omega` | Ω(S) split into TLS, endpoint and /24 pairs; `unit="origin"` counts distinct sources | `example_chain.py`, `compile_counts.py` |
+| `derive_scope` | Modal scope: the cluster's most common JA4, plus the endpoint and a /24 that hold at least `coverage` of the sessions sharing that JA4 | `unseen_synth.py`, `realistic_probe.py`, `collateral_purity_sweep.py` |
+| `derive_scope_enriched` | The binomial enrichment test; returns a set of fingerprints, plus the endpoint and a /24 that hold at least half the cluster | `symbolic_detector.py`, `unseen_synth.py`, `realistic_probe.py`, `profile_drift.py`, `rule_detection.py`, `example_chain.py`, and the self-check of `rule_detection_production.py` |
+| `matches_scope`, `matches_scope_multi` | The sessions a scope blocks, for one JA4 or for a set | `symbolic_detector.py`, `unseen_synth.py`, `realistic_probe.py`, `profile_drift.py`, `rule_detection.py`, `collateral_purity_sweep.py` |
+| `min_adjusted_p`, `calibrate_level` | The smallest Bonferroni-adjusted p among enriched fingerprints, and the level calibrated from it on attack-free clusters | `level_calibration.py`, `rule_detection.py` (through `calibrate_level`) |
+| `evidence_chain_jsonld`, `stix_bundle` | The chain as JSON-LD, and as a STIX 2.1 bundle | `example_chain.py`, `stix_check.py` |
+| `collateral` | Benign sessions a scope hits, next to a global rate limit on its endpoint | none (this directory's demo and `qualitative_evidence.py`) |
+
+Each STIX bundle holds an identity, a property-extension definition, an indicator
+whose pattern is the scope, a course-of-action and the relationship
+course-of-action *mitigates* indicator. STIX has no JA4 property, so the
+fingerprints travel in the extension
+(`network-traffic:extensions.'extension-definition--…'.ja4 IN (…)`), together with
+Ω(S), the cluster size and the split by sub-relation. The identifiers are UUIDv4
+derived from the cluster and the scope, so a re-exported chain does not duplicate
+downstream.
+
+## Inputs
+
+None for the demo, which builds its toy cluster in the script. The weights come
+from the ontology through [`../common/kg_ontology.py`](../common/kg_ontology.py).
+The command line and the scripts below read sessions in Sprint 1's schema
+(`src_ip_first`, `dst_ip_first`, `dst_port_first`, `ja4`, `label_first`).
+
+## Run
+
+| Target | What it does | Writes |
+|---|---|---|
+| `help` | Lists the targets | |
+| `demo` | `decompose_omega`, the modal `derive_scope` and `collateral` on a toy cluster: 12 attackers that share one JA4 and one endpoint, and 400 benign sessions as the collateral reference | overwrites the committed `results/evidence.jsonld` and `results/mitigation.stix.json` |
+
+Without a target (`../data` is the symlink to `DATA_ROOT`):
 
 ```bash
-make demo      # toy cluster: 12 stealthy attackers, 400 benign, same endpoint
+# One detected cluster and a benign set (modal scope)
+../.venv/bin/python scripts/evidence_mitigation.py --cluster CLUSTER.parquet \
+  --benign BENIGN.parquet --out-dir OUT
+
+# Chains of the largest attack-dominated cluster of each attack on the captures;
+# overwrites results/chains/
+../.venv/bin/python scripts/qualitative_evidence.py --out-dir results/chains \
+  --sessions cicids2017=../data/processed/sessions/cicids2017.parquet \
+             cic-iot-2023=../data/processed/sessions/cic-iot-2023.parquet
+
+# Collateral of the modal scope against a global rate limit, over scenario files;
+# prints only
+../.venv/bin/python scripts/collateral_eval.py --scenarios DIR --coverage 0.5 --max-files 30
 ```
 
-```
-Omega(S) = 105.6  (12 sessions)
-  relatedByTLSFingerprint        pairs=66  x1.0 = 66.0
-  relatedByEndpointConvergence   pairs=66  x0.6 = 39.6   (NetworkProximity inactive: /24s dispersed)
-DERIVED SCOPE: {tlsJa4: t13d_botnetX, endpoint: 10.0.0.1:443}
-COLLATERAL (400 BENIGN):
-  scoped (derived):           0   (0.00%)
-  global endpoint rate limit: 198 (49.50%)
-```
+## Outputs
 
-Outputs land in `--out-dir` as `evidence.jsonld` and `mitigation.stix.json`.
-
-**The STIX bundle is valid STIX 2.1** (`make stix-check` in `sprint-6-noms`, OASIS
-`stix2-validator`, strict mode included). It holds an `indicator` whose pattern is
-the derived scope, a `course-of-action`, the relationship `course-of-action
-mitigates indicator`, the producing `identity`, and one `extension-definition` of
-type property-extension. STIX has no JA4 property, so the fingerprint travels in
-that extension (`network-traffic:extensions.'extension-definition--…'.ja4 IN (…)`),
-and so do Ω(S), the cluster size and the decomposition per sub-relation.
-Identifiers are UUIDv4-formatted and deterministic in the cluster and the scope,
-so re-exporting a verdict does not duplicate it downstream. The earlier exporter
-failed the validator with 13 errors per bundle: identifiers not of the form
-`type--UUID`, no `created`, `modified` or `valid_from`, and a fingerprint set
-rendered as a Python list inside the pattern.
-
-> **The 0.00% in this demo is the monolithic scenario.** It does not hold against
-> a heterogeneous botnet under the modal heuristic. See below.
-
-## The error Sprint 6 found, and the correction
-
-**Choosing by modal frequency is wrong by construction.** Frequency rewards what
-is common, and on a service under attack **what is common is legitimate traffic**.
-With the botnet fragmented across five or more TLS stacks, each attacker stack is
-smaller than the head of the benign distribution, the cluster's modal value
-becomes a **legitimate** fingerprint, and the derived scope becomes a filter that
-blocks users:
-
-| Scenario (α = 1.5, realistic benign) | Modal: attack / collateral | Enrichment |
+| File | Producer | In the paper |
 |---|---|---|
-| Monolithic (M = 1) | 84.0% / 0.00% | 84.0% / 0.00% |
-| M = 5 | **0.0% / 39.0%** | **90.0% / 0.00%** |
-| M = 25 | **0.0% / 39.0%** | **90.3% / 0.00%** |
-| M = 100 | **0.0% / 39.0%** | **38.6% / 0.00%** (89.6% with a 30k-session profile) |
-| M = 25, adversarial | 3.6% / 39.0% | 30.4% / 3.78% |
+| `results/evidence.jsonld`, `results/mitigation.stix.json` | `make demo`; sprint-6 `make stix-check` rewrites the bundle from the chain | App. F's STIX checks include it |
+| `results/chains/chain_cicids2017_DoS-Other.*`, `results/chains/chain_cicids2017_GoldenEye.*` | `qualitative_evidence.py`; `make stix-check` rewrites the bundles | App. F's STIX checks include them |
+| `results/chains/completeness_table.csv` | `qualitative_evidence.py` | No |
 
-This is not graceful degradation: the mechanism selects the **wrong target** and
-produces a filter that only hurts users.
+## Results
 
-**The correction** (`derive_scope_enriched` plus `matches_scope_multi`) ranks
-candidates by enrichment over a background profile of normal traffic, taken from
-an attack-free window with no labels, and returns a **set** of fingerprints, which
-is what covers a fragmented botnet. Operating point: `min_enrichment=3.0` and
-`significance=0.01`, a binomial over-representation test that replaces the fixed
-`min_support` floor of earlier revisions (see [`docs/concepts.md`](../../docs/concepts.md)).
-Without `significance` the function keeps the old floor, so earlier results stay
-reproducible.
+`make demo`, translated and abridged (the script prints in Portuguese):
 
-Two boundary conditions, both measured:
+```
+Ω(S) = 105.6  (12 sessions)
+Split by sub-relation:
+  relatedByTLSFingerprint          pairs=66  ×1.0 = 66.0
+  relatedByEndpointConvergence     pairs=66  ×0.6 = 39.6
+DERIVED MITIGATION SCOPE: {"tlsJa4": "t13d_botnetX", "endpoint": "10.0.0.1:443"}
+COLLATERAL (400 BENIGN sessions):
+  scoped mitigation (derived scope):  0 (0.00%)
+  global rate limit on the endpoint:  198 (49.50%)
+```
 
-- **An adversary adopting the benign head.** Nothing is enriched and the rule
-  refuses to block the popular fingerprints. The scoped advantage is lost, but it
-  is lost **safely**: the harmful filter is never emitted.
-- **Background profile quality and size.** Moderate drift is tolerable (no
-  collateral with a profile from another distribution), but a flat or missing
-  profile is not (77.6%). Profile quality governs precision; profile size governs
-  the smallest stack the test can certify (38.6% at M = 100 with 1,000 profile
-  sessions, 89.6% with 30,000). Keeping the profile fresh and ample is a
-  deployment requirement.
+No two attackers share a /24, so network proximity adds nothing. The global limit
+hits about half the benign sessions because the toy draws their ports from 443,
+443, 80 and 8080. The toy has no time window. The chain is in
+[`results/evidence.jsonld`](results/evidence.jsonld).
 
-Experiments and data in [`../sprint-6-noms/`](../sprint-6-noms/).
+On the laboratory captures the attack clusters share no JA4, so no fingerprint
+enters a scope. Each chain's scope is the attacked endpoint plus the attackers'
+/24, from endpoint convergence and network proximity
+([`results/chains/completeness_table.csv`](results/chains/completeness_table.csv)).
 
-> **Toy demo versus the paper's canonical number.** This demo gives 49.5% for the
-> global control, because only about half the 400 benign sessions fall inside the
-> cluster window. The **canonical** number comes from `collateral_eval.py` in the
-> realistic same-service scenario (n = 30, K = 1000), where legitimate users do
-> access the attacked service: there a global rate limit takes down **100%** of
-> them and the scoped filter **0%**, with the JA4 in scope in 30 of 30 runs. That
-> 0% against 100% is what the paper reports.
-
-## Wiring to real data
-
-The input cluster is a slice of the sessions that `coordinatedHTTPFlood` (G4)
-detected. `compute_coordination.py` marks the winning `det_cluster`; pass those
-sessions plus a BENIGN set as `--cluster` and `--benign`.
+On generated traffic (Table III), from five stacks on the modal fingerprint belongs
+to legitimate clients: it covers 0.0% of attackers and blocks 39.0% of legitimate
+traffic. The binomial test covers 90.0–90.3% of attackers on 5 and 25 stacks, with
+no observed collateral. [`../FINDINGS.md`](../FINDINGS.md) has the rest.
 
 ## Caveats
 
-- Demonstrated on a toy cluster; running over a real detected cluster needs the
-  drive. The logic is validated, the real numbers come after.
-- The scope's /24 key is written `srcNet24` in the JSON-LD chains, while the
-  ontology's property is `srcPrefix`. The key is kept so the committed chains and
-  the identifiers of their STIX bundles stay unchanged.
-- Only the three sub-relations with session-level data enter the decomposition,
-  the same scope as the ablation: TLS/JA4, endpoint, /24.
+- `make demo` runs the modal `derive_scope` on a single-stack toy. It shows the
+  chain's format, and the enrichment test does not run in it.
+- When attackers adopt common legitimate fingerprints, little is enriched. On
+  generated traffic the test then covers 30.4% at 3.78% collateral (Table III), so
+  an alarm mainly invokes the fallback (Section VI).
+- The profile must exclude attack episodes and stay current. A flat or missing
+  profile raises collateral to 77.6% (Section V-A). Profiles should be rebuilt from
+  windows where the scope selects nothing, and persistent new fingerprints admitted
+  only after operator review (Section VI).
+- Without `significance`, `derive_scope_enriched` applies a fixed support floor
+  (`min_support`) in place of the binomial test, as earlier revisions did. Only
+  three sub-relations enter `decompose_omega`: TLS, endpoint and /24.
+- `collateral_eval.py` and `qualitative_evidence.py` pick the attack cluster with
+  labels; sprint 6 picks the cluster of largest Ω without labels
+  (`--label-free-cluster`). The scope's /24 condition is `kg:srcNet24`, a
+  `Mitigation` property; the session's prefix is `kg:srcPrefix`.

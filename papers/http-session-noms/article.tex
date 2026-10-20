@@ -1,7 +1,7 @@
 %% article.tex -- IEEE/IFIP NOMS submission (full technical paper)
 %%
-%% Scoped Mitigation of Application-Layer DDoS with a Session-Centric
-%% Knowledge Graph
+%% TLS-Fingerprint Scoping of Application-Layer DDoS Mitigation:
+%% Calibration Floors and Collateral on a CDN Operator's Endpoints
 %%
 %% Target: IEEE/IFIP NOMS 2027 (technical session, full paper).
 %% Format: IEEEtran conference, 2 columns, 10pt, US letter.
@@ -37,9 +37,9 @@
   pdfauthor={Natanael Oliveira, Arthur Kobielski, Marcos Luna, Luigi Carro, J\'eferson Campos Nobre, Eder John Scheid},
   pdfkeywords={security management, application-layer DDoS, mitigation policy, TLS fingerprinting, statistical calibration, ontology}}
 
-%% Separacao de floats. Sem isto, a cola entre o float e o texto seguinte é
-%% muito esticavel e a justificacao vertical de coluna do IEEEtran despeja a
-%% sobra ali: a equacao (1) ficava com um vao enorme sob o Algoritmo 1.
+%% Float separation: without these lengths, the glue between a float and the
+%% text after it stretches too far, and IEEEtran's vertical column justification
+%% puts the leftover space there (an earlier draft showed a large gap under a float).
 %% Float packing: the default fractions leave large gaps on pages carrying the
 %% two full-width figures, which the body cannot afford.
 \renewcommand{\topfraction}{0.92}
@@ -56,13 +56,12 @@
 \setlength{\intextsep}{8pt plus 2pt minus 2pt}
 \setlength{\dbltextfloatsep}{10pt plus 2pt minus 2pt}
 
-%% Os dois blocos de codigo eram floats \begin{figure}, o que abria buracos na
-%% numeracao das figuras-imagem (1, 2, 4, 5). Com contador proprio, as figuras
-%% ficam 1-4 contiguas e o codigo vira Listing 1-2.
+%% Code blocks are floats with their own counter (Listing 1), so they leave no
+%% gaps in the numbering of the image figures (Figs. 1-4).
 \usepackage{float}
 \usepackage{stfloats}
-%% Estilo de legenda igual ao das figuras do IEEEtran ("Listing 1. Texto"):
-%% o estilo plain do float.sty nao insere o ponto separador.
+%% Caption style matching IEEEtran's figures ("Listing 1. Text"): float.sty's
+%% plain style omits the separating period.
 \makeatletter
 \newcommand\floatc@ieeelst[2]{\setbox\@tempboxa\hbox{\footnotesize #1.\enskip #2}%
   \ifdim\wd\@tempboxa>\hsize \footnotesize #1.\enskip #2\par
@@ -94,13 +93,11 @@
 \newcommand\itemD{\textit{(d)}}
 \newcommand\itemE{\textit{(e)}}
 
-%% IEEEtran uses URW Courier (pcr) for \texttt. Fall back to Computer Modern
-%% typewriter when those metrics are absent locally; Overleaf and full TeX Live
-%% installations keep the IEEE-standard font.
-%% O IEEEtran usa URW Courier (pcr) para \texttt. Onde essas metricas nao
-%% existem, cai para Latin Modern Mono -- e NAO para cmtt: sem o cm-super
-%% instalado, cmtt em T1 gera bitmaps Type 3, que o IEEE PDF eXpress sinaliza
-%% e que ficam serrilhados na tela. lmtt e Type 1 e ja vem no TeX Live.
+%% IEEEtran uses URW Courier (pcr) for \texttt. Where those metrics are absent
+%% locally, fall back to Latin Modern Mono (lmtt), never to cmtt: without cm-super,
+%% cmtt in T1 produces Type 3 bitmaps, which IEEE PDF eXpress flags and which look
+%% jagged on screen. lmtt is Type 1 and ships with TeX Live. Overleaf and full
+%% TeX Live installations keep the IEEE-standard font.
 \IfFileExists{pcrr8t.tfm}{}{\renewcommand{\ttdefault}{lmtt}}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}

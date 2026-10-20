@@ -1,49 +1,42 @@
-# NOMS submission
+# NOMS 2027 submission
 
-*TLS-Fingerprint Scoping of Application-Layer DDoS Mitigation: Calibration Floors and
-Collateral on a CDN Operator's Endpoints*. The title names what the paper measures; the
-session ontology is the specification the count query is compiled from (Section III-E).
+*TLS-Fingerprint Scoping of Application-Layer DDoS Mitigation: Calibration Floors and Collateral
+on a CDN Operator's Endpoints*, round 75 (`59a5b1a`, 2026-10-20). The title names what the paper
+measures; the session ontology is the specification the count query is compiled from (Section III-E).
 
-## Layout
+## Status
 
 ```
-pp. 1–8    main text (Sections I–VII) and the acknowledgment   <- AT the 8-page limit
-pp. 8–12   references (from below the acknowledgment), then appendices A–F
-total      12 pages                     <- AT the 12-page limit
+pp. 1–8    main text (Sections I–VII) and the Acknowledgment   <- AT the 8-page limit
+pp. 8–12   references (from below the Acknowledgment), then appendices A–F
+total      12 pages                                            <- AT the 12-page limit
 ```
 
-Appendices: **A** sub-relation specification, with Eq. 1 (Ω) and the weights · **B** weight
-calibration and the generator's inputs · **C** additional experiments and limitations:
-per-session detection and the learned
-models (the (a)–(d) ablation), laboratory captures, KLAGE, the learned representation
-across stack counts · **D** cost model (Fig. 4), the evidence chain
-(Listing 1) and CDN-scale partitioning · **E** the rule per window (in text since round 23) and the
-production details (the details of Section V that left the body, other baselines,
-known fleets, the scope alone as a trigger) · **F**
-reproducibility.
+The Acknowledgment ends on page 8 and the references (37) start below it; page 12 is full, with
+about one line to spare in all. Sections I and II fill page 1 and page 2's left column exactly,
+so a line cut or added there stretches that column: cut from Section III onward. The PDF is 12
+pages of US letter, all 25 fonts embedded, no Type 3 font.
 
-Section V has four parts: A generated traffic, then three findings on production
-traffic: B false alarms and the calibration floor, C what is stopped (the trigger
-decides; Fig. 2, Table VI with the scopes behind each trigger ("No gate": the scope as its own trigger), the unseen filter alone included, Fig. 3 with the
-operating points) and D what the evidence supports (the post hoc analyses, the held-out
-day and the pre-specified 14-day block, the comparison fixed in advance, and this WAF's
-verdicts; Table VII holds the block). Specification and
-exchange are in Section VI. Section V keeps the central numbers in its text and leaves
-the rest to Tables IV to VII and to the "Details of V-B", "V-C" and "V-D" paragraphs of Appendix E.
-Section III keeps the trigger, the scope, its calibration and the floor; Ω is defined
-there in words and its equation and weights are in Appendix A.
+## Paper map
 
-> **The body and the Acknowledgment end on page 8, the references (37) start below the
-> Acknowledgment, and page 12 is full: about one line to spare in all (round 75).** Sections I and
-> II fill pages 1 and 2's left column exactly, so a line cut or added there stretches that column;
-> cut from Section III onward. The NOMS 2027 CFP allows 8 pages of main
-> text plus references and an optional appendix, 12 in total. The Acknowledgment is
-> neither, so it must end on page 8. Submission is via JEMS3 by 9 November 2026, and the
-> PDF's author list must match the submission's registration.
+| Part | Holds | Floats (page) |
+|---|---|---|
+| I, II | the problem and three contributions; prior work | Table I (2) |
+| III | threat model, trigger (distinct-origin gate, base rule), scope and calibration, floor and enrichment limit, ontology; Ω in words | Fig. 1 (3) |
+| IV | generator, production days, configurations, metrics | Table II (5) |
+| V-A | the scope on generated traffic | Table III (5) |
+| V-B | false alarms and the calibration floor | Table IV (5), Table V (6) |
+| V-C | what is stopped: the trigger decides ("No gate" is the scope as its own trigger) | Fig. 2 (6), Table VI (6) |
+| V-D | post hoc analyses, held-out day, 14-day block, the comparison fixed in advance, this WAF's verdicts | Fig. 3 (7) |
+| VI | recommendation, what each evaluation shows, fingerprints, exchange and what the ontology adds | Table VII (7) |
+| VII, Acknowledgment | conclusion and future work | ends on p. 8 |
+| App. A | sub-relation specification, Eq. 1 (Ω) and the weights | p. 9 |
+| App. B, C, D | weight calibration and generator inputs; instrumentation, coverage, laboratory captures, KLAGE, the learned models across stack counts; cost model and CDN-scale partitioning | p. 10; Fig. 4 and Listing 1 (11) |
+| App. E, F | the rule per window and the production details left out of Section V; reproducibility | pp. 11–12 |
 
-Section structure follows the pattern observed in NOMS papers: Introduction ·
-Related Work · Calibrated Fingerprint Scoping · Evaluation Methodology · Results ·
-Discussion and Limitations · Conclusion.
+Table I is declared in Section I so that it lands on page 2. Fig. 3 is declared inside V-D, and
+Table VII right after Section VI's heading, so that neither stretches a column. `dbltopnumber` is
+capped at 1, so two full-width floats never share a page top.
 
 ## Build
 
@@ -51,107 +44,73 @@ Discussion and Limitations · Conclusion.
 pdflatex article && bibtex article && pdflatex article && pdflatex article
 ```
 
-Three files are vendored in this directory so that local and Overleaf builds are
-identical:
+Three files are vendored so that local and Overleaf builds are identical:
+- `IEEEtran.cls` and `IEEEtran.bst`, because the local TeX Live is the *basic* scheme and does
+  not ship them;
+- `stfloats.sty` (from `sttools`, LPPL), which allows double-column floats at the bottom of a
+  page. Without it Table I and Fig. 1 can only sit at page tops, and they stack.
 
-- `IEEEtran.cls` and `IEEEtran.bst`, because the local TeX Live is the *basic*
-  scheme and does not ship them.
-- `stfloats.sty` (from `sttools`, LPPL), which allows double-column floats at the
-  bottom of a page. Without it Table I and the two full-width figures can only
-  sit at page tops, and they stack.
-
-The preamble also falls back on `lmtt` when URW Courier (`pcr`) metrics are
-absent, which avoids Type 3 bitmap fonts in the PDF. On Overleaf and full
-installations neither fallback fires.
-
-## Float placement
-
-Current placement:
-
-| Float | Page |
-|---|---|
-| Table I (related work) | 2 |
-| Fig. 1 (the scoping pipeline) | 3 |
-| Table II (the configurations evaluated on production), Table III (the scopes on generated traffic, with the modal fingerprint) | 5 |
-| Table IV (production, pooled), Table V (the configurations' floor, in sample and cross-fitted), Fig. 2 (what the binomial configuration stops, by botnet size, per endpoint) | 6 |
-| Table VI (the scope behind each trigger), Fig. 3 (production operating points) | 7 |
-| Table VII (the configurations on the 14-day held-out block) | 8 |
-| Fig. 4 (cost), Listing 1 (evidence chain) | 11 |
-
-Table I is declared in Section I so that it lands on page 2. Fig. 3 is declared inside
-V-D and Table VII inside Section VI's first paragraph, so that neither stretches a column.
-`dbltopnumber` is capped at 1 so two full-width floats can never share a page top.
-
-## Figures
-
-Fig. 1, the scoping pipeline, is a draw.io drawing; its source is
-`figures/src-drawio/fig1_scoping.drawio`. The data plots (Figs. 2 to 4) are generated by
-`figures/make_figures_en.py` from the experiment outputs. See
+The preamble falls back on `lmtt` when URW Courier (`pcr`) metrics are absent, which avoids Type 3
+bitmap fonts. `references.bib` holds only the entries this paper or its Portuguese translation
+cites. The PDFs stay out of the repository while the paper is under review. Figures: see
 [`figures/README.md`](figures/README.md).
 
 ## Before submitting
 
-1. **NOMS 2027 CFP.** Done (read 27 Sep 2026, rechecked on the official pages 18 Oct 2026):
-   - 8 pages of main text plus references and an optional appendix, 12 in total, with the
-     Acknowledgment inside the 8; over-length papers are rejected without review;
-   - the 8-page main part must be self-contained, since reviewers need not read past it;
-   - paper registration and submission on the same day, 9 November 2026, via JEMS3
-     (https://jems3.sbc.org.br/noms2027), which the CFP and the TPC's announcement link. The
-     Submission Guidelines page still says EDAS, so confirm with the TPC chairs;
-   - notification 15 February 2027, camera-ready 28 February 2027 (Montréal, 10–14 May 2027).
+### Done
 
-   The PDF is 12 pages of US letter with all 25 fonts embedded and no Type 3 font.
-2. **Make the repository URL of Appendix F resolve to this version.** The public
-   `main` still holds the August 2026 state; push and merge this branch, or tag the
-   commit the paper describes. Before that URL reaches reviewers, decide what to do with
-   the already-pushed commit `df2ea4d`, which holds an early example binding with real
-   column names.
-3. **License.** Done: the repository root carries the plain MIT `LICENSE` (Appendix F), which
-   GitHub detects, and `NOTICE` lists the files under their own licenses (the vendored LaTeX
-   files, LPPL).
-4. **Confirm the acknowledgment.** The paper thanks Azion Technologies for authorizing
-   the aggregate fingerprint measurement of Section IV and the aggregated traffic
-   statistics of Appendix E. There is no funding or grant to acknowledge. Done
-   (2026-10-11): the AI-use disclosure follows IEEE's policy, which covers AI-generated text,
-   figures, images and code. The assistant was used "to draft and edit text in all sections,
-   to extend the ontology and to write all code and figures", which is what the git history
-   shows. The ontology was created on 2026-04-14 without the assistant, and 9 of its 11
-   commits carry its co-author trailer. Each of the other 73 code files, following renames,
-   was created in a commit with that trailer, and so were both commits of Fig. 1's draw.io
-   source. The data are the operator's measurements and the project's generator output, not
-   AI-generated.
-5. **Affiliations.** Done: the first author, who is also with the operator whose endpoints
-   are evaluated, is marked "Also with Azion Technologies, Brazil" in the author block.
-6. **JEMS3.** The author list and title registered in JEMS3 must match the PDF exactly, with
-   every co-author registered. The author list cannot change after acceptance, and IEEE needs
-   an ORCID for every author at camera-ready.
-7. **Before the Artifact Evaluation submission: commit the JA4 pair comparison.** App. F reports
-   that the compiled query reproduced the JA4 pair counts in the 288 WAF-free windows of each
-   production day. `compile_production_check*.json` records this, but the comparison ran ad hoc:
-   `compile_counts.py --compare` checks only origins and /24 pairs. It must run on the operator's
-   exports, which stay on the external drive, so the user runs it and commits the code.
+- **The NOMS 2027 rules**, read 27 Sep 2026 and rechecked on the official pages 18 Oct 2026:
+  - 8 pages of main text plus references and an optional appendix, 12 in total, with the
+    Acknowledgment inside the 8; over-length papers are rejected without review;
+  - the 8-page main part must be self-contained, since reviewers need not read past it;
+  - registration and submission on the same day, 9 November 2026, via JEMS3
+    (https://jems3.sbc.org.br/noms2027), which the CFP and the TPC's announcement link (the
+    Submission Guidelines page still says EDAS);
+  - notification 15 February 2027, camera-ready 28 February 2027 (Montréal, 10–14 May 2027).
+- **Repository.** The public `main` and `noms-submission` are at `59a5b1a`, so Appendix F's URL
+  shows this version. `LICENSE` is the plain MIT text GitHub detects; `NOTICE` lists the files
+  under their own licenses (the vendored LaTeX files under LPPL, the distributions derived from
+  CICIDS2017).
+- **Acknowledgment.** It thanks Azion Technologies "for authorizing the measurements and traffic
+  statistics used in this study"; there is no funding to acknowledge. The AI-use disclosure follows
+  IEEE's policy: the assistant was used "to draft and revise text throughout the manuscript, extend
+  the ontology, and write all code and figures", and the authors reviewed and verified all content.
+  The git history supports it (sprint-6 notebook, §72).
+- **Affiliation.** The first author, also with the operator whose endpoints are evaluated, is marked
+  "Also with Azion Technologies, Brazil".
+- **Preprint.** IEEE asks a posted preprint to carry, on its first screen, "This work has been
+  submitted to the IEEE for possible publication. Copyright may be transferred without notice, after
+  which this version may no longer be accessible." GitHub is not among the places IEEE lists, so the
+  PDFs (English and Portuguese) are untracked since `a5b1fcc`. Still public: the PDFs in the commits
+  before it, and the LaTeX sources.
 
-8. **The public preprint.** Once the paper is submitted, IEEE asks every posted preprint to carry,
-   on its first screen, the notice "This work has been submitted to the IEEE for possible
-   publication. Copyright may be transferred without notice, after which this version may no longer
-   be accessible." GitHub is not among the preprint places IEEE lists (arXiv, TechRxiv, the author's
-   or the employer's site). Decided 2026-10-18: the paper's PDFs (English and Portuguese) are no
-   longer tracked and stay local while the paper is under review. Still public: the PDFs in earlier
-   commits and on `main` (the August version, until `main` is updated), and the LaTeX sources.
-9. **Ethics statement.** IEEE asks for a statement on research involving human subjects. The data
-   are aggregated counts from the operator's own services, with its authorization; decide with the
-   advisor whether the paper needs a sentence (the body has no free line).
-10. **Camera-ready.** IEEE PDF eXpress may flag hyperref's links and bookmarks ("No bookmarks or
-    links"). The Event Policies page's "six printed pages, plus one at US$100" contradicts the CFP and
-    is unfinished (its dates say TBD): ask the chairs with the JEMS3 question.
+### Open
+
+1. **Tag** the submitted commit on submission day. Before tagging, decide whether the early history
+   needs a rewrite (details are kept outside the repository).
+2. **JEMS3.** Register the exact title and every co-author; the author list must match the PDF and
+   cannot change after acceptance, and IEEE needs an ORCID for every author at camera-ready. Confirm
+   JEMS3 against EDAS with the TPC chairs.
+3. **Ethics statement.** IEEE asks for one on research involving human subjects. The data are
+   aggregated counts from the operator's own services, with its authorization; decide with the
+   advisor whether the paper needs a sentence (the body has about one free line).
+4. **Camera-ready.** IEEE PDF eXpress may flag hyperref's links and bookmarks. The Event Policies
+   page's "six printed pages, plus one at US$100" contradicts the CFP and is unfinished (its dates
+   say TBD): ask the chairs with the JEMS3 question.
+5. **Artifact Evaluation**, before submitting the artifact:
+   - confirm that NOMS 2027 keeps the track Appendix F names;
+   - commit the JA4 pair comparison: Appendix F reports that the compiled query reproduced the JA4
+     pair counts in the 288 windows of each day on the endpoint where the WAF blocked no client, and
+     `compile_production_check*.json` records it, but the comparison ran ad hoc
+     (`compile_counts.py --compare` checks only origins and /24 pairs); it needs the operator's
+     exports, so it runs on the drive;
+   - chain the seeded scenario caches to the targets that read them, so that every generated-traffic
+     table and figure regenerates from its make target, as Appendix F says;
+   - give Listing 1 and Appendix E's weight variants a make target;
+   - reconcile the two binding examples in `bindings/`, which treat WAF-blocked requests differently.
+6. **Portuguese version.** Port round 75 to the translation; the study guide already follows it.
 
 ## Portuguese version
 
-[`../http-session-noms-pt/`](../http-session-noms-pt/) holds two things:
-- a sentence-by-sentence Portuguese translation of the paper (round 74, 2026-10-18), not bound
-  by the NOMS page rules, with its glossary in the header of its `article.tex`;
-- the study guide (`guia-de-estudo.md`), for understanding the final paper. It goes from
-  the story in 15 minutes to how the method works and to each table and figure, with a
-  self-test at the end of each part and the formulas folded away. It keeps the paper's
-  English terms (fingerprint, gate, no gate) and defines them in its glossary, and it
-  says in a paragraph why the title no longer speaks of a knowledge graph.
+[`../http-session-noms-pt/`](../http-session-noms-pt/) holds a sentence-by-sentence translation of
+round 74, one round behind, and a study guide in Portuguese for this paper.

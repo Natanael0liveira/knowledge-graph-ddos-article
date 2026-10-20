@@ -1,93 +1,79 @@
-# Pillar 2 — Symbolic reasoning (verdict as derivation)
+# Pillar 2: sub-relations as SWRL rules and the Ω aggregation in SPARQL
 
-The `coordinatedHTTPFlood` rule is evaluated as a **weighted sum over the
-`relatedBy_*` sub-relations**, and the verdict is the **derivation** that
-satisfied the rule, not the output of a classifier.
+This directory writes the sub-relations of Appendix A as Horn rules and computes
+the coordination mass Ω(S) = Σᵢ wᵢ·|Eᵢ(S)| with a SPARQL aggregation, on an
+eight-session toy graph. The evaluation runs no reasoner (Section III-E): the
+counts it reads come from a query compiled from the ontology (sprint-6
+`compile_counts.py`, `make compile-check`). No number of the paper comes from here.
 
-## Design, and where SWRL ends
+## In the paper
 
-| Step | Language | What |
+- **Appendix A.** [`rules/relatedBy.swrl`](rules/relatedBy.swrl) writes four of the
+  six sub-relations as SWRL rules: TLS fingerprint, reused identity, endpoint
+  convergence and network proximity. Temporal pattern and payload signature need
+  precomputed distances and appear only as a comment.
+- **Appendix D.** The cost model's pair-edge path runs the same rules as SPARQL
+  CONSTRUCT, and its class-count path one SPARQL aggregation (sprint-6
+  [`bench_latency.py`](../sprint-6-noms/scripts/bench_latency.py)).
+- **Not in the paper:** the demo.
+
+## Inputs
+
+Only the venv (`../.venv`). [`scripts/reason.py`](scripts/reason.py) builds the toy
+graph itself and reads every weight from `coordinationWeight` in
+[`../../ontology/ddos_ontology.owl`](../../ontology/ddos_ontology.owl). `--data FILE`
+reads an RDF graph instead, whose `kg:ApplicationSession` nodes must carry
+`kg:tlsJa4`, `kg:targets` and `kg:srcPrefix`.
+
+## Run
+
+| Target | What it does | Writes |
 |---|---|---|
-| 1. Instantiate `relatedBy_*` pair-wise | **SWRL** (Horn rules) | "if ?a and ?b share a JA4 → `relatedByTLSFingerprint(?a,?b)`" |
-| 2. Aggregate Ω(S) = Σ wᵢ·\|pairsᵢ\| ≥ τ | **SPARQL** | SWRL cannot aggregate; SPARQL sums, reading the weights from the ontology |
+| `help` | Lists the targets | |
+| `demo` | Builds the toy graph, materializes three sub-relations as SPARQL CONSTRUCT, sums Ω(S) per endpoint and prints each cluster with Ω ≥ τ (τ = 5) | nothing |
 
-The formal SWRL rules are in [`rules/relatedBy.swrl`](rules/relatedBy.swrl).
-Because rdflib has no native SWRL reasoner and these rules are CONSTRUCTs, step 1
-runs as a SPARQL CONSTRUCT, **semantically equivalent** to the Horn rules.
+On another graph: `../.venv/bin/python scripts/reason.py --data FILE.ttl --tau 5`.
 
-Weights are read from `coordinationWeight` in `ddos_ontology.owl`. **Nothing is
-hard-coded**: the weighting is governed by the ontology.
+## Outputs
 
-## Demo
+None. `reason.py` prints its verdicts and writes no file, and nothing in this
+directory is a result file.
 
-```bash
-make demo
-```
+## Results
+
+`make demo`, translated and abridged (the script prints in Portuguese):
 
 ```
-Weights (from the ontology): TLS=1.0 ... NetworkProximity=0.3
-Materialized edges: relatedByTLSFingerprint=10, relatedByEndpointConvergence=28, NetworkProximity=0
-> RULE FIRED: coordinatedHTTPFlood @ 10.0.0.1_443
-  Omega(S) = 26.8 >= tau=5.0   (|S|=8)
+Ontology weights: TLSFingerprint 1.0, ReusedIdentity 1.0, TemporalPattern 0.9,
+  PayloadSignature 0.6, EndpointConvergence 0.6, NetworkProximity 0.3
+Materialized edges: TLSFingerprint 10, EndpointConvergence 28, NetworkProximity 0
+RULE FIRED: coordinatedHTTPFlood @ 10.0.0.1_443
+  Ω(S) = 26.8 ≥ τ=5.0   (|S|=8)
   DERIVATION:
-    relatedByTLSFingerprint        10 pairs x 1.0 = 10.0
-    relatedByEndpointConvergence   28 pairs x 0.6 = 16.8
-  verdict = the derivation above, not a score
+    relatedByTLSFingerprint          10 pairs × w=1.0 = 10.0
+    relatedByEndpointConvergence     28 pairs × w=0.6 = 16.8
 ```
 
-## The rule evaluated AS a detector
-
-Every detection number elsewhere in the paper comes from a classifier over
-features, which measures the **representation** and says nothing about this layer.
-Sprint 6 evaluated the rule end to end: the sessions matching the derived scope
-**are** the flagged set, with no training and no threshold. To be fair, the
-classifier was forced onto the **same operating point**:
-
-| Scenario | Rule: recall / FPR / F₁ | RF AUC | RF recall @ FPR = 0 |
-|---|---|---|---|
-| Monolithic (M = 1) | 89.8% / 0.00% / 0.946 | 0.997 | **91.7%** |
-| M = 5 | 90.0% / 0.00% / 0.948 | 0.996 | 88.6% |
-| M = 25 | 90.3% / 0.00% / **0.949** | 0.979 | **36.4%** |
-| M = 100 | 38.6% / 0.00% / 0.556 | 0.961 | **17.6%** |
-| M = 25, adversarial | 30.4% / 3.78% / 0.452 | 0.862 | **7.8%** |
-
-These are the paper's Table II values (`../sprint-6-noms/results/symbolic_detector.json`:
-the cluster of largest Ω chosen with no label, binomial enrichment test). At
-M = 100 the rule falls to 38.6% because stacks of about ten sessions cannot be told
-from the tail of a 1,000-session profile; a profile pooled over 30 attack-free runs
-restores 89.6% (sprint-6 README, section 7). A per-fingerprint z-score against the
-same profile matches the rule up to 25 stacks and reaches 80.4% at 100, also at zero
-FPR (`../sprint-6-noms/results/unseen_synth_summary.csv`).
-
-**This is not a uniform win.** In the monolithic regime the Random Forest ties or
-beats the rule; there is no symbolic advantage there. From 25 stacks on the
-ordering reverses. What AUC hides is exactly this: 0.979 corresponds to recovering
-**a third** of the attack at zero false positives, because the score distribution
-overlaps benign traffic in the tail. The rule produces no score to threshold; it
-produces a set defined by an enrichment test against an explicit background, so
-its zero FPR follows **from the criterion, not from tuning**.
-
-The adversarial row is **not** a like-for-like comparison and no claim is made
-from it: there the rule itself incurs 3.78% FPR.
-
-See
-[`../sprint-6-noms/scripts/symbolic_detector.py`](../sprint-6-noms/scripts/symbolic_detector.py).
-
-## How it composes with Pillar 4
-
-The cluster (sessions on the same endpoint) includes benign users, so endpoint
-convergence alone does not discriminate. The high-weight signal, TLS, is what
-[Pillar 4](../pillar4-evidence-mitigation/) uses to derive the scope and separate
-attackers from legitimate users.
-
-Full flow: **detection (G3/G4) → symbolic reasoning (Pillar 2, here) → evidence
-and mitigation (Pillar 4)**.
+Five attackers share one JA4 (10 pairs), all eight sessions share the endpoint
+(28 pairs), and no two share a /24. The scopes evaluated as detectors on generated
+traffic (Table III) are computed in sprint 6 with the functions of
+[pillar 4](../pillar4-evidence-mitigation/). Their numbers are in
+[`../FINDINGS.md`](../FINDINGS.md).
 
 ## Caveats
 
-- The demo runs on a toy graph; running over the real KG needs the drive.
-- The SWRL step executes as SPARQL CONSTRUCT, equivalent for Horn rules. A formal
-  SWRL/OWL reasoner (owlready2 + Pellet) would require Java and would not change
-  the semantics.
-- Temporal and payload sub-relations are omitted, having no session-level data.
-- The cluster here is "same endpoint"; refining the definition of S is open work.
+- The demo's cluster is every session on one endpoint, with no time window. In the
+  paper S holds the sessions to one endpoint in one five-minute window
+  (Section III-B). On generated traffic the cluster chains an endpoint's sessions
+  while consecutive starts stay within 300 s (Section IV-A).
+- The demo counts pairs of sessions, while the paper counts pairs of distinct
+  origins (Appendix A). The evaluation computes Ω from class sizes, Σₖ C(nₖ, 2),
+  and builds no pair edge.
+- rdflib has no SWRL reasoner, so each rule runs as a SPARQL CONSTRUCT that emits
+  each unordered pair once. With `relatedTo` symmetric, these are the pairs the
+  rule derives. `reason.py` runs three of the four rules, since the toy graph holds
+  no identity.
+- The sprint-1 graph export does not fit `--data` as it stands: it puts the JA4 on
+  the session's `Identity` node and writes no `srcPrefix`.
+- τ = 5 is the script's default. The paper's thresholds are percentiles over
+  attack-free windows (Section III-B).

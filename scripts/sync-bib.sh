@@ -2,39 +2,35 @@
 #
 # sync-bib.sh
 #
-# Copia shared/references.bib para os diretórios dos papers,
-# substituindo o symlink anterior (que o Overleaf não suporta).
+# Copies shared/references.bib into the paper directories that use it, replacing
+# the symlink that existed before (Overleaf does not accept symlinks).
 #
-# Por que existe: o Overleaf rejeita repositórios com symlinks no import
-# do GitHub. Mantemos shared/references.bib como master e os papers/<X>/references.bib
-# como cópias reais, sincronizadas por este script.
+# Why it exists: Overleaf rejects GitHub imports that contain symlinks, so
+# shared/references.bib is the master and papers/<X>/references.bib are real
+# copies, kept in step by this script.
 #
-# Uso: rode este script sempre que editar shared/references.bib,
-# antes de commitar e empurrar para o GitHub.
+# Usage: run it after editing shared/references.bib, before committing.
 #
-#   ./scripts/sync-bib.sh
+#   ./scripts/sync-bib.sh            # copy the master into every target
+#   ./scripts/sync-bib.sh --check    # report divergence without copying
 #
-# Para verificar se há divergência sem copiar, use --check:
-#
-#   ./scripts/sync-bib.sh --check
+# Only the superseded manuscript (papers/http-session/) uses the master. The NOMS
+# paper keeps its own papers/http-session-noms/references.bib, with only the
+# entries it or its Portuguese translation cites (the translation keeps an
+# identical copy). Syncing it from the master would break the submission.
 
 set -euo pipefail
 
-# Diretório raiz do repositório (este script roda de qualquer lugar)
+# Repository root (the script runs from anywhere)
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MASTER="$REPO_ROOT/shared/references.bib"
 
-# ATENCAO: papers/http-session-noms/references.bib NAO esta nesta lista.
-# Ele divergiu do master e hoje contem 10 entradas que shared/references.bib
-# nao tem (althouse2023ja4, sharafaldin2018cicids, w3c2012owl2profiles e
-# outras). Sincroniza-lo destruiria essas entradas e quebraria a submissao.
-# Antes de reintroduzi-lo aqui, promova essas entradas para o master.
 TARGETS=(
     "$REPO_ROOT/papers/http-session/references.bib"
 )
 
 if [[ ! -f "$MASTER" ]]; then
-    echo "ERRO: $MASTER não encontrado." >&2
+    echo "ERROR: $MASTER not found." >&2
     exit 1
 fi
 
@@ -45,10 +41,10 @@ case "$MODE" in
         FAIL=0
         for target in "${TARGETS[@]}"; do
             if [[ ! -f "$target" ]]; then
-                echo "FALTA: $target"
+                echo "MISSING: $target"
                 FAIL=1
             elif ! cmp -s "$MASTER" "$target"; then
-                echo "DIVERGE: $target"
+                echo "DIVERGES: $target"
                 FAIL=1
             else
                 echo "OK: $target"
@@ -58,16 +54,16 @@ case "$MODE" in
         ;;
     sync|"")
         for target in "${TARGETS[@]}"; do
-            # Se existe e é symlink, remove para evitar substituir o master por engano
+            # A symlink is removed first, so the copy never overwrites the master
             if [[ -L "$target" ]]; then
                 rm "$target"
             fi
             cp "$MASTER" "$target"
-            echo "Sincronizado: $target"
+            echo "Synced: $target"
         done
         ;;
     *)
-        echo "Uso: $0 [--check]" >&2
+        echo "Usage: $0 [--check]" >&2
         exit 2
         ;;
 esac

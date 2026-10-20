@@ -1,95 +1,159 @@
 # Runtime
 
-How the knowledge graph is built and evaluated while traffic flows. The
-distinction that organizes everything here is that the system runs **two layers
-at two different rates**, with different complexity and different purposes, and
-keeping them separate is what makes the approach deployable.
+How the method runs on traffic: the windows and the state it keeps, the count query the
+evaluation runs, and what a live deployment would add. The formulas themselves (Ω, the gates, the
+enrichment test, calibration) are defined in [`concepts.md`](concepts.md). The cost tables come
+from [`latency_summary.json`](../experiments/sprint-6-noms/results/latency_summary.json) (paper,
+App. D and Fig. 4).
 
-| | Layer 1 — admission | Layer 2 — symbolic evaluation |
+## 1. Windows and state
+
+The paper decides per endpoint and per fixed five-minute window (W = 300 s), so each endpoint has
+288 windows a day. Classes count distinct origins, that is, source addresses. The gate's n counts
+each address once per fingerprint it presents. On production it also counts plain-HTTP clients
+(III-B, App. A).
+
+On generated traffic, the scopes of Table III read the alarm's cluster instead. The cluster chains
+the sessions of one endpoint while consecutive starts stay within 300 s of one another (IV-A).
+Appendix E runs the rule per fixed window, as a deployment would.
+
+Calibration on attack-free days leaves a small state per endpoint. Nothing else carries over from
+one window to the next.
+
+| State | What it holds | Paper |
 |---|---|---|
-| Runs | per request / per new session | once per operational window |
-| Path | hot path, in-memory, indexed | auditable path, RDF + SPARQL |
-| Produces | class counts (and candidate pairs for non-transitive relations) | Ω(S), the verdict and its derivation |
-| Measured cost, class counting | about 0.4 µs per session, constant | linear in \|S_W\| |
-| Measured cost, pair edges | 15–21 ns per candidate pair | about 200 µs per materialized RDF edge |
+| Profile | b(f), the share of fingerprint f among the N pooled origin–fingerprint pairs, plus 1/N | III-C |
+| τ_cluster | 99th percentile of Ω over the calibration windows (base rule) | III-B |
+| Gate threshold | 99th percentile of the distinct origins n; the gate also needs n ≥ k_min = 5 | III-B |
+| λ_e | the test's level: the largest value up to 0.01 that keeps the 1% budget | III-C |
+| z threshold | 99th percentile of each window's largest z, never below 3 | III-C |
+| Known fleets | fingerprints selected at level 0.01 in at least 5% of calibration windows | III-D |
+| φ(f) | within-window correlation of each profile fingerprint, clipped to [0, 0.99] (beta-binomial, post hoc) | III-D |
+| Hourly medians | median n at each hour of the calibration days, and the 99th percentile of the ratio (seasonal gate, post hoc) | V-C |
 
-Layer 1 decides *what is related*. Layer 2 decides *whether that adds up to a
-coordinated campaign*, and leaves behind the derivation that justifies the
-answer. Only clusters that fire ever reach Layer 2.
+Under cross-fitting (post hoc), λ_e, the z threshold and the known fleets are fitted with each
+calibration day judged against a profile of the other days (IV-B).
 
-## The operational window
+A deployment could keep a sliding window and purge sessions as they age out. That design is not
+evaluated. The paper does not tune W either. A sweep from 60 s to 1,800 s kept the per-session AUC
+of configuration (d) at 0.976–0.978
+([`window_sweep.json`](../experiments/sprint-6-noms/results/window_sweep.json)). It ran on the
+superseded sprint-4 scenario cache, where the generator packs benign starts early, so W never
+operated (sprint-6 lab notebook, [§3](../experiments/sprint-6-noms/README.md#3-window-sweep) and
+[§6](../experiments/sprint-6-noms/README.md#6-the-rule-as-a-detector)).
 
-Sessions and relations live inside a **sliding window**, `W = 5 min` by default,
-and are purged incrementally as they age out, following an RDF
-stream-processing discipline. Nothing is retained across windows except the
-background traffic profile the enrichment test needs (see
-[`concepts.md`](concepts.md)).
+## 2. The evaluated path: a count query compiled from the ontology
 
-The window is not a tuning knob for detection quality. Sweeping it over a 30×
-range (60 s to 1800 s) moves AUC by less than 0.002, while mean cluster occupancy
-grows 6.6×. The reason is that
-the discriminative feature is a **fraction** — the share of the cluster carrying
-one JA4 — which is invariant to cluster scale.
+No reasoner runs in the evaluation (III-E). The trigger and the scope read class sizes, and a
+log-store query compiled from the ontology returns them. The production trigger is the
+distinct-origin gate. The base rule, Ω(S) ≥ τ_cluster on one endpoint's window, is the reference of
+the held-out protocol (III-B).
 
-> **Operational rule: keep W as small as the traffic permits.** A larger window
-> buys no detection and adds state. With class counting that cost is linear in
-> the window; with pair edges it was quadratic. W must only be large enough for
-> a cluster to form, which at W = 60 s already meant ~132 sessions in the
-> evaluated scenarios.
+1. The three relations the paper uses are equalities: a shared JA4, endpoint or /24 prefix. Each
+   one partitions a window's sessions into classes.
+2. The ontology annotates each of them with the session property it compares (`kg:classKey`:
+   `tlsJa4`, `targets`, `srcPrefix`) and with its weight (`kg:coordinationWeight`). It annotates
+   `relatedTo` with the unit classes are counted in (`kg:countUnit`: `originatesFrom`), so the
+   sessions of one client count once.
+3. [`compile_counts.py`](../experiments/sprint-6-noms/scripts/compile_counts.py) reads these
+   annotations and a binding that maps each property to a column of the log table
+   ([`bindings/`](../experiments/sprint-6-noms/bindings/), with placeholder names). It emits SQL
+   that returns, per window and endpoint, the distinct origins and Ω(S). Per window, endpoint and
+   class value, it returns the class size in distinct origins, which the scope tests.
+4. Sub-properties without a class key need pairwise evaluation. The compiler lists them and
+   compiles nothing for them.
 
-Full sweep in
-[`../experiments/sprint-6-noms/`](../experiments/sprint-6-noms/#3-window-sweep).
+A new equality signal costs four triples, plus a column binding if it reads a new session property.
+The query-generation code does not change. `make compile-check` tests both points without data. On
+generated sessions, the compiled query run in DuckDB matches `decompose_omega(unit="origin")`. A
+fourth equality relation, added as four triples with no code line changed, then enters the
+recompiled query ([`compile_check.json`](../experiments/sprint-6-noms/results/compile_check.json)).
 
-## Layer 1 — admission
+In the operator's log store, the compiled query reproduced the exported address and /24-pair counts
+in every window of two production days, 1,152 windows each. It reproduced the JA4 pair counts in
+the 288 windows of each day on the endpoint where the WAF blocked no client. Elsewhere the export
+drops clients the WAF partly blocked, and the compiled query keeps them. Pair counts constrain the
+per-fingerprint counts the scope tests. They do not identify them (App. F;
+[`compile_production_check.json`](../experiments/sprint-6-noms/results/compile_production_check.json),
+[`compile_production_check_fresh.json`](../experiments/sprint-6-noms/results/compile_production_check_fresh.json)).
+The evaluation itself reads the exports.
 
-Three of the sub-relations, exact JA4, endpoint and /24 prefix, are
-**equivalence relations**: two sessions are related when they share a value. Each
-one therefore partitions a cluster S into classes, and the number of pairs it
-links follows from the class sizes alone, `|Eᵢ(S)| = Σₖ C(nₖ, 2)`. Admitting a
-session means incrementing one counter per such sub-relation. The cost does not
-depend on `|S_W|`, and no pair is ever enumerated. This is also how the evaluation
-computes Ω (`compute_coordination.py` groups by value and counts).
+On the exports, Ω takes the form
 
-The non-transitive relations (near-variant JA4, temporal pattern, payload
-signature) still compare the new session with candidates. None of them is exercised
-in the paper's evaluation, which counts exact-JA4, endpoint and /24 classes. Inverted indexes and
-locality-sensitive hashing narrow that comparison set before any per-pair work
-happens, so the per-pair cost `c` stays O(1) and the candidate count is what grows.
+> Ω = 1.0 · Σ_f C(n_f, 2) + 0.6 · C(n, 2) + 0.3 · P₂₄
 
-### Per-pair decision procedures
+where n_f counts the origins presenting fingerprint f, n the window's origins as the gate counts
+them, and P₂₄ the exported pairs of distinct origins that share a /24 (a /48 in IPv6). The weights
+are read from the ontology.
 
-Each sub-relation is instantiated independently from its own evidence, so a pair
-may end up linked by one, several or all six. `c` is amortized O(1) for every
-sub-relation **except the temporal one**.
+Only windows that fire produce an evidence chain: the rule, the cluster, the scope and the split of
+Ω(S) by sub-relation. It is exported as JSON-LD (Listing 1) and STIX 2.1 (III-E).
 
-| Sub-relation | Decision | Cost |
+## 3. Two layers in a deployment
+
+The production run is offline, over exported counts per endpoint (App. C). A live deployment would
+run two layers at two rates, and Appendix D times them apart.
+
+| | Layer 1: admission | Layer 2: aggregation |
 |---|---|---|
-| `relatedByTLSFingerprint` | Exact JA4 equality, the relation exercised (kept as class counts). Specified but not exercised: near variants — same transport/TLS-version/ALPN prefix, at most one symbol of difference in the ordered cipher or extension blocks, annotated `ja4_distance = 1` | O(1) |
-| `relatedByReusedIdentity` | Non-empty overlap of the identity sets (cookies ∪ tokens ∪ usernames); JWTs decoded and compared by the `sub` claim; cookies and usernames normalized | O(1) amortized, inverted index |
-| `relatedByTemporalPattern` | Normalized DTW over inter-arrival sequences, `d_DTW ≤ τ_DTW`; sessions with fewer than three requests skipped | **O(n)** — see below |
-| `relatedByPayloadSignature` | Cosine similarity over (mean body size, sd body size, hash of dominant User-Agent, hash of Content-Type) above `τ_payload` | O(1), precomputed vectors |
-| `relatedByEndpointConvergence` | Same endpoint under path-pattern normalization (`/api/users/12345` → `/api/users/{id}`); exact-path match additionally annotates `exact = true` | O(1), prefix-tree index |
-| `relatedByNetworkProximity` | Shared IPv4 /24 (or IPv6 /48) prefix, or shared ASN, or both; both holding annotates `strong = true`; ASN resolution from current BGP tables | O(1), inverted prefix index |
+| Runs | per request or new session | once per window |
+| Updates | one class counter per equality sub-relation | class membership, then Ω(S) per endpoint |
+| Feeds | the class sizes of the open window | the trigger, the scope and, when they fire, the evidence chain |
+| Cost with class counts | 0.33–0.42 µs per admission | linear in sessions |
+| Cost with pair edges | 15–21 ns per candidate pair | about 200 µs per RDF edge |
 
-The **temporal** relation is the only one that is not constant-time per pair.
-Two mitigations keep it tractable: FastDTW under a constant-width Sakoe–Chiba
-band reduces the per-pair cost from O(n²) to O(n), and locality-sensitive hashing
-over summary vectors (δ̄, σ_δ, δ_min, δ_max, entropy) avoids all-pairs
-comparison in the first place.
+The rule reads one endpoint per S, so partitioning by endpoint evaluates it exactly, with no traffic
+between shards. A campaign that spreads one JA4 across many endpoints then has too few pairs in any
+shard. Catching it would need a global sketch, which is not implemented (App. D). The partitioning
+itself is not implemented either (App. C).
 
-The near-variant matching on JA4 deserves a note: it would absorb version drift
-within one client library without admitting spurious matches across genuinely
-distinct TLS stacks. No code path implements it yet, and since it is not an
-equivalence it cannot be kept as class counts. Exact-only matching would fragment a single botnet stack across minor
-version changes; unbounded fuzzy matching would merge unrelated ones.
+## 4. Class counting and pair edges
 
-### Measured cost
+For an equality sub-relation, the pairs it links follow from the class sizes alone. Their number,
+the size of Eᵢ(S), is Σₖ C(nₖ, 2) over the classes, with each nₖ counted in distinct origins
+(App. A). Admitting a session then means incrementing one counter per sub-relation. The cost does
+not depend on the window size |S_W|, and no pair is enumerated.
 
-Three repeats, one core, on AC power, with the `rdflib` reference implementation.
-"Peers enumerated" is the pair path, as the rules are written; "class counters"
-is the path above.
+A relation that is not transitive still compares the new session with candidates. Inverted indexes
+and locality-sensitive hashing narrow that set before any per-pair work. The cost per pair then
+stays constant, and the candidate count is what grows.
 
-| \|S_W\| | peers enumerated, p50 | edges/adm | ns/pair | class counters, p50 |
+Appendix A specifies six sub-relations. The paper exercises three, with weights 1.0, 0.6 and 0.3.
+The other procedures below are design specifications: no script runs them, and their weights are
+untested (App. C).
+
+| Sub-relation | Exercised in the paper | Specified only (App. A) | Cost per pair in the design |
+|---|---|---|---|
+| `relatedByTLSFingerprint` | exact JA4 equality, as class counts | a near variant, `ja4_distance = 1`, which is not transitive | O(1) |
+| `relatedByEndpointConvergence` | same endpoint: a host, or an address and port | path-pattern normalization (`/api/users/12345` → `/api/users/{id}`) | O(1), prefix-tree index |
+| `relatedByNetworkProximity` | shared IPv4 /24 or IPv6 /48 | a shared ASN, resolved from current BGP tables | O(1), inverted prefix index |
+| `relatedByReusedIdentity` | none | overlapping identity sets (cookies, tokens, usernames; JWTs compared by their `sub` claim), which is not transitive | O(1) amortized, inverted index |
+| `relatedByTemporalPattern` | none | normalized DTW over inter-arrival sequences, d ≤ τ_DTW; sessions with fewer than three requests skipped | O(n), see below |
+| `relatedByPayloadSignature` | none | cosine similarity above τ_payload over the mean and standard deviation of body size and hashes of the dominant User-Agent and Content-Type | O(1), precomputed vectors |
+
+The temporal relation is the only one whose cost per pair is not constant. FastDTW under a
+constant-width Sakoe–Chiba band cuts that cost from O(n²) to O(n). Locality-sensitive hashing over
+summary vectors (mean, standard deviation, minimum and maximum of the inter-arrival times, and
+their entropy) avoids comparing all pairs.
+
+The near variant would absorb version drift within one TLS library. Exact matching splits one
+botnet stack across minor version changes, and unbounded fuzzy matching would merge unrelated
+stacks. The near variant is not an equivalence, so it would need pair edges.
+
+## 5. Measured cost
+
+Appendix D times both layers on a synthetic window: 30% of sessions in one campaign that shares a
+botnet JA4, benign JA4 from a pool of 2,000, nine endpoints and dispersed /24s. Admission fills a
+window of |S_W| sessions, then times 200 further sessions. Each value is a median of three repeats
+on one core. Layer 2 runs on `rdflib`, the in-memory reference implementation. The benchmark counts
+sessions, one node each. The pair-edge path is skipped above an estimated 3,000,000 pairs.
+`make latency` reruns it without data, and the
+[lab notebook §1](../experiments/sprint-6-noms/README.md#1-latency) records the run conditions.
+
+**Admission, per request.** "Pair path" enumerates the peers already in the window, as the rules
+are written. "Class counters" is the path of section 4.
+
+| \|S_W\| | pair path, p50 | candidate pairs per admission | ns per pair | class counters, p50 |
 |---|---|---|---|---|
 | 100 | 2.3 µs | 148 | 15.3 | 0.42 µs |
 | 250 | 3.8 µs | 239 | 15.9 | 0.38 µs |
@@ -100,80 +164,75 @@ is the path above.
 | 10,000 | 126.9 µs | 6,495 | 19.5 | 0.37 µs |
 | 25,000 | 293.9 µs | 16,321 | 18.0 | 0.33 µs |
 | 50,000 | 608.8 µs | 32,156 | 18.9 | 0.33 µs |
-| 100,000 | 1364.6 µs | 65,020 | 21.0 | 0.38 µs |
+| 100,000 | 1,364.6 µs | 65,020 | 21.0 | 0.38 µs |
 
-**Class admission is flat at 0.33–0.42 µs from 100 to 100,000 sessions.** The pair
-path is linear in `|S_W|` at a constant 15–21 ns per candidate pair, which confirms
-that `c` is O(1) and that the growth comes from the candidate count.
+**Aggregation, per window.** "Pair edges" materializes every pair in RDF, then sums Ω(S). "Class
+aggregation" stores one membership triple per session and sub-relation, and one SPARQL query sums
+the weighted class counts.
 
-## Layer 2 — symbolic evaluation
-
-Once per window, class membership (and, for the non-transitive relations, pair
-edges) materializes in RDF and the weighted aggregation runs:
-
-> **Ω(S) = Σᵢ wᵢ · |Eᵢ(S)|**
-
-summed over the sub-relations, where `Eᵢ(S)` is the set of unordered session
-pairs in S linked by sub-relation *i*. The rule fires when Ω(S) clears
-`τ_cluster` and the remaining conditions hold (same endpoint, aggregate rate,
-coherent `BotBehavior` profile). Calibration of `τ_cluster` and the weights is in
-[`concepts.md`](concepts.md).
-
-The split between the two languages is forced by what each can express. **SWRL
-is Horn and cannot aggregate**, so it defines the sub-relations one pair at a
-time, while the summation and the comparison against `τ_cluster` are written in
-SPARQL, which reads the weights from the ontology. For the equality-based
-sub-relations the query counts pairs from class membership (`kg:inClass`,
-`kg:ofRelation`), so no pair edge is materialized. See Listing 1 of the paper and
-[`../experiments/pillar2-symbolic-reasoning/`](../experiments/pillar2-symbolic-reasoning/).
-
-### Measured cost
-
-| \|S_W\| | pair edges: total | RDF edges | per edge | class aggregation: total |
+| \|S_W\| | pair edges, total | RDF edges | µs per edge | class aggregation, total |
 |---|---|---|---|---|
-| 100 | 0.84 s | 2,703 | 309 µs | 0.07 s |
-| 250 | 3.67 s | 17,221 | 213 µs | 0.09 s |
-| 500 | 12.89 s | 65,115 | 198 µs | 0.16 s |
-| 1,000 | 52.78 s | 265,328 | 199 µs | 0.33 s |
-| 2,500 | 357.76 s | 1,641,169 | 218 µs | 0.81 s |
-| 5,000 | not run | |  | 1.38 s |
-| 10,000 | not run | |  | 2.86 s |
-| 25,000 | not run | |  | 6.77 s |
-| 50,000 | not run | |  | 13.22 s |
-| 100,000 | not run | |  | 26.37 s |
+| 100 | 0.84 s | 2,703 | 309 | 0.07 s |
+| 250 | 3.67 s | 17,221 | 213 | 0.09 s |
+| 500 | 12.89 s | 65,115 | 198 | 0.16 s |
+| 1,000 | 52.78 s | 265,328 | 199 | 0.33 s |
+| 2,500 | 357.76 s | 1,641,169 | 218 | 0.81 s |
+| 5,000 | skipped | | | 1.38 s |
+| 10,000 | skipped | | | 2.86 s |
+| 25,000 | skipped | | | 6.77 s |
+| 50,000 | skipped | | | 13.22 s |
+| 100,000 | skipped | | | 26.37 s |
 
-Both paths give the same Ω(S) for every endpoint, to within 7e-12.
+What the tables show:
 
-Materializing pair edges costs about 200 µs per edge, so that path is linear in
-edges, and the edge count grows with the square of `|S_W|`: 52.8 s at 1,000
-sessions and 358 s at 2,500. Class aggregation is linear in sessions: 0.33 s at
-1,000, 160 times faster, and 26.4 s at 100,000.
+- Class admission stays at 0.33–0.42 µs from 100 to 100,000 sessions.
+- The pair path costs 15–21 ns per candidate pair. Its growth comes from the candidate count.
+- Pair edges cost about 200 µs each (309 µs at 100 sessions), and their number grows with the
+  square of |S_W|: 52.8 s at 1,000 sessions and 358 s at 2,500.
+- Class aggregation is linear: 0.33 s at 1,000 sessions, 161 times faster, and 26.4 s at 100,000.
+- Both paths give the same Ω(S) for every endpoint, to within 7.3 × 10⁻¹² (the paper rounds this to
+  10⁻¹¹).
 
-An earlier version of this page, and of the paper, said the quadratic term
-belonged to the rule itself and that no backend could remove it. That was wrong
-for the equality-based sub-relations. The quadratic growth is real in the *value*
-of Ω(S), which counts pairs, and in the pair edges of the non-transitive
-relations. Computing Ω from class sizes avoids it, and the evidence chain needs
-only the per-relation pair counts, which the classes give directly.
+The quadratic term therefore lies in the value of Ω(S), which counts pairs, and in the pair edges of
+the relations that are not transitive. Earlier versions of this page and of the paper put it in the
+rule itself, and the [lab notebook §1](../experiments/sprint-6-noms/README.md#1-latency) records
+the correction.
 
-## Backends
+## 6. Backends and reasoning profile (design intent)
 
-Materialization in production is declared over **Apache Jena Fuseki with TDB2**
-storage. The latency numbers above were measured on **`rdflib`**, the in-memory
-reference implementation, so the Layer-2 figures are an upper bound of the
-reference implementation and are reported as such, not as Fuseki numbers.
+**Store.** The design targets Apache Jena (Fuseki with TDB2), where the sprint-1 laboratory
+pipeline loads its graphs. The cost numbers come from `rdflib`, the in-memory reference
+implementation, so the Layer-2 figures are likely an upper bound (App. D).
 
-The reasoning profile is **OWL 2 RL**, whose materialization is polynomial. That
-is what makes bounded materialization tractable at runtime where OWL 2 DL would
-not be.
+**Languages.** SWRL is Horn and cannot aggregate. In the design, SWRL defines the sub-relations one
+pair at a time, and SPARQL sums Ω(S) and compares it with τ_cluster, reading the weights from the
+ontology. For the equality sub-relations, the SPARQL query counts pairs from class membership
+(`kg:inClass`, `kg:ofRelation`), so no pair edge is materialized. The paper prints no query: its
+Listing 1 is the evidence chain (App. D). `bench_latency.py` times this aggregation, and
+[`pillar2-symbolic-reasoning/`](../experiments/pillar2-symbolic-reasoning/) runs the pairwise form
+on a toy graph.
 
-## Where to look in the code
+**Profile.** OWL 2 RL is the target for a deployment that materializes inferences, because its
+materialization takes polynomial time, unlike reasoning in OWL 2 DL. This is design intent. No
+reasoner runs in the evaluation (III-E), and no script in the repository calls one.
+
+## 7. Where to look in the code
 
 | Concern | Location |
 |---|---|
-| Latency benchmark, both layers | [`../experiments/sprint-6-noms/scripts/bench_latency.py`](../experiments/sprint-6-noms/scripts/bench_latency.py) |
-| Window sweep | [`../experiments/sprint-6-noms/scripts/window_sweep.py`](../experiments/sprint-6-noms/scripts/window_sweep.py) |
-| Ω(S) aggregation and verdict | [`../experiments/pillar2-symbolic-reasoning/scripts/reason.py`](../experiments/pillar2-symbolic-reasoning/scripts/reason.py) |
-| SWRL sub-relation rules | [`../experiments/pillar2-symbolic-reasoning/rules/relatedBy.swrl`](../experiments/pillar2-symbolic-reasoning/rules/relatedBy.swrl) |
-| SPARQL detection query | [`../experiments/sprint-1/queries/coordinatedHTTPFlood.rq`](../experiments/sprint-1/queries/coordinatedHTTPFlood.rq) |
-| Ontology (classes, weights) | [`../ontology/ddos_ontology.owl`](../ontology/ddos_ontology.owl) |
+| Sub-relations, weights, class keys and count unit | [`ontology/ddos_ontology.owl`](../ontology/ddos_ontology.owl) |
+| The ontology values every script reads | [`experiments/common/kg_ontology.py`](../experiments/common/kg_ontology.py) |
+| Count query compiled from the ontology; `make compile-check` | [`compile_counts.py`](../experiments/sprint-6-noms/scripts/compile_counts.py) |
+| Binding template, with placeholder table and column names | [`experiments/sprint-6-noms/bindings/`](../experiments/sprint-6-noms/bindings/) |
+| Ω, calibration and scopes per production window: the test (`adjusted_p`, `log_tail`), known fleets (`known_fleets`), the beta-binomial's φ (`intra_window_correlation`), the z threshold (`calibrate_baselines`), cross-fitting (`--split crossfit`) | [`rule_detection_production.py`](../experiments/sprint-6-noms/scripts/rule_detection_production.py) |
+| Gates (τ_cluster, distinct origins, seasonal), the metrics (`clopper_pearson`, `cluster_ci`, `joint_expected`), the floor (`floor`) and its ramp (`model_new`) | [`production_tables.py`](../experiments/sprint-6-noms/scripts/production_tables.py) |
+| Floors by popularity band, and the enrichment limit | [`floor_bands.py`](../experiments/sprint-6-noms/scripts/floor_bands.py) |
+| Matched, drifted, flat and pooled profiles on generated traffic (V-A) | [`profile_drift.py`](../experiments/sprint-6-noms/scripts/profile_drift.py) |
+| Ω per fixed window on generated traffic (App. E) | [`rule_detection.py`](../experiments/sprint-6-noms/scripts/rule_detection.py) |
+| Ω per chained cluster, laboratory and generated traffic | [`experiments/sprint-1/scripts/compute_coordination.py`](../experiments/sprint-1/scripts/compute_coordination.py) |
+| Ω split by sub-relation (`decompose_omega`); the modal scope (`derive_scope`), the binomial test (`derive_scope_enriched`) and its level (`calibrate_level`) on generated traffic; the evidence chain as JSON-LD and STIX 2.1 | [`evidence_mitigation.py`](../experiments/pillar4-evidence-mitigation/scripts/evidence_mitigation.py) |
+| Listing 1, the evidence chain of the default campaign | [`example_chain.py`](../experiments/sprint-6-noms/scripts/example_chain.py) |
+| Cost model, both layers; `make latency` | [`bench_latency.py`](../experiments/sprint-6-noms/scripts/bench_latency.py) |
+| Pairwise SWRL rules and their SPARQL form, on a toy graph | [`relatedBy.swrl`](../experiments/pillar2-symbolic-reasoning/rules/relatedBy.swrl), [`reason.py`](../experiments/pillar2-symbolic-reasoning/scripts/reason.py) |
+| Legacy gate G4 of the sprint-1 laboratory pipeline | [`coordinatedHTTPFlood.rq`](../experiments/sprint-1/queries/coordinatedHTTPFlood.rq) |
+| Window sweep (not in the paper) | [`window_sweep.py`](../experiments/sprint-6-noms/scripts/window_sweep.py) |

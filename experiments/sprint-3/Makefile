@@ -1,4 +1,4 @@
-# Sprint 3 — Baselines + Ablação
+# Sprint 3: baselines and ablation
 
 SHELL := /bin/bash
 
@@ -8,7 +8,12 @@ ifneq ("$(wildcard $(ENV_FILE))","")
     export
 endif
 
-DATA_ROOT ?= $(error DATA_ROOT não definido)
+# `make help` works without .env, showing a placeholder for DATA_ROOT.
+# Every other target stops here while DATA_ROOT is not set.
+ifeq ($(filter-out help,$(MAKECMDGOALS)),)
+DATA_ROOT ?= <DATA_ROOT>
+endif
+DATA_ROOT ?= $(error DATA_ROOT is not set. Run first: ../scripts/setup-data-storage.sh /Volumes/YourDrive/kg-ddos-data)
 DIST_DIR  := $(DATA_ROOT)/synth/distributions
 SYNTH_DIR := $(DATA_ROOT)/synth/sprint3
 LOG_DIR   := $(DATA_ROOT)/logs
@@ -21,11 +26,11 @@ SEED   ?= 7
 .DEFAULT_GOAL := help
 .PHONY: help scenarios ablation multiattack clean
 
-help:  ## Lista targets
+help:  ## List the targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-scenarios:  ## Gera cenários furtivos K=1/50/1000 + converte p/ sessions
-	@[ -f $(DIST_DIR)/session_requests.json ] || { echo "❌ Calibre o Sprint 2: make -C ../sprint-2 calibrate"; exit 1; }
+scenarios:  ## Generate stealth scenarios K=1/50/1000 and convert them to sessions
+	@[ -f $(DIST_DIR)/session_requests.json ] || { echo "❌ Calibrate Sprint 2 first: make -C ../sprint-2 calibrate"; exit 1; }
 	@mkdir -p $(SYNTH_DIR) $(LOG_DIR)
 	@for k in 1 50 1000; do \
 	  echo "==> stealth K=$$k"; \
@@ -35,9 +40,9 @@ scenarios:  ## Gera cenários furtivos K=1/50/1000 + converte p/ sessions
 	  $(PYTHON) $(GEN)/synth_to_sessions.py --jsonl $(SYNTH_DIR)/stealth_K$$k.jsonl \
 	    --out $(SYNTH_DIR)/stealth_K$$k.parquet 2>&1 | grep sessions; \
 	done
-	@echo "✅ Cenários em $(SYNTH_DIR)/"
+	@echo "✅ Scenarios in $(SYNTH_DIR)/"
 
-ablation:  ## Roda baselines + ablação a/b/c/d e imprime a tabela
+ablation:  ## Run the baselines and the a/b/c/d ablation, and print the table
 	$(PYTHON) scripts/run_ablation.py \
 	  --scenario K1=$(SYNTH_DIR)/stealth_K1.parquet \
 	             K50=$(SYNTH_DIR)/stealth_K50.parquet \
@@ -47,14 +52,14 @@ ablation:  ## Roda baselines + ablação a/b/c/d e imprime a tabela
 REAL_S1 := $(DATA_ROOT)/processed/sessions/cicids2017.parquet
 REAL_S2 := $(DATA_ROOT)/processed/sessions/cic-iot-2023.parquet
 
-multiattack:  ## Passo A do HARDENING: generalização multi-ataque em dados reais (a vs d)
-	@[ -f $(REAL_S1) ] || { echo "❌ $(REAL_S1) não existe (HD externo montado?)"; exit 1; }
+multiattack:  ## Multi-attack run on real captures (a vs d)
+	@[ -f $(REAL_S1) ] || { echo "❌ $(REAL_S1) does not exist (is the external drive mounted?)"; exit 1; }
 	@mkdir -p results
 	$(PYTHON) scripts/run_real_multiattack.py \
 	  --dataset cicids2017=$(REAL_S1) cic-iot-2023=$(REAL_S2) \
 	  --out results/real_multiattack.csv \
 	  2>&1 | tee $(LOG_DIR)/sprint3_multiattack.log
 
-clean:  ## Remove cenários do Sprint 3
+clean:  ## Remove the Sprint 3 scenarios
 	rm -rf $(SYNTH_DIR)
-	@echo "✅ removido $(SYNTH_DIR)"
+	@echo "✅ removed $(SYNTH_DIR)"

@@ -1,74 +1,133 @@
-# Sprint 6 — Additions for the NOMS submission
+# Sprint 6: the experiments of the NOMS 2027 submission
 
-Experiments closing gaps a NOMS reviewer would find unaided. None replaces an
-existing result; all are additive and Sprints 1–5 stay intact.
+Every experiment added for the NOMS submission is here:
+- the scope on generated traffic: the modal fingerprint, the profile-relative scopes, the learned
+  models and profile drift (Section V-A, Table III, Appendix C);
+- the production evaluation on four CDN endpoints: calibration, floor, triggers, beta-binomial,
+  cross-fitting and the WAF's verdicts (Sections V-B to V-D, Tables II and IV–VI, Figs. 2 and 3);
+- two tests fixed in advance: the held-out day, 2026-09-25, and the 14-day block, 2026-09-26 to
+  10-09 (Table VII);
+- the count query compiled from the ontology, the STIX 2.1 export and the cost model (Section III-E,
+  Appendices D and F, Fig. 4);
+- `make audit`, which recomputes about 250 numbers of the paper from `results/`.
 
-> **Table numbers.** Each section below cites the paper's tables and sections as
-> they were numbered when it was written. Since round 12 the paper has Table II (the
-> configurations evaluated on production), Table III (the scope on generated traffic,
-> with the modal fingerprint's column that replaced the old collateral figure), Table IV
-> (production, pooled), Table V (the configurations' floor, in sample and cross-fitted),
-> Table VI (production per endpoint, in the body) and Table VII (the rule per window,
-> Appendix E). The production results are Section V-B, the post hoc analyses V-C, the
-> boundary and the WAF V-D, and the ablation and cross-M results Appendix C. Fig. 2 is
-> what the binomial configuration stops by botnet size and endpoint (V-B, from the
-> `sweep` block), Fig. 3 the operating points (V-B) and Fig. 4 the cost (Appendix D).
+Sprints 1–5 keep their own results.
 
-| Script | Gap it closes | Needs the drive? |
-|---|---|---|
-| `scripts/bench_latency.py` | The paper claimed O(\|S_W\|·c) cost and near-linear OWL 2 RL behaviour, but **measured nothing** | No |
-| `scripts/run_ml_families.py` | "No per-session detector works" rested on **a single** Random Forest | Yes |
-| `scripts/window_sweep.py` | Sensitivity to *W* was declared uncharacterized | Yes |
-| `scripts/run_canonical_realistic.py` | The generator had three realism defects, all favourable to us | Yes |
-| `scripts/profile_drift.py` | How much background-profile staleness the enrichment test tolerates | No |
-| `scripts/run_canonical_baselines.py` | The ablation's academic baselines (Section V-A, a table until round 8) had **no result file** behind them | Yes |
-| `scripts/rule_detection.py` | The rule Ω(S) ≥ τ had **never been evaluated on its own**, nor against flash crowds | Yes |
-| `scripts/rule_detection_production.py` | The rule had **never met production traffic**: every window so far came from the generator | Yes, and the production exports |
-| `scripts/production_tables.py` | Tables IV, V and VII of the paper (pooled and per endpoint, test days and fresh day apart, calibrated baselines, the beta-binomial background, the deployed floor, cross-fitted runs) | Yes, the per-window results |
-| `scripts/unseen_synth.py` | The unseen-fingerprint filter had been run on production only, and generated stacks never occur in the benign vocabulary | Yes |
-| `scripts/cross_m_generalization.py` | Configuration (d) had only been scored on the botnet structure it was trained on | Yes |
-| `scripts/ja4_churn.py` | How often the unseen filter would have a candidate: fingerprints the rolling profile never saw | Yes, the production exports |
-| `scripts/waf_labels.py` | The production evaluation had no real malicious population: the WAF's verdicts as labels | Yes, the production exports |
-| `scripts/floor_bands.py` | The floor on shared stacks used one prevalence and, under the beta-binomial, ignored the stack's correlation: floors by popularity band, at each band's correlation, and the ratio limit | Yes, the production exports |
+**The paper now.** Round 75 (`59a5b1a`, 2026-10-20): 12 pages, the main text and the Acknowledgment
+on pages 1–8, about one line to spare. `make audit`: 245 checks, 0 mismatches; `make
+block-report-check`: 21 of 21. The Portuguese translation follows round 74, the study guide round 75.
+Layout and checklist: [`papers/http-session-noms/README.md`](../../papers/http-session-noms/README.md).
 
-```bash
-make latency      # runs anywhere
-make all-hd       # ml + window, needs the drive mounted
-make drift        # profile drift, plus the M = 100 run with a pooled profile
-make baselines    # the ablation's academic baselines (Section V-A)
-make rule         # the rule as a window-level detector (Appendix E)
-make rule-production  # the same rule on production traffic, botnet injected (section 9)
-make rule-production-fresh  # the fresh day, 2026-09-25, analyzed as fixed in advance (section 12)
-make rule-production-od     # the beta-binomial background, without and with known fleets (section 13)
-make rule-production-crossfit  # the four configurations with a cross-fitted calibration (section 15)
-make production-tables      # Tables IV and V from the per-window results (sections 12, 13 and 15)
-make waf-labels             # the WAF's verdicts as labels for the scope (section 16)
-make ja4-churn              # fingerprints the rolling profile never saw
-make unseen-synth     # the unseen filter and shared stacks on generated traffic (section 12)
-make cross-m      # configuration (d) trained on one stack count, tested on another (section 14)
-make audit        # every sprint-6 number of the paper against results/ (no drive)
-```
+## Reproducing
 
-`realistic`, `symbolic`, `drift` and `rule` pass `--significance $(SIG)` to the
-scope derivation (`SIG ?= 0.01`, section 7). `make SIG= <target>` reruns a target
-with the fixed floor σ = 0.002 of earlier revisions.
+`make` prints the targets, grouped by what they need: the repository only, the scenario caches on
+the drive, or the operator's exports (`PRODDATA`). The Makefile runs `../.venv/bin/python` (`PY`),
+which [`experiments/README.md`](../README.md#python-environment) creates, and reaches the data
+drive through `experiments/data` (`DATA`).
 
-## Which scenario cache is canonical
+Three outputs have no target:
+- the figures: `experiments/.venv/bin/python papers/http-session-noms/figures/make_figures_en.py`,
+  from the repository root;
+- Listing 1's chain: `scripts/example_chain.py`, with the usage in its docstring;
+- the weight variants of Appendix E: `scripts/rule_detection.py --weights` (§9).
 
-**`$DATA_ROOT/synth/sprint4_realistic_work`** is the work dir; the other two
-mislead:
+The Makefile's switches:
+- `SIG ?= 0.01` is the test's family-wise level; `make SIG= <target>` reruns with the fixed floor
+  σ = 0.002 of earlier revisions (§7);
+- `METHOD ?= origin` counts origins and calibrates the level per endpoint; `make METHOD= <target>`
+  counts sessions at the nominal level;
+- `CLUSTER ?= label-free` scores the cluster of largest Ω; `make CLUSTER= <target>` restores the
+  attack-share choice;
+- `SEEDS ?= 30`, `K ?= 50 1000` and `SPLIT ?= rolling`.
 
-- `synth/sprint4` predates the flow features; `run_sprint4.py` fails on it with
-  `KeyError: ['fwd_bytes_sum', ...]`.
-- `synth/sprint4_strong_work` still carries the **port artifact**: configuration
-  (b) reaches 0.888 instead of collapsing to chance.
+Before running:
+- `make clean` deletes every committed `results/*.json` and `*.csv`, the production reductions
+  included, which only the drive can rebuild;
+- `check-data` tests only the canonical cache; of the production targets, only `rule-production` and
+  `rule-production-block` check that their directory exists;
+- `realistic` and `canonical` generate scenarios missing from the cache, and `rule` the attack-free
+  runs, but `check-data` stops them when `REALWORK` does not exist. Chaining the two is open for the
+  Artifact Evaluation (§77).
 
-> **The paper's numbers come from `run_canonical_realistic.py` →
-> `results/canonical_realistic.json`** (α = 1.5, 25 TLS stacks), not from the
-> earlier reproduction on `sprint4_realistic_work`. The earlier run gives (d) at
-> 0.968 / 0.976 with Cohen's *d* of +12.2 and +19.6; the canonical run gives
-> 0.927 / 0.982 with *d* of +13.5 and +22.3 at p_bonf = 7.5 × 10⁻⁹. Use the
-> canonical artifact when checking the paper.
+## Data
+
+Large inputs stay on the drive, under the Makefile's paths.
+[`METHODOLOGY.md`](../METHODOLOGY.md#scenario-caches) says what each scenario cache holds and which
+results it backs.
+- `REALWORK`, `synth/sprint6_realistic`: the paper's canonical scenarios (α = 1.5, 25 TLS stacks).
+- `RULEWORK`, `synth/sprint6_rule`: the attack-free runs, generated on first use.
+- `WORK`, `synth/sprint4_realistic_work`: the sprint-4 reproduction, read by `ml`, `window` and
+  `purity`. An earlier run of the ablation on it gave (d) at 0.968 and 0.976; the paper's numbers
+  come from `canonical_realistic.json`, so do not check the paper against that run.
+- `PRODDATA`, `azion/`: the operator's exports, one directory per day (§9), with the per-window
+  results, each endpoint's role, the query binding and `block2/` (`BLOCKDATA`), the block's own copy.
+  Only anonymized reductions (E1–E4, counts and rates) reach `results/`.
+
+## Results by paper element
+
+All files are in `results/`; most `.json` files have a `_runs.csv` with one row per run. The last
+column points to the sections below that explain them.
+
+| Paper element | Files | Target | § |
+|---|---|---|---|
+| Table III, V-A | `symbolic_detector.json` (the test's and the learned models' columns); `unseen_synth_summary.csv` (Modal, z-score and Unseen, the shared row), with `unseen_synth.json`, `unseen_synth_paired.csv`, `shared_stacks_draws.csv`; `realistic_final_consolidated.csv` (V-A's modal and adversarial numbers); `profile_drift.json`, `profile_drift_m100.json` | `symbolic`, `unseen-synth`, `realistic`, `drift` | 7, 9, 12, 20 |
+| Tables IV–VI, Figs. 2–3, the held-out day | `production_tables.json` | `production-tables` | 9, 11–13, 15, 17–18, 21–23 |
+| Table V's shared floors, the enrichment limit, App. E's rank bands | `floor_bands.json` | `floor-bands` | 17–18 |
+| Table VII, the block in V-D, VI and App. E | `block_report.json`, `production_tables_block.json`, `ja4_churn_block.json` | `production-tables-block`, `ja4-churn-block`, `block-report`; `block-report-check` | 32, 68–69 |
+| The WAF's verdicts (V-D, App. E) | `waf_labels.json` | `rule-production-wafprof`, `waf-labels` | 16 |
+| Known fleets, the 5% share (III-D, IV-B, App. E) | `fleet_profile.json` | `rule-production-fleets`, `fleet-selection` | 11, 19 |
+| App. E's production paragraph | `production_summary.json` | `production-summary` | 9 |
+| App. B's profile sizes, App. E's unseen candidates | `ja4_churn.json` | `ja4-churn` | 64 |
+| IV-A's footnote and App. B: the measured JA4 distribution | `ja4_production_measurement.md` | none | 19 |
+| App. C | `canonical_realistic.json`, `canonical_baselines.json`, `cross_m_generalization.json` | `canonical`, `baselines`, `cross-m` | 2, 5, 14 |
+| App. D, Fig. 4 | `latency_summary.json`, `latency_raw.csv` | `latency` | 1 |
+| Listing 1 | `example_chain.jsonld`; its STIX bundle `example_chain.stix.json` | `example_chain.py`; `stix-check` | 9, 61, 63 |
+| App. E, the rule per window | `rule_detection_steady60_rate0_bigprof_binom.json` and its window CSV; the weight variants `…_binom_wuniform.json`, `…_binom_wtls.json`, `…_binom_wnoep.json` | `rule`; `rule_detection.py --weights` | 6–7, 9 |
+| App. F, III-E | `compile_check.json`, `compile_production_check.json`, `compile_production_check_fresh.json`, `stix_validation.json`, `stix_ingest.json`, `compiled_counts_clickhouse_example.sql` | `compile-check`, `stix-check`, `stix-ingest`; the two production checks ran in the operator's log store | 10, 12 |
+| Protocols, records that are never edited | `fresh_day_protocol.md` and its addendum (the held-out day; committed 17 hours after its stated time, App. F), `fresh_day_metrics_location.md`, `heldout_block_protocol.md`, `heldout_block_protocol_addendum_metrics.md`, `heldout_block_addendum_hashes.md` | none | 12, 32, 68, 71 |
+| Not in the paper | `ml_families.json` (superseded cache), `window_sweep.json`, `collateral_purity.json`, `realistic_probe.json`, `realistic_heur.json`, `realistic_enrich.json`, and the other `rule_detection*` variants of §6–§7 | `ml`, `window`, `purity` | 2–3, 6–7 |
+
+Appendix B also reads `../sprint-4/results/weights_session_realistic.json` and
+`../sprint-2/results/ks_validation.json`. Each script's docstring says what it computes; the
+sections below say why it was added.
+
+## How to read the log
+
+The numbered sections below are a lab notebook, appended in order and never rewritten. §1–§18
+document the experiments and analyses; from §19 on, each section records one review round: what
+changed, the audit count and the layout. Each section cites the paper's tables, sections and terms
+as they were at the time:
+- the trigger table was Table VII in rounds 18–28 (§22–§29) and is Table VI since round 29 (§30),
+  when the per-endpoint Table VI left; Table VII is the 14-day block since §69; the per-window rule
+  table (Table VII, then VIII) became Appendix E's text in round 23 (§25);
+- Section V took its four parts in round 17 (§21), and Fig. 3 moved to V-D in round 26 (§27); older
+  sections cite subsections III-F to III-H, which no longer exist;
+- round 75 (§78) renamed the ratio limit the enrichment limit, and "names" and "stops" became
+  "selects" and "covers";
+- the fresh day (§12, the Makefile, `fresh_day_protocol.md`) is the paper's held-out day, and
+  `block2` is the 14-day block;
+- section numbers are not round numbers: §19 is the round-13 review, §20–§25 are rounds 15, 17, 18,
+  19, 21 and 23, §26–§31 rounds 25–30, §33 the held-out wording, §34–§50 rounds 31–47, §51–§63 rounds
+  49–61, §64 rounds 62–63, §65–§67 rounds 64–66, and §70–§78 rounds 67–75; §32, §68 and §69 are the
+  block.
+
+**Contents.** Experiments: [1 Latency](#1-latency) · [2 ML families](#2-ml-families) ·
+[3 Window sweep](#3-window-sweep) · [4 Generator realism](#4-realism-corrections-to-the-generator) ·
+[5 Academic baselines](#5-the-ablations-academic-baselines) · [6 The rule as a detector](#6-the-rule-as-a-detector) ·
+[7 The binomial test](#7-the-binomial-enrichment-test) · [8 The audit](#8-audit-of-the-papers-numbers) ·
+[9 Production traffic](#9-the-rule-on-production-traffic) · [10 Compiled query and STIX](#10-what-the-graph-adds-measured) ·
+[11 Known fleets](#11-a-profile-that-knows-its-fleets) ·
+[12 Calibrated baselines, floor, held-out day](#12-baselines-at-the-tests-budget-the-calibration-floor-and-a-fresh-day) ·
+[13 Beta-binomial](#13-an-overdispersed-background-beta-binomial) ·
+[14 Cross-M](#14-does-configuration-d-generalize-across-botnet-structures) · [15 Cross-fitting](#15-cross-fitted-calibration) ·
+[16 WAF verdicts](#16-the-wafs-verdicts-as-labels) ·
+[17 Components out of sample, deployed floor](#17-what-the-calibrated-components-do-out-of-sample-and-the-deployed-floor) ·
+[18 Floor ramp, rank bands, dependence](#18-what-the-scope-names-what-the-trigger-stops-and-how-sure-the-rates-are).
+The block: [32 Protocol](#32-the-held-out-block-fixed-before-its-export) ·
+[68 Export and report](#68-the-held-out-block-its-three-parts-and-the-report-written-before-the-reading) ·
+[69 In the paper](#69-the-block-in-the-paper).
+Review rounds: [§19, round 13](#19-what-the-round-13-review-verified-and-what-changed) to
+[§78, round 75](#78-round-75-an-authors-fluency-rewrite-fitted-back-into-8--4-pages).
 
 ## 1. Latency
 

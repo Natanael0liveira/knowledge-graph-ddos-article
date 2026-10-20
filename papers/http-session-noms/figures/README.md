@@ -1,104 +1,85 @@
 # Figures
 
-Two categories with different workflows. Do not mix them.
+Two kinds, with different workflows: one schematic drawn in draw.io, and data plots generated from
+code. Do not mix them.
 
-## 1. Schematics — drawn in draw.io
+## Printed number and file
 
-Sources in `src-drawio/*.drawio`.
+The file names keep the numbers of an earlier figure set. Renaming touches `article.tex`, the
+Portuguese copy and the script, so it waits until after submission. Until then this is the mapping:
 
-| Figure | Source | Canvas |
-|---|---|---|
-| `fig1_scoping` | `src-drawio/fig1_scoping.drawio` | 1032 × 265, included at `\textwidth` |
+| Printed | File | Source | Section |
+|---|---|---|---|
+| Fig. 1, the scoping pipeline | `fig1_scoping.png` | exported from `src-drawio/fig1_scoping.drawio` | III |
+| Fig. 2, what the binomial configuration stops | `fig6_stops.png` | `make_figures_en.py`, the `sweep` block of `production_tables.json` | V-C |
+| Fig. 3, the production operating points | `fig4_operating.png` | `make_figures_en.py`, `production_tables.json` (gray markers and arrows: cross-fitted) | V-D |
+| Fig. 4, the cost model | `fig5_latency.png` | `make_figures_en.py`, `latency_summary.json` | App. D |
+| Listing 1, the evidence chain | `verbatim` block in `article.tex` | `experiments/sprint-6-noms/scripts/example_chain.py` | App. D |
 
-`fig1_scoping` is the calibrated scoping pipeline (round 10): log, count query
-compiled from the ontology, class sizes, trigger, scope, challenge or block, with the
-calibration on attack-free days feeding the trigger and the scope. It replaced
-`fig1_ontology` (`src-drawio/fig1_ontology.drawio`, the ontology schematic), which
-is kept in the repository but is no longer in the paper.
+Figs. 2 and 3 are drawn at print size, one column of 3.45 in, with fonts of 6–7 pt.
+`src-drawio/fig1_ontology.drawio`, the earlier ontology schematic, is kept but no longer printed.
+**If you add or remove a float, check the numbering in the PDF and update this table.**
 
-**Workflow.** Open the `.drawio` at [app.diagrams.net](https://app.diagrams.net)
-or in the desktop app, edit, then *File ▸ Export as ▸ PDF* with **Crop** on and
-**Include a copy of my diagram** on, so the export stays editable and the source
-is not lost.
-
-### Scale rule — read before drawing
-
-Text shrinks with the figure, and it is easy to produce something illegible
-without noticing. An earlier `fig1_ontology.png` was 2100 px included at
-0.72`\textwidth`: a factor of 0.18, body text at roughly **5 pt printed**, below
-the IEEE floor.
-
-The convention adopted is: **draw at 2× the final size and include at twice the
-width.** For a full-width `figure*`, `\textwidth` ≈ 516 pt, so the canvas is
-**1032 pt** and draw.io fonts come out at half their nominal size:
-
-| draw.io | printed |
-|---|---|
-| 21 pt (panel title) | 10.5 pt |
-| 15 pt (node label) | 7.5 pt |
-| 13 pt (caption, annotation) | 6.5 pt |
-| 12 pt (edge label) | 6 pt |
-
-Nothing below 12 pt in draw.io. Check the page size under *File ▸ Page Setup*
-before exporting.
-
-### Visual grammar
-
-- Nodes as ellipses, **no fill**, thin black stroke (1.2–1.3 pt)
-- Solid black arrows for model relations
-- **Dashed grey** only for meta-comment: what quantifies, annotates or explains
-- Panel titles in bold, left-aligned, at the top
-- **Dotted vertical** divider between panels
-- Helvetica / Liberation Sans; no decorative colour
-- Wide and short proportions
-
-Colour only when it carries meaning, never for emphasis.
-
-## 2. Data plots — generated from code
-
-`fig6_stops` (Fig. 2), `fig4_operating` (Fig. 3) and `fig5_latency` (Fig. 4) come from
-`make_figures_en.py`, reading the results in
-`experiments/sprint-6-noms/results/` (`production_tables.json`,
-`latency_summary.json`).
+## Data plots, generated from code
 
 ```bash
-python make_figures_en.py
+# from the repository root
+experiments/.venv/bin/python papers/http-session-noms/figures/make_figures_en.py
 ```
 
-**Do not redraw these by hand.** Appendix F of the paper promises that every
-figure regenerates from one command; drawing them would turn a measured number
-into an illustration and break that promise. To bring them closer to the
-schematics, change matplotlib settings — font family, line weight, palette — not
-the result.
+The script reads the committed results in `experiments/sprint-6-noms/results/`
+(`production_tables.json`, `latency_summary.json`). **Do not redraw these by hand.** Appendix F
+states that every generated-traffic table and figure regenerates from its make target, and Figs.
+2–4 read committed result files; drawing them would turn a measured number into an illustration. To
+bring them closer to the schematic, change matplotlib settings (font family, line weight, palette),
+never the result.
 
-### Palette, shared by both categories
+## The schematic, drawn in draw.io
 
-Monochrome, matched to Fig. 1. Contrast comes from tone and marker, never from
-hue, so it survives greyscale printing and colour-blind readers.
+Edit `src-drawio/fig1_scoping.drawio` (page 1032 × 250) at [app.diagrams.net](https://app.diagrams.net)
+or in the desktop app. Export the PNG the paper includes with
 
-| Role | Hex | Where |
+```bash
+drawio -x -f png -s 3 -b 6 -o fig1_scoping.png src-drawio/fig1_scoping.drawio
+```
+
+which reproduces the committed `fig1_scoping.png` (3104 × 797 px) pixel for pixel (sprint-6
+notebook, §44). Commit the `.drawio` with the PNG.
+
+**Scale rule, read before drawing.** Text shrinks with the figure, and it is easy to produce
+something illegible without noticing: an earlier schematic, 2100 px included at 0.72`\textwidth`,
+printed its body text at about 5 pt, below the IEEE floor. Draw at twice the final size and include
+at full width: a `figure*` is `\textwidth` ≈ 516 pt wide, so the page is 1032 pt and draw.io fonts
+print at half their size.
+
+| draw.io | printed | used for |
 |---|---|---|
-| Main series / ours | `#1a1a1a` | Bars and lines for our method; model stroke in Fig. 1 |
-| Comparison series | `#bdbdbd` | Per-session baseline, frequency rule |
-| Annotation | `#595959` | Grey notes, chance line, explanatory arrows, `NetworkProximity` |
+| 16 pt | 8 pt | the window label ("per endpoint and five-minute window") |
+| 14 pt | 7 pt | node labels |
+| 12 pt | 6 pt | annotations and edge labels |
 
-In `make_figures_en.py` the constants keep their historical names (`NAVY`,
-`BAR_GRAY`, `CHANCE`) so the function bodies did not have to change; only the
-values did.
+Nothing below 12 pt in draw.io. Check the page size under *File ▸ Page Setup* before exporting.
 
-### Numbering: printed number and file
+**Visual grammar.**
+- Nodes as ellipses, **no fill**, thin black stroke (1.2–1.3 pt).
+- Solid black arrows for model relations; **dashed gray** only for what quantifies, annotates or
+  explains.
+- Panel titles in bold, left-aligned at the top; a **dotted vertical** divider between panels.
+- Helvetica or Liberation Sans; wide and short proportions.
+- Color only when it carries meaning, never for emphasis.
 
-The filenames no longer match the printed numbers since the pipeline figure left;
-they will be renamed once the figure set settles. Until then this table is the
-mapping:
+## Palette, shared by both kinds
 
-| Printed | Source | Type |
-|---|---|---|
-| Fig. 1 | `src-drawio/fig1_scoping.drawio` | draw.io schematic |
-| Fig. 2 | `fig6_stops.png` | generated (Section V-C, from the `sweep` block; drawn at print size, one column of 3.45 in, fonts 6.5–7 pt) |
-| Fig. 3 | `fig4_operating.png` | generated (Section V-D; drawn at print size, one column; grey markers and arrows: the cross-fitted calibration) |
-| Fig. 4 | `fig5_latency.png` | generated (Appendix D) |
-| Listing 1 | `verbatim` block, Appendix D | evidence chain |
+Monochrome, matched to Fig. 1: contrast comes from tone and marker, never from hue, so it survives
+grayscale printing and color-blind readers.
 
-**If you add or remove a float, check the numbering in the PDF and update this
-table.**
+| Hex | Where |
+|---|---|
+| `#1a1a1a` | Fig. 2's configuration line and tenth-size triangle; Fig. 3's in-sample markers and every marker edge; Fig. 4's class-count paths and reference slope |
+| `#bdbdbd` | Fig. 3's cross-fitted markers; Fig. 4's pair-edge paths |
+| `#595959` | Fig. 2's dashed scope-alone line; Fig. 3's budget line, arrows and "1% budget" label |
+| `#000000` | Fig. 1's strokes, with `#595959` annotations |
+
+In `make_figures_en.py` the constants keep their historical names (`NAVY`, `BAR_GRAY`, `CHANCE`),
+so the function bodies did not have to change; `NAVY2`, `GRAY`, `GRAYB` and `TXT` are defined but
+unused.

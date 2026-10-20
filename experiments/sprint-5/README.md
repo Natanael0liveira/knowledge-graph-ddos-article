@@ -1,88 +1,78 @@
-# Sprint 5 — Comparison with KLAGE (CIC-IoT2023)
+# Sprint 5: comparison with KLAGE on CIC-IoT2023
 
-Run the framework on the dataset KLAGE uses (Belcastro et al., FGCS 2026) for a
-direct comparison on DDoS Slowloris. KLAGE reports F₁ = 84.1%; we report ours
-alongside, plus the collateral-damage metric KLAGE does not have.
+This stage scores DDoS Slowloris against every other session of CIC-IoT2023, to set
+our numbers beside the F₁ = 0.841 that KLAGE (Belcastro et al., Future Generation
+Computer Systems, 2026) reports for that attack. The comparison is uncontrolled
+(Appendix C). Appendix C's F₁ and AUC on this capture come from here.
 
-**Status:** executed on CIC-IoT2023. RT-IoT2022 is still pending a manual
-download from IEEE DataPort.
+## In the paper
 
-## Results — DDoS Slowloris, CIC-IoT2023
+- **Appendix C.** "A strong per-session baseline using nine flow attributes reaches
+  F₁ = 0.900 (AUC 0.987), while three of them plus cross-session evidence reach
+  0.911 (AUC 0.982)." The paper reports the comparison in its text and has no KLAGE
+  table.
 
-One-vs-rest detection, `make run`:
+## Inputs
 
-| Method | F₁ | Prec | Rec | AUC | Collateral (benign FPR) |
+- `$DATA_ROOT/processed/sessions/cic-iot-2023.parquet`, built by
+  [sprint 1](../sprint-1/). `run` reads only this file, so `clusters` and the graph
+  targets are optional here:
+
+  ```bash
+  cd ../sprint-1
+  make DATASET=cic-iot-2023 extract-ja4 extract-flows sessions
+  ```
+
+- The PCAPs, saved under `$DATA_ROOT/raw/cic-iot-2023/`. They come from UNB
+  (https://www.unb.ca/cic/datasets/iotdataset-2023.html, the account used for
+  CICIDS2017) or from the IEEE DataPort mirror
+  (https://ieee-dataport.org/documents/ciciot2023-dataset). Sprint 1's
+  `build_sessions.py` labels sessions by file name: `slowloris` gives Slowloris,
+  `http_flood` or `http-flood` gives HTTP-Flood, `benign` gives BENIGN, and any other
+  name stays UNLABELED.
+
+## Run
+
+| Target | What it does | Writes |
+|---|---|---|
+| `help` | Lists the targets; works without `.env` | |
+| `run` | A random forest per feature set (300 trees, 70/30 split, threshold 0.5), Slowloris against every other session | `results/klage_comparison.json` |
+
+## Outputs
+
+| File | Producer | In the paper |
+|---|---|---|
+| `results/klage_comparison.json` | `make run` | App. C |
+
+Its keys name the configurations. `a_ml_sem_ontologia` is (a), the three `FLOW`
+features. `a_ml_forte` is (a′), the nine `STRONG_FLOW` features. `d_completo` is
+(d), `FLOW` plus `share_ja4`, `share_net` and `cluster_size` (feature sets in the
+[sprint-3 README](../sprint-3/README.md#inputs)). `collateral_fpr_benign` is the
+share of benign test sessions flagged.
+
+## Results
+
+| Method | F₁ | Precision | Recall | ROC AUC | Benign flagged |
 |---|---|---|---|---|---|
-| **KLAGE** (node-level, Graph-BERT) | 0.841 | — | — | — | not reported |
-| Ours **(a)** per-session ML, **lean** (3 feat.) | 0.179 | 0.691 | 0.103 | 0.551 | 1.06% |
-| Ours **(a′)** per-session ML, **strong** (9 feat.) | 0.900 | — | — | 0.987 | — |
-| Ours **(d)** full, cross-session | **0.911** | 0.908 | 0.915 | 0.982 | 2.73% |
+| KLAGE, published, on network nodes | 0.841 | | | | not reported |
+| (a) three flow features | 0.179 | 0.691 | 0.103 | 0.551 | 1.06% |
+| (a′) nine flow features | 0.900 | 0.901 | 0.899 | 0.987 | 2.88% |
+| (d) three flow features + cross-session | 0.911 | 0.908 | 0.915 | 0.982 | 2.73% |
 
-**The "per-session collapse to F₁ = 0.18" was an artifact of the lean baseline.**
-The original (a) used only three flow features; with eight, per-session detection
-does not collapse: F₁ = 0.900, AUC = 0.987. Both (a′) and (d) beat KLAGE, and the
-advantage of (d) over the strong per-session model is **marginal** (ΔF₁ = +0.011).
-The lead over KLAGE is therefore **not attributable to cross-session reasoning**:
-real Slowloris in CIC-IoT2023 is a conventional attack with a per-session flow
-signature.
+With nine features the per-session model does not collapse, and (d) leads it by
+0.011 in F₁. The lean (a) flags the fewest benign sessions because it catches only
+10% of the attack. Real Slowloris in this capture leaves a per-session flow
+signature (Appendix C).
 
-**How to read the KLAGE comparison, honestly.** F₁ = 0.911 is in the **same order
-of magnitude** as the published 0.841. This is **not a controlled head-to-head**
-and we do not claim to beat it. The experiments differ in granularity (session
-versus network node), in protocol (our binary attack-vs-rest split versus their
-multiclass) and in coverage (CIC-IoT2023 only versus RT-IoT2022 plus
-CIC-IoT2023). The defensible reading: *our session-level method is competitive
-with the node-level state of the art on DDoS Slowloris, and adds what KLAGE does
-not have, an auditable symbolic verdict and a measurable collateral-damage
-figure.* The cross-session advantage does not appear here; it lives in the
-stealthy distributed regime of Sprints 3 and 4.
+## Caveats
 
-**Caveats.**
-
-- **Granularity.** KLAGE classifies network nodes; we classify sessions. The F₁
-  values are not directly commutable.
-- KLAGE evaluates on RT-IoT2022 **and** CIC-IoT2023; only the latter is used here.
-- (d) has higher collateral than the lean (a) (2.73% against 1.06%): it catches
-  far more attack while flagging slightly more benign traffic. Still low.
-- A controlled rerun of KLAGE is not currently possible. The released code starts
-  from a pre-built graph whose construction from the raw dataset is unpublished,
-  and ships no weights.
-
-Artifact: [`results/klage_comparison.json`](results/klage_comparison.json).
-
-## Acquiring CIC-IoT2023
-
-Run this sprint **after** Sprint 1 is validated; it reuses that infrastructure,
-swapping only the input PCAPs.
-
-- **Option A, UNB** (same account as CICIDS2017):
-  https://www.unb.ca/cic/datasets/iotdataset-2023.html — take the `PCAPs/`
-  (~12 GB, 33 attacks over 105 IoT devices) and `CSVs/` (~3 GB). To align with
-  KLAGE, prefer the **DDoS Slowloris** subset.
-- **Option B, IEEE DataPort:** https://ieee-dataport.org/documents/ciciot2023-dataset
-  (free account, mirror of the same data).
-
-Save under `$DATA_ROOT/raw/cic-iot-2023/`, already created by
-`setup-data-storage.sh`.
-
-## Reusing the Sprint 1 pipeline
-
-```bash
-cd ../sprint-1
-make DATASET=cic-iot-2023 extract-ja4
-make DATASET=cic-iot-2023 extract-flows
-make DATASET=cic-iot-2023 sessions
-make DATASET=cic-iot-2023 clusters
-make DATASET=cic-iot-2023 load-kg-bulk
-```
-
-`DATASET=cic-iot-2023` points the Makefile at the right paths on the drive. The
-infrastructure is unchanged.
-
-## Acceptance gates
-
-- [x] Sprint 1 pipeline runs with `DATASET=cic-iot-2023` without code changes
-- [x] F₁ on CIC-IoT2023 DDoS Slowloris reported
-- [x] Collateral damage on legitimate traffic reported
-- [x] Comparison table with KLAGE in the paper
-- [ ] RT-IoT2022 acquired and run
+- The comparison is uncontrolled. Granularity (sessions versus network nodes),
+  protocol (one attack against the rest versus KLAGE's multiclass setup) and
+  coverage differ.
+- Our own nine-feature per-session model also exceeds 0.841, so the margin over
+  KLAGE cannot be credited to cross-session evidence.
+- KLAGE's released code starts from a graph whose construction is unpublished and
+  ships no weights, so a controlled rerun is not possible (Appendix C).
+- The negative class holds the HTTP Flood sessions as well as the benign ones. The
+  benign-flagged rate counts only the benign test sessions.
+- RT-IoT2022, listed in the earlier plan, was not run, and the paper does not use it.

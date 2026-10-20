@@ -6,7 +6,8 @@ Collateral on a CDN Operator's Endpoints*
 Este guia serve para entender o artigo a ponto de explicá-lo com as suas palavras, ler cada
 tabela e figura e saber o que ele mostra e o que não mostra. A versão que vale é o artigo em
 inglês, `papers/http-session-noms/article.tex`, e as seções, tabelas e figuras citadas aqui são
-as dele. Os números vêm do artigo, que `make audit` confere contra os resultados.
+as dele. Os números vêm do artigo, que `make audit` confere contra os resultados. Esta versão
+acompanha o artigo da rodada 75 (2026-10-20).
 
 ## Como usar este guia
 
@@ -116,15 +117,15 @@ antemão quem é atacante.
    Comparar com o perfil bloqueia 90% de uma botnet com até 25 pilhas novas, sem dano observado.
 2. **Em dados reais, a configuração calibrada erra pouco, mas cada erro pesa.** Nos dias de
    teste, os mesmos em que as escolhas do método foram feitas, ela deu falso alarme em 0,1% das
-   janelas sem ataque (5 de 5.643). Em mediana, um falso alarme bloqueou um terço dos clientes da
-   janela.
+   janelas sem ataque (5 de 5.643). Em mediana, um falso alarme bloqueou um terço (32,9%) dos
+   clientes da janela.
 3. **Nos 14 dias seguintes, fixados de antemão, a taxa dobrou** para 0,19%, ainda dentro do
    orçamento de 1%. O gate abriu metade das vezes, mas, quando abria, o escopo errava mais: em 13%
-   das aberturas, contra 3% antes.
-4. **Há um tamanho de botnet a partir do qual o teste aponta uma pilha típica dela: o piso.** Uma botnet em fingerprints
-   raros que clientes reais também usam só é apontada quando é grande: 8% da janela no serviço mais
-   movimentado e de 4 a 19 janelas inteiras nos pequenos. Uma botnet nos fingerprints mais comuns,
-   em sua maior parte, passa.
+   das aberturas, contra 3% antes. Em mediana, cada erro bloqueou 39% dos clientes da janela.
+4. **Há um tamanho de botnet a partir do qual o escopo aponta uma pilha típica dela: o piso.**
+   Uma botnet em fingerprints raros que clientes reais também usam só é apontada quando é grande:
+   8% da janela no serviço mais movimentado e de 4 a 19 janelas inteiras nos pequenos. Uma botnet
+   nos fingerprints mais comuns, em sua maior parte, passa.
 5. **No serviço mais movimentado, o gate é o gargalo.** Nos dias de teste, o escopo
    sozinho barraria 90% de uma botnet de um décimo da janela em pilhas novas, mas o gate abre em
    poucas janelas, e a configuração detém 12%.
@@ -139,13 +140,16 @@ antemão quem é atacante.
 
 ## 1.5 O que o artigo recomenda
 
-- **Agora.** O candidato é a beta-binomial cruzada atrás do gate sazonal, com um limite de taxa ou
-  um desafio abaixo do piso dela. Ela foi construída depois de ver os dados, mas a comparação
-  fixada antes do bloco de 14 dias a preferiu em todos os serviços.
+- **Agora.** O candidato é a beta-binomial cruzada atrás do gate sazonal, com o recurso (um limite
+  de taxa ou um desafio a todos) abaixo do piso dela. Ela foi construída depois de ver os dados,
+  mas foi fixada antes do bloco de 14 dias, e lá a comparação fixada de antemão a preferiu ao
+  filtro de inéditos em todos os serviços.
 - **O preço dela.** Picos de 1.000 usuários legítimos a disparam em um terço das janelas, com
   filtros leves, e um falso alarme dela bloqueia, em mediana, dois terços dos clientes da janela.
-  No serviço mais movimentado, ela perde a maior parte da detecção de pilhas novas, que o filtro
-  de inéditos como gatilho próprio mantém. Usar os dois juntos ali não foi testado.
+  Quando o gate dela abre numa janela limpa e o escopo não aponta nada (1,5% das janelas), age o
+  recurso, um custo que o orçamento de falsos alarmes não conta. No serviço mais movimentado, ela
+  perde a maior parte da detecção de pilhas novas, que o filtro de inéditos como gatilho próprio
+  mantém. Usar os dois juntos ali não foi testado.
 - **Depois.** Uma avaliação mais longa, porque nenhum dia posterior ao bloco testou essa escolha.
 
 ## 1.6 Os limites
@@ -154,7 +158,7 @@ antemão quem é atacante.
 - A detecção em produção foi medida só com botnets injetadas, de um formato: 25 pilhas.
 - Cinco escolhas do método foram feitas nos mesmos dias em que ele foi medido. Só o dia novo e o
   bloco de 14 dias as testam de forma prospectiva.
-- A configuração recomendada é *post hoc* e passou por um único teste.
+- O candidato atual é *post hoc* e passou por um único teste, o bloco de 14 dias.
 - Um bot que usa um fingerprint comum, ou um diferente por aparelho, em sua maior parte escapa. É a
   fronteira declarada do método.
 - A avaliação é offline, sobre contagens exportadas. Uma implantação ao vivo ainda precisa ser
@@ -346,15 +350,14 @@ janela.
 **Guarde:** a calibração escolhe o teste mais tolerante que ainda erra em no máximo 1% das janelas
 dos dias de calibração. Fora desses dias, o erro precisa ser medido.
 
-## 2.5 O piso de calibração: a partir de que tamanho o teste enxerga
+## 2.5 O piso de calibração: a partir de que tamanho o escopo enxerga
 
 **A pergunta:** a partir de que tamanho uma botnet é apontada?
 
 **A intuição.** Um nível exigente cala as frotas, mas também exige que a botnet seja grande para
-parecer improvável. O tamanho a partir do qual o teste aponta uma pilha típica da botnet é o
-**piso de calibração**. Ele serve para planejar: acima
-do piso, o escopo pode ser um filtro de fingerprints. Abaixo dele, o recurso é um limite de taxa ou
-um desafio a todos.
+parecer improvável. O tamanho a partir do qual o escopo aponta uma pilha típica da botnet é o
+**piso de calibração**. Ele serve para planejar: acima do piso, o escopo pode ser um filtro de
+fingerprints. Abaixo dele, o recurso é um limite de taxa ou um desafio a todos.
 
 **Os três casos:**
 - **Pilhas novas**, ausentes do tráfego legítimo. O filtro de inéditos fixa o piso: ele aponta uma
@@ -363,7 +366,7 @@ um desafio a todos.
 - **Pilhas compartilhadas**, raras, mas usadas também por clientes reais. Aqui o nível decide: uma
   pilha típica só é apontada a partir de 254 atacantes no E1, 8% da janela, e de 4 a 19 janelas
   inteiras nos serviços pequenos.
-- **Pilhas comuns.** Vale o **limite da razão**. Por maior que seja a botnet, cada uma das suas 25
+- **Pilhas comuns.** Vale o **limite de enriquecimento**. Por maior que seja a botnet, cada uma das suas 25
   pilhas fica com menos de 0,9/25 = 3,6% da janela. Para ser três vezes mais frequente que o
   normal, o fingerprint precisaria ter menos de 1,2% do perfil. Os 4 a 28 fingerprints mais comuns
   de cada serviço, que somam de 86% a 94% das origens, ficam fora de alcance.
@@ -374,14 +377,14 @@ pilhas novas no E1, um modelo binomial do tamanho das pilhas prevê que o escopo
 janela, barre 43,1% da botnet, e as botnets injetadas dão 43,2%.
 
 <details>
-<summary><b>A conta</b>: o piso e o limite da razão</summary>
+<summary><b>A conta</b>: o piso e o limite de enriquecimento</summary>
 
 Uma botnet de A atacantes em M pilhas põe cerca de 0,9 · A/M atacantes em cada pilha, numa janela
 de n₀ + A origens (n₀ é a janela mediana). O piso é o menor A em que essa pilha média passa nas
 duas condições do teste.
 
 - Pilha nova, pelo filtro de inéditos: ⌈k_min · M/0,9⌉ = ⌈5 × 25/0,9⌉ = 139.
-- Limite da razão: a fatia esperada de uma pilha é menor que 0,9/M, então o efeito falha para todo
+- Limite de enriquecimento: a fatia esperada de uma pilha é menor que 0,9/M, então o efeito falha para todo
   fingerprint com b > 0,9/(ρ · M) = 0,9/(3 × 25) = 1,2%.
 
 Exemplo hipotético de como o nível empurra o piso, só com o teste, num endpoint de 2.000 origens
@@ -497,7 +500,7 @@ visitantes.
    1. É seis vezes o normal, mas a chance de sorte é de cerca de 6 em 10.000. Com o nível de 0,01
    dividido por 100 fingerprints testados, o limite é de 1 em 10.000, e X não entra. A botnet fica
    abaixo do piso.
-5. **O limite da razão.** Se os 300 aparelhos usassem o fingerprint A, ele precisaria chegar a 120%
+5. **O limite de enriquecimento.** Se os 300 aparelhos usassem o fingerprint A, ele precisaria chegar a 120%
    da janela para ficar três vezes acima do normal, o que é impossível. Um bot no fingerprint
    mais comum nunca é apontado, qualquer que seja o tamanho da botnet.
 6. **O gate num serviço grande.** No E1, a janela normal tem cerca de 3.000 origens. Uma botnet de
@@ -530,7 +533,7 @@ partir de 84.
 <summary>3. Uma botnet inteira imita o Chrome, o fingerprint mais comum. Por que nenhum tamanho de
 botnet a torna visível?</summary>
 
-Pelo limite da razão. Para o teste apontar o fingerprint do Chrome, ele precisaria ficar três
+Pelo limite de enriquecimento. Para o teste apontar o fingerprint do Chrome, ele precisaria ficar três
 vezes acima da sua fatia normal. Com cerca de 38% do perfil, a fatia do fingerprint mais comum na
 medição do artigo, isso passaria de 100% da janela, o que é impossível. Com a botnet espalhada em
 25 pilhas, o mesmo vale para todo fingerprint com mais de 1,2% do perfil.
@@ -654,8 +657,8 @@ Cada item traz a pergunta, como ler, o que tirar e o cuidado. A ordem é a do ar
   (*Filter matches*), o que o escolhe (*Chosen by*) e quem paga por ele (*Cost to legitimate
   users*).
 - **O que tirar:** só a última linha filtra pelo fingerprint TLS **e** mede o custo, por alarme e
-  por janela. O *bot management* comercial filtra por JA4, mas não publica como escolhe nem quanto
-  custa (*Undisclosed*).
+  por janela. Uma plataforma de *bot management* filtra por JA4, mas a descrição publicada não diz
+  como escolhe o filtro nem quanto ele custa (*Undisclosed*).
 - **Cuidado:** é sobretudo uma comparação de desenho. Só dois detectores da linha *Detectors*
   (Bharathi e Kemp) foram reimplementados e rodados no tráfego gerado (Apêndice C), e o KLAGE foi
   comparado, sem controle, com o número que publicou.
@@ -822,8 +825,8 @@ a taxa de erro do escopo quando o gate abre.
 
 Na analogia, o alarme tocou metade das vezes, mas, quando tocou, o porteiro errou 4,5 vezes
 mais. A parte firme do resultado é essa queda do escopo. Contando a incerteza dos próprios dias de
-teste (um teste de Fisher), a alta da taxa total tem P = 0,07, e a alta dos erros com o gate
-aberto, P = 0,0002.
+teste (um teste de Fisher, *post hoc*, Apêndice E), a alta da taxa total tem P = 0,07, e a alta
+dos erros com o gate aberto, P = 0,0002.
 
 **Onde os erros caíram.** Em 30 dos 31 casos, num dia útil. Todos nos serviços pequenos: 17 nas 29
 aberturas do console, 10 nas 98 da API e 4 nas 95 do login único. Nenhum no E1. Em mediana, um erro
@@ -854,18 +857,20 @@ escolha aleatória em todos os serviços. Por isso o artigo não usa o WAF como 
 
 ## 3.5 A recomendação, passo a passo (Seção VI)
 
-1. **Dois limites decidem, serviço a serviço:** o piso e a sensibilidade do gatilho. Nos três
+1. **Dois fatores guiam a escolha em cada serviço:** o piso e a sensibilidade do gatilho. Nos três
    serviços pequenos, a beta-binomial cruzada só aponta pilhas compartilhadas a partir de 3 a 4
    janelas medianas e pilhas novas a partir de 2 a 3. Abaixo disso, o recurso é um limite de taxa
    ou um desafio a todos.
-2. **O candidato** é a beta-binomial cruzada atrás do gate sazonal, porque a comparação fixada
-   antes a preferiu em todos os serviços. Nos mesmos 14 dias, ela errou em menos janelas que a
-   binomial (20 contra 31, mas 14 contra nenhuma no E1) e deteve uma parte maior de uma botnet de 100
-   atacantes.
+2. **O candidato** é a beta-binomial cruzada atrás do gate sazonal, com o recurso abaixo do piso
+   dela. Pensada *post hoc*, ela foi fixada antes do bloco de 14 dias, e lá a comparação fixada de
+   antemão a preferiu ao filtro de inéditos em todos os serviços. Nos mesmos 14 dias, ela errou
+   em menos janelas que a binomial (20 contra 31, mas 14 contra nenhuma no E1) e deteve uma parte
+   maior de uma botnet de 100 atacantes.
 3. **O custo dela:** picos de 1.000 usuários a disparam em um terço das janelas, com filtros
    leves, e, em mediana, um erro dela bloqueia dois terços da janela. Quando o gate dela abre
    numa janela limpa e o escopo não aponta nada, entra o recurso, o limite de taxa ou o desafio a
-   todos. Isso acontece em 1,5% das janelas limpas e também custa aos usuários.
+   todos. Isso acontece em 1,5% das janelas limpas, um custo para os usuários que o orçamento de
+   falsos alarmes não conta.
 4. **A alternativa mais simples,** o z-score calibrado, errou tantas vezes quanto ela (20) e
    disparou em menos picos, mas deteve menos.
 5. **No E1,** a beta-binomial perde a maior parte das pilhas novas, que o filtro de inéditos como
@@ -922,7 +927,7 @@ antes, nos mesmos 14 dias. Nenhum dia posterior a testou, e o artigo diz isso.
 - Orçamento: 1% das janelas de calibração, cerca de 2,9 das 288 de um dia.
 - Pesos de Ω: TLS 1,0, endpoint 0,6, /24 0,3.
 - Piso de pilhas novas pelo filtro de inéditos: 139 atacantes no E1 a E3 (25 pilhas). No E4, o
-  teste aponta antes, a partir de 84. Limite da razão: 1,2% do perfil.
+  teste aponta antes, a partir de 84. Limite de enriquecimento: 1,2% do perfil.
 
 **Tráfego gerado**
 - Moda: 0,0% do ataque e 39,0% do legítimo a partir de cinco pilhas (61,1% com α = 2,0).
@@ -935,6 +940,8 @@ antes, nos mesmos 14 dias. Nenhum dia posterior a testou, e o artigo diz isso.
 - Binomial: 0,1% de falsos alarmes (5 de 5.643, de 0,03% a 0,21%). Em mediana, um
   deles bloqueia 32,9% da janela. Dano esperado: 0,03% dos clientes por janela limpa.
 - Sozinhos: escopo 2,2%, gate 3,0% (5,4% no E1).
+- O gate abriu em mais 163 janelas limpas (2,9%) sem que o escopo apontasse nada: nelas age o
+  recurso, o limite de taxa ou o desafio a todos.
 - Picos de 1.000 disparam a binomial em 22,2% das janelas, com filtros de 4,3%.
 - Níveis: 10⁻²¹ (E1), 10⁻⁷³ (E2), 10⁻¹¹ (E3), 10⁻⁴ (E4).
 - Piso em pilhas compartilhadas: 254 no E1 (8% da janela), de 4 a 19 janelas nos pequenos.
@@ -961,12 +968,14 @@ antes, nos mesmos 14 dias. Nenhum dia posterior a testou, e o artigo diz isso.
 | Termo | O que é |
 |---|---|
 | *Adversarial* | botnet nos 25 fingerprints mais comuns do serviço, a fronteira do método |
+| Apontar (*selects*) | o escopo aponta um fingerprint quando o põe no filtro. O artigo diz *selects* |
 | *Background* | o modelo do normal: binomial ou beta-binomial |
 | *Base rule*, regra básica | a referência do protocolo, com o Ω gate e o teste binomial |
 | Beta-binomial | modelo que aceita origens chegando em grupos, com uma correlação φ (*post hoc*) |
 | Bloco | os 14 dias de 26/09 a 09/10, analisados com tudo fixado antes |
 | Bonferroni | dividir o nível pelo número de fingerprints testados |
 | Calibração cruzada (*cross-fitted*, `†`) | julgar cada dia de calibração contra o perfil dos outros dias |
+| Cobertura (*coverage*) | a fração da botnet injetada que a configuração barra, na média de todas as janelas de ataque, inclusive as que o gate perde. O artigo diz que o filtro *covers* essa fração |
 | Dano colateral (*Coll.*) | a fração dos clientes da janela que um falso alarme bloqueia, em mediana |
 | Dia novo (*held-out day*, *held*) | o nono dia, analisado com o protocolo fixado antes |
 | Em amostra (*in sample*) | calibrar e julgar com os mesmos dias |
@@ -981,7 +990,7 @@ antes, nos mesmos 14 dias. Nenhum dia posterior a testou, e o artigo diz isso.
 | Gate | o gatilho de volume que precisa abrir antes de o escopo agir |
 | Gatilho (*trigger*) | a condição que faz o sistema agir |
 | Janela limpa | janela sem botnet injetada, tomada como sem ataque. Janelas com menos de 5 origens ficam de fora |
-| Limite da razão | não se espera que fingerprints comuns demais fiquem três vezes acima do normal (acima de 1,2% do perfil, com 25 pilhas) |
+| Limite de enriquecimento (*enrichment limit*) | não se espera que fingerprints comuns demais fiquem três vezes acima do normal (acima de 1,2% do perfil, com 25 pilhas) |
 | *Lost to the gate* | na Fig. 2, o que o escopo apontaria e o gate deixa passar |
 | *New*, *Shared* | pilhas da botnet ausentes do tráfego legítimo, ou raras e usadas também por clientes reais |
 | Nível (λ_e) | o limite de improbabilidade do teste, calibrado por endpoint |
@@ -992,7 +1001,7 @@ antes, nos mesmos 14 dias. Nenhum dia posterior a testou, e o artigo diz isso.
 | Perfil | a distribuição normal dos fingerprints, medida em dias sem ataque |
 | Pico legítimo (*flash crowd*) | muitos usuários reais chegando de uma vez |
 | Pilha TLS (*stack*) | o software que produz um fingerprint |
-| Piso de calibração (*floor*) | o tamanho de botnet a partir do qual o teste aponta uma pilha típica dela. Abaixo dele, ainda aponta as pilhas que o acaso deixou maiores |
+| Piso de calibração (*floor*) | o tamanho de botnet a partir do qual o escopo aponta uma pilha típica dela. Abaixo dele, o escopo ainda aponta as pilhas que o acaso deixou maiores |
 | *Post hoc* (`*`) | pensado depois de ver os dados |
 | Recurso (*fallback*) | o limite de taxa ou o desafio a todos, quando o escopo não aponta nada |
 | *Seasonal gate*, gate sazonal | gate que compara a janela com a mesma hora dos dias de calibração (*post hoc*) |

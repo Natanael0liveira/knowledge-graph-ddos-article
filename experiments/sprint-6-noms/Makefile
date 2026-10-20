@@ -1,21 +1,10 @@
-# Sprint 6 (NOMS) — experiments added for the IEEE/IFIP NOMS submission.
+# Sprint 6 (NOMS): the experiments of the NOMS 2027 submission.
 #
-#   latency    : per-request admission + per-window symbolic evaluation vs |S_W|
-#                (NO external data needed — runs anywhere)
-#   ml         : is the per-session collapse specific to Random Forest?
-#   window     : sensitivity to the operational window W
-#   realistic  : production-realistic scenario sweep (Zipf benign JA4, heterogeneous
-#                botnet, adversarial fingerprint adoption) — modal vs enrichment scope
-#   canonical  : the ablation that the paper reports, on the realistic scenario
-#   purity     : collateral vs benign prevalence of the discriminator
-#   drift      : sensitivity of the derived scope to the background profile the
-#                enrichment test reads (matched / drifted / flat)
-#   symbolic   : the SPARQL/enrichment rule evaluated AS a detector, against the
-#                learned model forced onto the same operating point
-#   all-hd     : everything that needs the external drive
-#
-# The external drive must be mounted for `ml` and `window`:
-#   experiments/data -> /Volumes/Untitled/kg-ddos-data
+# `make` lists the targets, grouped by what they need: the repository only, the
+# scenario caches on the data drive, or the operator's exports on the drive
+# (PRODDATA). README.md maps each paper element to its result file and target.
+# The drive is linked as experiments/data -> /Volumes/Untitled/kg-ddos-data;
+# check-data tests only the canonical scenario cache (REALWORK).
 
 PY       ?= ../.venv/bin/python
 DATA     ?= ../data
@@ -33,11 +22,11 @@ RESULTS  ?= results
 SEEDS    ?= 30
 K        ?= 50 1000
 # Family-wise level of the binomial over-representation test that selects the
-# fingerprints of the enrichment scope (Section III-G). Empty = the fixed floor
+# fingerprints of the enrichment scope (Section III-C). Empty = the fixed floor
 # sigma = 0.002 of earlier revisions.
 SIG      ?= 0.01
 SIGFLAG   = $(if $(SIG),--significance $(SIG))
-# The paper's method (Section III-G): Omega and the scope count distinct origins
+# The paper's method (Section III-C): Omega and the scope count distinct origins
 # (source addresses), and the scope's test level is calibrated per endpoint on
 # attack-free traffic, as tau is, never above SIG. `make METHOD= <target>` reruns
 # with the session count and nominal level of earlier revisions.
@@ -54,26 +43,36 @@ RULEWORK ?= $(DATA)/synth/sprint6_rule
 
 help:
 	@echo "No external data required:"
-	@echo "  make audit              # every sprint-6 number of the paper against results/"
+	@echo "  make audit              # the paper's sprint-6 numbers against results/"
+	@echo "  make block-report-check # the block report's code on the paper's numbers"
+	@echo "  make block-report       # the block's metrics 1-10, from the committed reductions"
 	@echo "  make compile-check      # the count query compiled from the ontology, on generated sessions"
 	@echo "  make stix-check         # the exported STIX 2.1 bundles, OASIS validator in strict mode"
-	@echo "  make stix-ingest        # the same bundles through TAXII 2.1 and MISP's importer"
-	@echo "  make latency            # cost of both layers (Fig. 4; the full sweep takes long)"
-	@echo "Needs the data drive (synthetic scenario caches):"
-	@echo "  make canonical          # the ablation of Section V-A"
-	@echo "  make realistic symbolic unseen-synth   # Section V-C, Table II and Fig. 2"
-	@echo "  make drift rule baselines cross-m"
-	@echo "  make ml window purity   # sprint-4 reproduction cache"
+	@echo "  make stix-ingest        # the same bundles through TAXII 2.1 (localhost) and MISP's importer"
+	@echo "  make latency            # the cost of both layers (App. D, Fig. 4; the full sweep takes long)"
+	@echo "Needs the scenario caches on the data drive (make check-data tests REALWORK):"
+	@echo "  make realistic symbolic unseen-synth drift   # Section V-A and Table III"
+	@echo "  make canonical baselines cross-m             # Appendix C"
+	@echo "  make rule               # the rule per window on generated traffic (App. E)"
+	@echo "  make ml window purity   # the sprint-4 cache, not in the paper"
 	@echo "Needs the operator's exports on the drive (PRODDATA):"
-	@echo "  make rule-production rule-production-fresh rule-production-od rule-production-crossfit"
-	@echo "  make production-tables  # Tables IV and V, anonymized to results/"
-	@echo "  make rule-production-block production-tables-block   # the held-out block, its own directory"
-	@echo "  make ja4-churn-block block-report   # the block's metrics 1-10 (block-report-check: on the paper)"
-	@echo "  make ja4-churn          # fingerprints the rolling profile never saw"
+	@echo "  make rule-production rule-production-fleets rule-production-fresh"
+	@echo "  make rule-production-od rule-production-crossfit rule-production-wafprof"
+	@echo "                          # per-window runs, written next to the exports"
+	@echo "  make production-tables  # Tables IV-VI and Figs. 2-3, anonymized to results/"
+	@echo "  make floor-bands        # Table V's shared floors, the enrichment limit, App. E's rank bands"
+	@echo "  make fleet-selection    # the known-fleet share (5%)"
 	@echo "  make waf-labels         # the WAF's verdicts as labels for the scope"
-	@echo "  make floor-bands        # the floor on shared stacks by popularity band, and the ratio limit"
+	@echo "  make ja4-churn          # fingerprints the rolling profile never saw"
+	@echo "  make production-summary # App. E's production paragraph"
+	@echo "  make rule-production-block production-tables-block ja4-churn-block"
+	@echo "                          # the 14-day block (Table VII), in its own directory"
+	@echo "  make block-part-check WT=<worktree at 05ccc0e> PART=<part>   # a blind check of one part"
+	@echo "Other:"
+	@echo "  make all-hd             # ml window realistic canonical purity symbolic drift"
+	@echo "  make clean              # deletes results/*.csv and *.json, committed files included"
 	@echo ""
-	@echo "Vars: SEEDS=$(SEEDS)  K='$(K)'  DATA=$(DATA)"
+	@echo "Vars: SEEDS=$(SEEDS)  K='$(K)'  DATA=$(DATA)  SIG=$(SIG)  METHOD=$(METHOD)"
 
 check-data:
 	@test -d "$(REALWORK)" || { \
@@ -135,7 +134,7 @@ all-hd: ml window realistic canonical purity symbolic drift
 clean:
 	rm -rf $(RESULTS)/*.csv $(RESULTS)/*.json
 
-# Academic baselines on the canonical scenarios: the source of Section V-A's baseline numbers.
+# Academic baselines on the canonical scenarios: the source of Appendix C's baseline numbers.
 baselines: check-data
 	nice -n 10 $(PY) scripts/run_canonical_baselines.py --work $(REALWORK) --out-dir $(RESULTS)
 
@@ -160,8 +159,9 @@ rule: check-data
 # the days before it, as the rule would run.
 PRODDATA ?= $(DATA)/azion
 SPLIT    ?= rolling
-# The eight days behind Tables IV and V and Appendix E (five test folds); the fresh day
-# 2026-09-25 is evaluated apart (rule-production-fresh, fresh_day_protocol.md).
+# The eight days behind Tables IV-VI and Appendix E (five test folds); the held-out day
+# 2026-09-25, the "fresh day" of the target and protocol names, is evaluated apart
+# (rule-production-fresh, fresh_day_protocol.md).
 TESTDAYS ?= 2026-09-17_2026-09-24 2026-09-23
 
 rule-production:
@@ -183,8 +183,8 @@ fleet-selection:
 	$(PY) scripts/fleet_selection.py --results $(PRODDATA)/results --roles $(PRODDATA)/roles.json \
 	  --shares $(FLEETS) --out $(RESULTS)/fleet_profile.json
 
-# Every day, the fresh one included, with the base rule and with the chosen known-fleet
-# share (5%): the fresh day is a sixth test fold calibrated on all earlier days. The
+# Every day, the held-out day included, with the base rule and with the chosen known-fleet
+# share (5%): the held-out day is a sixth test fold calibrated on all earlier days. The
 # first five folds reproduce rule-production and rule-production-fleets exactly.
 rule-production-fresh:
 	nice -n 10 $(PY) scripts/rule_detection_production.py --data-dir $(PRODDATA) \
@@ -206,8 +206,8 @@ rule-production-od:
 	  --out-dir $(PRODDATA)/results --split $(SPLIT) $(SIGFLAG) $(METHODFLAG) --overdispersion \
 	  --fleets 0.05 --tag _$(SPLIT)_$(METHOD)_od_fleets0.05_v2 & wait
 
-# The four configurations again with the scope calibrated out of sample (--split
-# crossfit): when the level, the z-score thresholds and the known fleets are fitted,
+# The four configurations again, cross-fitted (--split crossfit): when the level,
+# the z-score thresholds and the known fleets are fitted,
 # each earlier day is judged against a profile of the other earlier days, as the test
 # day is judged against a profile it is not part of. Two runs at a time (memory).
 rule-production-crossfit:
@@ -224,7 +224,7 @@ rule-production-crossfit:
 	  --out-dir $(PRODDATA)/results --split crossfit $(SIGFLAG) $(METHODFLAG) --overdispersion \
 	  --fleets 0.05 --tag _crossfit_$(METHOD)_od_fleets0.05_v2 & wait
 
-# The production numbers of Tables IV and V (test days and fresh day apart), with
+# The production numbers of Tables IV-VI and Figs. 2-3 (test days and held-out day apart), with
 # the baselines calibrated to the scope's budget, attack-window collateral, the WAF
 # cross-check and the calibration floor, for the rolling runs and their cross-fitted
 # counterparts (xfit*); anonymized, read by the paper's audit.
@@ -316,7 +316,7 @@ waf-labels:
 
 # The calibration floor on shared stacks by popularity band of each fold's rolling
 # profile (ranks 11-35, 36-100, past 100, and every rank past ten), at each stack's own
-# correlation under the beta-binomial, and the fingerprints past the ratio limit
+# correlation under the beta-binomial, and the fingerprints past the enrichment limit
 # 0.9 / (rho M); prevalences, correlations and floors only.
 floor-bands:
 	$(PY) scripts/floor_bands.py --data-dir $(PRODDATA) --results $(PRODDATA)/results \
@@ -331,7 +331,7 @@ ja4-churn:
 	  --roles $(PRODDATA)/roles.json --base rule_production_$(SPLIT)_$(METHOD)_v2.json \
 	  --out $(RESULTS)/ja4_churn.json
 
-# The unseen-fingerprint filter on the synthetic scenarios of Table II and Fig. 2,
+# The unseen-fingerprint filter on the generated scenarios of Table III,
 # and botnet stacks drawn from the profile's tail, shared with real clients.
 unseen-synth: check-data
 	$(PY) scripts/unseen_synth.py --out-dir $(RESULTS)

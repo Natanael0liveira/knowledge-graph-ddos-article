@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Sprint 6 (NOMS) — latency/throughput of the session-centric KG pipeline.
+"""Sprint 6 (NOMS): the cost model of Appendix D and Fig. 4.
 
-The paper claims a per-insertion cost of O(|S_W| * c) and relies on the sliding
-window W to keep the graph bounded, but reports no measurement. This benchmark
-fills that gap by timing the two layers separately, because they run at
-different rates and have different complexity:
+The rule runs per endpoint and fixed five-minute window. This benchmark times
+its two layers separately, because they run at different rates and have
+different complexity:
 
   Layer 1 - ADMISSION (per request, hot path).  Admitting a new session into a
       window that already holds |S_W| sessions: resolve the session, then
@@ -30,9 +29,9 @@ structure of the window, not on the traffic being real. The session mix is
 parameterised and reported alongside the timings so the numbers are
 interpretable.
 
-Usage:
-    python bench_latency.py --sizes 100 250 500 1000 2500 5000 10000 \\
-        --repeats 5 --out ../results
+Usage (`make latency` runs the paper's sweep, up to 100,000 sessions):
+    python scripts/bench_latency.py --sizes 100 250 500 1000 2500 5000 10000 \\
+        --repeats 3 --probes 200 --pair-cap 3000000 --out results
 """
 import argparse
 import json

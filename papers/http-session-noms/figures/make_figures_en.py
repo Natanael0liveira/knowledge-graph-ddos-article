@@ -21,13 +21,13 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-# Paleta monocromatica, casada com a Fig.1 (esquema draw.io):
-#   INK   -- serie principal / "ours"      (preto do diagrama)
-#   MUTED -- serie de comparacao / baseline
-#   NOTE  -- anotacoes e linhas de referencia (mesmo cinza das notas da Fig.1)
-# Sem cor: o contraste vem de tom e de marcador, entao sobrevive a impressao em
-# escala de cinza e a leitores daltonicos.
-NAVY = "#1a1a1a"      # INK   (nome mantido para nao tocar o corpo das funcoes)
+# Monochrome palette, matched to Fig. 1 (the draw.io schematic):
+#   INK   -- the main series                 (the schematic's black)
+#   MUTED -- comparison series
+#   NOTE  -- annotations and reference lines (the gray of Fig. 1's notes)
+# No hue: contrast comes from tone and marker, so the figures survive grayscale
+# printing and color-blind readers. NAVY2, GRAY, GRAYB and TXT are unused.
+NAVY = "#1a1a1a"      # INK   (historical name, kept so the function bodies need not change)
 NAVY2 = "#4d4d4d"
 GRAY = "#ececec"
 GRAYB = "#9a9a9a"

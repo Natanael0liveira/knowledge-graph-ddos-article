@@ -97,7 +97,7 @@ test names, joined with fingerprints absent from the profile.
 ```
 papers/
   http-session-noms/      NOMS submission (LaTeX, figures, draw.io sources)
-  http-session-noms-pt/   Portuguese rendering of the same paper
+  http-session-noms-pt/   Portuguese translation of the same paper, sentence by sentence
   http-session/           earlier, superseded manuscript
 experiments/
   sprint-1/               extraction pipeline: PCAP -> JA4 + flows -> sessions -> graph

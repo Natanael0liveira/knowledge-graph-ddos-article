@@ -146,8 +146,8 @@ Fig. 1, the scoping pipeline, is a draw.io drawing; its source is
 ## Portuguese version
 
 [`../http-session-noms-pt/`](../http-session-noms-pt/) holds two things:
-- a Portuguese rendering of the paper, not bound by the NOMS page rules; it still
-  follows round 8 and needs a port of the later rounds;
+- a sentence-by-sentence Portuguese translation of the paper (round 74, 2026-10-18), not bound
+  by the NOMS page rules, with its glossary in the header of its `article.tex`;
 - the study guide (`guia-de-estudo.md`), for understanding the final paper. It goes from
   the story in 15 minutes to how the method works and to each table and figure, with a
   self-test at the end of each part and the formulas folded away. It keeps the paper's

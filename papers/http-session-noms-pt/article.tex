@@ -1,18 +1,17 @@
-%% article.tex -- versão em PORTUGUÊS do artigo submetido ao IEEE/IFIP NOMS.
+%% article.tex -- versão em português do artigo do NOMS 2027
 %%
-%% Escopo Calibrado para a Mitigação de DDoS de Camada de Aplicação com um
-%% Grafo de Conhecimento Centrado na Sessão
-%%
-%% Reescrita como texto em português a partir de papers/http-session-noms/article.tex:
-%% as mesmas afirmações, os mesmos números, as mesmas tabelas e figuras, em frases
-%% mais curtas e com um glossário fixo (impressão digital, pilha TLS, gatilho de
-%% origens distintas, filtro de impressões inéditas, piso de calibração, frotas
-%% conhecidas, dia novo, pico legítimo de acesso). Mantém o formato
-%% IEEEtran de duas colunas.
-%%
-%% NOTA SOBRE PAGINAÇÃO: o limite de 8 páginas de corpo vale para a submissão ao
-%% NOMS, que é em inglês. Esta versão não está sujeita a ele e desdobra as passagens
-%% que o inglês condensa. Use a versão em inglês para submeter.
+%% Tradução fiel, frase a frase, de ../http-session-noms/article.tex (rodada 74,
+%% 2026-10-18): mesma ordem, mesmas afirmações, ressalvas, números, tabelas e figuras.
+%% Não é a submissão (o NOMS exige inglês e 8 páginas de corpo) e não segue o limite
+%% de páginas. Glossário fixo: fingerprint = impressão digital; stack = pilha TLS;
+%% trigger/gate = gatilho; distinct-origin gate = gatilho de origens distintas;
+%% unseen filter = filtro de impressões inéditas; known fleets = frotas conhecidas;
+%% calibration floor = piso de calibração; held-out day = dia novo; flash crowd =
+%% pico legítimo de acesso; background = distribuição de referência; base rule =
+%% regra básica; allow-list = lista de exceções; collateral = dano colateral (Col. nas
+%% tabelas); names a filter = produz um filtro; names a stack = aponta uma pilha;
+%% misfire = disparo indevido; fallback = recurso de contingência; versus = contra.
+%% Decimais com vírgula ($0{,}1\%$), milhares com espaço fino (1\,000).
 
 \documentclass[conference,letterpaper,10pt]{IEEEtran}
 \IEEEoverridecommandlockouts
@@ -20,21 +19,18 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[brazilian]{babel}
-%% O babel troca \figurename para "Figura", mas as chamadas no texto usam
-%% "Fig." como no original. Fixa os dois no formato do IEEEtran.
 \addto\captionsbrazilian{\renewcommand{\figurename}{Fig.}}
 \usepackage{cite}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{algorithm}
-\usepackage{algorithmic}
+\usepackage{array}
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Escopo por Impressão Digital TLS na Mitigação de DDoS de Camada de Aplicação: Pisos de Calibração e Dano Colateral nos Endpoints de um Operador de CDN},
+  pdfauthor={Natanael Oliveira, Arthur Kobielski, Marcos Luna, Luigi Carro, J\'eferson Campos Nobre, Eder John Scheid},
+  pdfkeywords={gerência de segurança, DDoS de camada de aplicação, política de mitigação, impressão digital TLS, calibração estatística, ontologia}}
 
-%% Separacao de floats. Sem isto, a cola entre o float e o texto seguinte é
-%% muito esticavel e a justificacao vertical de coluna do IEEEtran despeja a
-%% sobra ali.
 \renewcommand{\topfraction}{0.92}
 \renewcommand{\dbltopfraction}{0.92}
 \renewcommand{\bottomfraction}{0.6}
@@ -49,9 +45,9 @@
 \setlength{\intextsep}{8pt plus 2pt minus 2pt}
 \setlength{\dbltextfloatsep}{10pt plus 2pt minus 2pt}
 
+%% Listagens como float próprio, com a legenda no estilo do IEEEtran ("Listagem 1. Texto").
 \usepackage{float}
 \usepackage{stfloats}
-%% Estilo de legenda igual ao das figuras do IEEEtran ("Listagem 1. Texto").
 \makeatletter
 \newcommand\floatc@ieeelst[2]{\setbox\@tempboxa\hbox{\footnotesize #1.\enskip #2}%
   \ifdim\wd\@tempboxa>\hsize \footnotesize #1.\enskip #2\par
@@ -63,784 +59,400 @@
 \floatstyle{ieeelst}
 \newfloat{listing}{tbp}{lol}
 \floatname{listing}{Listagem}
-\floatname{algorithm}{Algoritmo}
-\renewcommand{\algorithmicrequire}{\textbf{Requer:}}
-\renewcommand{\algorithmicensure}{\textbf{Garante:}}
-\renewcommand{\algorithmicfor}{\textbf{para}}
-\renewcommand{\algorithmicdo}{\textbf{faça}}
-\renewcommand{\algorithmicif}{\textbf{se}}
-\renewcommand{\algorithmicthen}{\textbf{então}}
-\renewcommand{\algorithmicend}{\textbf{fim}}
-\renewcommand{\algorithmicreturn}{\textbf{retorne}}
 
-\newcommand{\ie}{\textit{i}.\textit{e}.,\ }
-\newcommand{\eg}{\textit{p}.\textit{ex}.,\ }
-\newcommand{\cf}{\textit{c}\textit{f}.\ }
 \newcommand\1{\textit{(i)}}
 \newcommand\2{\textit{(ii)}}
 \newcommand\3{\textit{(iii)}}
-\newcommand\4{\textit{(iv)}}
-\newcommand\5{\textit{(v)}}
-\newcommand\6{\textit{(vi)}}
 
-%% O IEEEtran usa URW Courier (pcr) para \texttt. Onde essas metricas nao
-%% existem, cai para Latin Modern Mono -- e NAO para cmtt: sem o cm-super
-%% instalado, cmtt em T1 gera bitmaps Type 3, que o IEEE PDF eXpress sinaliza
-%% e que ficam serrilhados na tela. lmtt e Type 1 e ja vem no TeX Live.
+%% Onde as métricas do URW Courier (pcr) não existem, usa Latin Modern Mono (Type 1).
 \IfFileExists{pcrr8t.tfm}{}{\renewcommand{\ttdefault}{lmtt}}
 
 \begin{document}
 
-\title{Escopo Calibrado para a Mitigação de DDoS de Camada de Aplicação\\
-com um Grafo de Conhecimento Centrado na Sessão}
+\renewcommand{\IEEEkeywordsname}{Palavras-chave}
 
-\author{\IEEEauthorblockN{Natanael Oliveira, Arthur Kobielski, Marcos Luna,
+\title{Escopo por Impressão Digital TLS na Mitigação de DDoS de Camada de Aplicação: Pisos de Calibração e Dano Colateral nos Endpoints de um Operador de CDN}
+
+\author{\IEEEauthorblockN{Natanael Oliveira\IEEEauthorrefmark{1}, Arthur Kobielski, Marcos Luna,
 Luigi Carro, J\'eferson Campos Nobre e Eder John Scheid}
 \IEEEauthorblockA{Instituto de Informática, Universidade Federal do Rio Grande do Sul (UFRGS), Porto Alegre, Brasil\\
+\IEEEauthorrefmark{1}Também na Azion Technologies, Brasil\\
 \texttt{\{natanael.oliveira, arthur.kobielski, marcos.luna, carro, jcnobre, ejscheid\}@inf.ufrgs.br}}}
 
 \maketitle
 
-
 \begin{abstract}
-Numa campanha distribuída de Slow HTTP DoS, cada origem fica abaixo dos limiares
-por origem, e a mitigação passa a depender do escopo: quais clientes bloquear,
-poupando os usuários legítimos. Sobre um grafo de conhecimento centrado na sessão,
-um teste binomial de enriquecimento só bloqueia uma impressão digital TLS quando a
-fração das origens do alarme que a apresentam seria improvável no tráfego normal,
-num nível calibrado para um orçamento de falsos alarmes. Em tráfego gerado, o
-escopo natural, a impressão digital mais comum do agrupamento, bloqueia $0\%$ de
-uma \textit{botnet} espalhada por cinco ou mais pilhas TLS e atinge $39\%$ do
-tráfego legítimo. O teste bloqueia $90\%$ da \textit{botnet} com até 25 pilhas,
-sem dano colateral observado. Um filtro de impressões inéditas faz o mesmo, com
-$0{,}03\%$ de dano colateral. Nas pilhas que clientes reais compartilham, o teste
-bloqueia $85\%$ dos atacantes, com $2\%$ de dano colateral, enquanto esse filtro
-não bloqueia nenhum. Um modelo treinado com atributos entre sessões (AUC de
-$0{,}98$) cai para $0{,}48$ a $0{,}75$ quando testado numa \textit{botnet} com outro número de
-pilhas. Em oito dias de tráfego de quatro \textit{endpoints} de uma CDN, frotas de
-clientes que se ativam ao mesmo tempo impõem um piso de calibração. A menor
-\textit{botnet} que o teste binomial consegue apontar tem $16\%$ da janela do
-\textit{endpoint} mais movimentado e de 4 a 12 janelas inteiras nos
-\textit{endpoints} pequenos. Uma beta-binomial que modela as frotas rebaixa esse
-piso para $3\%$ e para $0{,}9$ a $2{,}8$ janelas, no ponto de operação de um
-$z$-score calibrado para o mesmo orçamento, com falsos alarmes em $0{,}4\%$ das
-janelas limpas. Todo escopo calibrado bloqueia de $67$ a $71\%$ de uma
-\textit{botnet} do tamanho da janela típica do \textit{endpoint} mais movimentado. Num dia novo, analisado como
-planejado de antemão, a configuração binomial gera 2 falsos alarmes em 1\,152
-janelas. A ontologia é compilada numa consulta que reproduz as
-contagens de origens e de pares no mesmo /24 exportadas pela operadora em dois
-dias de produção, e o escopo é exportado em STIX~2.1.
+Uma inundação distribuída de baixa taxa na camada de aplicação mantém cada origem abaixo dos limiares por origem, então o que importa é quais clientes bloquear. Tratamos essa escolha como um teste estatístico calibrado sobre as impressões digitais TLS dos clientes de um endpoint e medimos o que ele detém e o que ele custa, em campanhas geradas e em 23 dias de tráfego de um operador de CDN. No tráfego gerado, a escolha óbvia, a impressão digital mais comum do alarme, bloqueia $39\%$ do tráfego legítimo e nenhum atacante assim que a botnet se espalha por cinco pilhas TLS. Escopos relativos ao perfil bloqueiam $90\%$ de uma botnet com até 25 pilhas novas, sem dano colateral observado. No tráfego de produção, o teste e seu gatilho de volume disparam juntos indevidamente em $0{,}1\%$ das janelas sem ataque nos dias usados para escolhê-los, embora cada um, sozinho, passe do seu orçamento de $1\%$. Esses disparos indevidos bloqueiam, em mediana, um terço dos clientes da janela. Em 14 dias posteriores especificados de antemão, a taxa deles dobra, ainda dentro do orçamento. A calibração tem um preço: frotas de clientes legítimos elevam um piso, de modo que uma botnet em impressões digitais raras que clientes reais compartilham só é apontada quando é grande. Uma botnet em impressões digitais comuns, em sua maior parte, escapa. No endpoint mais movimentado, o gatilho deixa passar a maior parte de uma botnet pequena injetada. Gatilhos \textit{post hoc} recuperam parte dessa perda nesses 14 dias. Especificamos o filtro e suas contagens numa ontologia OWL, porque nenhum padrão de intercâmbio que examinamos o expressa no seu vocabulário principal. Os resultados mostram a um operador onde o escopo por impressão digital compensa e onde recorrer a limites de taxa ou a desafios.
 \end{abstract}
 
 \begin{IEEEkeywords}
-gestão de segurança, grafo de conhecimento, DDoS de camada de aplicação, modelos
-semânticos, raciocínio automatizado, explicabilidade, política de mitigação
+gerência de segurança, DDoS de camada de aplicação, política de mitigação, impressão digital TLS, calibração estatística, ontologia
 \end{IEEEkeywords}
 
 %% ====================================================================
 \section{Introdução}
 \label{sec:intro}
 
-Os ataques de negação de serviço distribuída (DDoS) na camada de aplicação continuam crescendo em volume e em frequência. Em agosto de 2023, o HTTP/2 Rapid Reset (CVE-2023-44487) elevou os picos mitigados a 398 milhões de requisições por segundo~\cite{cve202344487,google2023rapidreset}. Um desses ataques chegou a 201 milhões a partir de cerca de vinte mil máquinas~\cite{pardue2023rapidreset}, e, no segundo trimestre de 2025, a Cloudflare bloqueou mais de 6\,500 ataques hipervolumétricos~\cite{cloudflare2025q2ddos}. As defesas volumétricas absorvem ataques dessa magnitude. A detecção fica mais difícil na outra ponta do espectro, a de baixa taxa, onde está o \textit{Slow HTTP DoS distribuído}. O Slowloris e seus descendentes, além de variantes baseadas em taxa que também mantêm conexões abertas, como HULK e GoldenEye~\cite{cambiaso2013slowdos}, esgotam um servidor a partir de várias origens coordenadas. Cada origem envia requisições pequenas o bastante para não ultrapassar nenhum limiar por origem.
+Os ataques distribuídos de negação de serviço (DDoS) na camada de aplicação vão de um extremo a outro. Num extremo, o HTTP/2 Rapid Reset (CVE-2023-44487) levou os picos de mitigação a 398 milhões de requisições por segundo~\cite{google2023rapidreset}, um volume que a capacidade e a filtragem em centros de limpeza absorvem. No outro extremo ficam as inundações distribuídas de baixa taxa, o alvo deste artigo. O \textit{Distributed Slow HTTP DoS}~\cite{cambiaso2013slowdos} e variantes baseadas em taxa que ainda mantêm conexões abertas, como o HULK e o GoldenEye~\cite{sharafaldin2018cicids}, esgotam um servidor a partir de muitas origens coordenadas, cada uma enviando pouco demais para cruzar qualquer limiar por origem.
 
-Além disso, uma campanha furtiva molda cada sessão para parecer legítima nos sinais por sessão em que os detectores se apoiam, como a duração da conexão e a entropia das rotas acessadas~\cite{kemp2023approach}. O que continua a distinguir o ataque está na estrutura \textit{entre} as sessões: a mesma impressão digital de cliente aparece em muitas origens, e essas origens convergem para um mesmo \textit{endpoint}. Visto assim, o problema é tanto de gestão de redes e serviços quanto de detecção, porque agir exige uma decisão: \textit{quais} clientes tratar, com base em \textit{qual} evidência, e com um filtro estreito o bastante para poupar os usuários legítimos do serviço atacado.
+Uma campanha furtiva também faz cada sessão parecer legítima nos sinais por sessão que os detectores usam, como a duração da conexão e a taxa de pacotes~\cite{kemp2023approach}. O que ainda a distingue é a estrutura \textit{entre} as sessões: a mesma impressão digital de cliente se repetindo em muitas origens que convergem para um endpoint. Agir sobre essa estrutura é uma decisão de gerência: \textit{quais} clientes bloquear, com \textit{que} evidência e com um escopo estreito o bastante para poupar os usuários legítimos. O operador também precisa saber, antes de um ataque, onde nenhum filtro desses pode ser construído, para que possa recorrer ali a um limite de taxa ou a um desafio.
 
-Os trabalhos existentes tratam do lado da detecção e deixam em aberto o lado operacional. Uma meta-análise de 75 estudos mostra que 47\% dos detectores de DDoS de camada de aplicação extraem seus atributos de sessões HTTP~\cite{odusami2020survey}. Essas sessões são reduzidas a um vetor numérico antes de chegarem ao classificador, que então não consegue raciocinar sobre impressões digitais que se repetem em várias origens, nem sobre padrões que só existem entre sessões individualmente normais. Detectores baseados em grafos preservam essas relações: o KLAGE~\cite{belcastro2025klage} classifica os nós de grafos de conhecimento construídos a partir de \textit{logs} de rede e gera relatórios em linguagem natural. Três oportunidades continuam em aberto. Em primeiro lugar, a unidade de raciocínio é o \textit{nó de rede} (porta, IP, fluxo), enquanto a coordenação na camada 7 só aparece no nível da sessão de aplicação. Em segundo lugar, a coordenação fica implícita em \textit{embeddings} aprendidos, de modo que nenhum operador consegue inspecionar as relações que levaram ao veredicto. Por fim, a saída se limita a um relatório, e agir sobre ele exige uma política de mitigação cujo escopo decorra do grafo.
+Os detectores existentes, no máximo, sinalizam o ataque e deixam essa decisão em aberto. Dos 75 estudos de DDoS de camada de aplicação de um levantamento, $47\%$ extraem seus atributos do fluxo de requisições de um usuário e do padrão de pacotes~\cite{odusami2020survey}. Detectores baseados em grafos preservam relações entre nós da rede, mas param num relatório~\cite{belcastro2025klage}. Mitigações baseadas em agregados filtram por cabeçalhos de rede e de transporte~\cite{mahajan2002pushback,alcoz2022accturbo}, a filtragem por origem pondera cada prefixo bloqueado contra o tráfego legítimo que ele carrega~\cite{soldo2012filtering}, e os canais padronizados de mitigação filtram pelos mesmos campos~\cite{dots2020data,rfc8955flowspec}. Não encontramos método publicado que defina o escopo de uma mitigação pela impressão digital do cliente da aplicação e, ao mesmo tempo, quantifique o dano colateral de cada filtro e identifique onde nenhum filtro desses pode ser construído.
 
-Este artigo as aborda ao tratar o escopo da mitigação como um teste estatístico calibrado, executado sobre um grafo de conhecimento de sessões HTTP. Cada requisição HTTP/TLS é associada a um nó \texttt{ApplicationSession} de um grafo OWL mantido numa janela deslizante, e as sessões são ligadas por sub-propriedades, cada uma ponderada pelo custo que o atacante teria para contornar o sinal correspondente. Uma regra SPARQL/SWRL dispara o alarme, e o escopo desse alarme é o conjunto de impressões digitais que um teste binomial de enriquecimento considera sobrerrepresentadas em relação ao tráfego normal do \textit{endpoint}, num nível calibrado para um orçamento de falsos alarmes. O alvo são campanhas conduzidas por \textit{botnets} de dispositivos comprometidos, cujo operador não consegue trocar as pilhas TLS a baixo custo. \textit{Bots} que apresentam a impressão digital de um navegador são avaliados como a fronteira do método. As contribuições são quatro. \1~Mostramos que o escopo natural, a propriedade compartilhada pela maior parte do agrupamento do alarme, bloqueia usuários legítimos sem atingir nenhum atacante assim que a \textit{botnet} se espalha por algumas pilhas TLS. O escopo por enriquecimento, tendo como referência um perfil livre de ataque, bloqueia o ataque, inclusive nas pilhas que clientes reais compartilham, que um filtro de impressões inéditas deixa passar. Esse escopo dispensa rótulos, enquanto um modelo treinado com atributos entre sessões falha numa \textit{botnet} com outro número de pilhas. \2~Em oito dias de tráfego de uma CDN, medimos até onde o escopo calibrado alcança. Frotas legítimas impõem um piso ao tamanho da \textit{botnet} que o teste consegue apontar, e uma distribuição de referência beta-binomial que modela essas frotas torna esse piso várias vezes menor. No regime furtivo, o escopo aponta a \textit{botnet} que o gatilho de volume, em sua maior parte, deixa passar. Comparamos o teste com linhas de base calibradas para o mesmo orçamento de falsos alarmes e conferimos a taxa de falsos alarmes do teste num dia novo, analisado com a configuração fixada de antemão. \3~Especificamos o grafo de sessões como uma ontologia OWL com \textit{seis sub-propriedades tipadas}, três delas usadas na avaliação, a partir da qual a consulta de contagens é compilada. Em dois dias de produção, essa consulta reproduz janela a janela os agregados da operadora, e o escopo é exportado com sua cadeia de evidência em STIX~2.1. \4~Reportamos a taxa de falsos positivos do filtro resultante como dano colateral sobre o tráfego legítimo, em janelas limpas e em janelas de ataque.
+Este artigo transforma essa decisão num teste estatístico calibrado (Fig.~\ref{fig:pipeline}). Para cada endpoint e janela de cinco minutos, um gatilho de volume primeiro dispara o alarme. O teste então escolhe o \textit{escopo}, as impressões digitais TLS a bloquear: aquelas sobrerrepresentadas entre as origens do alarme em relação a um \textit{perfil} do tráfego normal do endpoint. Visamos botnets de dispositivos comprometidos, cujas pilhas TLS supomos que o atacante mantém, e avaliamos os bots que apresentam impressões digitais comuns como a fronteira do método.
 
-%% Declarada aqui para cair no topo da pagina 2, junto da Secao II.
+O artigo faz três contribuições. \1~\textit{Escopo relativo ao perfil.} No tráfego gerado, escopos relativos ao perfil bloqueiam a maior parte do ataque sem rótulos, enquanto a impressão digital mais comum do alarme bloqueia usuários legítimos e nenhum atacante assim que a botnet se espalha por várias pilhas. \2~\textit{Um método de calibração para o escopo.} Calibramos o teste por endpoint para um orçamento de falsos alarmes de $1\%$ das janelas sem ataque, o que fixa um \textit{piso de calibração}: o tamanho de botnet a partir do qual o escopo aponta uma pilha típica. Avaliamos o orçamento e o piso em oito dias de quatro endpoints de CDN, e o orçamento em 15 dias posteriores. \3~\textit{Uma ontologia de sessão como especificação.} Uma ontologia OWL especifica as contagens que a decisão lê e o escopo que ela exporta, e a consulta do banco de logs é compilada a partir dela, de modo que um novo sinal de igualdade não exige mudança de código. Nenhum padrão de intercâmbio que examinamos expressa esse filtro JA4 no seu vocabulário principal.
+
 \begin{table*}[t]
 \centering
-\caption{Comparação dos Trabalhos Relacionados}
+\caption{Comparação com os trabalhos relacionados.}
 \label{tab:related}
-\setlength{\tabcolsep}{3.2pt}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{cccccccc}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{3.8cm}>{\raggedright\arraybackslash}p{3.8cm}@{}}
 \toprule
-\textbf{Trabalho} & \textbf{Ano} & \textbf{Objetivo} & \textbf{Unidade de Raciocínio} & \textbf{Relação entre Sessões} & \textbf{Explicação do Veredicto} & \textbf{Escopo de Mitigação} & \textbf{Colateral} \\
+\textbf{Abordagem} & \textbf{O que o filtro seleciona} & \textbf{Escolhido por} & \textbf{Custo aos usuários legítimos} \\
 \midrule
-\cite{bharathi2012pca}           & 2012 & DDoS L7              & Sessão como Vetor    & -                       & -                    & -           & - \\
-\cite{kemp2023approach}          & 2023 & DoS L7               & Sessão como Vetor    & -                       & -                    & -           & - \\
-\cite{martinetti2024ja4signals} & 2024 & Tráfego de \textit{Bots} & Impressão Digital JA4 & Proprietária       & -                    & Não divulgado & Não divulgado \\
-\cite{belcastro2025klage}        & 2026 & Ameaças de Rede      & Nó de Rede           & Implícita (Aprendida)   & A posteriori (LIME/LLM) & -        & - \\
-\textbf{Este Trabalho} & 2026 & DDoS L7 Distribuído & Sessão de Aplicação & Explícita (Tipada e Ponderada) & Derivação & Derivado & Reportado \\
+Controle de taxa por agregado~\cite{mahajan2002pushback,alcoz2022accturbo} & Agregado definido por cabeçalhos & Congestionamento ou escore do agregado & Taxa limitada junto com o agregado \\
+\textit{Blackholing}~\cite{dietzel2018stellar} & Prefixo de destino, ou campos de cabeçalho & A rede atacada & Todo o seu tráfego, ou menos com filtros mais finos \\
+Filtragem por origem~\cite{soldo2012filtering} & Prefixos de origem & Otimização sob um orçamento de filtros & Tráfego dos prefixos filtrados \\
+Extração de anomalias~\cite{silveira2010urca,brauckhoff2009extraction} & Valores de atributos de fluxo & Sobrerrepresentação no tráfego anômalo & Nenhum (só diagnóstico) \\
+Geração de assinaturas~\cite{li2006hamsa} & \textit{Tokens} do conteúdo & Cobertura contra um conjunto normal & Falsos positivos no tráfego normal \\
+Quebra-cabeças~\cite{kandula2005botz} & Todo cliente sob ataque & O custo que o cliente paga & Um quebra-cabeça para cada um \\
+DOTS, Flowspec~\cite{dots2020data,rfc8955flowspec} & Campos de rede e de transporte & A parte solicitante & O do filtro transportado \\
+Detectores~\cite{bharathi2012pca,kemp2023approach,belcastro2025klage} & Nenhum (só veredito) & Perfil ou modelo aprendido & Só a TFP da detecção \\
+Gestão de bots~\cite{martinetti2024ja4signals} & JA4 & Não divulgado & Não divulgado \\
+\textbf{Este trabalho} & Impressões digitais TLS (JA4) & Enriquecimento calibrado em relação ao perfil & Medido por alarme e por janela \\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table*}
-
-A Seção~\ref{sec:related} revisa os trabalhos relacionados, a Seção~\ref{sec:approach} apresenta a abordagem e a Seção~\ref{sec:method}, a metodologia de avaliação. A Seção~\ref{sec:results} reporta os resultados, a Seção~\ref{sec:discussion} discute o uso operacional da abordagem e suas limitações, e a Seção~\ref{sec:conclusion} conclui.
 
 %% ====================================================================
 \section{Trabalhos Relacionados}
 \label{sec:related}
 
-A Tabela~\ref{tab:related} compara este trabalho com o estado da arte em quatro dimensões: a unidade de raciocínio, a forma como as relações entre sessões são representadas, o tipo de explicação oferecida e se um escopo de mitigação e o seu custo decorrem dela.
+A Tabela~\ref{tab:related} compara os escopos de mitigação e os detectores anteriores pelo que um filtro seleciona, por como ele é escolhido e pelo que ele custa aos usuários legítimos.
 
-\subsection{Grafos de Conhecimento em Segurança e Gestão}
+\textbf{O escopo de uma mitigação.} O controle de congestionamento baseado em agregados identifica agregados de ataque a partir de campos de cabeçalho e limita a sua taxa a montante~\cite{mahajan2002pushback}, e trabalhos mais recentes pontuam esses agregados em \textit{switches} programáveis~\cite{alcoz2022accturbo}. O \textit{blackholing} descarta todo o tráfego para o prefixo atacado, enquanto o \textit{blackholing} avançado restringe a correspondência a campos de cabeçalho para limitar o dano colateral~\cite{dietzel2018stellar}. A filtragem por origem seleciona os prefixos a bloquear sob um orçamento de filtros, pesando o tráfego de ataque detido contra o tráfego legítimo carregado por esses prefixos~\cite{soldo2012filtering}. Mais perto do nosso teste, distribuições de atributos detectam e classificam anomalias de tráfego~\cite{lakhina2005mining}, enquanto a extração de anomalias isola valores de atributos sobrerrepresentados no tráfego anômalo~\cite{silveira2010urca,brauckhoff2009extraction}, a mesma pergunta que fazemos sobre as impressões digitais. A geração de assinaturas, da mesma forma, confronta seus candidatos com um conjunto de tráfego normal~\cite{li2006hamsa}. Contra ataques que imitam picos legítimos de acesso (\textit{flash crowds}), as defesas ou fazem cada cliente resolver um quebra-cabeça~\cite{kandula2005botz} ou escalonam cada sessão por quanto ela se afasta dos perfis de carga legítima, ponderando o atraso imposto aos usuários legítimos~\cite{ranjan2009ddosshield}. Todas elas trabalham sobre atributos de rede, de fluxo, de sessão ou de conteúdo, sem as impressões digitais dos clientes de uma aplicação. O canal de dados do DOTS, do IETF~\cite{dots2020data}, e o BGP Flow Specification~\cite{rfc8955flowspec} também filtram por campos de rede e de transporte e não conseguem expressar uma impressão digital como a JA4.
 
-A primeira geração de grafos de conhecimento em segurança era \textit{estática}: entidades extraídas de registros Common Vulnerabilities and Exposures (CVE), de relatórios e de \textit{blogs} eram normalizadas e ligadas numa base consultável~\cite{jia2018practical,bonagiri2024practical}. O conhecimento defensivo segue o mesmo padrão no D3FEND, um grafo OWL de técnicas de contramedida e dos artefatos sobre os quais elas agem, mapeado para o ATT\&CK~\cite{kaloroumakis2021d3fend}. Grafos construídos a partir de textos de inteligência de ameaças não capturam a estrutura do tráfego em tempo real, e ainda não está claro como aplicá-los em operações reais de ataque e de defesa~\cite{liu2022recent}.
+\textbf{Detecção na camada 7.} Os detectores de DDoS HTTP baseados em fluxos e na camada 7~\cite{odusami2020survey} ou traçam o perfil do tráfego, usando análise de componentes principais (PCA) sobre estatísticas de fluxo~\cite{fernandes2015autonomous} ou matrizes de comportamento por sessão~\cite{bharathi2012pca}, ou aprendem a partir de atributos de sessão~\cite{kemp2023approach}. Nenhum deles preserva relações entre sessões. Picos legítimos de acesso são distinguidos de inundações pela forma como as requisições se distribuem pelos documentos de um site~\cite{xie2009monitoring}.
 
-Trabalhos mais recentes alimentam os grafos com o próprio tráfego, e entre eles o KLAGE~\cite{belcastro2025klage} é o mais próximo da abordagem aqui proposta. Modelos aprendidos também avançam em tarefas de gestão afins. Uma linha de trabalho identifica dependências entre dispositivos por predição de ligações em grafos de rede~\cite{sadlek2024device}, e outra aprende sequências de ações de ataque a partir de medições em bancada, com modelos estatísticos~\cite{wang2024intrusion}. Na detecção de \textit{bots} baseada em grafos, os \textit{hosts} de um grafo de fluxos são classificados por atributos de grau, de agrupamento e de centralidade~\cite{aboudaya2019graphbot}. As três linhas operam sobre entidades de nível de rede, e nenhuma deriva um escopo de mitigação do que encontra. Da mesma forma, detectores no nível de contas encontram coordenação ao agrupar contas que agem em sincronia~\cite{cao2014synchrotrap}.
-
-\subsection{Detecção de DDoS de Camada 7 sobre HTTP}
-
-O estado da arte em detecção de DDoS de camada 7 sobre HTTP~\cite{tripathi2021application,cambiaso2013slowdos} se divide em duas categorias: \1~perfilamento estatístico e \2~aprendizado de máquina. Na primeira, a Análise de Componentes Principais (PCA) é aplicada a estatísticas de fluxo~\cite{fernandes2015autonomous} ou a uma matriz comportamental por sessão~\cite{bharathi2012pca}. A abordagem por matriz de sessão é uma das primeiras formulações a pôr a sessão no centro, ainda que como vetor de atributos. Na segunda, mais recente, aplica-se aprendizado supervisionado a atributos de sessão~\cite{kemp2023approach}, e os autores observam que o método não foi validado em tempo real e que sua saída é binária, sem explicação ontológica. Nenhuma das duas categorias preserva relações entre sessões: a coordenação que houver se dissolve no vetor de atributos antes que o classificador possa vê-la. As defesas contra ataques que imitam picos legítimos de acesso (\textit{flash crowds}) admitem os clientes que resolvem um desafio ou gastam banda, e medem o serviço que os usuários legítimos conservam~\cite{kandula2005botz,walfish2006speakup}. Derivar um filtro de um alarme é o objetivo da extração de anomalias, que isola os valores de atributos sobrerrepresentados no tráfego anômalo~\cite{silveira2010urca}, e da geração de assinaturas validadas num conjunto de tráfego normal~\cite{li2006hamsa}. Ambas operam sobre atributos de fluxo ou de \textit{payload}, sem as impressões digitais dos clientes de uma aplicação.
-
-\subsection{Modelagem de Sessão em Detecção de Anomalias}
-
-Nenhum dos 75 estudos de uma meta-análise sobre o tema~\cite{odusami2020survey} mantém a sessão como um objeto com identidade, alvo, comportamento e relações tipadas.
-
-Já as plataformas industriais de gestão de \textit{bots} exploram a estrutura entre sessões: sinais agregados por JA4 sobre o tráfego recente alimentam a pontuação de \textit{bots} e a proteção contra DDoS~\cite{martinetti2024ja4signals}. Essas plataformas são proprietárias e não oferecem ontologia pública, \textit{benchmark} acadêmico reprodutível nem métrica formal de dano colateral. O meio pelo qual um escopo trafegaria já é padronizado: o canal de sinalização do DOTS, do IETF, leva um pedido de mitigação do domínio atacado a um mitigador, com o escopo dado pelos recursos sob ataque. O DOTS tem ainda um canal de dados, que instala filtros sobre campos dos cabeçalhos de rede e de transporte, e uma telemetria, que reporta os maiores emissores por prefixo de origem~\cite{dots2020architecture,dots2021signal,dots2020data,dots2022telemetry}. Nenhum atributo do DOTS consegue expressar uma impressão digital de cliente da camada de aplicação, como o JA4.
-
-A Tabela~\ref{tab:related} deixa a fronteira explícita. Detectores estatísticos e de aprendizado de máquina reduzem a sessão a um vetor, e com isso nenhuma relação entre sessões sobrevive e nenhum escopo de mitigação ou custo pode decorrer da decisão. Detectores baseados em grafos preservam relações, mas entre entidades de rede e em forma aprendida, e plataformas industriais usam agregados por impressão digital sem divulgar a representação adotada nem o custo de agir com base neles. Nenhuma abordagem publicada reúne, portanto, três propriedades: a sessão de aplicação como unidade de raciocínio, relações entre sessões explícitas e tipadas, e um escopo de mitigação derivado da mesma representação que produziu o veredicto, com o dano colateral reportado. O restante do artigo apresenta essa combinação e mede quanto custa um escopo errado.
+\textbf{Grafos de conhecimento e impressões digitais.} Os grafos de conhecimento de segurança ligam entidades extraídas de relatórios de ameaças ou mapeiam contramedidas para o ATT\&CK, como o D3FEND faz em OWL~\cite{kaloroumakis2021d3fend}, enquanto o seu uso operacional continua incerto~\cite{liu2022recent}. Grafos derivados do tráfego também alimentam detectores aprendidos: o KLAGE~\cite{belcastro2025klage}, o mais próximo do nosso cenário, classifica nós em grafos construídos a partir de logs de rede. A identificação passiva por impressão digital TLS reconhece o software do cliente pelo seu \textit{ClientHello}~\cite{husak2016https}, enquanto muitas aplicações construídas sobre uma mesma biblioteca costumam compartilhar uma impressão digital~\cite{anderson2019tls}. Esse compartilhamento torna uma pilha útil como escopo e também fixa o seu limite. A maioria dos bots que se apresentam como navegador expõe impressões digitais TLS e de cabeçalho de outra ferramenta~\cite{li2021goodbot}. Uma plataforma de gestão de bots agrega sinais por JA4 sobre o tráfego recente~\cite{martinetti2024ja4signals}, mas não publica modelo, avaliação comparativa nem métrica de dano colateral.
 
 %% ====================================================================
-\section{Grafo de Conhecimento Centrado na Sessão}
+\section{Escopo Calibrado por Impressão Digital}
 \label{sec:approach}
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.95\textwidth]{figures/fig1_ontology.png}
-\caption{Ontologia centrada na sessão e regra de detecção. A convergência de \textit{endpoint} liga todo par de sessões do \textit{endpoint}. Apenas alguns pares estão desenhados.}
-\label{fig:ontology}
-\end{figure*}
+\includegraphics[width=\textwidth]{figures/fig1_scoping.png}
+\caption{Escopo calibrado por impressão digital. A consulta compilada a partir da ontologia de sessão devolve, por endpoint e janela, os tamanhos das classes que o gatilho e o escopo leem, e todo limiar e todo nível vêm de dias sem ataque.} \label{fig:pipeline} \end{figure*}
 
-A Fig.~\ref{fig:ontology} resume a abordagem. Quatro estágios operam sobre o
-tráfego ao vivo: os eventos HTTP são ingeridos, convertidos em instâncias da ontologia (com as sessões como nós persistentes do grafo), avaliados por regras e
-transformados num veredicto que carrega sua cadeia de evidência e seu escopo.
-
-\subsection{O Uso de Grafos de Conhecimento}
-
-Um grafo de conhecimento registra fatos como triplas RDF $\langle$sujeito,
-predicado, objeto$\rangle$, e uma ontologia OWL~2 declara as classes e as
-propriedades que essas triplas podem usar. Trabalhamos no perfil
-OWL~2~RL~\cite{w3c2012owl2profiles}, em que a inferência é feita por
-encadeamento de regras para frente (\textit{forward chaining}) em tempo
-polinomial. Isso torna tratável, em tempo de execução, uma materialização
-limitada, o que o OWL~2~DL, mais expressivo, não permite. A materialização roda
-uma vez por janela, fora do processamento de cada requisição. O SWRL acrescenta regras
-de Horn, que deduzem uma tripla quando uma conjunção de premissas é verdadeira, e
-o SPARQL consulta e agrega o resultado. A identidade do cliente vem do
-JA4~\cite{althouse2023ja4}, um \textit{hash} da mensagem \textit{ClientHello} do
-TLS que identifica a pilha TLS do cliente. Como não depende do endereço de
-origem, o JA4 resiste à rotação de IP.
-
-\subsection{Definição da Ontologia}
-\label{sec:ontology}
-
-A classe central é \texttt{ApplicationSession}. Ela se relaciona por
-\texttt{hasIdentity} com uma \texttt{Identity} composta (\textit{cookie},
-\textit{token} JWT, nome de usuário, impressão digital TLS), por
-\texttt{originatesFrom} com o \texttt{IPAddress} de origem, por \texttt{targets}
-com um \texttt{Endpoint} (\texttt{LoginEndpoint}, \texttt{APIEndpoint},
-\texttt{StaticEndpoint}), por \texttt{exhibitsBehavior} com um perfil
-comportamental e por \texttt{mitigatedBy} com uma \texttt{Mitigation}
-(\texttt{RateLimitPolicy}, \texttt{ChallengeResponse}, \texttt{WAFRule}). A
-cadeia de evidência carrega o escopo dessa mitigação (Seção~\ref{sec:evidence}). A classe abstrata \texttt{ApplicationLayerAttack} se especializa
-em \texttt{SlowHTTPDoSFamily}, que por sua vez se divide em
-\texttt{ConnectionExhaustionAttack} (Slowloris, \textit{slow body}, \textit{slow read}) e
-\texttt{CoordinatedHTTPFlood} (HULK, GoldenEye), a classe que nossa regra deriva.
-A ontologia está alinhada ao STIX~2.1~\cite{oasis2021stix} e ao MITRE ATT\&CK.
+Esta seção define o modelo de ameaça, o gatilho, o escopo e a sua calibração, o piso que resulta dela e a especificação na ontologia (Fig.~\ref{fig:pipeline}).
 
 \subsection{Modelo de Ameaça}
 \label{sec:threat}
 
-O defensor opera a aplicação atacada e observa, a cada requisição, o
-\textit{ClientHello} TLS (e, portanto, uma impressão digital JA4), o endereço e o
-prefixo/ASN de origem, o \textit{endpoint} alvo, o instante de chegada e todo
-material de identidade que a aplicação expõe. Ele não vê o canal de controle da
-\textit{botnet} nem sabe quais origens são coordenadas. Pode, porém, traçar o
-perfil do tráfego do próprio serviço fora dos episódios de ataque. O atacante
-controla $K$ dispositivos comprometidos e pode moldar cada sessão para que seja
-estatisticamente indistinguível de uma legítima, o que constitui a premissa de furtividade da nossa avaliação. O dano é o esgotamento da capacidade: cada sessão ocupa uma
-conexão e um \textit{worker}, como faria uma sessão legítima. Nenhuma taxa por
-sessão sobe, e a taxa agregada cresce apenas na proporção da fatia que a campanha representa no tráfego do \textit{endpoint}. Temporização, identidades e cargas úteis
-podem receber ruído, ser rotacionadas ou aleatorizadas, cada uma a um custo
-operacional que a ponderação da Seção~\ref{sec:family} codifica. A pilha TLS é
-mais difícil de trocar, porque é fixada pela biblioteca embarcada em cada dispositivo, como nas \textit{botnets} de roteadores, câmeras e DVRs da linhagem
-Mirai~\cite{antonakakis2017mirai}. Para apresentar o \textit{ClientHello} de um
-navegador, o atacante precisaria instalar em cada dispositivo uma biblioteca de imitação e mantê-la em dia com as versões dos navegadores. \textit{Bots} que fazem isso, como fazendas de navegadores \textit{headless} ou \textit{bots} construídos sobre bibliotecas de imitação de TLS, ficam fora deste modelo, e as
-Seções~\ref{sec:collateral} e~\ref{sec:discussion} os avaliam como a fronteira do modelo.
+O defensor opera a aplicação atacada e observa, por requisição, o \textit{ClientHello} TLS, o endereço de origem com o prefixo e o ASN, o endpoint de destino, a hora de chegada e qualquer material de identidade que a aplicação exponha. A partir do \textit{ClientHello} ele calcula uma impressão digital JA4~\cite{althouse2023ja4}, que resume a versão do TLS, as suítes de cifras, as extensões e o ALPN. O defensor não vê o canal de controle da botnet nem quais origens estão coordenadas, mas pode traçar o perfil do seu próprio tráfego fora dos episódios de ataque. O atacante controla $K$ dispositivos comprometidos e pode tornar cada sessão estatisticamente indistinguível de uma legítima, a premissa de furtividade da nossa avaliação. O dano vem da capacidade esgotada: cada sessão ocupa uma conexão e um processo de trabalho como uma sessão legítima ocupa, então nenhuma taxa por sessão sobe.
 
-\subsection{A Família \texttt{relatedTo} Ponderada}
-\label{sec:family}
+Também supomos que um bot mantém a impressão digital da sua pilha TLS: um bot que fala TLS usa a biblioteca que vem com o seu dispositivo ou com o seu kit de ferramentas, e as botnets de dispositivos comprometidos abrangem muitos modelos de roteador, câmera e DVR~\cite{antonakakis2017mirai}. Apresentar o \textit{ClientHello} de um navegador exige um navegador completo ou uma biblioteca de imitação mantida em dia com as versões dos navegadores~\cite{frolov2019tls}. Os bots que fazem isso, como fazendas de navegadores sem interface ou bots construídos sobre bibliotecas de imitação de TLS, ficam fora deste modelo, e a Seção~\ref{sec:results} os avalia como a fronteira do modelo.
 
-O vínculo entre sessões é modelado como uma família estruturada de relações. Cada membro é
-declarado com \texttt{rdfs:subPropertyOf} sob uma propriedade simétrica
-\texttt{relatedTo} e anotado com um peso \texttt{coordinationWeight}
-$w_i \in [0,1]$ (Fig.~\ref{fig:ontology}). Cada sub-relação, isto é, cada
-sub-propriedade de \texttt{relatedTo}, é instanciada de forma independente, a
-partir da sua própria evidência observada, de modo que duas sessões podem estar
-ligadas por uma, por várias ou pelas seis. Três das seis entram nesta avaliação (Apêndice~\ref{app:limitations}).
-
-Os pesos seguem o custo que o atacante tem para contornar cada sinal. A pilha TLS é
-fixada pela biblioteca de cada dispositivo, e o JA4 ordena as extensões antes de
-calcular o \textit{hash}, de modo que continua estável sob a aleatorização de
-extensões que quebra o JA3~\cite{althouse2023ja4}. Já as \textit{botnets} se espalham entre prefixos, e o NAT de operadora faz de um /24 compartilhado um mau discriminador, o que torna a proximidade de rede o elo mais fraco. O
-Apêndice~\ref{app:calibration} corrobora essa ordem e deixa em aberto os valores
-absolutos.
-
-\subsection{Regra de Detecção}
+\subsection{O Gatilho}
 \label{sec:rule}
 
-Seja $S_W$ o conjunto de sessões ativas na janela $W$. Para um subconjunto
-$S \subseteq S_W$ e um \textit{endpoint} candidato $e$, a
-\textit{massa de coordenação} é
+Para cada endpoint $e$ e janela de cinco minutos, sejam $S$ as sessões para $e$ e $n$ as suas origens distintas, isto é, endereços de origem, cada um contado uma vez por impressão digital que apresenta. O gatilho dispara quando $n \geq k_{\min} = 5$ e $n$ alcança o seu percentil 99 nas janelas sem ataque. Esse \textbf{gatilho de origens distintas} é o gatilho da avaliação em produção. A regra básica, a referência do protocolo do dia novo, tem como gatilho a massa de coordenação $\Omega(S)$ da regra da ontologia para a classe \texttt{CoordinatedHTTPFlood} alcançando o seu limiar $\tau_{\mathrm{cluster}}$ no mesmo percentil. $\Omega$ é uma contagem ponderada de pares de origens distintas cujas sessões compartilham uma JA4, um endpoint ou um prefixo /24 (Apêndice~\ref{app:algorithms}). Ela mede sobretudo volume: o seu termo de endpoint, $0{,}6\binom{n}{2}$, contribui com $91\%$ dela na campanha padrão (Listagem~\ref{lst:chain}, Apêndice~\ref{app:cost}). O que separa o ataque do tráfego legítimo é o escopo.
 
-\begin{equation}
-\Omega(S) \;=\; \sum_{i \in \mathcal{R}_{\mathrm{rel}}} w_i \,\big|E_i(S)\big| ,
-\label{eq:omega}
-\end{equation}
-em que $E_i(S)$ é o conjunto de pares de origens distintas $\{o(s_a), o(s_b)\}$,
-com $s_a, s_b \in S$, cujas sessões estão ligadas pela sub-relação $i$, e $o(s)$ é
-o endereço de origem de $s$. Cada par conta uma vez, para que as muitas sessões de
-um mesmo cliente não se passem por coordenação. A regra
-\texttt{CoordinatedHTTPFlood} vale quando existe $S$ com \1~ao menos $k_{\min}$
-origens; \2~$\langle s,\texttt{targets},e\rangle$ para toda $s \in S$, isto é, todas as
-sessões visam o mesmo \textit{endpoint}; e \3~$\Omega(S) \geq
-\tau_{\mathrm{cluster}}$. A regra só aciona a mitigação quando o teste de
-enriquecimento da Seção~\ref{sec:evidence} aponta alguma impressão digital. Na
-avaliação por janela, $S$ reúne todas as sessões que visam $e$
-(Apêndice~\ref{app:window}).
-
-Na escala da janela, essa massa mede essencialmente volume. Sob a condição \2, o termo de
-\textit{endpoint} vale $0{,}6\binom{n}{2}$ para $n$ origens e responde por $91\%$
-de $\Omega$ na campanha da Listagem~\ref{lst:chain} (Apêndice~\ref{app:cost}). Um
-limiar sobre o número de origens distintas da janela, calibrado da mesma forma que
-$\tau_{\mathrm{cluster}}$, funciona, portanto, como gatilho pelo menos tão bem quanto $\Omega$ (Apêndice~\ref{app:window}), e o discriminador vem do teste de enriquecimento.
-
-\subsection{Construção do Grafo em Tempo de Execução}
-\label{sec:pipeline}
-
-Sessões e relações são mantidas numa janela operacional deslizante ($W = 5$~min
-por padrão) e removidas de forma incremental, como no processamento de fluxos RDF,
-com materialização no Apache Jena Fuseki e armazenamento em TDB2 no protótipo. A avaliação calcula a mesma regra a partir das contagens de classe (Apêndices~\ref{app:cost} e~\ref{app:window}). O Apêndice~\ref{app:algorithms} traz o algoritmo de construção e o procedimento de
-cada sub-relação \texttt{relatedBy} para um par de sessões. Os casamentos exatos de
-JA4, de \textit{endpoint} e de prefixo são relações de equivalência. Cada um
-divide $S$ em classes, e $|E_i(S)| = \sum_k \binom{n_k}{2}$, em que $n_k$ é o
-tamanho de cada classe, contado em origens. Admitir uma sessão se resume, então, a acrescentar sua origem a uma classe de cada sub-relação desse tipo, uma inserção em tabela \textit{hash} cujo custo não depende de $|S_W|$. Assim, o cálculo de $\Omega(S)$ dispensa arestas entre pares. Apenas as relações não transitivas
-(JA4 por variante próxima, temporal e de carga útil) comparam pares candidatos, e
-índices de prefixo e \textit{hashing} sensível à localidade restringem esses pares.
-A Seção~\ref{sec:latency} mede os dois caminhos em função da ocupação da janela.
-
-O raciocínio simbólico tem dois estágios (Listagem~\ref{lst:rules}). O SWRL
-expressa cada sub-relação \texttt{relatedBy} como uma regra de Horn sobre os
-predicados que os extratores de evidência produzem, e os predicados numéricos, como
-a distância de \textit{dynamic time warping} (DTW), entram como uma comparação
-embutida com um limiar. Como o SWRL não soma, uma consulta SPARQL agrega os
-tamanhos das classes com os pesos que lê das anotações \texttt{coordinationWeight}.
-
-\subsection{Cadeia de Evidência e Escopo de Mitigação Derivado}
+\subsection{O Escopo e sua Calibração}
 \label{sec:evidence}
 
-Quando a regra dispara, o motor emite a regra satisfeita, as instâncias
-envolvidas, a decomposição de $\Omega(S)$ por sub-relação e o escopo de mitigação
-derivado. Exportamos esse conjunto em JSON-LD e em STIX~2.1, como um
-\textit{indicator} e um \textit{course-of-action} ligados por \textit{mitigates},
-para ingestão por ferramentas SIEM e SOAR.
+A forma como o escopo é escolhido decide se a mitigação ajuda ou prejudica. A escolha óbvia, a impressão digital mais comum (modal) do alarme, pega o que for comum, e num serviço sob ataque isso é a população legítima. Uma botnet de $A$ atacantes espalhada uniformemente por $M$ pilhas põe cerca de $0{,}9A/M$ em cada uma e o décimo restante em impressões digitais avulsas, enquanto a impressão digital legítima mais comum tem uma fração $p_1$ das $n_b$ origens legítimas. A impressão digital modal só é uma pilha do ataque enquanto $0{,}9A/M > p_1 n_b$. Com o valor medido $p_1 = 38{,}4\%$ das requisições (Seção~\ref{sec:method}), tomado como aproximação para as origens, e uma campanha do tamanho do tráfego legítimo, isso só vale enquanto $M < 2{,}3$. Com mais pilhas, cada uma menor, o filtro modal bloqueia usuários e nenhum atacante.
 
-A forma de escolher o escopo decide se o veredicto ajuda ou prejudica, e a
-escolha por frequência falha. Escolher a impressão digital modal do agrupamento, isto é, a mais frequente, é selecionar o que for comum, e num serviço sob ataque o que é comum é a
-população legítima. Quando a \textit{botnet} se espalha por várias pilhas TLS,
-cada pilha do atacante é menor que a cabeça da distribuição benigna. O valor modal
-passa a ser uma impressão digital \textit{legítima}, e o filtro resultante bloqueia usuários legítimos sem atingir nenhum atacante (Seção~\ref{sec:collateral}).
+Por isso comparamos o alarme com um \textbf{perfil} do tráfego normal do endpoint, que o operador mantém fora dos episódios de ataque. Seja $b(f)$ igual a $1/N$ mais a fração da impressão digital $f$ entre os $N$ pares origem--impressão digital agregados do perfil, $c(f)$ o número de origens do alarme que apresentam $f$, e $n = \sum_f c(f)$. O \textbf{teste binomial de enriquecimento} aponta toda $f$ que seja ao mesmo tempo enriquecida, $c(f)/n \geq \rho\, b(f)$ com $\rho = 3$, e improvável sob a distribuição de referência binomial no nível $\lambda_e$, $\Pr[X \geq c(f)] < \lambda_e/|F|$ para $X \sim \mathrm{Bin}(n, b(f))$. O divisor de Bonferroni $|F|$ conta as impressões digitais do perfil e do alarme. O resultado é um \textit{conjunto} de impressões digitais, então ele cobre uma botnet dividida entre muitas pilhas. Um \textbf{escore $z$} por impressão digital, de $c(f)$ em relação a $\mathrm{Bin}(n, b(f))$, fornece um escopo relativo ao perfil mais simples. O \textbf{filtro de impressões inéditas} aponta as impressões digitais ausentes do perfil e vistas em pelo menos $k_{\min}$ origens, e não precisa de estatísticas do perfil. Unido ao teste (a \textbf{união}), ele pega pilhas novas pequenas demais para o nível.
 
-Por isso selecionamos o discriminador por \textbf{enriquecimento}. Seja $c(f)$ o
-número de origens com a impressão digital $f$ no agrupamento que disparou a regra,
-$n = \sum_f c(f)$, e $b(f)$ a prevalência de $f$, acrescida de $1/N$, entre os $N$
-pares origem--impressão digital de um perfil de tráfego normal que o operador
-mantém fora dos episódios de ataque. O escopo admite toda impressão digital $f$ que seja,
-ao mesmo tempo, enriquecida, $c(f)/n \geq \rho\, b(f)$, e improvável sob a distribuição
-de referência, $\Pr[X \geq c(f)] < \lambda_e/|F|$ para $X \sim \mathrm{Bin}(n, b(f))$.
-O divisor de Bonferroni $|F|$ conta as impressões digitais do perfil e do
-agrupamento. Em outras palavras, $f$ entra no escopo quando a fração de origens do
-agrupamento que a apresentam é pelo menos $\rho$ vezes a sua prevalência no
-tráfego normal e quando uma contagem tão alta seria improvável por acaso. O
-resultado é um \textit{conjunto} de impressões digitais, capaz de cobrir uma \textit{botnet} fragmentada. No tráfego de produção, frotas de clientes legítimos
-que entram em atividade ao mesmo tempo quebram a hipótese de independência da
-binomial (Apêndice~\ref{app:window}). Calibramos, então, o nível de significância $\lambda_e$ por \textit{endpoint} $e$, do mesmo modo que $\tau_{\mathrm{cluster}}$: ele é o maior valor, até
-$0{,}01$, com o qual o escopo produz um filtro em no máximo $1\%$ das janelas
-livres de ataque. Isso impõe ao teste um piso de calibração. Entre $n$ origens, ele só aponta uma
-pilha a partir da menor contagem $c$ com $\Pr[X \geq c] < \lambda_e/|F|$, de modo
-que a menor \textit{botnet} que ele consegue apontar cresce à medida que o nível cai
-(Seção~\ref{sec:production}). Como as frotas também tornam as contagens
-sobredispersas, avaliamos ainda uma variante cuja distribuição de referência é uma
-beta-binomial ajustada para cada impressão digital nas janelas de calibração. Usamos $\rho = 3$. No tráfego gerado, em que cada
-sessão tem origem própria, $\lambda_e$ permanece em $0{,}01$.
+No tráfego gerado, cada origem carrega uma sessão, e o nível $\lambda_e$ fica em $0{,}01$. No tráfego de produção, \textit{frotas} de clientes legítimos entram em atividade ao mesmo tempo e violam a independência da binomial. Por isso fixamos $\lambda_e$, por endpoint $e$, num quantil empírico: o maior valor até $0{,}01$ com o qual o escopo produz um filtro em no máximo $1\%$ das janelas de calibração sem ataque do endpoint (o \textit{orçamento}), cerca de 2,9 das 288 janelas de um dia. Em níveis como $10^{-60}$, a cauda binomial deixa de dar a probabilidade dos dados. Ela age como um escore cujo limiar o quantil fixa. O limiar do escore $z$ segue o mesmo orçamento, como o percentil 99 do maior $z$ de cada janela de calibração, nunca abaixo de 3. Os dois orçamentos valem nas janelas de calibração por construção, e a Seção~\ref{sec:production} mede o quanto eles valem nos dias seguintes.
 
-O perfil de referência precisa vir de fora do episódio de ataque, porque a campanha
-ocupa toda a janela e, de outro modo, daria a todo candidato um enriquecimento
-igual a um. Nenhum rótulo é usado: o perfil é o que um defensor observa em
-operação normal. Um adversário que se esconde atrás de uma impressão digital
-benigna popular, portanto, não aparece enriquecido, e a abordagem se abstém de
-definir um escopo e informa que não há discriminador.
+O perfil reflete o que o defensor vê em operação normal, então nenhum rótulo de ataque é necessário. Ele precisa excluir o episódio de ataque, porque, do contrário, uma campanha que ocupasse a janela inteira daria a todo candidato um enriquecimento igual a um. Inversamente, atacantes escondidos dentro de uma impressão digital legítima popular não a enriquecem, então o teste não a aponta, o que é correto quando nada distingue o ataque do tráfego legítimo.
+
+\subsection{O Piso de Calibração}
+\label{sec:floor}
+
+O nível calibrado tem um preço, o \textbf{piso de calibração}: o tamanho de botnet a partir do qual o escopo aponta uma pilha típica. Entre $n$ origens, o teste aponta uma pilha de $c$ atacantes só se $c/n \geq \rho\, b(f)$ e $\Pr[X \geq c] < \lambda_e/|F|$. O piso é a menor botnet de $A$ atacantes em $M$ pilhas cuja pilha média satisfaz as duas condições, com $0{,}9A/M$ atacantes numa janela de $n_0 + A$ origens, em que $n_0$ é a janela mediana dos dias de calibração. Níveis mais baixos, mais exigentes, elevam o piso. Na união, o filtro de impressões inéditas aponta uma pilha ausente do perfil assim que ela tem $k_{\min}$ origens, o que exige $\lceil k_{\min} M/0{,}9 \rceil$ atacantes qualquer que seja o nível, 139 para $M = 25$. O piso do nível importa, portanto, nas pilhas que clientes reais também apresentam, e ali $\rho$ fixa um \textit{limite da razão} para o que pode ser apontado. A fração esperada de uma pilha na janela fica abaixo de $0{,}9/M$, então não se espera que uma botnet em $M$ pilhas enriqueça uma impressão digital cuja fração passe de $0{,}9/(\rho M)$, $1{,}2\%$ para $M = 25$ e $\rho = 3$.
+
+Avaliamos duas formas de baixar o piso. A primeira isenta as \textit{frotas conhecidas} do endpoint, as impressões digitais apontadas no nível $0{,}01$ em pelo menos $5\%$ das janelas de calibração, do escopo e da calibração. A isenção é uma lista de exceções para o endpoint mais movimentado e para a API, e cobre impressões digitais que juntas somam até cerca de $7\%$ dos seus perfis, de modo que o escopo nunca bloqueia um bot que apresente a impressão digital de uma frota. A segunda, construída depois de o dia novo ter sido lido (Seção~\ref{sec:posthoc}), é uma \textbf{distribuição de referência beta-binomial}, que admite correlação dentro da janela. A sua correlação $\phi(f)$ é estimada pelo método dos momentos, por impressão digital do perfil, nas janelas de calibração, a partir de $\mathrm{Var}[c(f)] = n b(1-b)\bigl(1 + (n-1)\phi\bigr)$, limitada a $[0;\, 0{,}99]$, e cada contagem é testada contra uma beta-binomial com a mesma média. Uma impressão digital ausente do perfil continua binomial.
+
+\subsection{A Ontologia de Sessão como Especificação}
+\label{sec:ontology}
+\label{sec:pipeline}
+
+Todas as contagens acima são especificadas na ontologia de sessão, que é o que um operador implantaria. A sua classe central, \texttt{ApplicationSession}, liga uma sessão à sua \texttt{Identity}, ao \texttt{IPAddress} de origem e ao \texttt{Endpoint}. Um \texttt{Attack} se liga à sua \texttt{Mitigation}, cujo escopo a cadeia de evidência carrega. Subpropriedades de uma \texttt{relatedTo} simétrica classificam a evidência que liga duas sessões (Apêndice~\ref{app:algorithms}). As três usadas aqui são igualdades: compartilhar uma JA4, um endpoint ou um prefixo /24 divide as sessões em classes. A ontologia anota cada igualdade com a propriedade de sessão que ela compara, e \texttt{relatedTo} com a unidade em que conta. A partir dessas anotações compilamos as consultas SQL que devolvem, por janela e endpoint, os tamanhos das classes que o gatilho, a regra básica e o escopo leem, dado apenas um mapeamento de propriedade para coluna. Nenhum raciocinador roda na avaliação. Um novo sinal de igualdade chega à consulta compilada por meio de quatro triplas, mais um mapeamento para qualquer propriedade de sessão nova, sem mudança de código. Quando a regra dispara, a cadeia de evidência (a regra, o agrupamento, o escopo e a divisão de $\Omega(S)$ por sub-relação) é exportada em JSON-LD (Listagem~\ref{lst:chain}, Apêndice~\ref{app:cost}) e em STIX~2.1~\cite{oasis2021stix}, como um \textit{indicator} e um \textit{course-of-action} ligados por \textit{mitigates}.
 
 %% ====================================================================
 \section{Metodologia de Avaliação}
 \label{sec:method}
 
-Cada fonte de tráfego responde a uma pergunta. Um gerador calibrado com sessões benignas do CICIDS2017 e com JA4 medidos numa CDN de produção fornece as campanhas controladas da avaliação principal. Capturas de laboratório testam ataques convencionais e permitem a comparação com o sistema publicado mais próximo, e oito dias de tráfego dessa CDN medem os falsos alarmes da regra e, com uma \textit{botnet} injetada, sua capacidade de detecção. Em seguida apresentamos as linhas de base, as configurações da ablação e as métricas.
+Usamos três fontes de tráfego, cada uma respondendo a uma pergunta diferente. Um gerador, calibrado em sessões benignas do CICIDS2017 e em impressões digitais JA4 medidas numa CDN, executa as campanhas controladas. Capturas de laboratório testam ataques convencionais e permitem uma comparação não controlada com o resultado publicado do KLAGE, o sistema mais próximo (Apêndice~\ref{app:limitations}). O tráfego da CDN, ao longo de 23 dias, mede os falsos alarmes dos escopos e, com botnets injetadas, a sua detecção.
 
 \subsection{Cenários e Conjuntos de Dados}
 
-A avaliação é parametrizada pelo \textit{grau de distribuição} $K$ da campanha,
-isto é, o número de dispositivos que o atacante controla. Reportamos $K = 50$, uma \textit{botnet} pequena cujas origens ficam, cada uma, dentro do próprio limite de taxa, e $K = 1000$, uma campanha espalhada por centenas de ASNs e prefixos, com sinal por sessão desprezível e a sub-relação \texttt{relatedByNetworkProximity} quase vazia. Uma origem única fica a cargo dos detectores volumétricos.
+\textbf{Avaliação controlada: tráfego sintético calibrado.} Um gerador produz campanhas distribuídas de Slow HTTP DoS contra um endpoint, com rótulos verdadeiros conhecidos. O seu parâmetro principal é o \textit{grau de distribuição} $K$, o número de dispositivos controlados pelo atacante. Reportamos $K = 50$, uma botnet pequena cujas origens ficam, cada uma, abaixo do seu próprio limite de taxa, e $K = 1000$, espalhada por centenas de ASNs e prefixos, quase sem sinal por sessão. A popularidade das impressões digitais legítimas segue uma curva de Zipf com expoente $\alpha$, porque as populações reais são concentradas. Comparamos essa curva com $6{,}33$ milhões de requisições TLS registradas num ponto de presença de borda em produção da Azion Technologies\footnote{Medidas em 22 de agosto de 2026, a partir de um log de acesso que a plataforma já coleta. O extrato contém apenas as impressões digitais do software dos clientes e as suas frequências, sem endereço, host, URI, cabeçalho ou localidade.}: $495$ impressões digitais distintas, a mais comum com $38{,}4\%$ das requisições e as dez mais comuns com $93{,}8\%$. O começo da curva medida corresponde a $\alpha = 1{,}5$ e as suas dez primeiras a $\alpha = 2{,}0$, e usamos $\alpha = 1{,}5$ por padrão.
 
-\textbf{Avaliação principal: tráfego sintético calibrado.} Um gerador produz
-campanhas distribuídas de Slow HTTP DoS, a família da Seção~\ref{sec:ontology}:
-sessões sustentadas, de baixa taxa, contra um único \textit{endpoint}, com a
-coordenação conhecida de antemão (verdade de referência). As campanhas são
-parametrizadas por $K$, pela fração de origens que compartilham impressão digital
-TLS e identidade, pela dispersão de IP e de ASN e pela janela de tempo.
+Nenhuma medição publicada fixa como as botnets se espalham pelas pilhas, então variamos isso: $90\%$ da campanha se espalha por $M$ pilhas, uniformemente ao acaso, o caso mais difícil, em valor esperado, para apontar uma pilha com um dado $M$, e o restante por impressões digitais avulsas. O padrão é $M = 25$. Um modo \textit{compartilhado} sorteia as pilhas da cauda do perfil, que clientes reais também apresentam, e um modo \textit{adversarial} dá à botnet as impressões digitais legítimas mais comuns, como faria um bot que imita um navegador.
 
-Dois parâmetros do gerador decidem se o cenário se aproxima do tráfego de produção: a
-popularidade das impressões digitais benignas, que medimos, e a composição da
-\textit{botnet}, que nenhuma medição publicada fixa e que por isso variamos. O
-primeiro segue uma curva de Zipf de expoente $\alpha$. Populações reais são
-concentradas, já que um navegador atualizado numa dada plataforma emite
-essencialmente um único JA4~\cite{althouse2023ja4}. Calibramos essa curva com $6{,}33$ milhões de requisições TLS registradas em produção num ponto de presença de
-borda da Azion Technologies\footnote{A medição foi feita em 22 de agosto de 2026, a partir de um \textit{log} de acesso que a plataforma já coleta. O extrato guarda apenas
-impressões digitais de software cliente e suas frequências, sem endereço,
-\textit{host}, URI, cabeçalho ou localidade.}: $495$ impressões digitais
-distintas, com a mais comum respondendo por $38{,}4\%$ das requisições e as dez
-primeiras por $93{,}8\%$. A curva medida fica entre $\alpha = 1{,}5$ e
-$\alpha = 2{,}0$. Tomamos $\alpha = 1{,}5$ como valor canônico e varremos a faixa.
-Quanto à composição, \textit{botnets} reais abrangem classes de dispositivo como
-roteadores, câmeras IP e DVRs~\cite{antonakakis2017mirai} e, com elas, várias
-pilhas TLS. Distribuímos $90\%$ da campanha de maneira uniforme por $M$ pilhas, a
-escolha conservadora para um dado $M$, e o restante por impressões digitais únicas. Tomamos $M = 25$ como valor canônico. Um modo \textit{adversarial} deixa
-a \textit{botnet} adotar as impressões digitais benignas mais comuns, como faria um \textit{bot} que imita um navegador, e marca a fronteira do modelo de ameaça. O
-Apêndice~\ref{app:calibration} descreve a medição e suas ressalvas.
+As contagens de requisições e as durações legítimas são sorteadas de sessões benignas do CICIDS2017 (Apêndice~\ref{app:calibration}), então as distâncias de Kolmogorov--Smirnov de $D = 0{,}002$ e $0{,}003$ entre as sessões geradas e as reais só conferem o sorteio. No modo \textit{furtivo}, cada sessão de ataque sorteia os seus atributos das mesmas distribuições, então a campanha só aparece na estrutura entre sessões. Os atacantes começam nos primeiros 30~s, o que torna a campanha uma fração grande do tráfego com que ela coincide: em mediana, $34$--$45\%$ das origens de uma janela e $50\%$ do \textit{agrupamento} do alarme. O agrupamento encadeia as sessões do endpoint enquanto cada uma começa até 300~s depois da anterior.
 
-As distribuições legítimas são calibradas com as $\sim$322 mil sessões benignas do
-CICIDS2017 e verificadas por testes de Kolmogorov--Smirnov: $D = 0{,}003$ para a
-duração e $D = 0{,}002$ para a contagem de requisições, ambos com $p > 0{,}8$. Com isso, as distribuições marginais geradas coincidem com as do CICIDS2017. Um modo \textit{furtivo} sorteia as sessões do atacante das mesmas
-distribuições do tráfego benigno, de modo que a campanha só se revela pela
-estrutura entre sessões.
+\textbf{Tráfego de produção.} Usamos oito dias de quatro endpoints dos próprios serviços da Azion: sinais de monitoramento de usuários reais (E1), um console web (E2), uma API (E3) e um login único (E4), cujas janelas medianas têm cerca de $3\,000$, 62, 41 e 20 origens. Dos 12 endpoints exportados, são os quatro que usam TLS e têm pelo menos 50 janelas de calibração e uma janela mediana de pelo menos $k_{\min}$ origens. As exportações contam as origens distintas e as conexões por impressão digital e por janela, mais os pares no mesmo /24 por janela. O escopo é avaliado offline, atrás do WAF do operador, então os perfis e os pisos descrevem os clientes que o WAF deixa passar. Os dias de calibração são tratados como sem ataque: um ataque neles baixaria o nível e elevaria o limiar do gatilho, deixando os dois mais cautelosos. As janelas dos dias de teste antes da injeção (\textit{limpas}) também são tomadas como sem ataque, então um ataque real nelas contaria como falso alarme.
 
-\textbf{Capturas de laboratório.} O CICIDS2017~\cite{sharafaldin2018cicids}
-(captura de quarta-feira: Slowloris, Slowhttptest, HULK, GoldenEye) e o
-CIC-IoT2023~\cite{neto2023ciciot} (DDoS Slowloris e HTTP Flood) passam pelo mesmo
-\textit{pipeline} de extração (PCAP $\rightarrow$ JA4 + fluxos $\rightarrow$
-sessões $\rightarrow$ grafo). O CIC-IoT2023 é o conjunto em que o KLAGE reporta
-$F_1 = 84{,}1\%$ para \texttt{DDoS Slowloris}.
-\textbf{Tráfego de produção.} Usamos oito dias de tráfego da CDN da Azion, na forma de
-contagens de origens distintas, de conexões e de pares no mesmo /24, por impressão
-digital e por janela de cinco minutos, e um nono dia, analisado com todas as escolhas fixadas de antemão (Seção~\ref{sec:production}).
+Cada um dos últimos cinco dias é testado com o perfil, os limiares e o nível dos dias anteriores. Em cada uma das suas janelas, injetamos uma botnet construída como o gerador constrói uma. Ela tem de 25 a 1\,000 atacantes, ou de um décimo da janela mediana (\textit{um décimo}) até a janela mediana inteira. Ela põe $90\%$ dos seus atacantes em 25 pilhas, uniformemente ao acaso, e o restante em impressões digitais avulsas que nenhum escopo aponta, então no máximo cerca de $90\%$ podem ser bloqueados. As suas pilhas estão ausentes do tráfego (\textit{novas}), são sorteadas do perfil depois das suas dez impressões digitais mais comuns (\textit{compartilhadas}) ou são as 25 impressões digitais mais comuns do endpoint (\textit{adversariais}). Um pico legítimo de acesso acrescenta 100 ou 1\,000 usuários, sorteados dos próprios clientes do dia, a uma janela. Um nono dia, o \textit{dia novo}, e mais 14, o \textit{bloco}, foram analisados da forma fixada de antemão.
 
 \subsection{Linhas de Base, Configurações e Métricas}
+\label{sec:configs}
 
-Cada configuração da ablação roda com $n = 30$ sementes distintas, com cada campanha dividida em 70/30 entre sessões de treino e de teste, o que fornece intervalos de confiança por \textit{bootstrap} e permite testes pareados. Todas as
-configurações consomem os mesmos atributos de tráfego. Assim, com a
-disponibilidade de dados fixa, a ablação isola o efeito da \textit{representação}.
-Em cada cenário, $\tau_{\mathrm{cluster}}$ é fixado no percentil 99 de $\Omega$
-sobre agrupamentos legítimos, e $\lambda_e$ de modo que o escopo produza um filtro
-em no máximo $1\%$ deles.
+No tráfego gerado, comparamos quatro escopos sobre o agrupamento do alarme: a impressão digital modal, o filtro de impressões inéditas, o escore $z$ ($z > 3$) e o teste binomial. A linha de base aprendida é uma Random Forest treinada com os rótulos da campanha sobre a evidência entre sessões das três sub-relações (configuração (d) do Apêndice~\ref{app:limitations}). Ela é mantida em zero falso positivo, que o teste alcança onde quer que o modelo aprendido rode, exceto no caso adversarial. No tráfego de produção, avaliamos as configurações da Tabela~\ref{tab:configs}, cujos limiares, níveis e frotas conhecidas são ajustados em dias sem ataque. \textit{Em amostra}, cada dia de calibração é julgado em relação a um perfil que o inclui, então as suas próprias frotas parecem menos enriquecidas. A \textit{calibração cruzada}, construída \textit{post hoc}, julga cada dia de calibração, como um dia de teste, em relação a um perfil dos outros dias.
 
-A linha de base por sessão é deliberadamente \textbf{forte}: uma \textit{Random Forest} (RF) sobre todos os oito a nove atributos de fluxo disponíveis (contagem e duração
-das requisições, somas de bytes e de pacotes nos dois sentidos, média e desvio
-padrão do intervalo entre requisições). Para que o resultado negativo não dependa
-de uma única classe de modelos, repetimos o experimento com \textit{gradient
-boosting} por histograma, um \textit{perceptron} multicamadas e regressão
-logística sobre os mesmos atributos. Reimplementamos também três linhas de base
-acadêmicas: perfilamento por PCA~\cite{fernandes2015autonomous}, PCA seguida de
-agrupamento por $k$-médias sobre uma matriz comportamental~\cite{bharathi2012pca}
-e RF/SVM supervisionados sobre atributos de sessão~\cite{kemp2023approach}.
-Também comparamos nossos resultados com os números publicados do KLAGE no mesmo conjunto de dados e no mesmo ataque. As
-quatro configurações da ablação são: \textbf{(a)} a linha de base de aprendizado
-de máquina, sem ontologia; \textbf{(b)} a ontologia \textit{sem} sub-relações
-\texttt{relatedBy}, com as sessões como nós isolados; \textbf{(c)} a ontologia
-\textit{apenas} com \texttt{relatedByNetworkProximity}, que emula um detector
-ingênuo por ASN ou prefixo; e \textbf{(d)} a representação completa entre
-sessões, sobre as três sub-relações observáveis no tráfego avaliado. Assim,
-(d)$-$(a) mede a contribuição total, (d)$-$(b) o ganho de representar a
-estrutura entre sessões, e (d)$-$(c) o ganho dos sinais de peso alto sobre a
-proximidade de rede.
+Cinco escolhas foram feitas nos dias de teste: contar origens, calibrar $\lambda_e$, o gatilho, a união com o filtro de impressões inéditas e a fração de $5\%$ que define uma frota conhecida. Das quatro frações, cada uma somada à regra básica, só a de $5\%$ não teve mais falsos alarmes que a regra sozinha nos três primeiros dias de teste, embora a de $0{,}5\%$ bloqueasse cerca de 25 vezes menos clientes legítimos e uma parte maior de uma botnet de 100 atacantes (Apêndice~\ref{app:window}). Os valores $\rho = 3$ e $k_{\min} = 5$, o percentil 99 para $\tau_{\mathrm{cluster}}$ e a botnet de 25 pilhas foram fixados no tráfego gerado antes de qualquer dado de produção ser lido.
 
-O escopo é comparado com escopos mais simples, sobre o mesmo alarme: a impressão
-digital modal do agrupamento; um filtro das impressões digitais ausentes do perfil
-e vistas em ao menos $k_{\min}$ origens (\textit{inéditas}); e um $z$-score por impressão digital em relação ao perfil ($z > 3$). No tráfego de produção, esse $z$-score e um segundo, que compara cada impressão digital com o seu próprio histórico de calibração, também rodam em versão calibrada. Seus limiares são elevados, por \textit{endpoint}, até o orçamento do teste de enriquecimento: um filtro em no máximo $1\%$ das janelas livres de ataque. As pilhas que o gerador atribui à \textit{botnet} nunca aparecem no vocabulário benigno. Um modo \textit{compartilhado} as sorteia do perfil, excluídas as suas dez impressões digitais mais comuns, como faz a injeção no
-tráfego de produção.
+\begin{table}[t]
+\centering
+\caption{As configurações avaliadas no tráfego de produção.}
+\label{tab:configs}
+\scriptsize
+\setlength{\tabcolsep}{1.0pt}
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+\textbf{Configuração} & \textbf{Gatilho} & \textbf{Escopo} & \textbf{Distribuição} & \textbf{Isenção} & \textbf{Escolhida} & \textbf{Dia novo} \\
+\midrule
+Regra básica  & $\Omega \geq \tau$ & teste               & binomial  & --      & dias de teste & no protocolo \\
+Binomial      & origens            & teste $\cup$ inéditas & binomial  & frotas  & dias de teste & no protocolo \\
+Escore $z$    & origens            & $z >$ seu p99       & binomial  & --      & dias de teste & fora$^{a}$ \\
+Beta-binomial & origens            & teste $\cup$ inéditas & beta-bin. & --      & \textit{post hoc} & \textit{post hoc}$^{*}$ \\
+\bottomrule
+\end{tabular}
 
-A configuração (d) consome a evidência entre sessões na forma de
-\textit{atributos}: a fração do agrupamento que compartilha o mesmo JA4 ou o mesmo
-/24, mais o seu tamanho. Esse substituto da família \texttt{relatedBy}
-em nível de atributos mantém todas as configurações iguais em dados e em
-classificador.
+\vspace{2pt}
+{\footnotesize $^{*}$\textit{Post hoc}: construída depois de o dia novo ter sido lido. $^{a}$No código antes de o dia ser lido, mas fora do seu protocolo.}
+\end{table}
 
-Além das métricas usuais de classificação, reportamos o \textbf{dano colateral}:
-a fração do tráfego legítimo que cai dentro do escopo derivado do veredicto. É a
-taxa de falsos positivos do filtro que um operador de fato aplicaria, e ela pode
-diferir muito da taxa do detector (Seção~\ref{sec:collateral}).
+Também reportamos o \textbf{dano colateral}, a fração do tráfego legítimo dentro do escopo: a taxa de falsos positivos do filtro que um operador implantaria. No tráfego de produção, cada configuração tem uma taxa de falsos alarmes (FA), a fração das janelas limpas em que ela produz um filtro (5\,643 nos dias de teste e 1\,152 no dia novo, deixando de fora as janelas com menos de $k_{\min}$ origens). O seu intervalo exato de 95\% supõe janelas independentes, embora os falsos alarmes se concentrem por dia. Cada alarme também tem um dano colateral (Col.), a fração dos clientes daquela janela que o filtro bloqueia, dado como a mediana sobre os alarmes. A taxa vezes o dano colateral médio é a fração esperada de clientes bloqueados por janela limpa.
+
+As tabelas também reportam a taxa do escopo sem o gatilho (Sem gatilho, o escopo como gatilho), a taxa sob um pico legítimo de 1\,000 usuários (Fl.\,1k) e a fração bloqueada de botnets do tamanho de uma janela mediana ou de um décimo dela ($1\times$, $0{,}1\times$). Essa fração é a média sobre todas as janelas de ataque, inclusive aquelas em que o gatilho não dispara. Ela é o produto de quantas vezes o gatilho dispara, de quantas vezes o escopo aponta a botnet quando o gatilho dispara e da fração dos atacantes que o filtro produzido cobre.
 
 %% ====================================================================
 \section{Resultados}
 \label{sec:results}
 
-Os resultados seguem a ordem das afirmações que sustentam: a ablação sob campanhas furtivas distribuídas, a regra e seu escopo em tráfego gerado, o dano colateral do escopo, o escopo no tráfego de produção e o custo de execução.
+Primeiro mostramos o mecanismo no tráfego gerado. No tráfego de produção, os falsos alarmes ficam baixos, mas a calibração fixa um piso, o gatilho decide o que é detido, e em 14 dias especificados de antemão a taxa dobra e ainda assim fica dentro do orçamento.
 
-\subsection{Ablação em Campanhas Furtivas Distribuídas}
-\label{sec:ablation}
-
-A detecção por sessão fica no nível do acaso em campanhas furtivas distribuídas nas
-quais os usuários legítimos acessam o \textit{mesmo} \textit{endpoint} e a mesma
-porta do ataque, de modo que nem o volume de fluxo nem a porta de destino separam
-as classes. Em $K = 50$ e $K = 1000$, a configuração (a), com o conjunto completo de
-atributos de fluxo, alcança uma ROC AUC por sessão de $0{,}498$ e $0{,}503$, a
-configuração (b) fica em $0{,}500$ e $0{,}502$, e as três linhas de base acadêmicas
-variam de $0{,}495$ a $0{,}518$. A configuração (a) permanece entre $0{,}488$ e
-$0{,}503$ com qualquer família de classificador ($\alpha = 1{,}5$, $M = 25$, $n = 30$
-sementes). É o esperado, porque cada sessão do atacante é sorteada, por construção,
-das distribuições benignas, o que situa o colapso na representação. A representação
-entre sessões (d) alcança $0{,}927$ e $0{,}982$, e a configuração (c), restrita à
-proximidade de rede, apenas $0{,}499$ e $0{,}659$, porque a \textit{botnet} está
-dispersa. Testes de Wilcoxon pareados, com correção de Bonferroni para quatro
-comparações, indicam que as diferenças \textbf{(d)$-$(c)} e \textbf{(d)$-$(a)} são
-significativas em $K = 1000$ ($p_{\mathrm{Bonf}} = 7{,}5\times 10^{-9}$, $d$ de Cohen
-de $13{,}5$ e $22{,}3$). Como as sementes vêm de um único gerador, os testes mostram
-uma diferença estável entre os sorteios que ele produz.
-
-Essa separabilidade não se generaliza para outro número de pilhas. Quando a \textit{botnet} se fragmenta em $M$
-pilhas, a evidência entre sessões se torna \textit{não monotônica} em relação ao
-rótulo: em $K = 1000$, um atacante compartilha a impressão digital com algumas
-dezenas de outras sessões, e um cliente legítimo da cabeça da distribuição benigna,
-com centenas. O atacante fica, assim, numa faixa intermediária. Comitês de árvores
-conseguem isolar essa faixa ($0{,}92$ a $0{,}99$), o \textit{perceptron} chega a
-$0{,}86$ e $0{,}95$, e a regressão logística, cuja resposta a cada atributo é
-monotônica, fica em $0{,}87$ e $0{,}80$. Treinada em campanhas de cinco pilhas e
-testada em campanhas de 25 ou de 100, a configuração (d) cai para $0{,}61$ e
-$0{,}63$. Treinada em 25 e testada em cinco, cai para $0{,}48$
-(Apêndice~\ref{app:limitations}): a \textit{Random Forest} aprende a faixa que um dado $M$ produz.
-A regra dispensa rótulos: ela lê um perfil de tráfego normal e mantém uma revocação
-de cerca de $90\%$ para todo $M$ até 25 (Tabela~\ref{tab:symbolic}).
-
-O fato de (b) também ficar no nível do acaso mostra que atributos por sessão não bastam e
-que a detecção depende da evidência entre sessões. Os sete
-agrupamentos de ataque das duas capturas de laboratório (seis ataques e a classe
-DoS-Other do CICIDS2017) vêm de uma a sete origens num único /24. São inundações que um limite por prefixo conseguiria conter. Nessas capturas, basta um classificador forte por sessão ($F_1 = 0{,}900$ no \texttt{DDoS Slowloris} do CIC-IoT2023, Apêndice~\ref{app:limitations}). Por isso, a cadeia de evidência da Listagem~\ref{lst:chain} é a de uma campanha canônica gerada.
-
-\subsection{A Própria Regra como Detector}
+\subsection{O Escopo no Tráfego Gerado}
 \label{sec:symbolic-detector}
+\label{sec:collateral}
+\label{sec:ablation}
 
 \begin{table}[t]
 \centering
-\caption{O escopo por enriquecimento do agrupamento de maior $\Omega$ como detector.}
+\caption{Escopos do agrupamento do alarme como detectores.}
 \label{tab:symbolic}
 \scriptsize
-\setlength{\tabcolsep}{2.6pt}
-\begin{tabular}{@{}lcccccc@{}}
+\setlength{\tabcolsep}{1.0pt}
+\begin{tabular}{@{}lcccccccc@{}}
 \toprule
- & \multicolumn{3}{c}{\textbf{Regra, sem rótulos}} & & \multicolumn{2}{c}{\textbf{Aprendido, TFP $= 0$}} \\
-\cmidrule(lr){2-4}\cmidrule(l){6-7}
-\textbf{Cenário} & \textbf{Revoc.} & \textbf{TFP} & \textbf{$F_1$} & \textbf{Inéditas} & \textbf{(d)} & \textbf{+ perfil} \\
+ & \multicolumn{3}{c}{\textbf{Teste binomial}} & \multicolumn{3}{c}{\textbf{Outros escopos}} & \multicolumn{2}{c}{\textbf{Aprend., TFP$=0$}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(l){8-9}
+\textbf{Cenário} & \textbf{Revoc.} & \textbf{TFP} & \textbf{$F_1$} & \textbf{Modal} & \textbf{Escore $z$} & \textbf{Inéditas} & \textbf{(d)} & \textbf{+ perfil} \\
 \midrule
-Monolítica ($M{=}1$)      & 89,8\% & 0,00\% & 0,946 & 89,8\% & 91,7\% & 85,9\% \\
-$M{=}5$                   & 90,0\% & 0,00\% & 0,948 & 90,0\% & 88,6\% & 91,7\% \\
-$M{=}25$                  & 90,3\% & 0,00\% & \textbf{0,949} & 90,3\% & 36,4\% & 87,4\% \\
-$M{=}100$                 & 38,6\% & 0,00\% & 0,556 & 88,1\% & 17,6\% & 86,9\% \\
-$M{=}25$, compart.        & 85,4\% & 2,23\% & 0,910 & 0,0\% & -- & -- \\
-$M{=}25$, adversarial     & 30,4\% & 3,78\% & 0,452 & 0,0\% & 7,8\% & 6,6\% \\
+$M{=}1$                 & 89,8\% & 0,00\% & 0,946 & 89,8\% & 89,8\% & 89,8\% & 91,7\% & 85,9\% \\
+$M{=}5$                 & 90,0\% & 0,00\% & 0,948 & 0,0\%  & 90,0\% & 90,0\% & 88,6\% & 91,7\% \\
+$M{=}25$                & 90,3\% & 0,00\% & \textbf{0,949} & 0,0\% & 90,3\% & 90,3\% & 36,4\% & 87,4\% \\
+$M{=}100$               & 38,6\% & 0,00\% & 0,556 & 0,0\%  & 80,4\% & 88,1\% & 17,6\% & 86,9\% \\
+$M{=}25$, comp.        & 85,4\% & 2,23\% & 0,910 & 0,0\%  & 89,9\% & 0,0\%  & --     & --     \\
+$M{=}25$, adversarial   & 30,4\% & 3,78\% & 0,452 & 3,6\%  & 57,3\% & 0,0\%  & 7,8\%  & 6,6\%  \\
 \bottomrule
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize TFP: taxa de falsos positivos. Nas colunas dos modelos aprendidos, a revocação com TFP $= 0$. Inéditas: revocação do filtro de impressões digitais ausentes do perfil (TFP de no máximo $0{,}03\%$). Compart.: pilhas compartilhadas, tiradas da cauda do perfil (tiradas, em vez disso, do vocabulário do gerador, em boa parte ausente do perfil amostrado, elas deixam o filtro de impressões inéditas em $84{,}4\%$ e a regra em $89{,}8\%$). Os modelos aprendidos, que treinam com os rótulos da campanha (o segundo também lê o perfil da regra), não rodam nesse modo. $K = 1000$, $n = 15$ sementes.}
+{\footnotesize Revocação de cada escopo sozinho, $K = 1000$, 15 sementes. Comp.: pilhas compartilhadas. Dano colateral dos outros escopos: Seção~\ref{sec:collateral}. Aprend.: modelos aprendidos, que não rodaram em pilhas compartilhadas.}
 \end{table}
 
-Todos os números até aqui vieram de um classificador e nada dizem sobre a camada
-simbólica. Por isso avaliamos a regra diretamente: as sessões que se enquadram no escopo da Seção~\ref{sec:evidence} \textit{são} o conjunto sinalizado, sem treino
-de modelo e sem rótulo, e a decisão chega acompanhada da sua derivação. Como a AUC avalia uma ordenação e a regra toma uma decisão, forçamos o classificador a operar no mesmo ponto que a
-regra (Tabela~\ref{tab:symbolic}).
+No tráfego gerado, cada escopo marca as sessões com que casa, sem precisar de treino nem de rótulos (Tabela~\ref{tab:symbolic}), enquanto a detecção sessão por sessão fica no nível do acaso (Apêndice~\ref{app:limitations}).
 
-Contra uma \textit{botnet} monolítica ou pouco fragmentada, o modelo aprendido, operando sem falsos positivos, é competitivo ($91{,}7\%$ e $88{,}6\%$ de revocação, contra
-$89{,}8\%$ e $90{,}0\%$ da regra). Com 25 pilhas a regra abre vantagem, $90{,}3\%$
-contra $36{,}4\%$, e a mantém diante de um modelo que opera com $1\%$ de taxa de
-falsos positivos ($66{,}8\%$). Esse modelo ordena bem as sessões (AUC $0{,}979$),
-mas seus escores se sobrepõem aos do tráfego benigno na cauda. Quando recebe o
-perfil da regra como dois atributos por sessão, a prevalência da impressão digital
-da sessão e seu enriquecimento no agrupamento, o modelo recupera $87{,}4\%$ com 25
-pilhas e $86{,}9\%$ com cem. Com cem pilhas, cada pilha é pequena demais para que o
-teste a aponte diante de um perfil de mil sessões, e a regra fica em
-$38{,}6\%$ (Seção~\ref{sec:collateral}). O modelo, porém, treina com os rótulos da
-campanha que avalia, e nenhum operador dispõe desses rótulos durante um ataque. A
-regra o iguala até 25 pilhas sem rótulo algum. Na linha adversarial, a própria
-regra tem taxa de falsos positivos de $3{,}78\%$, e o modelo chega a $23{,}4\%$ de
-revocação quando opera com $1\%$ de falsos positivos. O filtro de impressões inéditas tem o mesmo desempenho da regra até 25 pilhas, porque as pilhas geradas nunca aparecem no vocabulário benigno, e desempenho superior com cem pilhas ($88{,}1\%$). Em pilhas tiradas da cauda do perfil, que clientes reais também
-apresentam, esse filtro não bloqueia nenhum atacante. A regra bloqueia $85{,}4\%$ do ataque com $2{,}23\%$ de dano colateral, e um $z$-score não calibrado, $89{,}9\%$ com $3{,}37\%$.
+O escopo óbvio falha. Com uma única pilha na botnet, a impressão digital modal e o teste concordam, bloqueando $89{,}8\%$ do ataque sem dano colateral observado. A partir de cinco pilhas, como a Seção~\ref{sec:evidence} prevê, a impressão digital modal passa a ser uma impressão digital \textit{legítima}: ela bloqueia $0{,}0\%$ do ataque e $39{,}0\%$ do tráfego legítimo, chegando a $61{,}1\%$ sob uma população legítima mais concentrada ($\alpha = 2{,}0$).
 
-Na Tabela~\ref{tab:symbolic}, o agrupamento de maior $\Omega$ é tratado como se tivesse disparado a regra, sem exigir $\Omega(S) \geq \tau_{\mathrm{cluster}}$. Avaliada por janela de cinco minutos
-(Tabela~\ref{tab:perwindow}), a condição $\Omega(S) \geq \tau_{\mathrm{cluster}}$
-sozinha dispara em $78$ a $86\%$ das janelas de ataque e em $0{,}6\%$ das janelas
-limpas. Dispara também, porém, em $80$ a $100\%$ dos picos legítimos de acesso~\cite{jung2002flash}. Exigir que o teste de enriquecimento
-aponte uma impressão digital elimina todos os falsos alarmes e mantém a detecção, sem dano colateral.
+Os escopos relativos ao perfil funcionam. O teste binomial e o escore $z$ bloqueiam $90{,}0\%$ do ataque com cinco pilhas e $90{,}3\%$ com 25, \textbf{sem dano colateral observado} nas campanhas. O restante fica em impressões digitais avulsas, então uma mitigação com escopo troca completude por precisão. Com 100 pilhas, cada pilha tem cerca de dez sessões, poucas demais para se destacar diante de um perfil de 1\,000 sessões, então o teste fica bem abaixo do escore $z$ e do filtro de impressões inéditas (Tabela~\ref{tab:symbolic}). Um perfil agregado de 30 períodos sem ataque o restaura para $89{,}6\%$. O filtro de impressões inéditas, com dano colateral médio de $0{,}03\%$ (no máximo $0{,}5\%$ numa semente), iguala ou supera o teste porque pilhas novas nunca ocorrem no tráfego legítimo gerado. Ele não bloqueia nenhuma das pilhas compartilhadas, que clientes reais também apresentam. Nelas, o teste bloqueia $85{,}4\%$ com $2{,}23\%$ de dano colateral, e o escore $z$, $89{,}9\%$ com $3{,}37\%$.
 
-\subsection{Dano Colateral em Tráfego Legítimo}
-\label{sec:collateral}
+O modelo aprendido precisa de rótulos que um operador não tem durante um ataque, e, com 25 pilhas e zero falso positivo, o teste fica bem à frente. Dados $\log b(f)$ e o seu enriquecimento logarítmico por sessão, o modelo recupera a maior parte do ataque com 25 e 100 pilhas (Tabela~\ref{tab:symbolic}), mas é treinado com rótulos da própria campanha que pontua. Com $1\%$ de falsos positivos, de que o teste não precisa, (d) chega a $66{,}8\%$ com 25 pilhas e a $94{,}6\%$ com o perfil.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/fig3_collateral.png}
-\caption{Escopo: frequência, filtro de impressões inéditas e enriquecimento ($\alpha = 1{,}5$, $n = 15$).}
-\label{fig:collateral}
-\end{figure}
+\textbf{Duas condições limitam o resultado.} Quando a botnet adota impressões digitais legítimas comuns, a fronteira do modelo de ameaça, pouco é enriquecido. O teste bloqueia $30{,}4\%$ do ataque com $3{,}78\%$ de dano colateral, e o escore $z$, $57{,}3\%$ com $11{,}3\%$. A impressão digital modal bloqueia $3{,}6\%$ com $39{,}0\%$, e o modelo aprendido, $23{,}4\%$ com $1\%$ de falsos positivos. Um perfil plano ou ausente faz toda impressão digital parecer rara e eleva o dano colateral para $77{,}6\%$, enquanto um perfil que derivou para $\alpha = 2{,}0$ causa pouco prejuízo. Por janela, $\Omega \geq \tau_{\mathrm{cluster}}$ sozinho também dispara em picos legítimos de acesso~\cite{jung2002flash}. O teste remove esses alarmes para picos gerados (Apêndice~\ref{app:window}), mas não para picos de clientes de produção, como se mostra a seguir.
 
-A mitigação só faz sentido como um par: o que o escopo bloqueia e quanto isso custa
-(Fig.~\ref{fig:collateral}, $n = 15$ campanhas).
-
-Para uma \textit{botnet} monolítica, a regra por frequência e o enriquecimento concordam: $89{,}8\%$ das
-sessões do atacante são bloqueadas sem dano colateral observado, enquanto um limite
-global de taxa no \textit{endpoint} desconectaria todos os usuários legítimos. A regra por frequência, que usávamos antes, foi validada nesse regime, que não é representativo. A partir
-de cinco pilhas, a impressão digital modal do agrupamento passa a ser uma impressão digital \textit{legítima}, e o efeito da regra se inverte: bloqueia $0{,}0\%$ do ataque e
-atinge $39{,}0\%$ do tráfego legítimo, uma perda líquida. Com uma população
-benigna mais concentrada ($\alpha = 2{,}0$), esse dano colateral sobe para $61{,}1\%$.
-
-O enriquecimento elimina essa falha. Com $M = 5$ e $M = 25$, bloqueia $90{,}0\%$ e
-$90{,}3\%$ do ataque, \textbf{sem dano colateral observado} nas $n = 15$ campanhas, e iguala o resultado da regra por frequência no regime em que ela funciona. O filtro de
-impressões inéditas repete esse resultado nas pilhas geradas e o perde nas
-compartilhadas (Tabela~\ref{tab:symbolic}). Os $10\%$ restantes são a cauda de
-atacantes com impressões digitais únicas: a mitigação delimitada por escopo troca completude por precisão. Com $M = 100$, a cobertura, isto é, a revocação do escopo, cai para
-$38{,}6\%$, ainda sem dano colateral. Uma pilha de cerca de dez sessões entre duas mil
-não se distingue da cauda de um perfil de $1\,000$ sessões, e agregar ao perfil 30
-períodos livres de ataque restaura $89{,}6\%$.
-
-\textbf{Duas condições limitam o resultado.} A primeira é a fronteira do modelo de
-ameaça. Quando a \textit{botnet} adota impressões digitais benignas comuns, poucas impressões digitais aparecem enriquecidas, e a regra bloqueia $30{,}4\%$ do ataque com $3{,}78\%$ de dano colateral, contra $3{,}6\%$ e $39{,}0\%$ da regra por frequência. Com um $\rho$
-mais estrito, o escopo se recusa a apontar uma impressão digital, o que é a
-resposta correta quando não existe discriminador. A segunda condição é o perfil de
-referência. Uma deriva moderada é tolerável (perfil com $\alpha = 2{,}0$ contra um
-episódio com $\alpha = 1{,}5$: $90{,}3\%$ de cobertura, sem dano colateral). Já um
-perfil achatado ou ausente faz toda impressão digital parecer rara, e o dano colateral salta para $77{,}6\%$. Um perfil atualizado e amplo é, portanto, requisito de
-implantação.
-
-\subsection{Tráfego de Produção}
+\subsection{Tráfego de Produção: Falsos Alarmes e o Piso}
 \label{sec:production}
 
 \begin{table}[t]
 \centering
-\caption{O escopo no tráfego de produção, por \textit{endpoint}.}
+\caption{As configurações nos dias de teste, todos os endpoints.}
 \label{tab:production}
 \scriptsize
-\setlength{\tabcolsep}{2,4pt}
-\begin{tabular}{@{}llccccccc@{}}
+\setlength{\tabcolsep}{2.0pt}
+\begin{tabular}{@{}llcccccccc@{}}
 \toprule
- & & \multicolumn{3}{c}{\textbf{Limpas}} & \multicolumn{2}{c}{\textbf{Pilhas novas}} & \multicolumn{2}{c}{\textbf{Compart.}} \\
-\cmidrule(lr){3-5}\cmidrule(lr){6-7}\cmidrule(l){8-9}
- & \textbf{Escopo} & FA & Col. & Flash & $0{,}1\times$ & $1\times$ & $0{,}1\times$ & $1\times$ \\
+ & & \multicolumn{4}{c}{\textbf{Janelas limpas}} & \multicolumn{2}{c}{\textbf{Novas}} & \multicolumn{2}{c}{\textbf{Compartilhadas}} \\
+\cmidrule(lr){3-6}\cmidrule(lr){7-8}\cmidrule(l){9-10}
+ & \textbf{Config.} & FA & Sem gat. & Col. & Fl.\,1k & $0{,}1\times$ & $1\times$ & $0{,}1\times$ & $1\times$ \\
 \midrule
-E1  & binomial  & 0,0 & --   & 0,0  & 11,8 & 70,8 & 7,7  & 68,6 \\
-    & beta-bin. & 0,1 & 0,2  & 0,1  & 11,9 & 70,8 & 10,0 & 67,8 \\
-    & $z$-score & 0,2 & 0,2  & 0,3  & 11,9 & 70,8 & 9,0  & 67,1 \\
-E2  & binomial  & 0,3 & 31,4 & 5,4  & 0,0  & 5,0  & 0,0  & 0,0 \\
-    & beta-bin. & 1,3 & 10,7 & 13,5 & 0,7  & 25,9 & 0,2  & 13,2 \\
-    & $z$-score & 1,1 & 11,0 & 14,2 & 0,1  & 18,3 & 0,0  & 2,5 \\
-E3  & binomial  & 0,1 & 48,5 & 11,0 & 0,0  & 1,9  & 0,0  & 0,5 \\
-    & beta-bin. & 0,0 & --   & 6,6  & 0,3  & 22,7 & 0,3  & 13,9 \\
-    & $z$-score & 0,1 & 48,5 & 2,0  & 0,3  & 20,3 & 0,0  & 4,8 \\
-E4  & binomial  & 0,0 & --   & 2,2  & 0,1  & 2,1  & 0,0  & 1,5 \\
-    & beta-bin. & 0,1 & 3,5  & 0,9  & 0,1  & 6,0  & 0,1  & 3,9 \\
-    & $z$-score & 0,0 & --   & 0,3  & 0,1  & 6,0  & 0,0  & 1,2 \\
-\midrule
-Todos & binomial  & 0,1 & 32,9 & 4,6  & 3,0  & 19,9 & 1,9  & 17,6 \\
-    & beta-bin. & 0,4 & 10,5 & 5,3  & 3,3  & 31,4 & 2,7  & 24,7 \\
-    & $z$-score & 0,4 & 10,8 & 4,2  & 3,1  & 28,8 & 2,3  & 18,9 \\
-\multicolumn{9}{@{}l}{\textit{Dia novo, todos os endpoints}} \\
-    & regra     & 0,2 & 41,2 & 1,0  & 0,0  & 17,3 & 0,0  & 16,6 \\
-    & binomial  & 0,2 & 41,2 & 1,1  & 0,0  & 20,4 & 0,0  & 17,0 \\
-    & beta-bin.$^{*}$ & 0,0 & -- & 4,3 & 0,0 & 32,5 & 0,0 & 26,2 \\
-    & $z$-score & 0,2 & 41,2 & 0,4  & 0,0  & 31,4 & 0,0  & 19,7 \\
+\multicolumn{10}{@{}l}{\textit{Dias de teste, calibração em amostra}} \\
+    & binomial         & 0,1 & 2,2 & 32,9 & 22,2 & 3,0 & 19,9 & 1,9 & 17,6 \\
+    & beta-bin.$^{*}$  & 0,4 & 4,4 & 10,5 & 28,4 & 3,3 & 31,4 & 2,7 & 24,7 \\
+    & escore $z$       & 0,4 & 6,1 & 10,8 & 13,1 & 3,1 & 28,8 & 2,3 & 18,9 \\
+\multicolumn{10}{@{}l}{\textit{Dias de teste, calibração cruzada}$^{*}$} \\
+    & binomial         & 0,1 & 1,9 & 31,4 & 20,7 & 3,0 & 19,8 & 1,5 & 17,4 \\
+    & beta-bin.$^{*}$  & 0,1 & 1,1 & 2,0  & 10,9 & 3,0 & 23,3 & 2,1 & 17,5 \\
+    & escore $z$       & 0,2 & 2,5 & 11,0 & 5,5  & 3,0 & 20,1 & 2,0 & 16,0 \\
 \bottomrule
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize Valores em \%. Binomial: o teste de enriquecimento unido ao filtro de
-impressões inéditas, com as frotas conhecidas isentas; beta-bin.: o mesmo com uma
-referência beta-binomial; $z$-score: calibrado para o mesmo orçamento de falsos alarmes; todos sob o
-gatilho de origens distintas. Regra: a regra básica sob $\Omega \geq \tau$. FA:
-fração das janelas livres de ataque (5\,643 nos dias de teste, 1\,152 no dia novo)
-em que o escopo produz um filtro. Col.: mediana da fração dos clientes dessas janelas
-que o filtro bloqueia. Flash: FA com um pico legítimo de acesso (\textit{flash crowd})
-de 100 usuários. Nas demais colunas, a fração média bloqueada de uma \textit{botnet}
-de 25 pilhas, do tamanho da janela mediana do \textit{endpoint} ($1\times$) ou de um
-décimo dela, em pilhas ausentes do tráfego (novas) ou tiradas do perfil, excluídas as
-suas dez impressões digitais mais comuns (compartilhadas). As impressões digitais
-únicas limitam essa fração a cerca de $90\%$. $^{*}$Construída depois da leitura do
-dia novo.}
+{\footnotesize Em \%. FA, Sem gatilho, Fl.\,1k: janelas limpas. Col.: alarmes. Novas, Compartilhadas: bloqueado, janelas de ataque. $^{*}$\textit{Post hoc}. $0{,}1\times$, $1\times$: tamanho da botnet, em janelas medianas.}
 \end{table}
 
 \begin{table}[t]
 \centering
-\caption{Piso de calibração e concordância com o WAF por \textit{endpoint}.}
+\caption{Piso de calibração das configurações.}
 \label{tab:floor}
 \scriptsize
-\setlength{\tabcolsep}{2,6pt}
+\setlength{\tabcolsep}{2.0pt}
 \begin{tabular}{@{}lccccccc@{}}
 \toprule
- & & \multicolumn{2}{c}{$\lambda_e$} & \multicolumn{3}{c}{\textbf{Piso ($\times$ janela)}} & \\
-\cmidrule(lr){3-4}\cmidrule(lr){5-7}
-\textbf{Endpoint} & \textbf{Origens} & bin. & beta & bin. & + frotas & beta & \textbf{WAF} \\
+ & & \multicolumn{2}{c}{$\lambda_e$} & \multicolumn{2}{c}{\textbf{Binomial}} & \multicolumn{2}{c}{\textbf{Beta-binomial}$^{*}$} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(l){7-8}
+\textbf{Endpoint} & $n_0$ & bin. & beta$^{*}$ & novas & comp. & novas & comp. \\
 \midrule
-E1, \textit{beacons} de RUM & $>10^3$ & $10^{-60}$ & $10^{-4}$ & 0,16 & 0,07 & 0,03 & -- \\
-E2, console web & $<10^2$ & $10^{-73}$ & $10^{-2}$ & 11,6 & 11,6 & 0,90 & 1,5\% \\
-E3, API         & $<10^2$ & $10^{-14}$ & $10^{-2}$ & 4,1  & 3,5  & 1,4  & 84\% \\
-E4, SSO         & $<10^2$ & $10^{-4}$  & $10^{-2}$ & 4,2  & 4,2  & 2,8  & 96\% \\
+E1, sinais RUM  & 2\,983  & $10^{-21}$ & $10^{-4}$ & 139/139 & 254/286   & 85/139 & 86/167 \\
+E2, console web & 62      & $10^{-73}$ & $10^{-2}$ & 139/139 & 1090/1041 & 56/114 & 84/168 \\
+E3, API         & 41      & $10^{-11}$ & $10^{-2}$ & 139/139 & 168/227   & 56/114 & 56/140 \\
+E4, SSO         & 20      & $10^{-4}$  & $10^{-2}$ & 84/84   & 84/114    & 56/56  & 84/84 \\
 \bottomrule
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize Origens por janela. $\lambda_e$: o nível calibrado sob a binomial e sob a
-beta-binomial. Piso: tamanho da menor \textit{botnet} cujas 25 pilhas novas
-o teste, nesse nível, consegue apontar, como múltiplo da janela mediana (mediana
-sobre os cinco dias de teste). WAF: fração dos clientes que o escopo bloquearia e
-que o WAF também bloqueou (E1 não tem atividade de WAF).}
+{\footnotesize $n_0$: janela mediana. $\lambda_e$ em amostra. Pisos em atacantes por janela, em amostra / com calibração cruzada, medianas dos dias de teste. $^{*}$\textit{Post hoc}, como a calibração cruzada.}
 \end{table}
 
-Oito dias de \textit{logs} de acesso de quatro \textit{endpoints} de serviços próprios de uma operadora de CDN testam o escopo sobre clientes reais
-(Tabelas~\ref{tab:production} e~\ref{tab:floor}). Cada um dos cinco últimos dias é avaliado com o perfil, os limiares e o nível dos dias anteriores, com a
-\textit{botnet} canônica injetada nas contagens (Apêndice~\ref{app:window}).
-Quando a contagem é feita em conexões, o escopo produz um filtro em $60{,}1\%$ das janelas limpas, porque um mesmo cliente abre muitas conexões. Em origens, produz um filtro em $26{,}9\%$ delas no nível nominal, porque frotas de clientes legítimos entram em
-atividade ao mesmo tempo. Calibrar $\lambda_e$ nos dias anteriores reduz a taxa da regra a $0{,}2\%$. Um limiar sobre as origens distintas, que dispara nas mesmas janelas que
-$\Omega$ em $86$ a $99{,}6\%$ dos casos, reduz os falsos alarmes à metade quando
-usado como gatilho, sem perda de detecção (6 contra 14 janelas).
+\textbf{Falsos alarmes.} Agregando os endpoints, o escopo e o gatilho calibrados passam, cada um sozinho, do seu orçamento de $1\%$ nos dias de teste, e só juntos ficam dentro dele (Tabela~\ref{tab:production}). O escopo da configuração binomial, sozinho, produz um filtro em $2{,}2\%$ das janelas limpas dos dias de teste, e o gatilho de origens distintas, sozinho, dispara em $3{,}0\%$, chegando a $5{,}4\%$ no endpoint mais movimentado. Juntos, eles disparam em só $0{,}1\%$ das janelas limpas (5 de 5\,643, intervalo de 95\% de $0{,}03$--$0{,}21\%$), 4 delas no console web. Os 5 disparos indevidos conjuntos, contra 3,5 sob independência, cabem no acaso ($P = 0{,}27$, Apêndice~\ref{app:window}), e as outras 163 aberturas do gatilho, $2{,}9\%$, vão para o recurso de contingência. Esses disparos indevidos bloqueiam, em mediana, $32{,}9\%$ dos clientes da janela, e um valor esperado de $0{,}03\%$ dos clientes por janela limpa. Picos de 1\,000 clientes do próprio dia disparam a configuração em $22{,}2\%$ das janelas, com filtros mais leves, que bloqueiam em mediana $4{,}3\%$ dos clientes da janela.
 
-\textbf{As frotas impõem um piso de calibração.} Elas levam $\lambda_e$ a
-$10^{-60}$ no \textit{endpoint} mais movimentado, onde o teste binomial só aponta uma
-pilha a partir de 15 a 18 origens. A menor \textit{botnet} de 25 pilhas que ele
-consegue apontar tem, assim, $16\%$ da janela típica. Esse piso cai para $7\%$ quando
-as cinco ou seis frotas conhecidas do \textit{endpoint} (impressões digitais que o
-teste aponta em ao menos $5\%$ das janelas de calibração) ficam isentas do escopo e da calibração do nível, o que eleva $\lambda_e$ para cerca de $10^{-21}$. A isenção funciona como uma lista de exceções: um \textit{bot} que apresente a impressão digital de uma frota não entra no escopo. Nos três
-\textit{endpoints} pequenos, o piso é de 4 a 12 vezes a janela inteira
-(Tabela~\ref{tab:floor}).
+\textbf{O que o escopo consegue apontar: o piso de calibração.} O nível exigente que mantém os falsos alarmes raros também eleva o piso. No endpoint mais movimentado, as frotas empurram $\lambda_e$ para $10^{-60}$, e isentar as suas cinco ou seis frotas conhecidas o eleva para cerca de $10^{-21}$. Para uma botnet de 25 pilhas em pilhas novas, o filtro de impressões inéditas fixa o piso do E1 ao E3: 139 atacantes por janela, para que a pilha média alcance $k_{\min}$ origens. No E4, o teste aponta as pilhas primeiro, a partir de 84 (Tabela~\ref{tab:floor}). Nas pilhas que clientes reais também apresentam, em sua maioria raras, depois das dez impressões digitais mais comuns do perfil, o nível fixa o piso, calculado na fração mediana delas. Uma pilha típica só é apontada, então, a partir de 254 atacantes no endpoint mais movimentado, $8\%$ da sua janela, e a partir de 4 a 19 janelas medianas nos pequenos, como medianas das razões diárias.
 
-\textbf{Uma referência que modela as frotas rebaixa o piso.} As frotas tornam
-sobredispersas as contagens por impressão digital. Tendo como referência uma
-beta-binomial cuja correlação dentro da janela é ajustada para cada impressão digital nas
-janelas de calibração (Apêndice~\ref{app:window}), o nível do \textit{endpoint} mais
-movimentado sobe para $7\times 10^{-5}$, nível em que três origens bastam para
-apontar uma pilha. Nos demais, o nível chega ao teto de $0{,}01$. O piso cai para $3\%$
-da janela do \textit{endpoint} mais movimentado e para $0{,}9$ a $2{,}8$ janelas nos demais
-\textit{endpoints}. Nenhuma impressão digital se qualifica, então, como frota
-conhecida, e a lista de exceções se torna desnecessária. No console web, com essa referência, os falsos
-alarmes dos dias de teste passam do orçamento ($1{,}3\%$), como passam os do
-$z$-score calibrado ($1{,}1\%$).
+O piso cresce com o número de pilhas, de $2\%$ da janela mais movimentada com 5 pilhas a $34\%$ com 100, e com a popularidade das impressões digitais: as de posição 11 a 35 nunca são apontadas nos dois maiores endpoints (Apêndice~\ref{app:window}). Ele não é um degrau: abaixo dele, o escopo aponta as pilhas que o acaso deixa maiores, como prevê um modelo binomial do tamanho das pilhas ($43{,}1\%$ previstos contra $43{,}2\%$ medidos para 100 atacantes em pilhas novas no E1, Fig.~\ref{fig:stops}).
 
-\textbf{Acima do piso, um $z$-score calibrado iguala o teste.} No \textit{endpoint}
-mais movimentado, todo escopo calibrado bloqueia de $67$ a $71\%$ de uma
-\textit{botnet} do tamanho da janela típica, e de $8$ a $12\%$ de uma com um
-décimo desse tamanho, para a qual o gatilho raramente dispara. Nos
-\textit{endpoints} pequenos, uma \textit{botnet} do tamanho da janela fica abaixo do
-piso da binomial, que bloqueia de $2$ a $5\%$ dela em pilhas novas, enquanto a
-beta-binomial e um $z$-score calibrado para o mesmo orçamento bloqueiam de $6$ a
-$26\%$. No agregado dos quatro \textit{endpoints}, a configuração binomial dispara em
-$0{,}1\%$ das janelas limpas (5 de 5\,643). Ela bloqueia $38{,}4\%$ e $77{,}7\%$ de
-100 e de 1\,000 atacantes em pilhas novas, e $21{,}7\%$ e $63{,}3\%$ em pilhas
-compartilhadas, nas quais o filtro de impressões inéditas sozinho não bloqueia
-nenhum. O $z$-score calibrado e a beta-binomial disparam em $0{,}4\%$ das janelas
-limpas (20 e 22 janelas) e bloqueiam tanto ou mais com 100 atacantes ($54{,}7\%$ e
-$59{,}8\%$ em pilhas novas, $23{,}7\%$ e $40{,}5\%$ em compartilhadas). Seus falsos alarmes
-atingem uma fração menor dos clientes da janela ($10{,}8\%$ e $10{,}5\%$, contra $32{,}9\%$). A
-binomial tem uma taxa menor de falsos alarmes, ao custo de um piso mais alto. Nas janelas
-de ataque, todo escopo calibrado bloqueia, em mediana, $0\%$ dos clientes legítimos.
+\textbf{Depois do limite da razão, não se espera que o escopo aponte nada.} As 4 a 28 impressões digitais mais comuns de cada endpoint, que somam $86$--$94\%$ das suas origens, ficam além desse limite para uma botnet de 25 pilhas. Uma botnet que usa as 25 impressões digitais mais comuns do endpoint, a fronteira do modelo de ameaça, passa, portanto, em sua maior parte: a configuração detém $7{,}0\%$ e $23{,}8\%$ de 100 e de 1\,000 atacantes. Ela não detém nenhum nos dois maiores endpoints, onde quase todas as 25 passam do limite, mas detém $73{,}5\%$ de 1\,000 no login único, onde só 4 ou 5 passam.
 
-\textbf{No regime furtivo, o gatilho deixa a \textit{botnet} passar.} Uma \textit{botnet} de um décimo da
-janela do \textit{endpoint} mais movimentado fica acima do piso quando as frotas conhecidas ficam isentas, e o escopo a aponta em todas as janelas, em pilhas novas
-e compartilhadas. O gatilho de origens distintas, porém, dispara em $0{,}7$ a $42\%$ dessas janelas, conforme o dia, de modo que $11{,}8\%$ dos atacantes em pilhas novas são bloqueados. Um gatilho acionado apenas pelo escopo, examinado \textit{a posteriori}, bloqueia $89{,}6\%$ deles em pilhas novas e $61{,}1\%$ em pilhas
-compartilhadas, disparando em $1{,}0\%$ das janelas limpas do \textit{endpoint}. Com a
-beta-binomial, bloqueia $90{,}0\%$ e $78{,}3\%$, disparando em $2{,}1\%$ delas.
+\subsection{O que É Detido: O Gatilho Decide}
+\label{sec:trigger}
 
-\textbf{Um dia novo é compatível com a taxa de falsos alarmes.} Um nono dia, exportado
-depois de todas as escolhas acima e analisado com a configuração e as métricas
-fixadas de antemão (Apêndice~\ref{app:repro}), registra, para a configuração binomial, 2 falsos
-alarmes em 1\,152 janelas limpas, o que é compatível com os dias de teste
-($P = 0{,}27$). Os dois ocorrem no console web e bloqueiam, em mediana, $41{,}2\%$ dos
-clientes da janela. Essa configuração bloqueia $38{,}9\%$ e $73{,}4\%$ de 100 e de
-1\,000 atacantes em pilhas novas, e $21{,}5\%$ e $60{,}9\%$ em pilhas compartilhadas.
-Com uma \textit{botnet} de um décimo da janela do \textit{endpoint} mais movimentado, o gatilho não
-disparou nenhuma vez. O $z$-score calibrado e a regra básica, termo de comparação do
-protocolo, dispararam nas mesmas duas janelas, e o $z$-score bloqueou mais com 100
-atacantes ($58{,}3\%$ e $26{,}7\%$). Nos dias de teste, 4 dos 5 falsos alarmes do
-teste binomial coincidiram com os do $z$-score calibrado. A beta-binomial,
-construída depois da leitura do dia, não gerou nenhum. A consulta de contagens
-compilada devolveu, para o dia, números de origens distintas e de pares no mesmo /24 iguais aos da
-exportação em todas as 1\,152 janelas.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig6_stops.png}
+\caption{O que a configuração binomial detém, pelo tamanho de uma botnet de 25 pilhas em pilhas novas, dias de teste. Tracejado: o que o escopo sozinho bloquearia em toda janela. Sombreado: o que o gatilho de origens distintas deixa passar, a maior parte de uma botnet pequena no endpoint mais movimentado. Triângulo: um décimo da janela mediana.}
+\label{fig:stops}
+\end{figure}
 
-\subsection{Custo e a Escolha de $W$}
-\label{sec:latency}
+Uma botnet apontada só é detida onde o gatilho de origens distintas também dispara (Fig.~\ref{fig:stops}). No endpoint mais movimentado, o gatilho abre em só $6$--$13\%$ das janelas para botnets de 25 atacantes até um décimo da janela mediana. A configuração binomial, portanto, detém $3{,}4\%$ de uma botnet de 100 atacantes e $11{,}8\%$ de uma botnet de um décimo, $0{,}6$--$37{,}2\%$ conforme o dia. O seu escopo sozinho bloquearia $43{,}2\%$ e $89{,}6\%$. Nos endpoints pequenos, 100 atacantes equivalem a 1,6 a 5 janelas medianas e abrem o gatilho em $66$--$100\%$ das janelas, deixando o piso como o limite principal. Uma botnet de uma janela mediana o abre em só $14$--$33\%$.
 
-Mantidas como classes (Apêndice~\ref{app:cost}), as sub-relações baseadas em
-igualdade tornam o custo de admissão constante, cerca de $0{,}37\,\mu$s por sessão,
-e a camada simbólica linear: $26{,}4$~s para $100\,000$ sessões, contra $52{,}8$~s
-para $1\,000$ com arestas entre pares. O valor de $\Omega(S)$ ainda cresce com o
-quadrado do tamanho do agrupamento, mas o custo de calculá-lo deixou de crescer
-assim. A AUC de (d) é estável numa faixa de $30\times$ em $W$, porque a campanha gerada forma um único agrupamento em qualquer $W$ (Apêndice~\ref{app:cost}). A regra rodou com
-$W = 300$~s.
+\begin{table}[t]
+\centering
+\caption{Os escopos atrás de cada gatilho no tráfego de produção.}
+\label{tab:triggers}
+\scriptsize
+\setlength{\tabcolsep}{1.6pt}
+\begin{tabular}{@{}llccccccccc@{}}
+\toprule
+ & & \multicolumn{2}{c}{\textbf{FA, E1}} & \multicolumn{2}{c}{\textbf{FA, E2--E4}} & \multicolumn{2}{c}{\textbf{Novas}} & \textbf{Comp.} & & \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-9}
+\textbf{Gatilho} & \textbf{Escopo} & teste & novo & teste & novo & teste & novo & teste & \textbf{Fl.\,1k} & \textbf{Col.} \\
+\midrule
+De origens          & binomial               & 0,00 & 0,00 & 0,28 & 0,69 & 11,8 & 0,0  & 7,7  & 22,2 & 32,9 \\
+                    & beta-bin.$^{*\dagger}$ & 0,14 & 0,00 & 0,28 & 0,00 & 11,9 & 0,0  & 8,3  & 10,9 & 2,0 \\
+                    & inéditas               & 0,00 & 0,00 & 0,07 & 0,00 & 11,8 & 0,0  & 0,0  & 3,4  & 3,3 \\
+Sazonal$^{*}$       & binomial               & 0,00 & 0,00 & 2,64 & 0,69 & 20,4 & 15,3 & 14,4 & 22,3 & 35,2 \\
+                    & beta-bin.$^{\dagger}$  & 0,07 & 0,00 & 0,21 & 0,00 & 20,4 & 15,3 & 15,1 & 10,9 & 16,9 \\
+                    & inéditas               & 0,00 & 0,00 & 0,00 & 0,00 & 20,4 & 15,3 & 0,0  & 3,4  & -- \\
+Sem gatilho$^{*}$   & binomial               & 0,97 & 0,00 & 4,38 & 1,04 & 89,6 & 89,7 & 61,1 & 22,4 & 32,6 \\
+                    & beta-bin.$^{\dagger}$  & 0,90 & 1,74 & 1,46 & 1,39 & 89,7 & 90,1 & 65,7 & 11,0 & 6,6 \\
+                    & inéditas               & 0,28 & 0,00 & 0,42 & 0,35 & 89,6 & 89,7 & 0,0  & 3,4  & 5,7 \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+{\footnotesize Em \%. Novo: dia novo. Sem gatilho: o escopo como gatilho. E2--E4: máx. Fl.\,1k, Col.: agregados. Novas, Comp.: botnet de um décimo do E1 (pilhas novas e compartilhadas). $^{\dagger}$Calibração cruzada. $^{*}$\textit{Post hoc}.}
+\end{table}
+
+\textbf{Outros gatilhos.} Para localizar a perda, examinamos dois outros gatilhos, ambos exploratórios, depois de o dia novo ter sido lido (Tabela~\ref{tab:triggers}, com a binomial em amostra, como o protocolo a fixou). Um \textit{gatilho sazonal} divide as origens distintas pela sua mediana na mesma hora dos dias de calibração e dispara no percentil 99 dessa razão. Ele detém mais da botnet de um décimo no endpoint mais movimentado. Atrás dele, porém, só a beta-binomial com calibração cruzada e o filtro de impressões inéditas ficam dentro do orçamento no console, onde a binomial e a beta-binomial em amostra disparam indevidamente em $2{,}0$--$2{,}6\%$ das janelas. O \textit{escopo como seu próprio gatilho} (Sem gatilho, tracejado na Fig.~\ref{fig:stops}) detém cerca de $90\%$ dessa botnet em pilhas novas todos os dias. Com a binomial e as frotas conhecidas, a sua taxa no endpoint mais movimentado fica no limite do orçamento, subindo de nenhum falso alarme nos dois primeiros dias de teste para 8 de 288 no último.
+
+\textbf{O que o filtro de impressões inéditas e o teste acrescentam.} O filtro de impressões inéditas cobre pilhas novas de pelo menos $k_{\min}$ origens, e o teste acrescenta as pilhas compartilhadas e, em algumas configurações, pilhas novas menores. Nas pilhas novas maiores, como na botnet de um décimo do E1, o filtro de impressões inéditas sem o teste se sai igualmente bem sob todo gatilho, com menos falsos alarmes e menos disparos em picos legítimos, já que aponta cada uma dessas pilhas. Os seus falsos alarmes como gatilho próprio se concentram por dia (Apêndice~\ref{app:window}). Para pilhas novas pequenas demais para o filtro, a beta-binomial com calibração cruzada acrescenta nos endpoints pequenos e, como gatilho próprio, também no mais movimentado ($58\%$ contra $43\%$ do filtro, de 100 atacantes), enquanto a binomial só acrescenta no login único. Atrás do gatilho sazonal, a beta-binomial com calibração cruzada detém $53$--$84\%$ de 100 atacantes em pilhas novas nos endpoints pequenos, mas só $3{,}9\%$ no mais movimentado.
+
+\subsection{O que a Evidência Sustenta}
+\label{sec:posthoc}
+\label{sec:boundary}
+
+\textbf{Análises \textit{post hoc}.} Dos escopos calibrados usados sozinhos, só a beta-binomial com calibração cruzada quase cumpre o seu orçamento ($1{,}1\%$, Fig.~\ref{fig:operating}). Em amostra, a beta-binomial baixa o piso das pilhas compartilhadas nos três maiores endpoints (Tabela~\ref{tab:floor}), mas 19 dos seus 22 falsos alarmes caem no console web, onde $74{,}4\%$ dos picos de 1\,000 usuários a disparam. Um primeiro desenho de calibração cruzada, calibrado só no último dia de calibração, foi descartado depois de vistos os seus resultados, porque um único dia perde os eventos raros de frotas que fixam o nível. Com a calibração cruzada, a configuração binomial quase não muda, com 6 falsos alarmes contra 5, e o escore $z$ calibrado perde a sua vantagem sobre a binomial (Fig.~\ref{fig:operating}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig4_operating.png}
+\caption{Pontos de operação no tráfego de produção para 100 atacantes por janela nos dias de teste, agregando os endpoints, entre os quais os pequenos predominam. Linha tracejada: o orçamento de $1\%$. Cinza: calibração cruzada$^{*}$, com uma seta a partir do ponto em amostra quando os dois se afastam. \textit{Alone}: como seu próprio gatilho. $^{*}$\textit{Post hoc}.}
+\label{fig:operating}
+\end{figure}
+
+\textbf{Prospectivamente, a taxa dobra.} O dia novo deu à configuração binomial 2 falsos alarmes em 1\,152 janelas limpas, compatível com a taxa dos dias de teste ($P = 0{,}27$). O seu gatilho abriu em só 3 delas, e o escopo disparou indevidamente em duas, ambas no console web, mais vezes do que as 5 em 168 aberturas dos dias de teste preveem (\textit{post hoc}, $P = 0{,}003$). O bloco de 14 dias foi exportado depois de o seu protocolo ser público e analisado depois de publicados os hashes das suas exportações (Apêndice~\ref{app:repro}). Nele, a configuração disparou indevidamente em 31 de 16\,103 janelas limpas ($0{,}19\%$, intervalo de 95\% de $0{,}13$--$0{,}27\%$, Tabela~\ref{tab:block}). Isso é o dobro da taxa dos dias de teste e, pelo teste do protocolo, incompatível com ela ($P < 10^{-4}$), embora dentro do orçamento. O gatilho abriu metade das vezes, mas o escopo disparou indevidamente em 31 das suas 233 aberturas ($13\%$), contra 5 de 168 ($P < 10^{-11}$). Os disparos indevidos caíram em dias úteis (30 de 31) e nos endpoints pequenos, 17 deles nas 29 aberturas do gatilho no console, e bloquearam, em mediana, $39\%$ dos clientes da janela.
+
+\textbf{A comparação fixada de antemão prefere o gatilho sazonal.} Atrás dele, a beta-binomial com calibração cruzada fica dentro do orçamento em todo lugar ($0{,}05$--$0{,}35\%$) e é preferida ao filtro de impressões inéditas como gatilho próprio em todo endpoint. Nos endpoints pequenos, ela detém $68$--$88\%$ de 100 atacantes em pilhas novas, contra $43\%$, e $34$--$66\%$ nas compartilhadas, que o filtro não pega. No endpoint mais movimentado, a preferência se apoia só nas pilhas compartilhadas, que o filtro não consegue apontar: ela acrescenta $11{,}4\%$ da botnet de um décimo ali, mas detém só $11{,}8\%$ nas pilhas novas, contra $89{,}6\%$. O filtro de impressões inéditas não deu nenhum falso alarme, e o escopo binomial com frotas conhecidas, como gatilho próprio, passou do orçamento ali ($1{,}56\%$).
+
+\textbf{Os vereditos deste WAF não servem de rótulos.} O WAF do operador, a única fonte de rótulos disponível, bloqueou em mediana $9$--$63\%$ dos clientes de cada janela do E2 ao E4, e nenhum no E1. Nas janelas que mantêm esses clientes, um perfil construído sem eles faz os escopos concordarem com o WAF por construção: uma impressão digital estável só é enriquecida, então, se $70$--$88\%$ dos seus clientes foram bloqueados. Com um perfil de todos os clientes, só $0{,}4$--$33\%$ dos clientes que os três escopos calibrados bloqueariam também foram bloqueados pelo WAF, abaixo de uma escolha aleatória ($10$--$63\%$) em todo endpoint. Na API e no login único, os escopos pegam no máximo 2 dos 38 surtos do WAF (Apêndice~\ref{app:window}).
 
 %% ====================================================================
 \section{Discussão e Limitações}
 \label{sec:discussion}
 
-Discutimos o que limita os resultados e o que o grafo acrescenta (as limitações
-continuam no Apêndice~\ref{app:limitations}).
+\begin{table}[t]
+\centering
+\caption{As seis configurações fixadas de antemão, no bloco de 14 dias.}
+\label{tab:block}
+\scriptsize
+\setlength{\tabcolsep}{1.6pt}
+\begin{tabular}{@{}llccccccccc@{}}
+\toprule
+ & & \multicolumn{3}{c}{\textbf{FA}} & \multicolumn{2}{c}{\textbf{E1, $0{,}1\times$}} & \multicolumn{2}{c}{\textbf{100 atacantes}} & & \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+\textbf{Gatilho} & \textbf{Escopo} & todas & E1 & E2--E4 & Novas & Comp. & Novas & Comp. & \textbf{Fl.\,1k} & \textbf{Col.} \\
+\midrule
+De origens  & binomial              & 0,19 & 0,00 & 0,42 & 2,9  & 2,4  & 36,8 & 22,1 & 18,8 & 39,0 \\
+$\Omega$    & teste                 & 0,26 & 0,00 & 0,69 & 0,0  & 0,0  & 29,4 & 22,0 & 16,8 & 46,6 \\
+De origens  & escore $z$            & 0,12 & 0,00 & 0,30 & 3,0  & 2,6  & 56,2 & 26,9 & 3,0  & 40,1 \\
+Sem gatilho & inéditas              & 0,00 & 0,00 & 0,00 & 89,6 & 0,0  & 43,2 & 0,0  & 2,7  & --   \\
+Sazonal     & beta-bin.$^{\dagger}$ & 0,12 & 0,35 & 0,05 & 11,8 & 11,4 & 61,0 & 39,7 & 33,5 & 65,7 \\
+Sem gatilho & binomial$^{a}$        & --   & 1,56 & --   & 89,6 & 67,7 & 43,4 & 4,5  & 1,2  & 4,3  \\
+\bottomrule
+\end{tabular}
 
-\textbf{O ganho depende do regime.} Limiares por IP resolvem inundações de origem
-única, e um classificador forte por sessão alcança $\mathrm{AUC} \geq 0{,}98$ em ataques de conjuntos públicos. Só campanhas distribuídas \textit{e} furtivas
-precisam de evidência entre sessões, e só \textit{botnets} acima do piso de
-calibração, que a distribuição de referência determina, podem ter o escopo definido por impressão digital. Abaixo do piso, resta recorrer a um limite de taxa ou a um desafio. Se uma campanha no nível do piso esgota o serviço depende da sua folga de capacidade, que não medimos.
+\vspace{2pt}
+{\footnotesize Em \%. 16\,103 janelas limpas, cada dia calibrado com todos os dias anteriores. E2--E4: máx. 100 atacantes, Fl.\,1k, Col.: agregados. Comp.: pilhas compartilhadas. $^{\dagger}$Calibração cruzada. $^{a}$Só o E1.}
+\end{table}
 
-\textbf{Cada avaliação sustenta uma afirmação distinta.} O gerador mostra o mecanismo sob uma
-imitação imposta por construção: as sessões do atacante tiram seus atributos de
-distribuições benignas reais, e por isso a inseparabilidade da
-Seção~\ref{sec:ablation} não é artefato de uma linha de base enfraquecida. As
-pilhas do gerador nunca aparecem no vocabulário benigno, e é por isso que um filtro
-de impressões inéditas iguala o escopo nesse cenário. Nele, um modelo treinado com um número de pilhas falha quando testado com outro. O tráfego de produção mede os falsos
-alarmes sobre clientes reais e a detecção apenas para uma \textit{botnet} injetada,
-ao longo de nove dias de uma única operadora. Nenhuma avaliação cobre uma campanha
-furtiva capturada.
+\textbf{Qual configuração recomendar.} Dois limites decidem, endpoint a endpoint: o piso de calibração e a sensibilidade do gatilho. Nos três endpoints pequenos, a beta-binomial com calibração cruzada só aponta pilhas compartilhadas a partir de 3 a 4 janelas medianas e pilhas novas a partir de 2 a 3, então, para botnets menores, o recurso de contingência é um limite de taxa ou um desafio a todo cliente. \1~\textit{Agora}, o nosso candidato é a beta-binomial com calibração cruzada atrás do gatilho sazonal, com o recurso de contingência abaixo do seu piso. Ela foi construída \textit{post hoc}, mas a comparação fixada de antemão a preferiu em todo endpoint. Nos mesmos dias, ela disparou indevidamente em menos janelas que a configuração binomial (20 contra 31, embora 14 contra nenhuma no endpoint mais movimentado) e deteve uma parte maior de 100 atacantes. Picos de 1\,000 usuários a disparam em um terço das janelas, com filtros leves, e os seus disparos indevidos bloqueiam, em mediana, dois terços dos clientes da janela. Nas demais aberturas limpas do seu gatilho, $1{,}5\%$ das janelas, age o recurso de contingência, um custo fora do orçamento. O escore $z$ calibrado disparou indevidamente tantas vezes quanto ela e disparou em menos picos, mas deteve menos. No endpoint mais movimentado, a beta-binomial abre mão da maior parte da detecção de pilhas novas, que o filtro de impressões inéditas como gatilho próprio mantém sem falso alarme. Usar os dois ali não foi testado. \2~\textit{Depois}, uma avaliação mais longa, já que nenhum dia posterior testou essa escolha: a configuração binomial dispara indevidamente em dias úteis, o que um gatilho calibrado por dia da semana talvez absorva, e os disparos indevidos da beta-binomial se concentram em dois dias do endpoint mais movimentado. Se uma campanha no tamanho do piso esgota ou não o serviço depende da capacidade ociosa, que não medimos.
 
-\textbf{O escopo depende de um discriminador observável de peso alto.} À medida que
-cai a fração de origens que compartilham a impressão digital TLS, a
-$\mathrm{AUC}$(d) decresce monotonicamente de $1{,}00$ para $\approx 0{,}74$ sob
-aleatorização ($n = 10$). O escopo, que se apoia no JA4, perde então seu discriminador, enquanto o gatilho de volume continua funcionando. Ruído temporal e identidades rotacionadas não afetam o escopo. Um \textit{bot} fora do modelo de ameaça que apresente o JA4 de um navegador anula o escopo. O Encrypted Client Hello~\cite{ietf2026ech} oculta o JA4 de quem observa no caminho, mas não de um defensor que termina o TLS, como supomos aqui.
+\textbf{O que cada avaliação mostra.} O gerador isola o mecanismo sob uma imitação imposta por construção. As suas campanhas, de um terço à metade da janela, são mais fáceis que o caso de um décimo em que a produção mostra o gatilho falhando, e as suas pilhas novas nunca aparecem no tráfego legítimo, e é por isso que um filtro de impressões inéditas se iguala ao escopo ali. O tráfego de produção mede os falsos alarmes em clientes reais, e a detecção só para uma botnet injetada de um único formato (25 pilhas, novas, compartilhadas mas em sua maioria raras, ou as mais comuns do endpoint), ao longo de 23 dias dos próprios endpoints de um único operador, poucos para calibrar um ciclo semanal. As cinco escolhas da Seção~\ref{sec:configs} foram feitas nos mesmos dias em que são reportadas, então só o dia novo e o bloco as testam prospectivamente, e a calibração cruzada remove apenas o ajuste em amostra dos níveis. O Apêndice~\ref{app:limitations} lista outros limites.
 
-\textbf{O que o grafo acrescenta.} O ganho de AUC da Seção~\ref{sec:ablation} vem
-de representar a estrutura entre sessões, como a configuração (d) faz em
-atributos: um modelo linear sobre esses atributos ainda alcança $0{,}799$, contra
-$0{,}495$. O OWL não acrescenta nada a esse número nem ao gatilho, e o teste do
-escopo é estatístico. O grafo é a especificação que o operador implanta: a ontologia registra o que cada sub-relação de igualdade iguala, o seu peso e a
-unidade em que as classes são contadas. A consulta compilada a partir dela reproduz as contagens exportadas de origens e de pares no mesmo /24 em todas as
-janelas de dois dias de produção, e os tamanhos das classes de JA4 nas janelas em
-que o WAF não bloqueou nenhum cliente. Um novo sinal de igualdade chega à consulta como quatro triplas,
-sem mudança em nenhum código. O escopo e sua cadeia de evidência
-(Listagem~\ref{lst:chain}) são exportados como pacotes STIX~2.1 que passam no validador da OASIS em modo estrito. Eles atravessam inalterados o servidor TAXII~2.1 de referência, exceto a definição de extensão, que esse servidor não consegue disponibilizar. O importador do MISP descarta as impressões digitais, que o STIX~2.1 só
-transporta numa extensão, e os filtros do DOTS só atuam sobre campos de rede e de transporte. Os dois alargariam o escopo para o \textit{endpoint} inteiro ou para prefixos de endereço: a mitigação delimitada por impressão digital precisa de uma propriedade padrão para o JA4. Ainda não testamos se a derivação, que torna o
-veredicto inspecionável, reduz o tempo que um analista leva para decidir.
+\textbf{O escopo precisa que a impressão digital do ataque seja diferente.} Um bot fora do modelo de ameaça que apresente uma impressão digital comum, ou uma nova por dispositivo, o derrota (Seção~\ref{sec:results}), e um alarme leva então, na maioria das vezes, ao recurso de contingência. O Encrypted Client Hello~\cite{ietf2026ech} ainda expõe o \textit{ClientHello} interno a um defensor que termina o TLS, como se supõe aqui. Os perfis também precisam continuar atuais: uma nova versão de software que dê a muitos usuários uma impressão digital nova dispararia de imediato o filtro de impressões inéditas, um caso não observado em 23 dias. Não injetamos nem um pico legítimo concentrado num tipo de cliente, o caso mais difícil, nem um atacante que molde o perfil ou a isenção das frotas. Os perfis devem, portanto, ser refeitos a partir de janelas em que o escopo não aponta nada, e impressões digitais novas persistentes só devem entrar neles por ação do operador.
+
+\textbf{O que o intercâmbio perde, e o que a ontologia acrescenta.} Dos padrões que examinamos, STIX~2.1, DOTS e Flowspec não têm uma propriedade JA4 nos seus vocabulários principais, enquanto o OCSF registra impressões digitais JA4 em eventos de rede e na evidência de achados~\cite{ocsf2025schema}, mas não define filtro nem remediação sobre elas. O importador do MISP descarta as impressões digitais, que o STIX~2.1 só carrega numa extensão que o importador não mapeia para o próprio objeto JA4 do MISP. Uma extensão de 2025 do modelo de ACL consegue casar parâmetros do cliente TLS, mas não nomeia nenhuma impressão digital~\cite{ietf2025mudtls}, e o DOTS, cujos filtros reutilizam esse modelo~\cite{dots2020data}, não a adota. Bloquear por impressão digital exige, portanto, uma correspondência JA4 nos filtros do DOTS e uma propriedade JA4 no STIX. A ontologia não acrescenta nada à acurácia da detecção nem ao gatilho. Ela é a especificação implantável levada para a cadeia de evidência e compilada numa consulta do banco de logs que reproduziu as contagens de endereços e de pares /24 das exportações avaliadas, e as suas contagens de pares JA4 onde o WAF não bloqueou nenhum cliente (Apêndice~\ref{app:repro}).
 
 %% ====================================================================
 \section{Conclusão e Trabalhos Futuros}
 \label{sec:conclusion}
 
-Tratamos o escopo de uma mitigação de DDoS na camada de aplicação como um teste
-calibrado sobre um grafo de conhecimento centrado na sessão. Em campanhas furtivas
-geradas, a detecção por sessão fica no nível do acaso, e atributos entre sessões
-alcançam ROC AUC de $0{,}93$ a $0{,}98$ apenas dentro de uma mesma estrutura de
-\textit{botnet}. Definir o escopo pela propriedade mais comum do agrupamento
-seleciona uma impressão digital legítima assim que a \textit{botnet} se espalha por
-várias pilhas TLS. Um teste binomial de enriquecimento, tendo o tráfego normal como
-referência, bloqueia $90\%$ da \textit{botnet} com até 25 pilhas, sem dano colateral
-observado e sem rótulo, e inclui no escopo as pilhas que clientes reais
-compartilham, o que um filtro de impressões inéditas não consegue. No tráfego de uma
-CDN, frotas legítimas impõem um piso ao que o teste calibrado consegue apontar:
-$16\%$ da janela do \textit{endpoint} mais movimentado sob a binomial e $3\%$ sob uma
-beta-binomial que modela essas frotas, no ponto de operação de um $z$-score
-calibrado. Um dia novo é compatível com a taxa de falsos alarmes da configuração
-binomial, e, no regime furtivo, o escopo aponta a \textit{botnet} que o gatilho de
-volume, em sua maior parte, deixa passar. Os próximos passos são gatilhos acionados
-pelo escopo, a extensão a ataques sobre HTTP/2 e a avaliação com uma campanha
-furtiva capturada.
+O escopo por impressão digital, um teste calibrado sobre contagens especificadas na ontologia, compensa onde as impressões digitais do ataque são raras entre os clientes reais, as botnets passam do piso e o gatilho dispara. Em campanhas furtivas geradas, escopos relativos ao perfil bloqueiam $90\%$ de uma botnet com até 25 pilhas novas, sem rótulos e sem dano colateral observado, enquanto a impressão digital mais comum do alarme bloqueia usuários assim que a botnet se espalha por várias pilhas. No tráfego de um operador de CDN, frotas legítimas elevam um piso de calibração: uma botnet de 25 pilhas em impressões digitais compartilhadas raras só é apontada pelo teste binomial a partir de $8\%$ da janela do endpoint mais movimentado e de 4 a 19 janelas medianas nos pequenos.
 
-\section*{Agradecimento}
-Agradecemos à Azion Technologies (\texttt{\url{https://www.azion.com/}}) por
-autorizar a medição de impressões digitais da Seção~\ref{sec:method} e a exportação das estatísticas agregadas de tráfego do Apêndice~\ref{app:window}, feita sem endereços, portas ou URIs.
+Os falsos alarmes da configuração binomial ficam em $0{,}1\%$ das janelas limpas nos dias usados para escolhê-la, embora o seu escopo sozinho passe do orçamento ali ($2{,}2\%$). Em 14 dias posteriores especificados de antemão, eles dobram, ainda dentro do orçamento, porque o escopo dispara indevidamente em $13\%$ das aberturas do gatilho. Nesses dias, duas de três configurações \textit{post hoc} cumpriram o seu orçamento. No endpoint mais movimentado, o gatilho deixa passar a maior parte de uma botnet pequena. O filtro de impressões inéditas como gatilho próprio detém $90\%$ dela em pilhas novas sem falso alarme, e ali uma beta-binomial com calibração cruzada atrás de um gatilho sazonal, preferida ao filtro em todo lugar, acrescenta as pilhas compartilhadas, mas perde a maior parte das novas. Em seguida vêm a calibração por dia da semana, os ataques HTTP/2 e uma campanha furtiva capturada.
+
+\section*{Agradecimentos}
+Agradecemos à Azion Technologies (\url{https://www.azion.com/}) por autorizar as medições e as estatísticas de tráfego usadas aqui. Os autores usaram um assistente de IA (Claude, da Anthropic) para redigir e editar o texto em todas as seções, para traduzi-lo para o português nesta versão, para estender a ontologia e para escrever todo o código e todas as figuras. Os autores revisaram e verificaram todo o conteúdo e assumem total responsabilidade por ele.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
@@ -848,213 +460,42 @@ autorizar a medição de impressões digitais da Seção~\ref{sec:method} e a ex
 %% ====================================================================
 \appendices
 
-\section{Construção em Tempo de Execução e Instanciação das Sub-Relações}
+\section{Especificação das Sub-relações}
 \label{app:algorithms}
 
-\begin{algorithm}[H]
-\caption{Construção do grafo de conhecimento em tempo de execução}
-\label{alg:kg}
-\begin{algorithmic}[1]
-\REQUIRE fluxo de requisições $\mathcal{R}$, ontologia $\mathcal{O}$, janela $W$
-\ENSURE grafo de conhecimento $KG$ persistente ao longo de $W$
-\STATE $KG \leftarrow \emptyset$
-\FOR{cada requisição $r \in \mathcal{R}$}
-  \STATE $s,i,e \leftarrow \textsc{ResolveSessão/Ident./Endpoint}(r)$
-  \STATE $KG.\mathrm{add}(s,i,e)$; \, $KG.\mathrm{link}(s,\texttt{hasIdentity},i)$
-  \STATE $KG.\mathrm{link}(s,\texttt{targets},e)$
-  \FOR{cada $s' \in S_W$ ativa, $s' \neq s$}
-    \FOR{cada sub-relação $i \in \mathcal{R}_{\mathrm{rel}}$}
-      \IF{$\textsc{Vale}_i(s,s')$}
-        \STATE $KG.\mathrm{link}(s,\texttt{relatedBy}_i,s')$
-      \ENDIF
-    \ENDFOR
-  \ENDFOR
-  \STATE $KG.\mathrm{purgeOutside}(W)$
-\ENDFOR
-\RETURN $KG$
-\end{algorithmic}
-\end{algorithm}
+A massa de coordenação da regra é \begin{equation} \Omega(S) \;=\; \sum_{i \in \mathcal{R}_{\mathrm{rel}}} w_i \,\big|E_i(S)\big| , \label{eq:omega} \end{equation} em que $E_i(S)$ é o conjunto de pares de origens distintas $\{o(s_a), o(s_b)\}$ ligados pela sub-relação $i$, sendo $o(s)$ o endereço de origem da sessão $s$. Cada par conta uma vez, então as muitas conexões de um mesmo cliente não conseguem imitar coordenação. O peso $w_i$ segue o custo, para o atacante, de quebrar o sinal, da impressão digital TLS ($1{,}0$), passando pela convergência de endpoint ($0{,}6$), até a proximidade de rede ($0{,}3$), já que o NAT de operadora torna um /24 compartilhado um discriminador fraco, e a calibração só sustenta o topo dessa ordem (Apêndice~\ref{app:calibration}). Para uma sub-relação de igualdade, $|E_i(S)| = \sum_k \binom{n_k}{2}$ sobre os tamanhos de classe $n_k$ em endereços distintos, então $\Omega$ depende só dos tamanhos de classe que a consulta devolve (Seção~\ref{sec:pipeline}). O gatilho de produção e o termo de endpoint somam os clientes de HTTP simples ao $n$ da Seção~\ref{sec:rule}, que conta um endereço uma vez por impressão digital. A consulta compilada conta cada endereço uma vez.
 
-O Algoritmo~\ref{alg:kg} constrói o grafo sobre a janela deslizante. Para maior clareza, ele enumera pares. Na prática, as relações baseadas em igualdade são mantidas como
-contagens de classe (Seção~\ref{sec:pipeline}), e, para as demais, os
-procedimentos a seguir decidem, para cada par candidato $(s_a,s_b)$, se a aresta é
-instanciada.
+\textbf{\texttt{TLSFingerprint}:} igualdade exata da JA4 completa, a relação exercitada aqui. Uma variante próxima, \mbox{\textit{ja4\_distance = 1}}, absorveria a deriva de versão dentro de uma mesma biblioteca de cliente, mas não é uma relação de equivalência e exigiria arestas de pares, então ela é especificada, mas não exercitada. \textbf{\texttt{ReusedIdentity}}, \textbf{\texttt{TemporalPattern}} e \textbf{\texttt{PayloadSignature}}, também especificadas, mas não exercitadas, casam um cookie, um token ou um nome de usuário compartilhado, sequências de intervalos entre chegadas dentro de uma distância DTW $\tau_{\mathrm{DTW}}$, e resumos de conteúdo acima de uma similaridade de cosseno $\tau_{\mathrm{payload}}$. \textbf{\texttt{EndpointConvergence}:} o mesmo endpoint, aqui um host ou um endereço e porta, com a normalização de padrões de caminho especificada, mas não exercitada. \textbf{\texttt{NetworkProximity}:} /24 IPv4 ou /48 IPv6 compartilhado, com um ASN compartilhado especificado, mas não exercitado.
 
-\textbf{\texttt{TLSFingerprint}.} A sub-relação é instanciada em dois estágios: por igualdade exata do JA4 completo ou, na falta dela, por variantes próximas (mesmo prefixo de transporte,
-versão TLS e ALPN, com no máximo um símbolo de diferença nos blocos ordenados de
-cifras ou de extensões), anotadas com \textit{ja4\_distance = 1}. Isso absorve mudanças de versão dentro de uma mesma biblioteca cliente sem confundir pilhas distintas. O custo é $O(1)$ por par.
-
-\textbf{\texttt{ReusedIdentity}.} Esta sub-relação e as duas seguintes estão especificadas, mas não entram na avaliação. Ela é instanciada quando há qualquer \textit{cookie},
-\textit{token} ou nome de usuário compartilhado. JWTs são comparados pela
-\textit{claim} \texttt{sub}, e \textit{cookies} e nomes de usuário são
-normalizados. O custo é $O(1)$ amortizado, com índice invertido.
-
-\textbf{\texttt{TemporalPattern}.} Seja $\Delta(s)$ a sequência de intervalos
-entre chegadas de uma sessão com ao menos três requisições. A aresta é instanciada quando
-$\mathrm{DTW}(\Delta(s_a),\Delta(s_b)) / \max(|\Delta(s_a)|,|\Delta(s_b)|) \leq
-\tau_{\mathrm{DTW}}$. O DTW mede a distância entre duas sequências depois de
-alinhá-las de forma elástica, esticando ou comprimindo trechos de uma em relação à
-outra, e por isso atribui distância pequena a sessões de mesmo ritmo, ainda que uma delas tenha uma pausa ou uma requisição a mais. Como $\Delta(s)$ é formado por intervalos, o
-instante em que cada sessão começa não interfere. O FastDTW com uma banda de
-Sakoe--Chiba torna o custo linear, e o \textit{hashing} de vetores-resumo evita
-comparar todos os pares.
-
-\textbf{\texttt{PayloadSignature}.} A aresta é instanciada quando a similaridade de cosseno entre os vetores formados pela média e pelo desvio padrão do tamanho do corpo e pelos \textit{hashes} do User-Agent e do Content-Type dominantes excede $\tau_{\mathrm{payload}}$.
-
-\textbf{\texttt{EndpointConvergence}.} A sub-relação é instanciada quando as duas sessões
-convergem para o mesmo \textit{endpoint}, com os caminhos normalizados em modelos
-(\texttt{/api/users/12345} $\rightarrow$ \texttt{/api/users/\{id\}}). Quando o caminho coincide exatamente, a aresta recebe a anotação \textit{exact = true}. O custo é $O(1)$, com índice em árvore de prefixos.
-
-\textbf{\texttt{NetworkProximity}.} A sub-relação é instanciada quando há prefixo IPv4 /24 (ou
-IPv6 /48) compartilhado, ASN compartilhado, segundo tabelas BGP atualizadas, ou
-ambos. Quando ambos valem, a aresta é anotada com \textit{strong = true}. O custo é $O(1)$, com índice invertido de prefixos.
-
-\begin{listing}[t]
-\footnotesize
-\hrule\vspace{2pt}
-\begin{verbatim}
-# SWRL (Horn): instancia uma sub-relação
-ApplicationSession(?a) ^ ApplicationSession(?b) ^
-  differentFrom(?a,?b) ^
-  tlsJa4(?a,?j) ^ tlsJa4(?b,?j)
-  -> relatedByTLSFingerprint(?a,?b)
-
-# SPARQL: agregação ponderada a partir do tamanho
-# das classes, contado em origens distintas
-SELECT ?e (SUM(?w * ?n * (?n - 1) / 2) AS ?omega)
-WHERE {
-  { SELECT ?e ?c (COUNT(DISTINCT ?o) AS ?n)
-    WHERE { ?s kg:targets ?e ; kg:inClass ?c ;
-               kg:originatesFrom ?o . }
-    GROUP BY ?e ?c }
-  ?c kg:ofRelation ?rel .
-  ?rel rdfs:subPropertyOf kg:relatedTo ;
-       kg:coordinationWeight ?w .
-  ?e kg:tauCluster ?tau . }
-GROUP BY ?e ?tau
-HAVING (SUM(?w * ?n * (?n - 1) / 2) >= ?tau)
-\end{verbatim}
-\vspace{-4pt}\hrule
-\caption{Veredicto como derivação: uma regra de Horn e a agregação SPARQL.}
-\label{lst:rules}
-\end{listing}
-
-\section{Calibração dos Pesos}
+\section{Calibração dos Pesos e Entradas do Gerador}
 \label{app:calibration}
 
-A calibração depende do realismo do tráfego. Em capturas de laboratório, que têm
-algumas dezenas de impressões digitais JA4 distintas, a otimização chega a
-inverter o sinal do indicador TLS, porque as sessões benignas compartilham
-impressões digitais mais do que as campanhas parcialmente coordenadas.
+Em cenários de execuções anteriores, um vocabulário benigno quase uniforme contra uma botnet monolítica, maximizar a ROC AUC por sessão de $w_{\mathrm{tls}}\,z(\mathrm{ja4}) + w_{\mathrm{ep}}\,z(\mathrm{conv.\ de\ endpoint}) + w_{\mathrm{net}}\,z(\mathrm{prox.\ de\ rede})$ na grade $\{0{,}3\ldots1{,}0\}^3$ (125 combinações, 60 cenários) dá $(1{,}0;\ 0{,}3;\ 0{,}3)$. Só a impressão digital TLS discrimina sozinha (AUC $0{,}93$, contra $0{,}50$ para a convergência de endpoint e $0{,}58$ para a proximidade de rede), e todo peso de endpoint da grade alcança a mesma AUC ótima de $0{,}943$, assim como o $(1{,}0;\ 0{,}6;\ 0{,}3)$ da ontologia. Assim, só o topo da ordem é identificado, e a regra por janela funciona igualmente bem com pesos uniformes (Apêndice~\ref{app:window}). As contagens de requisições vêm de todas as $322\,658$ sessões benignas do CICIDS2017, e as durações, das $40\,351$ com duas requisições ou mais. O conjunto padrão de $2\,000$ impressões digitais benignas segue a forma de Zipf das $495$ medidas num ponto de presença e supera as $76$--$1\,163$ observadas por endpoint de produção. A popularidade é medida por requisição, o que, se introduz algum viés, superestima a concentração.
 
-No cenário realista, os usuários acessam o serviço atacado com impressões digitais
-tiradas de um conjunto de $2\,000$, cuja forma de Zipf é fixada pelas $495$ impressões digitais medidas num ponto de presença. Esse conjunto excede as $76$ a $818$ impressões digitais que cada \textit{endpoint} de produção mostra, de modo que a cauda
-benigna gerada é mais longa que a observada. Calibramos os pesos maximizando a
-ROC AUC por sessão entre ataque e tráfego benigno sobre o escore
-$w_{\mathrm{tls}}\,z(\mathrm{ja4}) + w_{\mathrm{ep}}\,z(\mathrm{conv.\ endpoint})
-+ w_{\mathrm{net}}\,z(\mathrm{prox.\ rede})$, com atributos padronizados, na
-grade $\{0{,}3; \ldots; 1{,}0\}^3$ (125 combinações, 60 cenários, 91\,500 sessões). O
-melhor vetor é
-$(w_{\mathrm{tls}}{=}1{,}0;\ w_{\mathrm{ep}}{=}0{,}3;\ w_{\mathrm{net}}{=}0{,}3)$,
-e a impressão digital TLS é o único sinal discriminativo por si só
-($\mathrm{AUC}$ isolada de $0{,}93$, contra $0{,}50$ da convergência de
-\textit{endpoint} e $0{,}58$ da proximidade de rede). Os pesos da
-Fig.~\ref{fig:ontology}, $(1{,}0;\ 0{,}6;\ 0{,}3)$, atingem a mesma $\mathrm{AUC}$
-ótima de $0{,}943$ e são insensíveis a perturbações de $\pm20\%$. A calibração
-corrobora, portanto, a \textit{ordem} dos pesos. Os pesos médio e baixo não são
-identificáveis separadamente, e a regra por janela detecta igualmente bem com
-pesos uniformes (Apêndice~\ref{app:window}), de modo que seus valores absolutos
-seguem em aberto. A medição de popularidade é ponderada por requisição, o que, se
-introduz algum viés, é o de \textit{superestimar} a concentração. A cabeça da distribuição medida se ajusta a $\alpha = 1{,}5$, e as dez primeiras impressões digitais, a $\alpha = 2{,}0$.
-
-\section{Limitações Adicionais}
+\section{Experimentos Adicionais e Limitações}
 \label{app:limitations}
 
-\textbf{Instrumentação de sessão e identidade.} A abordagem supõe que sessões,
-identidades e impressões digitais TLS possam ser extraídas dos eventos de tráfego,
-e uma instrumentação parcial ou ruidosa a degrada. Contar origens pelo endereço de
-origem subestima o número de usuários atrás de um mesmo NAT de operadora e superestima o de clientes que rotacionam endereços de privacidade IPv6, cuja unidade natural é o
-/64.
+\textbf{Instrumentação e implantação.} Contar origens pelo endereço de origem conta a menos os usuários atrás de NAT de operadora e conta a mais os clientes que trocam de endereço IPv6 de privacidade, cuja unidade natural é o /64. A execução em produção é offline, sobre contagens por endpoint, então uma implantação ao vivo numa CDN ainda precisa do particionamento do Apêndice~\ref{app:cost}, não implementado aqui.
 
-\textbf{Custo de manutenção do grafo.} Os números da camada simbólica do Apêndice~\ref{app:cost} são um limite superior, e a execução sobre o tráfego de produção do Apêndice~\ref{app:window} é \textit{offline}, sobre contagens agregadas por
-\textit{endpoint}. Uma implantação em operação numa CDN ainda exige o particionamento do
-Apêndice~\ref{app:cost}, que não implementamos.
+\textbf{Cobertura.} Ataques HTTP/2 e outros protocolos de aplicação (DNS, gRPC) exigem sub-relações além da família Slow HTTP DoS sobre HTTP/1.1, e $\Omega(S)$ instancia só as três sub-relações que o gerador e as capturas expõem, deixando os pesos das outras sem teste. Não encontramos nenhuma captura independente do regime furtivo: o BCCC-cPacket-Cloud-DDoS-2024 critica a cobertura da camada de aplicação dos conjuntos de dados anteriores e oferece 17 cenários de DDoS baseados em TCP~\cite{shafi2024bccc}.
 
-\textbf{Cobertura.} Ataques sobre HTTP/2 e sobre outros protocolos de aplicação
-(DNS, gRPC) exigem sub-relações além das da família Slow HTTP DoS sobre HTTP/1.1, e
-$\Omega(S)$ instancia apenas as três sub-relações que o gerador e as capturas
-expõem. Reaproveitamento de identidade, padrão temporal e assinatura de carga útil
-estão especificados (Apêndice~\ref{app:algorithms}), mas não entram na avaliação, de modo que seus pesos não foram testados.
+\textbf{Capturas de laboratório e KLAGE.} O CICIDS2017~\cite{sharafaldin2018cicids} (Slowloris, Slowhttptest, HULK, GoldenEye) e o CIC-IoT2023~\cite{neto2023ciciot} (DDoS Slowloris, HTTP Flood), no qual o KLAGE reporta $F_1 = 0{,}841$ para \texttt{DDoS Slowloris}, passam pelo mesmo pipeline de extração (PCAP $\rightarrow$ JA4 + fluxos $\rightarrow$ sessões). No \texttt{DDoS Slowloris} do CIC-IoT2023, cujos agrupamentos de ataque contêm sete origens em um de 143 prefixos /24, uma linha de base forte por sessão, com nove atributos de fluxo, alcança $F_1 = 0{,}900$ (AUC $0{,}987$), enquanto três deles mais a evidência entre sessões alcançam $0{,}911$ (AUC $0{,}982$). O Slowloris real, ao contrário das nossas campanhas furtivas, deixa uma assinatura de fluxo por sessão. A comparação com o KLAGE é \textit{não controlada}: a nossa linha de base forte também supera o $0{,}841$ publicado, e o código liberado parte de um grafo de construção não publicada e não fornece pesos, o que impede uma reexecução controlada.
 
-\textbf{Amplitude dos conjuntos de dados.} A validação em laboratório cobre um
-conjunto e um ataque na comparação com o KLAGE, mais seis ataques do CICIDS2017 e do
-CIC-IoT2023. Não encontramos nenhuma captura independente do regime furtivo na
-camada 7: o BCCC-cPacket-Cloud-DDoS-2024 aponta a fraca representação da camada de aplicação como deficiência dos conjuntos que analisa~\cite{shafi2024bccc}, mas seus 17 cenários de DDoS são todos baseados em TCP. O RT-IoT2022, o CIC-DDoS2019 e uma campanha furtiva
-capturada ficam para trabalho futuro.
+\textbf{Detecção por sessão e modelos aprendidos.} Cada configuração, de (a) a (d), roda em 30 sementes (a Tabela~\ref{tab:symbolic} usa 15), com cada campanha dividida 70/30 em sessões de treino e de teste. A configuração (a) usa só os nove atributos de fluxo por sessão numa Random Forest (RF), repetida com \textit{gradient boosting}, um perceptron multicamadas e regressão logística. A configuração (b) acrescenta atributos ontológicos por sessão, (c) acrescenta só a proximidade de rede, e (d) acrescenta a evidência entre sessões das três sub-relações: a fração do agrupamento que compartilha uma JA4 ou um /24, mais o seu tamanho. Reimplementamos o perfilamento por PCA~\cite{fernandes2015autonomous}, PCA com $k$-means sobre uma matriz de comportamento~\cite{bharathi2012pca} e um RF/SVM supervisionado sobre atributos de sessão, a partir de~\cite{kemp2023approach}. Com $K = 50$ e $K = 1000$, (a) alcança uma ROC AUC por sessão de $0{,}498$ e $0{,}503$, (b) $0{,}500$ e $0{,}502$, as três linhas de base acadêmicas $0{,}495$--$0{,}518$, e (a) fica em $0{,}488$--$0{,}503$ com toda família de classificador ($\alpha = 1{,}5$, $M = 25$, 30 sementes), o nível do acaso que o modo furtivo impõe. A representação entre sessões (d) alcança $0{,}927$ e $0{,}982$, enquanto (c) alcança $0{,}499$ e $0{,}659$ (testes de Wilcoxon pareados, com correção de Bonferroni, $p_{\mathrm{Bonf}} = 7{,}5\times 10^{-9}$ para (d)$-$(c) e (d)$-$(a) com $K = 1000$).
 
-\textbf{Capturas de laboratório e KLAGE.} No \texttt{DDoS Slowloris} do
-CIC-IoT2023, cujos agrupamentos de ataque concentram sete origens num único dos 143
-prefixos /24, uma linha de base por sessão \textit{enxuta} (três atributos) desaba
-para $F_1 = 0{,}179$ (AUC de $0{,}551$). Uma linha de base \textit{forte} (oito
-atributos de fluxo) chega a $0{,}900$ (AUC de $0{,}987$), e a representação entre
-sessões, a $0{,}911$ (AUC de $0{,}982$), porque o Slowloris real, ao contrário das
-nossas campanhas furtivas, deixa uma assinatura de fluxo por sessão. A comparação
-com o KLAGE é favorável, mas \textit{não controlada}. Nossa linha de base forte
-também supera o $0{,}841$ publicado, de modo que a margem não se deve à
-representação. Além disso, o código disponibilizado não inclui pesos treinados e parte de um grafo cuja
-construção não foi publicada, o que impede uma
-reexecução controlada.
+\textbf{Representação aprendida.} Essa separabilidade não se transfere. Fragmentar a botnet em $M$ pilhas torna a evidência entre sessões não monotônica em relação ao rótulo: com $K = 1000$, um atacante compartilha uma impressão digital com algumas dezenas de pares, enquanto um cliente legítimo no topo da distribuição benigna compartilha uma com centenas. Treinado com cinco pilhas e testado com 25 ou 100, (d) cai para $0{,}61$ e $0{,}63$, e treinado com 25 cai para $0{,}48$ com cinco e $0{,}75$ com 100, contra $0{,}95$--$0{,}995$ com o mesmo $M$ e outras sementes. Os testes entre valores de $M$ usam sementes disjuntas porque o gerador sorteia toda sessão benigna antes de qualquer passo que dependa de $M$: uma divisão com as mesmas sementes daria a (a) $0{,}88$--$0{,}94$ por memorização.
 
-\textbf{Representação aprendida.} A configuração (d) é treinada e testada numa
-divisão 70/30 das sessões de uma mesma campanha. Treinada em 25 pilhas e testada em
-100, ela alcança AUC de $0{,}75$, contra $0{,}95$ a $0{,}995$ quando treinada no
-mesmo $M$ com outras sementes. O gerador sorteia todas as sessões benignas antes de
-qualquer coisa que dependa de $M$, e por isso os testes entre valores de $M$ treinam e
-testam em metades disjuntas das sementes. Numa divisão com a mesma semente, a
-configuração (a) alcançaria AUC de $0{,}88$ a $0{,}94$ por memorizar cópias das sessões.
-
-\textbf{Validação da explicação.} As cadeias de evidência dos sete agrupamentos de
-laboratório passam nas verificações de completude (enumeram toda sessão correlacionada e toda sub-relação ativada) e de acionabilidade (o escopo é coerente com o discriminador do agrupamento), com $7/7$, quando os agrupamentos são contados em sessões. Contados em origens, os cinco agrupamentos do
-CICIDS2017 têm de uma a três origens, abaixo de $k_{\min}$, e os dois do
-CIC-IoT2023 têm sete. Nenhum estudo com usuários testou essas cadeias.
-
-\section{Modelo de Custo e Sensibilidade à Janela}
+\section{Modelo de Custo}
 \label{app:cost}
 
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig5_latency.png}
-\caption{Custo das duas camadas, com arestas entre pares e com contagens de classe.}
+\caption{Custo da admissão, por requisição, e da agregação de $\Omega$, por janela, com arestas de pares e com contagens de classes. Pontilhado: inclinações de referência.}
 \label{fig:latency}
 \end{figure}
 
-A admissão ocorre a cada requisição, enquanto a agregação de $\Omega$ roda uma vez
-por janela. Por isso cronometramos as duas camadas separadamente, sobre uma janela
-sintética na mistura realista (30\% das sessões numa campanha que compartilha um
-JA4 de \textit{botnet}, JA4 benignos tirados de um conjunto de 2\,000, oito
-\textit{endpoints}, /24 dispersos), com medianas de três repetições em um núcleo.
-Cada camada roda de dois modos: com arestas entre pares, como as regras estão
-escritas, e com contagens de classe para as sub-relações baseadas em igualdade. Os dois modos fornecem o mesmo $\Omega(S)$ para todo \textit{endpoint}, com diferença de
-até $7\times 10^{-12}$. A camada simbólica roda sobre \texttt{rdflib}, no lugar do Jena/TDB2, de modo que os números dessa camada são um limite superior. Além disso, contar
-origens acrescenta uma consulta a uma tabela \textit{hash} por admissão.
-
-Com enumeração de pares, a latência mediana de admissão cresce de $2{,}3\,\mu$s
-com $|S_W| = 100$ para $127\,\mu$s com $|S_W| = 10\,000$, acompanhando o número
-de pares candidatos (de 148 a 6\,495 arestas por admissão), à razão de $15$ a $21$~ns por par. Com contadores de classe, a latência fica entre $0{,}33$ e $0{,}42\,\mu$s de
-$100$ a $100\,000$ sessões (Fig.~\ref{fig:latency}, em que as linhas pontilhadas
-são inclinações de referência). Materializar arestas entre pares custa $0{,}84$~s
-com $|S_W| = 100$ e $52{,}8$~s com $1\,000$, entre $198$ e $309\,\mu$s por aresta
-RDF. Esse caminho é linear no número de arestas e quadrático no de sessões. A
-agregação por classes, com uma tripla de pertinência para cada par (sessão, sub-relação) e com a consulta da Listagem~\ref{lst:rules}, leva $0{,}33$~s para $1\,000$ sessões, $161$
-vezes mais rápido, e $26{,}4$~s para $100\,000$. O termo quadrático fica, assim, no
-valor de $\Omega(S)$, que conta pares, e nas arestas das sub-relações não
-transitivas, cujos pares candidatos são restringidos pelos índices. A cadeia de
-evidência (Listagem~\ref{lst:chain}) precisa apenas das contagens de pares, que as
-classes fornecem.
-
-No gerador, $W$ é o intervalo que divide as sessões de um \textit{endpoint} em agrupamentos de detecção. Uma varredura de
-$W = 60$ a $1800$~s sobre os mesmos cenários ($K = 1000$, $n = 10$) mantém a AUC
-de (d) em $0{,}976$--$0{,}978$ e a de (c) em $0{,}663$--$0{,}664$. O agrupamento da campanha tem de $1\,977$ a $1\,998$ sessões em qualquer $W$, enquanto o agrupamento médio cresce de 132 para 867 sessões, e o atributo discriminativo é a \textit{fração} desse agrupamento que compartilha um JA4. A insensibilidade é, portanto, uma propriedade do gerador.
+A admissão roda por requisição e a agregação de $\Omega$ uma vez por janela, então medimos o tempo das duas separadamente numa janela sintética: 30\% das sessões numa campanha que compartilha uma JA4 da botnet, JA4 benignas de um conjunto de 2\,000, nove endpoints, /24 dispersos. Cada uma roda com arestas de pares, como as regras estão escritas, e com contagens de classes para as sub-relações de igualdade (medianas de três repetições num núcleo), e as duas dão o mesmo $\Omega(S)$ com diferença abaixo de $10^{-11}$. A camada simbólica usa \texttt{rdflib} em vez de Jena/TDB2, então os seus tempos são provavelmente um teto. Com a enumeração de pares, a latência mediana de admissão cresce de $2{,}3\,\mu$s com $|S_W| = 100$ para $127\,\mu$s com $10\,000$, e com contagens de classes fica entre $0{,}33$ e $0{,}42\,\mu$s até $100\,000$ sessões (Fig.~\ref{fig:latency}). O caminho com arestas de pares leva $0{,}84$~s com $|S_W| = 100$ e $52{,}8$~s com $1\,000$. A agregação por classes, com uma tripla de pertinência por sessão e por sub-relação, mais uma consulta SPARQL que soma as contagens de classes ponderadas, leva $0{,}33$~s com $1\,000$ sessões, $161$ vezes mais rápido, e $26{,}4$~s com $100\,000$. O termo quadrático está, portanto, no valor de $\Omega(S)$, que conta pares, e nas arestas de pares das sub-relações não transitivas.
 
 \begin{listing}[t]
 \footnotesize
@@ -1064,150 +505,51 @@ de (d) em $0{,}976$--$0{,}978$ e a de (c) em $0{,}663$--$0{,}664$. O agrupamento
 "kg:clusterSize": 1991, "kg:coordinationScore": 1303422.8,
 "kg:activatedSubRelations": [
  {"@type": "kg:relatedByTLSFingerprint",
-  "kg:coordinationWeight": 1.0, "kg:linkedPairs": 114710,
-  "kg:weightedContribution": 114710.0},
+  "kg:coordinationWeight": 1.0, "kg:linkedPairs": 114710},
  {"@type": "kg:relatedByEndpointConvergence",
-  "kg:coordinationWeight": 0.6, "kg:linkedPairs": 1981045,
-  "kg:weightedContribution": 1188627.0},
+  "kg:coordinationWeight": 0.6, "kg:linkedPairs": 1981045},
  {"@type": "kg:relatedByNetworkProximity",
-  "kg:coordinationWeight": 0.3, "kg:linkedPairs": 286,
-  "kg:weightedContribution": 85.8}],
+  "kg:coordinationWeight": 0.3, "kg:linkedPairs": 286}],
 "kg:derivedMitigationScope": {
   "kg:endpoint": "10.0.0.1:443",
   "kg:tlsJa4": ["t13d1516h2_synth_0001_00", ...]}
 \end{verbatim}
 \vspace{-4pt}\hrule
-\caption{Cadeia de evidência de uma campanha canônica ($M = 25$, $K = 1000$), contada em origens. O escopo lista 25 impressões digitais (lista abreviada).}
+\caption{Cadeia de evidência da campanha padrão ($M = 25$, $K = 1000$), contada em origens, abreviada. Os pares de endpoint respondem por $91\%$ de $\Omega$, e o escopo lista 25 impressões digitais.}
 \label{lst:chain}
 \end{listing}
 
-\subsection*{Particionamento em Escala de CDN}
+\textbf{Particionamento na escala de uma CDN.} A regra lê um endpoint por $S$, então o particionamento por endpoint a avalia \textit{exatamente}, sem tráfego entre partições. Uma campanha que espalhe uma JA4 por muitos endpoints tem, então, pares de menos em cada partição, e seria preciso um \textit{sketch} global, não implementado, para pegá-la.
 
-A condição \2, um único \textit{endpoint} por $S$, faz do \textit{endpoint} a
-chave natural de particionamento. Com essa partição, a regra é avaliada de forma
-\textit{exata}, sem tráfego entre partições e com estado por partição limitado pela
-janela. Uma campanha que espalha o mesmo JA4 por muitos \textit{endpoints}, por
-outro lado, não acumula, em nenhuma partição, pares suficientes para ultrapassar
-$\tau_{\mathrm{cluster}}$, e particionar por JA4 quebra a condição de
-\textit{endpoint}. Nenhuma chave isolada preserva as seis sub-relações.
-
-A arquitetura que isso sugere, e que não implementamos, tem dois níveis:
-\textit{workers} particionados por \textit{endpoint} e um resumo global
-(\textit{sketch}) de identificadores de peso alto, para recuperar campanhas que se
-espalham por vários \textit{endpoints}. A revocação dessa arquitetura precisa ser medida antes de uma implantação em escala de CDN. Com a contagem por classes, as
-duas camadas crescem linearmente com a janela, e a admissão custa bem menos de um
-microssegundo.
-
-\section{A Regra por Janela}
+\section{A Regra por Janela e Detalhes de Produção}
 \label{app:window}
 
-Aqui a regra roda como seria implantada, por janela de $W = 300$~s e por
-\textit{endpoint}, e nenhum limiar é ajustado com ataques ou rótulos. O limiar $\tau_{\mathrm{cluster}}$ é o percentil 99 de $\Omega$ sobre as janelas de 30 execuções livres de ataque,
-que também formam o perfil. Os falsos alarmes são contados em outras 30
-execuções, e a detecção, nas campanhas canônicas ($\alpha = 1{,}5$, $M = 25$),
-sobre janelas com ao menos $k_{\min} = 5$ atacantes. Um pico legítimo reposiciona
-25, 50 ou 100 sessões benignas de uma terceira execução numa mesma janela.
-Espalhamos os inícios das sessões benignas por 60~min, porque o gerador os
-concentra nos primeiros minutos.
+Aqui a regra roda como seria implantada, por janela de $W = 300$~s e por endpoint, e nenhum limiar vê um ataque ou um rótulo. $\tau_{\mathrm{cluster}}$ é o percentil 99 de $\Omega$ nas janelas de 30 execuções sem ataque, que também formam o perfil. Os falsos alarmes são contados em outras 30 execuções, a detecção em campanhas padrão ($\alpha = 1{,}5$, $M = 25$) nas janelas com pelo menos $k_{\min} = 5$ atacantes, e um pico legítimo reprograma 25, 50 ou 100 sessões legítimas de uma terceira execução para dentro de uma janela. Espalhamos os inícios benignos por 60~min, já que o gerador, do contrário, os concentra no começo.
 
-\begin{table}[tb]
-\centering
-\caption{A regra por janela de cinco minutos, 30 execuções por linha.}
-\label{tab:perwindow}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}lrcccc@{}}
-\toprule
- & & & \multicolumn{3}{c}{\textbf{$\Omega$ e enriquecimento}} \\
-\cmidrule(l){4-6}
-\textbf{Janelas} & $n_W$ & $\Omega \geq \tau$ & \textbf{Dispara} & \textbf{Cob.} & \textbf{Col.} \\
-\midrule
-Ataque, $K = 1000$          & 90  & 77,8\% & 77,8\% & 79,8\% & 0,0\% \\
-Ataque, $K = 50$            & 35  & 85,7\% & 85,7\% & 75,3\% & 0,0\% \\
-Limpas                      & 360 & 0,6\%  & 0,0\%  & -- & -- \\
-\textit{Flash crowd}, 25    & 30  & 80,0\% & 0,0\%  & -- & -- \\
-\textit{Flash crowd}, 50    & 30  & 100\%  & 0,0\%  & -- & -- \\
-\textit{Flash crowd}, 100   & 30  & 100\%  & 0,0\%  & -- & -- \\
-\bottomrule
-\end{tabular}
+Em 30 execuções cada, $\Omega$ passa de $\tau_{\mathrm{cluster}}$ em $77{,}8\%$ e $85{,}7\%$ das 90 e 35 janelas de ataque com $K = 1000$ e $50$, em $0{,}6\%$ de 360 janelas limpas e em $80$--$100\%$ dos picos legítimos de 25 a 100 usuários. Um pico legítimo acrescenta massa como uma campanha acrescenta. O teste os separa porque os picos gerados sorteiam os usuários da mistura benigna que o perfil descreve, enquanto um surto num único tipo de cliente é enriquecido, como mostram as frotas de produção. Com o teste, a regra não dispara em nenhuma janela limpa (limite superior unilateral de $95\%$ de $0{,}8\%$) nem em nenhum pico legítimo, produz um filtro em toda janela de ataque marcada por $\Omega$ e bloqueia, em mediana, $75$--$80\%$ dos atacantes, sem atingir nenhuma sessão legítima. Com pesos uniformes, $\Omega$ pega pelo menos tantas janelas de ataque ($78{,}9\%$ e $85{,}7\%$), e sem o seu termo de endpoint, $33{,}3\%$ e nenhuma, enquanto marca $53$--$100\%$ dos picos legítimos. Um gatilho de origens distintas pega $82{,}2\%$ e $85{,}7\%$, e com o teste nenhuma janela limpa nem pico legítimo.
 
-\vspace{2pt}
-{\footnotesize Cob.: fração mediana dos atacantes da janela que o escopo bloqueia. Col.: maior fração bloqueada das sessões legítimas da janela.}
-\end{table}
+\textbf{Tráfego de produção.} As exportações não contêm prefixos, então o escopo é julgado só pela JA4. No nível $0{,}01$, ele produz um filtro em $60{,}1\%$ das janelas limpas quando se conta por conexões, já que um cliente abre muitas, e em $26{,}9\%$ quando se conta por origens, porque as frotas legítimas entram em atividade ao mesmo tempo. Calibrar $\lambda_e$ nos dias anteriores leva a regra básica a $0{,}2\%$. O gatilho de origens distintas, que dispara junto com $\Omega$ em 136 das 181 janelas limpas em que algum dos dois dispara, reduz à metade os falsos alarmes da regra básica sem perda de detecção. Com $\lambda_e = 10^{-60}$, o teste binomial só aponta uma pilha a partir de 15 a 18 origens. As frotas, como uma frota de sondas ativa só no horário comercial, empurram $\lambda_e$ para baixo, e, sem as frotas isentas, o teste sozinho produz um filtro em $1{,}5$--$6{,}3\%$ das janelas do dia seguinte, muitas vezes uma frota que bloqueia cerca de metade dos clientes de uma janela.
 
-Um pico legítimo acrescenta massa da mesma forma que uma campanha. O teste distingue os dois
-porque esses picos sorteiam seus usuários da mesma mistura benigna que o perfil
-descreve, enquanto um surto concentrado num único tipo de cliente fica
-enriquecido, como mostram as frotas de produção. Com o teste, a regra não dispara
-em nenhuma janela limpa (limite superior do intervalo de confiança de $95\%$:
-$0{,}8\%$) nem em nenhum pico legítimo. Em toda janela de ataque que $\Omega$ sinaliza, ela bloqueia, em mediana, de $75$ a $80\%$ dos atacantes, sem atingir nenhuma sessão legítima. Com pesos uniformes, $\Omega$ detecta pelo menos tantas janelas
-de ataque quanto com os pesos propostos ($78{,}9\%$ e $85{,}7\%$), e, sem o termo
-de \textit{endpoint}, detecta $33{,}3\%$ das janelas de ataque com $K = 1000$ e nenhuma com $K = 50$, embora ainda sinalize $53$ a
-$100\%$ dos picos legítimos. Um gatilho de origens distintas no percentil 99
-captura $82{,}2\%$ e $85{,}7\%$ e, com o teste, também não dispara em nenhuma
-janela limpa nem em nenhum pico legítimo.
+\textbf{Detalhes da V-B.} As janelas com menos de $k_{\min}$ origens, onde nenhum gatilho pode abrir, ficam de fora: 117 das 1\,440 janelas de dias de teste do E4, e nenhuma no dia novo. Nas janelas de ataque, os escopos calibrados bloqueiam em mediana $0\%$ dos clientes legítimos, e até $71\%$ na pior janela de um endpoint pequeno. O gatilho e o escopo disparam juntos indevidamente mais vezes do que a independência prevê para a beta-binomial \textit{post hoc} e o escore $z$ calibrado, em 22 e 20 janelas contra 7,5 e 11,9 ($P < 10^{-4}$ e $P = 0{,}02$ para uma contagem de Poisson), e em 6 e 13 contra 1,8 e 4,6 com calibração cruzada. Para a configuração binomial, o excesso cabe no acaso, 5 contra 3,5 e 6 contra 3,2 com calibração cruzada ($P = 0{,}27$ e $0{,}10$). O valor esperado agrega os dias por endpoint, então a variação de um dia para outro, sozinha, pode inflar o excesso. Os disparos indevidos das outras duas também se concentram por dia, 13 de cada num dia do console, então os intervalos exatos, que supõem janelas independentes, subestimam a sua incerteza. Com a binomial em amostra, o piso das pilhas compartilhadas para 5 e 100 pilhas é de 50 e 1\,026 atacantes no E1, 164 e 6\,158 no E2, 28 e 1\,017 no E3 e 17 e 454 no E4. Para 25 pilhas, as impressões digitais de posição 11 a 35 precisam de 808 no E3 e de 114 no E4, e as de posição 36 a 100 precisam de 743, 1\,898, 227 e 84.
 
-\begin{figure}[tb]
-\centering
-\includegraphics[width=\columnwidth]{figures/fig4_operating.png}
-\caption{Pontos de operação no tráfego de produção, 100 atacantes por janela (uma taxa nula é desenhada em $0{,}01\%$).}
-\label{fig:operating}
-\end{figure}
+\textbf{Detalhes da V-C.} Agregando os endpoints, a configuração binomial detém $38{,}4\%$ e $77{,}7\%$ de 100 e de 1\,000 atacantes em pilhas novas, e $21{,}7\%$ e $63{,}3\%$ nas compartilhadas, números em que os endpoints pequenos predominam. No endpoint mais movimentado, conforme o dia, o gatilho abre em $0{,}7$--$42\%$ das janelas de uma botnet de um décimo do tamanho da janela. Ele abre em $45\%$ com um terço e em $79\%$ com uma janela inteira. De 100 atacantes em pilhas novas, o filtro de impressões inéditas sozinho, atrás do gatilho de origens, detém $29{,}4\%$, o escore $z$ calibrado $54{,}7\%$ ($23{,}7\%$ nas compartilhadas) e a beta-binomial \textit{post hoc} $59{,}8\%$ ($40{,}5\%$). Impressões digitais ausentes do perfil aparecem todo dia, mas raramente se concentram: só $0{,}21\%$ das janelas dos dias de teste contêm uma com pelo menos $k_{\min}$ origens. Os disparos indevidos do filtro de impressões inéditas como gatilho próprio se concentram por dia: os 4 do endpoint mais movimentado e os dois do console caem num mesmo dia, e 5 dos 6 da API em outro. Em cada endpoint pequeno, todo escopo da Tabela~\ref{tab:triggers} detém $90{,}0\%$ de 1\,000 atacantes em pilhas novas sob todo gatilho, tanto nos dias de teste quanto no dia novo.
 
-\textbf{Tráfego de produção.} As exportações vêm dos quatro \textit{endpoints} de serviços próprios da operadora cujas janelas têm ao menos $k_{\min}$ origens. O
-tráfego limpo exclui os clientes bloqueados pelo WAF, e, como as exportações não
-trazem prefixos, o escopo é julgado apenas pelo JA4. A \textit{botnet} injetada põe
-$90\%$ dos atacantes em 25 pilhas, com /24 tirados de 2\,000 prefixos disjuntos
-dos reais. Frotas legítimas, como sondas ativas só em horário comercial, levam
-$\lambda_e$ aos níveis da Tabela~\ref{tab:floor}, e o escopo sozinho produz então
-um filtro em $1{,}5$ a $6{,}3\%$ das janelas do dia seguinte. Quando a regra
-dispara numa janela limpa de E2 ou E3, ela aponta uma frota e bloqueia cerca de
-metade dos clientes dessa janela. O gatilho de origens distintas reduz esses falsos alarmes à metade. As oito janelas limpas em que o escopo produz um filtro e que só o gatilho $\Omega$ admite têm $33\%$ do seu $\Omega$ fora do termo de \textit{endpoint}, contra $12\%$
-nas demais, porque uma frota se concentra numa impressão digital e eleva o termo
-TLS.
+\textbf{Detalhes da V-D.} No bloco, a configuração disparou indevidamente em 0 a 6 janelas por dia, nunca no endpoint mais movimentado, e a regra básica disparou em 30 dessas 31 janelas. O gatilho e o escopo dispararam juntos indevidamente em 31 janelas contra 2,9 se fossem independentes, e o escopo disparou indevidamente em 10 das 98 aberturas do gatilho na API e em 4 das 95 do login único. \textit{Post hoc}, levando em conta a incerteza dos próprios dias de teste, um teste de Fisher unilateral dá $P = 0{,}07$ para a alta da taxa e $P = 0{,}0002$ para os disparos indevidos depois que o gatilho abre. A referência do escore $z$ disparou indevidamente menos (20 contra 31), disparou em menos picos e deteve uma parte maior de 100 atacantes. Picos de 100 usuários disparam a configuração em $3{,}4\%$ das janelas, e os seus disparos indevidos bloqueiam um valor esperado de $0{,}08\%$ dos clientes por janela limpa. No endpoint mais movimentado, o gatilho de origens abre em $0{,}0$--$13{,}9\%$ das janelas de uma botnet de um décimo, conforme o dia, e a configuração detém $0{,}0$--$12{,}5\%$ dela. Atrás do gatilho sazonal, 12 dos 14 disparos indevidos da beta-binomial no endpoint mais movimentado caem em dois dias. Nenhuma impressão digital ausente do perfil chegou a $k_{\min}$ origens numa janela do bloco.
 
-\textbf{Concordância com o WAF.} Dos clientes que o escopo bloquearia no tráfego
-completo, o WAF também bloqueou $84\%$ e $96\%$ nos dois \textit{endpoints} em que o
-escopo não aponta frotas, e $1{,}5\%$ naquele em que aponta. O escopo cobre
-$16{,}7\%$ de todos os clientes que o WAF bloqueou.
+\textit{Post hoc}, nas posições 36 a 100, o piso do endpoint mais movimentado cai de 743 atacantes com a binomial para 480 com a beta-binomial em amostra, e sobe para 949 com calibração cruzada. Em comparação com a binomial em amostra, o piso da beta-binomial com calibração cruzada nessas posições também é mais alto na API (255 contra 227), igual no login único e mais baixo no console (509 contra 1\,898). Os níveis da beta-binomial caem então para $10^{-17}$--$10^{-2}$, o seu escopo sozinho dispara em $1{,}2\%$ das janelas do dia novo, e uma impressão digital seria uma frota conhecida no E1 em três de cinco dias, embora nenhuma se qualifique em amostra.
 
-\textbf{Outras linhas de base.} Sem calibração, o $z$-score dispara em $2{,}6\%$ das
-janelas limpas e em $64{,}5\%$ dos picos legítimos, e um $z$-score de cada impressão
-digital em relação ao próprio histórico, em metade desses picos.
+A maior parte dos clientes bloqueados pelo WAF compartilhava impressões digitais com clientes não bloqueados. Com um perfil construído sem os clientes bloqueados, $84$--$99\%$ dos clientes que os escopos bloqueariam no tráfego completo da API e do login único também foram bloqueados pelo WAF. Com um perfil de todos os clientes, os escopos pegam os surtos do WAF claramente acima do acaso só no console, e ali com menos de $1\%$ de clientes bloqueados.
 
-\textbf{Referência sobredispersa.} A variante beta-binomial atribui a cada impressão
-digital do perfil uma correlação dentro da janela, $\phi$, estimada pelo método dos
-momentos sobre as janelas de calibração a partir de
-$\mathrm{Var}[c] = n b(1-b)\bigl(1 + (n-1)\phi\bigr)$ e limitada ao intervalo
-$[0;\ 0{,}99]$. A contagem de cada impressão digital é então testada em relação a uma
-beta-binomial de mesma média. Uma impressão digital ausente do perfil continua testada pela
-binomial, e o nível é calibrado como antes.
+\textbf{Outras linhas de base.} Sem calibração e atrás do gatilho $\Omega$, o escore $z$ dispara em $2{,}6\%$ das janelas limpas e em $64{,}5\%$ dos picos legítimos de 100 usuários ($86{,}8\%$ dos picos de 1\,000 usuários).
 
-Dos quatro limiares testados para declarar uma frota conhecida (fração das janelas de calibração em que o teste a aponta), só o de $5\%$ não aumentou os falsos alarmes nos três primeiros dias de teste. Nos dois últimos, esse limiar eleva, em E1, a fração de atacantes que o enriquecimento bloqueia numa \textit{botnet} de um décimo da janela típica, de $0{,}7\%$ para $6{,}3\%$, com 7 falsos alarmes contra 8, e deixa E2 a E4 inalterados. Limiares menores bloqueiam mais atacantes, mas disparam com o dobro da frequência, com filtros que bloqueiam menos clientes (mediana de $11$ a $12\%$ dos clientes, contra $51\%$). O piso da Tabela~\ref{tab:floor} é o tamanho da menor \textit{botnet} cujas pilhas atingem, na janela mediana do \textit{endpoint}, a contagem mínima para que o teste, nesse nível, as aponte. As linhas de
-base calibradas tomam como limiar o percentil 99 do maior $z$ sobre as janelas de
-calibração, nunca abaixo de 3. Um gatilho acionado apenas pelo escopo dispara, com as frotas conhecidas isentas, em $2{,}2\%$ das janelas limpas de todos os
-\textit{endpoints} e em $0{,}5\%$ no dia novo, contra $3{,}5\%$ e $8{,}8\%$ sem esse tratamento (Fig.~\ref{fig:operating}). Um perfil por hora do dia não ajudou. Usar $\rho = 2$ ou $5$ não muda nenhuma taxa agregada de disparo em mais de $0{,}3$ ponto
-percentual nem nenhuma fração bloqueada em mais de $4{,}5$ pontos, enquanto uma mediana de dano colateral chega a mudar $7{,}2$ pontos. Picos legítimos de 1\,000
-usuários disparam a regra em $21{,}8\%$ das janelas, e o $z$-score, em $86{,}8\%$.
+\textbf{Frotas conhecidas e o escopo como gatilho.} Das quatro frações de frotas conhecidas, cada uma somada à regra básica nos três primeiros dias de teste, a de $5\%$ foi a única cujos falsos alarmes não passaram dos da regra sozinha (5 contra 6, as outras de 12 a 16). Usando a taxa vezes o dano colateral mediano, uma medida mais grosseira que a média, a fração de $0{,}5\%$ bloqueava cerca de 25 vezes menos clientes legítimos por janela limpa nesses dias ($0{,}0028\%$ contra $0{,}070\%$). Ela também detinha uma parte maior de uma botnet de 100 atacantes em pilhas novas ($44{,}6\%$ contra $30{,}9\%$). \textit{Post hoc}, o escopo sozinho como gatilho, com frotas conhecidas, dispara em $2{,}2\%$ das janelas limpas agregadas, contra $3{,}5\%$ da união sem elas. Com frotas conhecidas, ele detém $61{,}1\%$ da botnet de um décimo do endpoint mais movimentado em pilhas compartilhadas, e os seus disparos indevidos ali bloqueiam, em mediana, $1{,}0\%$ dos clientes. O gatilho sazonal \textit{post hoc}, sozinho, dispara em $3{,}0\%$ das janelas limpas dos dias de teste, como o gatilho de origens, e a binomial atrás dele detém $10{,}0$--$44{,}7\%$ da botnet de um décimo do E1, conforme o dia. Fixar $\rho = 2$ ou $5$ não muda nenhuma taxa agregada de disparo da regra básica em mais de $0{,}3$ ponto, nenhuma fração bloqueada em mais de $4{,}5$ nem nenhuma mediana de dano colateral em mais de $7{,}2$.
 
 \section{Reprodutibilidade}
 \label{app:repro}
 
 A implementação de referência está disponível em
-\url{https://github.com/Natanael0liveira/knowledge-graph-ddos-article}, sob
-licença permissiva. O comando \texttt{make compile-check stix-ingest} confere em
-sessões geradas a consulta de contagens compilada e submete os pacotes exportados ao validador STIX~2.1 da OASIS em modo estrito, ao TAXII~2.1 e ao importador do MISP. O protocolo do dia novo foi registrado, com os \textit{hashes} de suas
-exportações, antes de o dia ser lido (\texttt{fresh\_day\_protocol.md}), e o comando \texttt{make production-tables} recalcula todos os números de produção, com os
-dias de teste e o dia novo separados. As duas derivações de escopo são
-distribuídas lado a lado, para que o resultado negativo da
-Seção~\ref{sec:collateral} possa ser reproduzido, e não apenas afirmado. Os
-rótulos só entram na avaliação: perfis e níveis vêm de execuções livres de ataque,
-e os scripts que geram a Tabela~\ref{tab:symbolic} tomam o agrupamento de maior $\Omega$
-sem rótulo algum. As sementes são fixas, e Makefiles conduzem cada estágio, de modo que toda tabela e todo gráfico se regeneram com um único comando. A exceção
-são as entradas das Tabelas~\ref{tab:production} e~\ref{tab:floor}, agregados da
-operadora, cujo resumo anonimizado acompanha o artefato e é conferido com as
-tabelas. A ontologia OWL é distribuída em RDF/XML com suas anotações
-\texttt{coordinationWeight}, e pretendemos submeter os artefatos à trilha de
-Avaliação de Artefatos.
+\url{https://github.com/Natanael0liveira/knowledge-graph-ddos-article}, sob a licença MIT. \texttt{make compile-check stix-ingest} confere a consulta de contagem compilada em sessões geradas, também depois de um quarto sinal de igualdade ser acrescentado como quatro triplas. Os pacotes exportados passam pelo validador STIX~2.1 da OASIS em modo estrito, pelo servidor TAXII~2.1 de referência (medallion 3.0.0) e pelo importador do MISP (misp-stix 2026.9.16). O servidor os devolve inalterados, exceto pela definição de extensão que ele não consegue servir. A consulta compilada reproduziu as contagens exportadas de endereços e de pares /24 em toda janela de dois dias de produção, 1\,152 janelas cada, e as contagens de pares JA4 nas 288 janelas de cada dia no endpoint em que o WAF não bloqueou nenhum cliente. Nos demais, a exportação descarta os clientes parcialmente bloqueados pelo WAF, que a consulta compilada mantém. O protocolo nomeava os tamanhos das classes de JA4, e a conferência comparou as suas contagens de pares, que restringem as contagens por impressão digital que o escopo testa, mas não as identificam. A consulta rodou no banco de logs do operador, o artefato guarda só as suas contagens, e a avaliação lê as exportações.
+
+O protocolo do dia novo foi escrito, com os hashes das exportações, antes de o dia ser lido (\texttt{fresh\_day\_protocol.md}), mas entrou no repositório 17 horas depois da hora declarada, então nenhum carimbo de tempo externo atesta essa ordem. O protocolo do bloco foi publicado antes de qualquer dos seus dias ser exportado, e os hashes das exportações, com um adendo que acrescenta três métricas, antes de qualquer resultado ser calculado (\texttt{heldout\_block\_protocol.md} e os seus adendos). A sua única regra emendada, adotada depois da exportação e antes de qualquer resultado ser calculado, compara os endpoints pequenos com 100 atacantes e deixa o veredito inalterado. Algumas linhas de contagens brutas foram vistas na tela durante a exportação. O repositório guarda toda métrica que os dois protocolos nomeiam, qualquer que seja o seu valor (\texttt{production\_tables.json}, \texttt{block\_report.json}). As sementes são fixas, então toda tabela e toda figura do tráfego gerado se regeneram a partir do seu alvo do make. As tabelas de produção (\texttt{make production-tables waf-labels}) se regeneram a partir de resultados por janela guardados com os dados do operador, enquanto \texttt{make audit} recalcula cerca de 250 números impressos a partir de resumos anonimizados no repositório. Pretendemos submeter os artefatos à trilha de Avaliação de Artefatos.
 
 \end{document}

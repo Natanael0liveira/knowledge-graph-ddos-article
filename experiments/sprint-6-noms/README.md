@@ -3027,3 +3027,110 @@ by replacing another reference; Appendix F's "every generated-traffic table and 
 from its make target" needs the Makefile to chain the seeded cache to its readers, a fix for the
 artifact before Artifact Evaluation. 12 pages, the abstract at 26 lines and 250 words, pages 1-4 one
 line looser; `make audit`: 245 checks, 0 mismatches; `make block-report-check`: 21 of 21.
+
+## 78. Round 75: an author's fluency rewrite, fitted back into 8 + 4 pages
+
+The author rewrote the whole body for fluency: plainer connectors, Section III split into more
+paragraphs, "selects" and "covers" where the paper said "names" and "stops". The rewrite had 197
+fewer words but about 2,300 more characters (6%), mostly longer words, so the body ran about 55
+lines over: 13 pages, with the Acknowledgment on page 9. Swapping each rewritten section into round
+74 put the extra lines everywhere (Introduction 6.5, Section III 6, IV 6, V-A 6, V-D 6, VI 15).
+
+Two read-only reviewers compared every rewritten sentence with round 74; every number still matched
+its table, but some qualifiers and attributions did not survive. Restored:
+- citations: the "75 studies, 47%" survey is Odusami et al. again (the rewrite credited Tripathi and
+  Hubballi); the PCA-over-flows and behavioral-matrix roles of Fernandes et al. and Bharathi and
+  Sukanesh are swapped back, as App. C has them; "their operational use remains unclear" (Liu et al.)
+  replaces a claim that knowledge graphs "support operational security analysis", which cited
+  Bonagiri et al., whom `docs/references.md` lists as static practice; one bot-management platform
+  (not "commercial bot management"); "most bots that claim a browser identity" (Li et al.);
+- scope of claims: "pooled across endpoints" (E1's scope alone is at 0.97%); "there" for E1's
+  1.56%; "E1's tenth-size botnet" for the scope alone's 90% (100 attackers get 43%); "this WAF's
+  verdicts"; the block's rate "by the protocol's test, inconsistent with it" (the post hoc
+  two-sample test gives P = 0.07, so "differs significantly" overstated it); "per window, Ω ≥ τ
+  alone" fires on flash crowds (the base rule fires on none); the JA4-pair counts were reproduced "on
+  the endpoint where the WAF blocked no client", not in windows; the VII arm "there" (E1) and
+  "preferred to the filter everywhere";
+- definitions: the base rule is named again (the rewrite called it the "reference rule" while Table
+  II and App. E say "base rule"); the calibration floor is the botnet size from which the scope
+  selects a typical stack, so the unseen filter's 139 is the floor on E1-E3, as V-B and Table V say;
+  the enrichment limit is named where it is defined; "clean" is defined again, and "a real attack
+  there would count as a false alarm" (the rewrite's "an undetected real attack" reversed the logic);
+  new stacks are absent from the traffic, not only from the profile; the fleet shares were each added
+  to the base rule; only these four of the 12 endpoints pass the rule; "scope" and "profile" are
+  defined in the introduction; the fallback (a rate limit or a challenge to every client) is defined
+  where V-B first uses it;
+- the abstract keeps the rewrite's order but restores "a median third of their windows' clients"
+  (the rewrite said "a substantial share of legitimate clients"), "though each alone exceeds the 1%
+  budget", "legitimate fleets raise a calibration floor" and "misses most of a small injected
+  botnet";
+- style: the antitheses, "rather than" and clause-joining semicolons the rewrite added, and five
+  double spaces before citations (a line break before `~\cite`).
+
+The cuts, about 330 edits in all, keep the rewrite's sentences and shorten their words. A duplicate
+sentence went in the introduction and in III-C, and two of the rewrite's paragraph splits were
+merged (III-C's lead, V-A's lead). One line of the slack bought back the rewrite's two-step
+introduction of the floor. Layout: 12 pages; the Acknowledgment opens page 8's right column
+(y = 521) and the references follow it (y = 631); about one line to spare in all. Sections I and II
+fill pages 1 to 2's left column exactly, so cuts there only stretch that column. Six paragraphs on
+pages 4 and 5 end in a one-word line, the cheapest reserve for the next addition.
+
+Audit: 96 pinned phrases and 13 built ones moved to the new wording, each checked against the paper;
+the pin on "about 2.9 of a day's 288 windows" was dropped with the phrase, and a new condition checks
+the abstract's 0.19% against the block. `make audit`: 245 checks, 0 mismatches;
+`make block-report-check`: 21 of 21. The rewrite as the author wrote it is kept outside the
+repository. The Portuguese version still follows round 74.
+
+A third read-only review compared the final text with both versions and recomputed its numbers. It
+found no false statement and no misattached number, apart from the abstract item below. The fixes:
+- the abstract's misfires now follow both day sets, so they block "a median 33-39%" of their
+  windows' clients (32.9% on the test days, 39.0% on the block); the audit checks both;
+- ambiguous antecedents: "Of these misfires", "The test selects a set", "loses its lead" (the
+  "it" pointed at the binomial), "Browser-imitating bots" (no noun preceded "Such bots");
+- lost words: "Together, these fingerprints carry up to about 7%"; "coverage without the gate" for
+  the 43.1% model (IV-B's coverage counts the windows the gate misses); "a more concentrated
+  legitimate population"; the conclusion's unseen filter has "no false alarm on those days" (it had
+  four on the test days);
+- the abstract's two garden-path sentences (a parenthesis, and a full stop before "A botnet on
+  common fingerprints mostly escapes"); "specifies no calibrated filter selection or collateral
+  metric" (not "reports no collateral"); "None of these preserves relations across sessions" moved
+  back before Xie and Yu; "Our calibrated test asks the same question"; a cited fact taken out of
+  "We assume"; "$47\%$" in math mode, as elsewhere.
+The extra words came out of four one-word last lines (III-A, IV-B, V-A, V-B). The layout is the
+same: 12 pages, the Acknowledgment at y = 515 on page 8's right column; audit 245/0.
+
+A NOMS-style review of this text (the round-74 brief, with the rewritten passages listed) gave
+4/3/4/3/4, about the 75th percentile, no class A, "Ready to submit: yes": the same verdict as round
+74, so the rewrite cost nothing. Its ten B items were all real, and five were slips of the page fit:
+the unseen filter's "no false alarm" holds only on the block (four on E1's test days); shared stacks
+are all drawn beyond the top ten ("mostly rare ones"); the binomial scope alone is "rising" on E1
+(0, 0, 1, 5, 8 by day); the 11.8% is the tenth-size botnet (100 attackers: 3.3%); the floor is "the
+smallest A"; contribution (iii) "defines the evidence the test reads and the filter it selects";
+"legitimate client fleets" in the abstract; "the filter if deployed" (the evaluation is offline);
+"The scope is what sets the attack apart"; "these are the four with TLS, at least 50 calibration
+windows and ..." (the old wording read as a claim that no other endpoint carries TLS).
+
+An outside simulated review (three reviewers, borderline accept; kept out of the repository) added
+two framing fixes: IV-A says again that a uniform spread over M stacks is "the hardest case in
+expectation for selecting a stack at a given M" (its R2 thought the design favoured enrichment), and
+VI says the candidate "was fixed before the 14-day block, where the comparison set in advance
+preferred it" (its R2 thought the block did not test a frozen policy). Its call for a day-level
+bootstrap was not applied: the paper states the clustering, and a rough endpoint-day bootstrap on
+the block's counts (windows split evenly by day) gives 0.11-0.29% against the exact 0.13-0.27%, far
+below the budget. The exact version needs the per-window data on the drive (`cluster_ci`).
+Two trims ("is untested", "fleets push") buy back two lines of slack: 12 pages, the Acknowledgment
+at y = 515; audit 245/0, block report 21/21.
+
+A second NOMS-style pass on the fixed text gave 4/3/4/3/5 (relevance up to 5), about the 75th
+percentile, no class A, "yes", after recomputing Tables III-VII. Four of its nine B items were slips
+of the previous pass's own fixes, so the review loop ends here. Applied: the abstract and the
+conclusion say again that the block's rate doubles ("about twice that rate but within budget",
+"double to 0.19%"), since the protocol's consistency test failed; contribution (iii) "defines the
+evidence the test reads and the selected filter" (two "it"s had different referents); "On E1, the
+cross-fitted beta-binomial ..." (after "on the 14 days", "There" pointed at the block, where the
+candidate covers 61% of new-stack attackers pooled); the shared stacks are "all beyond the top ten
+and mostly rare", and the floor is "computed at their median share"; "the pre-specified comparison
+preferred it to the unseen filter"; Table VII marks its three post hoc rows; "needs about 8%" (the
+floor is a ramp); "loses its coverage lead"; "The shared-stack floor grows" (2% and 34% are the
+shared floors). 12 pages, the Acknowledgment at y = 521, about one line of slack; audit 245/0
+(Table VII's row labels updated), block report 21/21.

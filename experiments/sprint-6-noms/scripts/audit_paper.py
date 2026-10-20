@@ -109,29 +109,29 @@ print(f"{'OK ' if good else 'XX '} tab:symbolic note: unseen FPR mean {v*100:.3f
 zf0 = [us("original", s, 0, "zscore", "fpr") for s in (1, 5, 25, 100)]
 good = (max(zf0) == 0 and f"{us('shared_profile_tail', 25, 0, 'zscore', 'fpr')*100:.2f}" == "3.37"
         and f"{us('original', 25, 1, 'zscore', 'fpr')*100:.1f}" == "11.3"
-        and "and the $z$-score $89.9\\%$ at $3.37\\%$" in TEXN and "the $z$-score $57.3\\%$ at $11.3\\%$" in TEXN
+        and "versus $89.9\\%$ at $3.37\\%$ for the $z$-score" in TEXN and "the $z$-score $57.3\\%$ at $11.3\\%$" in TEXN
         and f"{us('shared_profile_tail', 25, 0, 'zscore', 'recall')*100:.1f}" == "89.9" and f"{us('original', 25, 1, 'zscore', 'recall')*100:.1f}" == "57.3"
         and f"{us('shared_profile_tail', 25, 0, 'enrichment', 'recall')*100:.1f}" == "85.4" and f"{us('shared_profile_tail', 25, 0, 'enrichment', 'fpr')*100:.2f}" == "2.23"
-        and "On those the test blocks $85.4\\%$ at $2.23\\%$ collateral, and the $z$-score $89.9\\%$ at $3.37\\%$" in TEXN
-        and "the test reaches wherever the learned model runs except the adversarial case." in TEXN)
+        and "For those, the test covers $85.4\\%$ of attackers at $2.23\\%$ collateral, versus $89.9\\%$ at $3.37\\%$ for the $z$-score" in TEXN
+        and "which the test also achieves wherever the learned model is evaluated, except in the adversarial case." in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} tab:symbolic note: z-score FPR 0 except shared and adversarial")
 mf = [us("original", s, a_, "modal", "fpr") for s, a_ in ((5, 0), (25, 0), (100, 0), (25, 1))] + [us("shared_profile_tail", 25, 0, "modal", "fpr")]
 good = (us("original", 1, 0, "modal", "fpr") == 0 and all(f"{x*100:.1f}" == "39.0" for x in mf)
         and f"{us('original', 25, 0, 'modal', 'fpr', alpha=2.0)*100:.1f}" == "61.1"
-        and "With a single botnet stack, the modal fingerprint and the test agree, blocking $89.8\\%$ of the attack with no observed collateral." in TEXN
-        and "it blocks $0.0\\%$ of the attack and $39.0\\%$ of legitimate traffic, rising to $61.1\\%$ under a more concentrated legitimate population ($\\alpha = 2.0$)" in TEXN)
+        and "With one botnet stack, the modal fingerprint and binomial test both cover $89.8\\%$ of attackers, with no observed collateral." in TEXN
+        and "It covers $0.0\\%$ of attackers and blocks $39.0\\%$ of legitimate traffic, rising to $61.1\\%$ under a more concentrated legitimate population ($\\alpha = 2.0$)" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} tab:symbolic note: modal FPR 0 at M=1, 39.0% elsewhere, 61.1% at alpha 2.0")
 print("== Section V-B text")
 good = all(abs(us("original", s, 0, "zscore", "recall") - us("original", s, 0, "enrichment", "recall")) < 5e-4
-           and us("original", s, 0, "zscore", "fpr") == 0 for s in (5, 25)) and "The binomial test and the $z$-score block $90.0\\%$ of the attack at five stacks and $90.3\\%$ at 25" in TEXN
+           and us("original", s, 0, "zscore", "fpr") == 0 for s in (5, 25)) and "The binomial test and $z$-score cover $90.0\\%$ of attackers at five stacks and $90.3\\%$ at 25" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: the z-score blocks as the test at 5 and 25 stacks, zero FPR")
 m100 = {m: us("original", 100, 0, m, "recall") for m in ("enrichment", "zscore", "unseen")}
 good = (f"{m100['enrichment']*100:.1f}" == "38.6" and f"{m100['zscore']*100:.1f}" == "80.4" and f"{m100['unseen']*100:.1f}" == "88.1"
-        and "the test falls well below the $z$-score and the unseen filter (Table~\\ref{tab:symbolic})" in TEXN)
+        and "the test falls well below the $z$-score and unseen filter (Table~\\ref{tab:symbolic})" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-A: at 100 stacks the z-score and the unseen filter beat the test {m100}")
 SDA = json.load(open(R + "symbolic_detector.json"))["aggregate"]["1.5:25:0"]
 good = (f"{SDA['rf_recall_fpr1']*100:.1f}" == "66.8" and f"{SDA['rfp_recall_fpr1']*100:.1f}" == "94.6"
-        and "At $1\\%$ false positives, which the test does not need, (d) reaches $66.8\\%$ at 25 stacks and $94.6\\%$ with the profile" in TEXN)
+        and "At $1\\%$ false positives, which the test does not need, (d) reaches $66.8\\%$ at 25 stacks, or $94.6\\%$ with the profile" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-A: the learned model at 1% FPR, {SDA['rf_recall_fpr1']*100:.1f}% and {SDA['rfp_recall_fpr1']*100:.1f}% with the profile")
 chk("RF + profile recall @FPR=0, M=25", "87.4", sym["1.5:25:0"]["rfp_recall_fpr0"]*100, pct)
 chk("RF + profile recall @FPR=0, M=100", "86.9", sym["1.5:100:0"]["rfp_recall_fpr0"]*100, pct)
@@ -311,7 +311,7 @@ for label, want in (("tab:production", [("in", n) for n in ("binomial", "beta-bi
     print(f"{'OK ' if good else 'XX '} {label} holds the {len(want)} rows in order ({len(rows)} parsed)")
 fz, ob, zc = TD["fleets"]["all"]["union|origins"], TD["od"]["all"]["union|origins"], TD["base"]["all"]["zcal|origins"]
 ff_, fo, zf = FD["fleets"]["all"]["union|origins"], FD["od"]["all"]["union|origins"], FD["base"]["all"]["zcal|origins"]
-good = fz["clean_windows"] == 5643 and ff_["clean_windows"] == 1152 and "(5\\,643 on the test days and 1\\,152 on the held-out day, windows under $k_{\\min}$ origins left out)" in TEXN
+good = fz["clean_windows"] == 5643 and ff_["clean_windows"] == 1152 and "5\\,643 on the test days and 1\\,152 on the held-out day, leaving out windows under $k_{\\min}$ origins" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} tab:production note: {fz['clean_windows']} clean windows on the test days, {ff_['clean_windows']} on the held-out day")
 tp_ = TEX[TEX.index("\\label{tab:production}"):]; tp_ = tp_[:tp_.index("\\end{table}")]
 good = ("$^{*}$Post hoc. $0.1\\times$, $1\\times$: botnet size, in median windows.}" in tp_ and "Held-out day" not in tp_
@@ -319,17 +319,17 @@ good = ("$^{*}$Post hoc. $0.1\\times$, $1\\times$: botnet size, in median window
 print(f"{'OK ' if good else 'XX '} tab:production: test days only, the beta-binomial marked post hoc")
 nfa = {e: TD["fleets"]["per_endpoint"][e]["union|origins"]["clean_fires"] for e in ("E1", "E2", "E3", "E4")}
 good = nfa["E2"] == 4 and max(nfa[e] for e in ("E1", "E3", "E4")) == 1 \
-    and "4 of them on the web console" in TEXN
+    and "including four on the web console" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: false alarms per endpoint {nfa}, 4 of 5 on the console")
 kf = {r: [FL[r][e][f]["known_fleets"] for e in FL[r] for f in FL[r][e]] for r in FL}
 same = all(TD["od"][k] == TD["od_fleets"][k] and FD["od"][k] == FD["od_fleets"][k] for k in ("all", "per_endpoint"))
 good = (max(kf["od_fleets"]) == 0 and same
         and "& beta-bin. & --             & post hoc" in TEX)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: beta-binomial names no known fleet in any fold in sample ({max(kf['od_fleets'])}), identical with the fleet profile: {same}")
-good = ("Five choices were made on the test days: counting origins, calibrating $\\lambda_e$, the gate, the union with the unseen filter and the $5\\%$ fleet share" in TEXN
+good = ("Five choices were made on the test days: counting origins, calibrating $\\lambda_e$, the gate, the union with the unseen filter, and the $5\\%$ fleet-share threshold" in TEXN
         and "$^{*}$Post hoc: built after the held-out day was read" in TEXN
-        and "The second, built after the held-out day was read (Section~\\ref{sec:posthoc}), is a \\textbf{beta-binomial background}" in TEXN
-        and "\\textit{Cross-fitting}, built post hoc, judges each calibration day, like a test day, against a profile of the other days" in TEXN
+        and "Second, a \\textbf{beta-binomial background}, developed after the held-out day was examined (Section~\\ref{sec:posthoc})" in TEXN
+        and "\\textit{Cross-fitting}, introduced post hoc, judges each calibration day, like a test day, against a profile of the other days" in TEXN
         and "$^{*}$Post hoc, as is cross-fitting" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} tab:configs note: the choices made on the test days and the post hoc ones")
 
@@ -359,25 +359,25 @@ for e, lab in [("E1", "E1, RUM beacons"), ("E2", "E2, web console"), ("E3", "E3,
     good = printed == exp; ok += good; bad += not good
     print(f"{'OK ' if good else 'XX '} tab:floor {lab:16s} printed={printed} data={exp}")
 no_ = [st_.median(FL["base"][e][f]["median_origins"] for f in tf) for e in ("E1", "E2", "E3", "E4")]
-good = round(no_[0], -3) == 3000 and "whose median windows hold about $3\\,000$, " + ", ".join(f"{x:.0f}" for x in no_[1:3]) + f" and {no_[3]:.0f} origins" in TEXN
+good = round(no_[0], -3) == 3000 and "Their median windows hold about $3\\,000$, " + ", ".join(f"{x:.0f}" for x in no_[1:3]) + f" and {no_[3]:.0f} origins" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} IV: median windows {no_}")
-good = PT["endpoints_exported"] == 12 and "Of the 12 endpoints exported, they are the four that carry TLS and have at least 50 calibration windows and a median window of at least $k_{\\min}$ origins" in TEXN
+good = PT["endpoints_exported"] == 12 and "Of 12 exported endpoints, these are the four with TLS, at least 50 calibration windows and a median window of at least $k_{\\min}$ origins" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} IV: the four evaluated endpoints of the {PT['endpoints_exported']} exported")
 good = (all(FPD["fleets"][e][f]["25"]["new"]["min_attackers"] == math.ceil(5 * 25 / 0.9) and FPD["fleets"][e][f]["25"]["new"]["set_by"] == "unseen"
-            for e in ("E1", "E2", "E3") for f in tf) and "the unseen filter sets the floor on E1 to E3: 139 attackers per window, so that the average stack reaches $k_{\\min}$ origins. On E4 the test names the stacks first, from 84" in TEXN
+            for e in ("E1", "E2", "E3") for f in tf) and "the unseen filter sets the floor on E1--E3 at 139 attackers per window, where the average stack reaches $k_{\\min}$ origins. On E4 the test selects stacks first, from 84" in TEXN
         and all(FPD["fleets"]["E4"][f]["25"]["new"]["set_by"] == "test" and FPD["fleets"]["E4"][f]["25"]["new"]["min_attackers"] == 84 for f in tf)
-        and "requiring $\\lceil k_{\\min} M/0.9 \\rceil$ attackers regardless of level, 139 for $M = 25$" in TEXN)
+        and "requiring $\\lceil k_{\\min}M/0.9\\rceil$ attackers at any level, 139 for $M=25$" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} III-D, tab:floor: the unseen filter sets the new-stack floor at 139 attackers on E1-E3")
-good = ("the level sets the floor, computed at their median share." in TEXN
+good = ("the calibrated level sets the floor, computed at their median share." in TEXN
         and FB["bands"]["ranks_11_plus"] == [11, None])
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: shared stacks at the tail's median prevalence")
 lim = 0.9 / (3.0 * 25)
 above = [FB["per_endpoint"][e][f]["fingerprints_above_limit"] for e in ("E1", "E2", "E3", "E4") for f in tf]
 share = [FB["per_endpoint"][e][f]["origin_share_above_limit"] for e in ("E1", "E2", "E3", "E4") for f in tf]
 good = (f"{lim*100:.1f}" == "1.2" and all(abs(FB["per_endpoint"][e][f]["enrichment_limit"] - lim) < 1e-12 for e in ("E1", "E2", "E3", "E4") for f in tf)
-        and "a botnet on $M$ stacks is not expected to enrich a fingerprint whose share exceeds $0.9/(\\rho M)$, $1.2\\%$ for $M = 25$" in TEXN
+        and "so a fingerprint whose background share exceeds $0.9/(\\rho M)$, $1.2\\%$ for $M=25$ and $\\rho=3$, is not expected to be selected" in TEXN
         and (min(above), max(above)) == (4, 28) and round(min(share) * 100) == 86 and round(max(share) * 100) == 94
-        and "\\textbf{Past the ratio limit the scope is expected to name nothing.} The 4 to 28 most common fingerprints of each endpoint, which carry $86$--$94\\%$ of its origins, lie past that limit for a 25-stack botnet" in TEXN)
+        and "\\textbf{Beyond the enrichment limit, selection is unlikely.} For a 25-stack botnet, the 4--28 most common fingerprints of each endpoint, carrying $86$--$94\\%$ of its origins, exceed the limit" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} III-D, V-B: the ratio limit 0.9/(rho M) = {lim:.3f}; {min(above)}--{max(above)} fingerprints above it carry {min(share)*100:.1f}--{max(share)*100:.1f}% of origins")
 b36 = st_.median(x["binomial"] for x in bB("fleets", "E1", "ranks_36_100", ""))
 o36 = st_.median(x["beta_binomial"] for x in bB("od", "E1", "ranks_36_100", ""))
@@ -388,28 +388,28 @@ ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B, App. E: E1 
 n1135 = {e: [x["binomial"] for x in bB("fleets", e, "ranks_11_35", "")] for e in ("E1", "E2", "E3", "E4")}
 good = (all(v is None for e in ("E1", "E2") for v in n1135[e]) and all(v is not None for e in ("E3", "E4") for v in n1135[e])
         and [st_.median(n1135[e]) for e in ("E3", "E4")] == [808, 114]
-        and "and with the fingerprints' popularity: those of rank 11 to 35 are never named on the two largest endpoints (Appendix~\\ref{app:window})" in TEXN
+        and "It also increases with fingerprint popularity: ranks 11--35 are never selected on the two largest endpoints (Appendix~\\ref{app:window})" in TEXN
         and "For 25 stacks, fingerprints of rank 11 to 35 need 808 on E3 and 114 on E4" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: ranks 11-35 never named on E1 and E2, named on E3 and E4 {n1135}")
 tailb = [FB["per_endpoint"][e][f]["tail_prevalence_median"] for e in ("E1",) for f in tf]
-good = max(tailb) < 1e-5 and "On stacks that real clients also present, mostly rare ones past the profile's ten most common fingerprints, the level sets the floor" in TEXN
+good = max(tailb) < 1e-5 and "For shared stacks, all beyond the profile's ten most common fingerprints and mostly rare, the calibrated level sets the floor" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: shared stacks are mostly rare (E1 tail median prevalence {max(tailb):.1e})")
 
 print("== Section V-B prose (production_tables.json)")
 f1 = FL["base"]["E1"]
 so = sorted(f1[f]["new"]["min_stack_origins"] for f in tf)
-good = f"past {so[0]} to {so[-1]} origins" in TEXN and round(math.log10(lvl("base", "E1"))) == -60 and "fleets push $\\lambda_e$ down to $10^{-60}$" in TEXN
+good = f"past {so[0]} to {so[-1]} origins" in TEXN and round(math.log10(lvl("base", "E1"))) == -60 and "legitimate fleets push $\\lambda_e$ to $10^{-60}$" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: E1 level 10^-60 names a stack only past {so[0]} to {so[-1]} origins")
 kn = sorted(set(FL["fleets"]["E1"][f]["known_fleets"] for f in tf))
 good = kn == [5, 6] and "five or six known fleets" in TEXN; ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} V-B: E1 exempts {kn} known fleets per test day")
 nw = [dA("fleets", e, "new") for e in ("E1", "E2", "E3", "E4")]
-good = nw == [139, 139, 139, 84] and "For a 25-stack botnet on new stacks, the unseen filter sets the floor on E1 to E3: 139 attackers per window" in TEXN
+good = nw == [139, 139, 139, 84] and "For a 25-stack botnet on new fingerprints, the unseen filter sets the floor on E1--E3 at 139 attackers per window" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: binomial configuration's new-stack floors {nw}")
 shA, shF = dA("fleets", "E1", "shared"), dF("fleets", "E1", "shared")
 shS = [dF("fleets", e, "shared") for e in ("E2", "E3", "E4")]
 good = (shA == 254 and round(shF * 100) == 8 and round(min(shS)) == 4 and round(max(shS)) == 19
-        and "A typical stack is then named only past 254 attackers on the busiest endpoint, $8\\%$ of its window, and past 4 to 19 median windows on the small ones" in TEXN)
+        and "A typical stack needs 254 attackers on the busiest endpoint, $8\\%$ of its median window, and 4 to 19 median windows on the smaller endpoints" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: shared-stack floors E1 {shA} ({shF*100:.1f}%), small endpoints {[round(x, 1) for x in shS]} windows")
 l1 = lvl("od", "E1")
 good = (round(math.log10(l1)) == -4 and "& $10^{-21}$ & $10^{-4}$ &" in TEX and "& $10^{-73}$ & $10^{-2}$ &" in TEX
@@ -421,13 +421,13 @@ bsA, bsF = exact("od", "E1"), exactW("od", "E1")
 bsS = [exactW("od", e) for e in ("E2", "E3", "E4")]
 good = (bsA == 86 and all(exact("od", e) < dA("fleets", e, "shared") for e in ("E1", "E2", "E3"))
         and exact("od", "E4") == dA("fleets", "E4", "shared")
-        and "In sample the beta-binomial lowers the shared-stack floor on the three largest endpoints (Table~\\ref{tab:floor})" in TEXN)
+        and "In sample, the beta-binomial lowers the shared-stack floor on the three largest endpoints (Table~\\ref{tab:floor})" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: beta-binomial shared floors E1 {bsA} ({bsF*100:.1f}%), elsewhere {[round(x, 2) for x in bsS]}")
 SW = PT["sweep"]
 m = SW["fleets"]["E1"]["new:M25:A100"]
 good = (round(m["blocked_alone"] * 100) == round(m["model_blocked_alone"] * 100) == 43
         and f"{m['model_blocked_alone']*100:.1f}" == "43.1" and f"{m['blocked_alone']*100:.1f}" == "43.2"
-        and "It is no cliff: below it the scope names the stacks that chance makes larger, as a binomial model of stack sizes predicts ($43.1\\%$ predicted versus $43.2\\%$ measured for 100 new-stack attackers on E1, Fig.~\\ref{fig:stops})" in TEXN)
+        and "The floor is not a sharp threshold: below it, chance leaves some stacks large enough to be selected. A binomial model of stack sizes predicts $43.1\\%$ coverage without the gate for 100 new-stack attackers on E1, close to the measured $43.2\\%$ (Fig.~\\ref{fig:stops})" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: below the floor, E1 scope alone stops {m['blocked_alone']*100:.1f}% of 100 new-stack attackers, model {m['model_blocked_alone']*100:.1f}%")
 dev = [abs(SW[r][e][k]["blocked_alone"] - SW[r][e][k]["model_blocked_alone"]) for r in ("fleets", "od") for e in ("E1", "E2", "E3")
        for k in SW[r][e] if k.startswith("new:M25:A")]
@@ -436,20 +436,20 @@ ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} the stack-size m
 alone = {"bin": TD["fleets"]["all"]["union|none"]["clean_rate"], "bin_E2": TD["fleets"]["per_endpoint"]["E2"]["union|none"]["clean_rate"],
          "beta": TD["od"]["all"]["union|none"]["clean_rate"], "z": TD["base"]["all"]["zcal|none"]["clean_rate"],
          "gate": TD["base"]["all"]["gates_clean"]["origins"]}
-chk("V-B: components out of sample", "scope alone names a filter in $2.2\\%$ of clean test-day windows, and the distinct-origin gate alone fires in $3.0\\%$",
+chk("V-B: components out of sample", "The binomial scope alone selects a filter in $2.2\\%$ of clean windows, while the gate opens in $3.0\\%$",
     tuple(alone[k] * 100 for k in ("bin", "gate")),
-    "scope alone names a filter in {:.1f} of clean test-day windows, and the distinct-origin gate alone fires in {:.1f}")
+    "The binomial scope alone selects a filter in {:.1f} of clean windows, while the gate opens in {:.1f}")
 jb, jz = TD["fleets"]["all"]["union|origins"], TD["base"]["all"]["zcal|origins"]
 from scipy.stats import poisson as _pois
 pj = lambda r, k: (TD[r]["all"][k]["clean_fires"], TD[r]["all"][k]["clean_joint_expected"],
                    float(_pois.sf(TD[r]["all"][k]["clean_fires"] - 1, TD[r]["all"][k]["clean_joint_expected"])))
-chk("V-B: joint misfires of the binomial configuration", "The 5 joint misfires, versus 3.5 under independence, are within chance ($P = 0.27$,",
-    pj("fleets", "union|origins"), "The {} joint misfires, versus {:.1f} under independence, are within chance (P = {:.2f},")
+chk("V-B: joint misfires of the binomial configuration", "The five joint misfires, versus 3.5 expected under independence, are compatible with chance ($P = 0.27$,",
+    (lambda j: ({5: "five"}.get(j[0], str(j[0])),) + j[1:])(pj("fleets", "union|origins")), "The {} joint misfires, versus {:.1f} expected under independence, are compatible with chance (P = {:.2f},")
 # V-B: the gate's other clean openings go to the fallback, outside the 1% budget
 fb = TD["fleets"]["all"]["union|origins"]
 good = (fb["clean_gate_windows"] - fb["clean_fires"] == 163
         and f"{(fb['clean_gate_windows'] - fb['clean_fires']) / fb['clean_windows'] * 100:.1f}" == "2.9"
-        and "and the gate's other 163 openings, $2.9\\%$, go to the fallback." in TEXN)
+        and "The gate's other 163 openings ($2.9\\%$) go to the fallback, a rate limit or a challenge to every client." in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: the gate's other clean openings go to the fallback, {fb['clean_gate_windows'] - fb['clean_fires']} of {fb['clean_windows']}")
 jo = TD["od"]["all"]["union|origins"]
 chk("App. E: the same for the beta-binomial and the z-score", "for the post hoc beta-binomial and the calibrated $z$-score, in 22 and 20 windows versus 7.5 and 11.9",
@@ -465,11 +465,11 @@ good = (PJ["bin"] > 0.05 and PJ["bin_x"] > 0.05 and max(PJ["beta"], PJ["beta_x"]
         and f"and in {xo_[0]} and {xz_[0]} versus {xo_[1]:.1f} and {xz_[1]:.1f} cross-fitted" in TEXN
         and f"5 versus 3.5 and {xb_[0]} versus {xb_[1]:.1f} cross-fitted ($P = {PJ['bin']:.2f}$ and ${PJ['bin_x']:.2f}$)" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B, App. E: joint misfires against independence, Poisson P { {k: round(v, 4) for k, v in PJ.items()} }")
-good = all(v > 0.01 for v in alone.values()) and "Pooled across endpoints, the calibrated scope and gate each exceed their $1\\%$ budget alone on the test days, and only together stay within it (Table~\\ref{tab:production})" in TEXN
+good = all(v > 0.01 for v in alone.values()) and "Pooled across endpoints, the calibrated scope and distinct-origin gate each exceed the $1\\%$ budget alone on test days, and only together stay below it (Table~\\ref{tab:production})" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: every calibrated component exceeds 1% out of sample ({ {k: round(v*100, 2) for k, v in alone.items()} })")
 ci = fz["clean_ci95"]
 good = (fz["clean_fires"] == 5 and fmt(fz["clean_rate"]) == "0.1"
-        and f"Together they fire on only $0.1\\%$ of clean windows (5 of 5\\,643, 95\\% interval ${ci[0]*100:.2f}$--${ci[1]*100:.2f}\\%$)" in TEXN)
+        and f"Together, they misfire in only $0.1\\%$ of clean windows (5 of 5\\,643; 95\\% interval ${ci[0]*100:.2f}$--${ci[1]*100:.2f}\\%$)" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: the binomial configuration, {fz['clean_fires']} false alarms on the test days")
 e2day = lambda r, k: TD[r]["per_endpoint"]["E2"][k]["clean_fires_by_fold"]["2026-09-23"]
 good = (fmt(zc["clean_rate"]) == fmt(ob["clean_rate"]) == "0.4" and (zc["clean_fires"], ob["clean_fires"]) == (20, 22)
@@ -477,17 +477,16 @@ good = (fmt(zc["clean_rate"]) == fmt(ob["clean_rate"]) == "0.4" and (zc["clean_f
         and zc["clean_collateral_mean"] < fz["clean_collateral_mean"]
         and "The misfires of the other two also cluster by day, 13 of each on one day of the console, so exact intervals, which assume independent windows, understate their uncertainty" in TEXN
         and TD["od"]["per_endpoint"]["E2"]["union|origins"]["clean_fires"] == 19 and ob["clean_fires"] == 22
-        and "but 19 of its 22 false alarms fall on the web console, where $74.4\\%$ of 1\\,000-user crowds trigger it" in TEXN)
+        and "but 19 of its 22 false alarms occur on the web console, where it fires on $74.4\\%$ of 1\\,000-user crowds" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: z-score and beta-binomial fire on {zc['clean_fires']} and {ob['clean_fires']} clean windows")
-chk("V-B: median collateral per alarm", "These misfires block a median $32.9\\%$ of the window's clients", fz["clean_collateral_median"]*100,
-    "These misfires block a median {:.1f} of the window's clients")
-chk("V-B: expected collateral per clean window", "an expected $0.03\\%$ of clients per clean window", fz["clean_rate"] * fz["clean_collateral_mean"] * 100,
-    "an expected {:.2f} of clients per clean window")
+chk("V-B: median collateral per alarm", "The five misfires block a median $32.9\\%$ of clients in their windows", fz["clean_collateral_median"]*100,
+    "The five misfires block a median {:.1f} of clients in their windows")
+chk("V-B: expected collateral per clean window", "or an expected $0.03\\%$ per clean window", fz["clean_rate"] * fz["clean_collateral_mean"] * 100,
+    "or an expected {:.2f} per clean window")
 per_day = {k: s["clean_fires"] / 20 for k, s in (("bin", fz), ("z", zc), ("beta", ob))}
 e2m = TD["fleets"]["per_endpoint"]["E2"]["union|origins"]["clean_fires"]
 good = (fz["clean_fires"] == 5 and e2m == 4 and PT["endpoints"]["E2"] == "web console" and fz["clean_windows"] == 5643
-        and "(5 of 5\\,643, 95\\% interval $0.03$--$0.21\\%$), 4 of them on the web console" in TEXN and round(288 * 0.01, 1) == 2.9
-        and "about 2.9 of a day's 288 windows." in TEXN)
+        and "(5 of 5\\,643; 95\\% interval $0.03$--$0.21\\%$), including four on the web console" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: {e2m} of the {fz['clean_fires']} misfires on the web console, budget 2.9 a day")
 chk("V-B: flash crowds of 1,000 and their filters", "trigger the configuration in $22.2\\%$ of windows, with lighter filters blocking a median $4.3\\%$ of the window's clients",
     (fz["flash1000"]*100, fz["flash1000_collateral_median"]*100),
@@ -499,19 +498,19 @@ sw1 = SW["fleets"]["E1"]
 g_small = [sw1[f"new:M25:A{A}"]["gate"] for A in (25, 50, 100, 250)] + [sw1["new:M25:x0.1"]["gate"]]
 good = (round(min(g_small) * 100) == 6 and round(max(g_small) * 100) == 13 and round(sw1["new:M25:A1000"]["gate"] * 100) == 45
         and round(sw1["new:M25:x1"]["gate"] * 100) == 79 and 0.3 < 1000 / no_[0] < 0.35
-        and "the gate opens in only $6$--$13\\%$ of windows for botnets from 25 attackers up to a tenth of the median window" in TEXN
+        and "the gate opens in just $6$--$13\\%$ of windows for botnets from 25 attackers to a tenth of the median window" in TEXN
         and "in $45\\%$ at a third and in $79\\%$ at a whole window" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: E1 gate in attack windows {min(g_small)*100:.1f}--{max(g_small)*100:.1f}% up to a tenth, {sw1['new:M25:A1000']['gate']*100:.1f}% at 1,000, {sw1['new:M25:x1']['gate']*100:.1f}% at 1x")
-chk("V-C: E1, the binomial configuration stops", "therefore stops $3.4\\%$ of a 100-attacker botnet and $11.8\\%$ of a tenth-size botnet",
+chk("V-C: E1, the binomial configuration stops", "therefore blocks $3.4\\%$ of a 100-attacker botnet and $11.8\\%$ of a tenth-size botnet",
     (sw1["new:M25:A100"]["blocked"]*100, sw1["new:M25:x0.1"]["blocked"]*100),
-    "therefore stops {:.1f} of a 100-attacker botnet and {:.1f} of a tenth-size botnet")
-chk("V-C: E1, the scope alone would block", "Its scope alone would block $43.2\\%$ and $89.6\\%$",
-    (sw1["new:M25:A100"]["blocked_alone"]*100, sw1["new:M25:x0.1"]["blocked_alone"]*100), "Its scope alone would block {:.1f} and {:.1f}")
+    "therefore blocks {:.1f} of a 100-attacker botnet and {:.1f} of a tenth-size botnet")
+chk("V-C: E1, the scope alone would block", "Its scope alone would cover $43.2\\%$ and $89.6\\%$",
+    (sw1["new:M25:A100"]["blocked_alone"]*100, sw1["new:M25:x0.1"]["blocked_alone"]*100), "Its scope alone would cover {:.1f} and {:.1f}")
 SE1 = PT["stealth_E1"]["fleets"]["fresh:x0.1"]
 bd = [SE1[f]["blocked"] * 100 for f in tf]; bn = [SE1[f]["blocked_no_gate"] * 100 for f in tf]; bs = [SE1[f]["blocked_seasonal"] * 100 for f in tf]
 chk("V-C: E1 0.1x blocked by day, origin gate", "$0.6$--$37.2\\%$ depending on the day", (min(bd), max(bd)), "{:.1f}--{:.1f} depending on the day")
 bnf = PT["stealth_E1"]["fleets"]["fresh:x0.1"]["2026-09-25"]["blocked_no_gate"] * 100
-good = all(89 <= x <= 91 for x in bn + [bnf]) and "The \\textit{scope as its own trigger} (No gate, dashed in Fig.~\\ref{fig:stops}) stops about $90\\%$ of that botnet on new stacks every day" in TEXN
+good = all(89 <= x <= 91 for x in bn + [bnf]) and "The scope without a gate (\\textit{No gate}, dashed in Fig.~\\ref{fig:stops}) covers about $90\\%$ of E1's tenth-size botnet on new stacks each day" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-C: E1 0.1x, the scope alone stops {min(bn):.1f}--{max(bn):.1f}% by test day and {bnf:.1f}% held out")
 e1s, e1o_ = TD["fleets"]["per_endpoint"]["E1"]["union|seasonal"], TD["fleets"]["per_endpoint"]["E1"]["union|origins"]
 e2o, e2s = TD["fleets"]["per_endpoint"]["E2"]["union|origins"], TD["fleets"]["per_endpoint"]["E2"]["union|seasonal"]
@@ -526,7 +525,7 @@ good = (e1s["new:x0.1"]["blocked"] > e1o_["new:x0.1"]["blocked"] and f"{e2s['cle
         and f"{min(TD[r]['per_endpoint']['E2']['union|seasonal']['clean_rate'] for r in ('fleets', 'xfit_fleets', 'od'))*100:.1f}" == "2.0"
         and f"{max(TD[r]['per_endpoint']['E2']['union|seasonal']['clean_rate'] for r in ('fleets', 'xfit_fleets', 'od'))*100:.1f}" == "2.6"
         and TD["xfit_od"]["per_endpoint"]["E2"]["union|seasonal"]["clean_rate"] <= 0.01
-        and "It stops more of the tenth-size botnet on the busiest endpoint. Behind it, however, only the cross-fitted beta-binomial and the unseen filter stay within the budget on the console, where the binomial and the in-sample beta-binomial misfire in $2.0$--$2.6\\%$ of windows" in TEXN)
+        and "It improves coverage of tenth-size botnets on the busiest endpoint. Behind it, however, only the cross-fitted beta-binomial and unseen filter stay within the budget on the web console, where the binomial and in-sample beta-binomial misfire in $2.0$--$2.6\\%$ of windows" in TEXN)
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} V-C: seasonal gate E1 0.1x {e1s['new:x0.1']['blocked']*100:.1f}% vs {e1o_['new:x0.1']['blocked']*100:.1f}%, console {e2s['clean_rate']*100:.2f}%, cross-fitted beta-binomial at most {max(max(v) for v in xs_.values())*100:.2f}%")
 good = e1s["clean_fires"] == 0; ok += good; bad += not good
@@ -536,7 +535,7 @@ b1 = TD["base"]["per_endpoint"]["E1"]["union|none"]; bf1 = a1["clean_fires_by_fo
 good = (a1["clean_fires"] == 14 and a1["clean_windows"] == 1440 and f"{a1['clean_rate']*100:.2f}" == "0.97"
         and [round(x * 100, 2) for x in a1["clean_ci95"]] == [0.53, 1.63]
         and [bf1[f] for f in tf] == [0, 0, 1, 5, 8] and f"{a1['clean_collateral_median']*100:.1f}" == "1.0"
-        and "With the binomial and known fleets, its rate on the busiest endpoint sits at the budget, rising from no false alarm on the first two test days to 8 of 288 on the last" in TEXN
+        and "With known fleets, the binomial scope alone sits at the budget on E1, rising from none on the first two test days to eight of 288 on the last" in TEXN
         and "and its misfires there block a median $1.0\\%$ of the clients" in TEXN)
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} V-C: binomial scope alone on E1 {a1['clean_fires']}/{a1['clean_windows']} = {a1['clean_rate']*100:.2f}% (CI {[round(x*100, 2) for x in a1['clean_ci95']]}), by day {[bf1[f] for f in tf]}, {b1['clean_fires']} without fleets")
@@ -557,7 +556,7 @@ good = (min(sa) > 1.0 and same and fewer and shared_
         and [round(min(TD["xfit_od"]["per_endpoint"][e]["union|seasonal"]["new:A100"]["blocked"] for e in ("E2", "E3", "E4")) * 100),
              round(max(TD["xfit_od"]["per_endpoint"][e]["union|seasonal"]["new:A100"]["blocked"] for e in ("E2", "E3", "E4")) * 100)] == [53, 84]
         and f"{TD['xfit_od']['per_endpoint']['E1']['union|seasonal']['new:A100']['blocked']*100:.1f}" == "3.9"
-        and "The unseen filter covers new stacks of at least $k_{\\min}$ origins, and the test adds shared stacks and, in some configurations, smaller new ones. On the larger new stacks, as in E1's tenth-size botnet, the unseen filter without the test does as well under every trigger, with fewer false alarms and flash-crowd firings, since it names each such stack. Its false alarms as its own trigger cluster by day" in TEXN
+        and "The unseen filter selects new stacks of at least $k_{\\min}$ origins, and the test adds shared stacks and, in some configurations, smaller new ones. For larger new stacks, including E1's tenth-size botnet, the unseen filter matches the test under every trigger with fewer false alarms and flash-crowd firings. Its false alarms without a gate cluster by day" in TEXN
         # only E1's tenth-size botnet puts k_min origins on each of its 25 stacks (90% of it on stacks)
         and 0.9 * 0.1 * no_[0] / 25 >= 5 and all(0.9 * 0.1 * x / 25 < 5 for x in no_[1:])
         and all(TD[r]["per_endpoint"][e][f"union|{g}"]["new:A100"]["blocked"] == TD[r]["per_endpoint"][e][f"unseen|{g}"]["new:A100"]["blocked"]
@@ -568,7 +567,7 @@ good = (min(sa) > 1.0 and same and fewer and shared_
                 for e in ("E2", "E3", "E4") for g in ("origins", "seasonal", "none"))
         and round(TD["xfit_od"]["per_endpoint"]["E1"]["union|none"]["new:A100"]["blocked"] * 100) == 58
         and round(TD["fleets"]["per_endpoint"]["E1"]["unseen|none"]["new:A100"]["blocked"] * 100) == 43
-        and "For new stacks too small for the filter, the cross-fitted beta-binomial adds on the small endpoints and, as its own trigger, on the busiest one too ($58\\%$ versus the filter's $43\\%$ of 100 attackers), while the binomial adds only on the single sign-on. Behind the seasonal gate, the cross-fitted beta-binomial stops $53$--$84\\%$ of 100 new-stack attackers on the small endpoints but only $3.9\\%$ on the busiest one" in TEXN)
+        and "For smaller new stacks, the cross-fitted beta-binomial adds coverage on the smaller endpoints and, without a gate, on the busiest one ($58\\%$ versus the filter's $43\\%$ of 100 attackers). The binomial adds coverage only on single sign-on. With the seasonal gate, the cross-fitted beta-binomial covers $53$--$84\\%$ of 100 new-stack attackers on the smaller endpoints, but $3.9\\%$ on the busiest" in TEXN)
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} V-C: on new stacks the unseen filter matches every scope under every trigger with fewer misfires; only the test names shared stacks (binomial alone on E2-E4 {min(sa):.2f}--{max(sa):.2f}%)")
 chk("App. E: the scope alone on shared stacks, E1", "With known fleets it stops $61.1\\%$ of the busiest endpoint's tenth-size botnet on shared stacks",
@@ -599,7 +598,7 @@ good = (all(dA("fleets", e, "new") > no_[i + 1] for i, e in enumerate(("E2", "E3
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: small endpoints at 1x: gate {min(gx1)*100:.1f}--{max(gx1)*100:.1f}%, below the floors, {min(b3)*100:.1f}--{max(b3)*100:.1f}% stopped")
 s100 = [SW["fleets"][e]["new:M25:A100"] for e in ("E2", "E3", "E4")]; h100 = [SW["fleets"][e]["shared:M25:A100"] for e in ("E2", "E3", "E4")]
 good = (min(x["gate"] for x in s100) > 0.5 and f"{100 / no_[1]:.1f}" == "1.6" and f"{100 / no_[3]:.0f}" == "5"
-        and f"On the small endpoints, 100 attackers equal 1.6 to 5 median windows and open the gate in ${min(x['gate'] for x in s100)*100:.0f}$--${max(x['gate'] for x in s100)*100:.0f}\\%$ of windows, leaving the floor as the main limit" in TEXN)
+        and f"On the smaller endpoints, 100 attackers are 1.6--5 median windows and open the gate in ${min(x['gate'] for x in s100)*100:.0f}$--${max(x['gate'] for x in s100)*100:.0f}\\%$ of windows, so the floor is the main limit" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: small endpoints at 100 attackers: gate {min(x['gate'] for x in s100)*100:.0f}%+, new {[round(x['blocked']*100, 1) for x in s100]}, shared {[round(x['blocked']*100, 1) for x in h100]}")
 chk("V-B: the binomial configuration, pooled", "stops $38.4\\%$ and $77.7\\%$ of 100 and 1\\,000 attackers on new stacks and $21.7\\%$ and $63.3\\%$ on shared ones",
     tuple(fz[x]["blocked"]*100 for x in ("new:A100", "new:A1000", "shared:A100", "shared:A1000")),
@@ -623,12 +622,12 @@ good = (round(p90 * 100) == 3 and f"{amax*100:.0f}" == "71" and smax == amax
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: attack-window collateral p90 {p90*100:.1f}%, max {amax*100:.1f}% (on a small endpoint)")
 adv = [fz[x]["blocked"] for x in ("adv:A100", "adv:A1000")]
 e12 = [TD["fleets"]["per_endpoint"][e]["union|origins"][x]["blocked"] for e in ("E1", "E2") for x in ("adv:A100", "adv:A1000")]
-chk("V-B: adversarial botnet, binomial configuration", "stops $7.0\\%$ and $23.8\\%$ of 100 and 1\\,000 attackers.",
-    (adv[0]*100, adv[1]*100), "stops {:.1f} and {:.1f} of 100 and 1\\,000 attackers.")
+chk("V-B: adversarial botnet, binomial configuration", "The configuration blocks $7.0\\%$ of 100 attackers and $23.8\\%$ of 1\\,000.",
+    (adv[0]*100, adv[1]*100), "The configuration blocks {:.1f} of 100 attackers and {:.1f} of 1\\,000.")
 ab2 = [FB["per_endpoint"][e][f]["fingerprints_above_limit"] for e in ("E1", "E2") for f in tf]
 good = (max(e12) == 0 and [e for e in ("E1", "E2", "E3", "E4")] == sorted(PT["endpoints"]) and min(ab2) >= 23
         and f"{TD['fleets']['per_endpoint']['E4']['union|origins']['adv:A1000']['blocked']*100:.1f}" == "73.5"
-        and "A botnet using the endpoint's 25 most common fingerprints, the boundary of the threat model, is therefore mostly missed: the configuration stops $7.0\\%$ and $23.8\\%$ of 100 and 1\\,000 attackers. It stops none on the two largest endpoints, where nearly all 25 exceed the limit, but $73.5\\%$ of 1\\,000 on the single sign-on" in TEXN)
+        and "A botnet using the endpoint's 25 most common fingerprints, outside the threat model, is therefore largely missed. The configuration blocks $7.0\\%$ of 100 attackers and $23.8\\%$ of 1\\,000. It blocks none on the two largest endpoints, where nearly all 25 fingerprints exceed the limit, but $73.5\\%$ of 1\\,000 on single sign-on" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: the adversarial botnet is blocked 0% on E1 and E2 ({e12})")
 CH = json.load(open(R + "ja4_churn.json"))
 newd = [r["new_fingerprints"] for e in CH["per_endpoint"] for f, r in CH["per_endpoint"][e].items() if f in tf]
@@ -648,7 +647,7 @@ pv = _binom.sf(ff_["clean_fires"] - 1, ff_["clean_windows"], fz["clean_fires"] /
 gw = ff_["clean_gate_windows"]; pc2 = _binom.sf(1, gw, fz["clean_fires"] / fz["clean_gate_windows"])
 good = (ff_["clean_fires"] == 2 and ff_["clean_windows"] == 1152 and pv >= 0.05 and gw == 3 and fz["clean_gate_windows"] == 168
         and f"{pc2:.3f}" == "0.003"
-        and f"The held-out day gave the binomial configuration 2 false alarms in 1\\,152 clean windows, consistent with the test days' rate ($P = {pv:.2f}$). Its gate opened in only 3 of them, and the scope misfired in two, both on the web console, more often than the test days' 5 of 168 openings predict (post hoc, $P = 0.003$)." in TEXN)
+        and f"On the held-out day, the binomial configuration produces two false alarms in 1\\,152 clean windows, consistent with the test-day rate ($P = {pv:.2f}$). The gate opens in only three windows, and the scope misfires in two, both on the web console, more than the test days' five of 168 openings predict (post hoc, $P = 0.003$)." in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} held-out day: {ff_['clean_fires']} of {ff_['clean_windows']}, P = {pv:.3f}; gate opened in {gw}, scope misfired in 2 (P = {pc2:.4f} against 5 of 168)")
 good = "Flash crowds of 100 users: share of windows where the configuration fires" in (HERE / "results" / "fresh_day_protocol.md").read_text()
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} held-out day: the protocol fixes flash crowds of 100 users as a metric")
@@ -660,7 +659,7 @@ good = ot["frozen"] == 5 and ot["both"] == 4
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} test days: the calibrated z-score shared {ot['both']} of the configuration's {ot['frozen']} false alarms")
 o2 = TD["od"]["per_endpoint"]["E2"]["union|origins"]
 good = (f"{o2['clean_rate']*100:.1f}" == "1.3" and f"{o2['flash1000']*100:.1f}" == "74.4"
-        and "where $74.4\\%$ of 1\\,000-user crowds trigger it" in TEXN)
+        and "where it fires on $74.4\\%$ of 1\\,000-user crowds" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-D: the in-sample beta-binomial on the console, {o2['flash1000']*100:.1f}% of 1,000-user crowds")
 cpf = json.load(open(R + "compile_production_check_fresh.json"))
 good = cpf["origins_equal"] == cpf["net24_pairs_equal"] == cpf["windows"] == 1152 and "in every window of two production days, 1\\,152 windows each" in TEXN
@@ -682,8 +681,8 @@ print(f"{'OK ' if good else 'XX '} compiled query reproduces Omega exactly on {c
       f"window-endpoints ({cc['sessions']} sessions): max diff {cc['omega_max_abs_diff']}")
 x = cc["extension"]
 good = (x["triples_added"] == 4 and x["code_lines_changed"] == 0 and x["omega_max_abs_diff"] == 0
-        and x["relation"] in x["compiled_classes"] and "through four triples" in TEXN
-        and "with no code change." in TEXN
+        and x["relation"] in x["compiled_classes"] and "requires four triples" in TEXN
+        and "without changes to the query-generation code." in TEXN
         # the partition relation plus the class relations: three equality signals, a fourth added
         and len(cc["plan"]["classes"]) + 1 == 3 and len(x["compiled_classes"]) + 1 == 4
         and "also after a fourth equality signal is added as four triples" in TEXN)
@@ -713,8 +712,8 @@ good = (tx["accepted_all"] and all(tx["identical_by_type"][t] for t in ("indicat
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} TAXII 2.1: accepted, identical by type {tx['identical_by_type']}")
 good = (mi["fingerprints_kept"] == 0 and mi["fingerprints_in_scope"] > 0 and mi["endpoint_kept_where_scoped"]
-        and mi["course_of_action_kept"] and "MISP's importer drops the fingerprints" in TEXN
-        and "an extension the importer does not map to MISP's own JA4 object." in TEXN)
+        and mi["course_of_action_kept"] and "The MISP importer drops fingerprints" in TEXN
+        and "because it does not map them to MISP's JA4 object." in TEXN)
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} MISP import: CoA and endpoint kept, fingerprints kept {mi['fingerprints_kept']}/{mi['fingerprints_in_scope']}")
 print("== known-fleet profile (fleet_profile.json)")
@@ -731,7 +730,7 @@ good = (round(ec(d05) * 100, 4) == 0.0028 and round(ec(d5) * 100, 3) == 0.070 an
         and round(d05["fresh:A100"] * 100, 1) == 44.6 and round(d5["fresh:A100"] * 100, 1) == 30.9
         and "Using the rate times the median collateral, a rougher measure than the mean, the $0.5\\%$ share blocked about 25 times fewer legitimate clients per clean window on those days ($0.0028\\%$ versus $0.070\\%$). It also stopped more of a 100-attacker botnet on new stacks ($44.6\\%$ versus $30.9\\%$)" in TEXN
         and fp["eligible"] == ["0.05"] and len(d0) - 1 == 4
-        and "Of four shares, each added to the base rule, only $5\\%$ had no more false alarms than the rule alone on the first three test days, although $0.5\\%$ blocked about 25 times fewer legitimate clients and more of a 100-attacker botnet" in TEXN)
+        and "Of four shares, each added to the base rule, only $5\\%$ produced no more false alarms than the rule alone on the first three test days. However, $0.5\\%$ blocked about 25 times fewer legitimate clients and more of a 100-attacker botnet" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} App. E, Table II: by rate x median collateral the 0.5% share is {ec(d5)/ec(d05):.1f}x lighter ({ec(d05)*100:.4f}% against {ec(d5)*100:.3f}%)")
 fe = fp["fleets_per_endpoint"]["E1"]
 good = sorted(set(fe["fleets"])) == [5, 6] and "five or six known fleets" in TEXN; ok += good; bad += not good
@@ -749,16 +748,16 @@ xa = {"bin": TD["xfit_fleets"]["all"]["union|none"]["clean_rate"], "z": TD["xfit
       "z_E2": TD["xfit"]["per_endpoint"]["E2"]["zcal|none"]["clean_rate"], "beta": TD["xfit_od"]["all"]["union|none"]["clean_rate"],
       "beta_E2": TD["xfit_od"]["per_endpoint"]["E2"]["union|none"]["clean_rate"], "beta_fresh": FD["xfit_od"]["all"]["union|none"]["clean_rate"]}
 good = (xb["clean_fires"] == 6 and fz["clean_fires"] == 5 and f"{xa['bin']*100:.1f}" == "1.9"
-        and "the binomial configuration barely changes, with 6 false alarms versus 5" in TEXN)
+        and "the binomial configuration barely changes, with six false alarms versus five" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} cross-fit: binomial scope alone {xa['bin']*100:.2f}%, {xb['clean_fires']} false alarms versus {fz['clean_fires']}")
 good = abs(xb["new:A100"]["blocked"] - fz["new:A100"]["blocked"]) < 0.03
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} cross-fit: the binomial stops {xb['new:A100']['blocked']*100:.1f}% against {fz['new:A100']['blocked']*100:.1f}% of 100 attackers")
-good = f"{xa['z']*100:.1f}" == "2.5" and "the calibrated $z$-score loses its lead over the binomial" in TEXN
+good = f"{xa['z']*100:.1f}" == "2.5" and "the calibrated $z$-score loses its coverage lead" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} cross-fit: the z-score alone fires in {xa['z']*100:.2f}% (Table IV), its lead was in-sample")
-chk("cross-fit: beta-binomial alone", "only the cross-fitted beta-binomial nearly meets its budget ($1.1\\%$", xa["beta"]*100, "only the cross-fitted beta-binomial nearly meets its budget ({:.1f}")
+chk("cross-fit: beta-binomial alone", "only the cross-fitted beta-binomial approaches the $1\\%$ budget ($1.1\\%$", xa["beta"]*100, "only the cross-fitted beta-binomial approaches the 1 budget ({:.1f}")
 chk("App. E: cross-fitted beta-binomial on the held-out day", "its scope alone fires in $1.2\\%$ of the held-out day's windows", xa["beta_fresh"]*100,
     "its scope alone fires in {:.1f} of the held-out day's windows")
-good = min(xa["beta"], xa["bin"], xa["z"]) == xa["beta"] and "Of the calibrated scopes used alone, only the cross-fitted beta-binomial nearly meets its budget ($1.1\\%$, Fig.~\\ref{fig:operating})" in TEXN
+good = min(xa["beta"], xa["bin"], xa["z"]) == xa["beta"] and "Among calibrated scopes used without a gate, only the cross-fitted beta-binomial approaches the $1\\%$ budget ($1.1\\%$, Fig.~\\ref{fig:operating})" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} cross-fit: only the beta-binomial comes near its 1% target")
 xl = [FL["xfit_od"][e][f]["log10_level"] for e in ("E1", "E2", "E3", "E4") for f in tf]
 good = (max(xl) < -2 + 1e-9 and round(min(xl)) == -17 and round(max(xl)) == -2
@@ -771,24 +770,24 @@ ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} cross-fit: E1 kn
 xsS = [exactW("xfit_od", e) for e in ("E2", "E3", "E4")]
 xnS = [dF("xfit_od", e, "new") for e in ("E2", "E3", "E4")]
 good = ([round(x) for x in xsS] == [3, 3, 4] and [round(x) for x in xnS] == [2, 3, 3]
-        and "On the three small endpoints the cross-fitted beta-binomial names shared stacks only past 3 to 4 median windows and new stacks from 2 to 3, so for smaller botnets the fallback is a rate limit or a challenge to every client" in TEXN)
+        and "On the three smaller endpoints, the cross-fitted beta-binomial selects shared stacks only above 3 to 4 median windows and new stacks from 2 to 3. Our current candidate is the cross-fitted beta-binomial behind the seasonal gate, with the fallback below its floor." in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} VI: the recommended scope's floors on E2-E4, shared {[round(x, 2) for x in xsS]} and new {[round(x, 2) for x in xnS]} median windows")
 shB = [dA("xfit_fleets", e, "shared") for e in ("E1", "E2", "E3", "E4")]; shO = [exact("xfit_od", e) for e in ("E1", "E2", "E3", "E4")]
 good = (xo["clean_fires"] == xb["clean_fires"] and xo["clean_collateral_median"] < xb["clean_collateral_median"] and xo["flash1000"] < xb["flash1000"]
         and all(o < b for o, b in zip(shO, shB)) and xz["new:A100"]["blocked"] < xb["new:A100"]["blocked"] + 0.05)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} VI: cross-fitted, the beta-binomial matches the binomial's false alarms with lower shared floors {shO} vs {shB}")
-good = ("A first cross-fitting design, calibrated only on the last calibration day, was dropped" in TEXN
-        and "The second, built after the held-out day was read (Section~\\ref{sec:posthoc}), is a \\textbf{beta-binomial background}" in TEXN
-        and "\\textit{Cross-fitting}, built post hoc, judges each calibration day, like a test day, against a profile of the other days" in TEXN)
+good = ("An initial cross-fitting design, calibrated only on the last calibration day, was dropped" in TEXN
+        and "Second, a \\textbf{beta-binomial background}, developed after the held-out day was examined (Section~\\ref{sec:posthoc})" in TEXN
+        and "\\textit{Cross-fitting}, introduced post hoc, judges each calibration day, like a test day, against a profile of the other days" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: the dropped cross-fit design and the post hoc status are disclosed")
 print("== the WAF's verdicts (waf_labels.json)")
 WL = json.load(open(R + "waf_labels.json")); WC, WA = WL["clean_profile"]["test_days"], WL["all_profile"]["test_days"]
 good = (WL["clean_profile"]["check"]["zscore_mismatches"] == 0 == WL["all_profile"]["check"]["zscore_mismatches"]
         and not WC["E1"]["waf_clients"] and all(WC[e]["windows_with_waf"] == WC[e]["windows"] for e in ("E2", "E3", "E4")))
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} WAF: z-score recomputed with 0 mismatches under both profiles; blocks in every window of E2-E4, none on E1")
-chk("WAF: blocked share of the window", "a median $9$--$63\\%$ of each window's clients on E2 to E4, and none on E1",
+chk("WAF: blocked share of the window", "a median $9$--$63\\%$ of clients per window on E2--E4, and none on E1",
     (min(WC[e]["waf_share_median"] for e in ("E2", "E3", "E4"))*100, max(WC[e]["waf_share_median"] for e in ("E2", "E3", "E4"))*100),
-    "a median {:.0f}--{:.0f} of each window's clients on E2 to E4, and none on E1")
+    "a median {:.0f}--{:.0f} of clients per window on E2--E4, and none on E1")
 CF = ("binomial", "beta-binomial", "z-score")
 pc = [WC[e]["scores"][c]["precision"] for e in ("E3", "E4") for c in CF]
 chk("WAF, profile without blocked clients: precision", "$84$--$99\\%$ of the clients the scopes would block on the full traffic of the API and single sign-on were also blocked by the WAF",
@@ -801,13 +800,13 @@ br = [WA[e]["base_rate"] for e in ("E2", "E3", "E4")]
 good = (f"{min(pa)*100:.1f}" == "0.4" and f"{max(pa)*100:.0f}" == "33"
         and max(WA[e]["scores"][c]["lift"] for e in ("E2", "E3", "E4") for c in CF) < 1
         and f"{min(br)*100:.0f}" == "10" and f"{max(br)*100:.0f}" == "63"
-        and "With a profile of all clients, only $0.4$--$33\\%$ of the clients the three calibrated scopes would block were also blocked by the WAF, below a random pick ($10$--$63\\%$) on every endpoint" in TEXN)
+        and "With a profile of all clients, only $0.4$--$33\\%$ of the clients the three calibrated scopes would block were also blocked by the WAF, below the $10$--$63\\%$ of a random pick on every endpoint" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} WAF, all-client profile, E2-E4: precision {min(pa)*100:.1f}--{max(pa)*100:.1f}% vs random {min(br)*100:.1f}--{max(br)*100:.1f}%, lift below 1 everywhere")
 dets = [WA[e]["surges"]["detected"][c] for e in ("E3", "E4") for c in CF]
 chance = [WA[e]["surges"]["expected_by_chance"][c] for e in ("E3", "E4") for c in CF]
 eps_ = WA["E3"]["surges"]["episodes"] + WA["E4"]["surges"]["episodes"]
 good = (min(dets) == 0 and max(dets) == 2 and eps_ == 38 and f"{max(chance):.1f}" == "0.5"
-        and "On the API and single sign-on, the scopes catch at most 2 of the WAF's 38 surges (Appendix~\\ref{app:window})" in TEXN
+        and "On the API and single sign-on, the scopes catch at most two of the WAF's 38 surges (Appendix~\\ref{app:window})" in TEXN
         and all(json.load(open(R + "waf_labels.json"))["all_profile"]["test_days"]["E2"]["surges"]["scores"][s]["recall"] < 0.01 for s in ("binomial", "beta-binomial", "z-score"))
         and "With a profile of all clients, the scopes catch the WAF's surges clearly above chance only on the console, and there with under $1\\%$ of blocked clients" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} WAF surges on E3+E4: {eps_} episodes, detected {min(dets)}--{max(dets)}, chance at most {max(chance):.2f}")
@@ -831,9 +830,9 @@ rr = json.load(open(HERE.parent / "sprint-2" / "distributions" / "session_reques
 ks = json.load(open(HERE.parent / "sprint-2" / "results" / "ks_validation.json"))["features"]
 good = (dd == 40351 and rr == 322658 and f"{ks['n_requests']['ks_D']:.3f}" == "0.002" and f"{ks['duration_s']['ks_D']:.3f}" == "0.003"
         and "Request counts come from all $322\\,658$ benign CICIDS2017 sessions and durations from the $40\\,351$ with two or more requests" in TEXN
-        and "distances of $D = 0.002$ and $0.003$ between generated and real sessions only check the sampler" in TEXN)
+        and "distances of $D = 0.002$ and $0.003$ between generated and source sessions therefore check only the sampler" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} IV: request counts from {rr}, durations from {dd} sessions, KS D {ks['n_requests']['ks_D']} and {ks['duration_s']['ks_D']}")
-good = f"{0.9 / 0.384:.1f}" == "2.3" and "With the measured $p_1 = 38.4\\%$" in TEXN and "only while $M < 2.3$" in TEXN and "the most common carrying $38.4\\%$ of requests" in TEXN
+good = f"{0.9 / 0.384:.1f}" == "2.3" and "With the measured $p_1=38.4\\%$" in TEXN and "this holds only for $M<2.3$" in TEXN and "the most common carrying $38.4\\%$ of requests" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} III-C: the modal fingerprint is an attack stack only while M < 0.9/0.384 = {0.9/0.384:.2f}")
 import subprocess
 proto = (HERE / "results" / "fresh_day_protocol.md").read_text()
@@ -853,31 +852,32 @@ def abs_chk(label, phrase, value, fmt_):
     good = phrase in ab and got == phrase.replace("\\%", "").replace("$", "")
     ok += good; bad += not good
     print(f"{'OK ' if good else 'XX '} abstract: {label:44s} phrase={phrase!r} data={got}")
-abs_chk("modal blocks none, hits legitimate traffic", "blocks $39\\%$ of legitimate traffic and no attacker once the botnet spans five TLS stacks",
-        us("original", 5, 0, "modal", "fpr")*100, "blocks {:.0f} of legitimate traffic and no attacker once the botnet spans five TLS stacks")
+abs_chk("modal blocks none, hits legitimate traffic", "blocks $39\\%$ of legitimate traffic and no attackers once the botnet spans five TLS stacks",
+        us("original", 5, 0, "modal", "fpr")*100, "blocks {:.0f} of legitimate traffic and no attackers once the botnet spans five TLS stacks")
 good = us("original", 5, 0, "modal", "recall") == 0; ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} abstract: the modal scope blocks no attacker at five stacks")
 pr = [us("original", s, 0, m, "recall") for s in (1, 5, 25) for m in ("enrichment", "zscore")]
 pf = [us("original", s, 0, m, "fpr") for s in (1, 5, 25) for m in ("enrichment", "zscore")]
-good = all(round(x * 100) == 90 for x in pr) and max(pf) == 0 and "Profile-relative scopes block $90\\%$ of a botnet on up to 25 new stacks with no observed collateral" in ab
+good = all(round(x * 100) == 90 for x in pr) and max(pf) == 0 and "Profile-relative scoping covers $90\\%$ of attackers on up to 25 new stacks, with no observed collateral" in ab
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract: the profile-relative scopes (test, z-score) block 90% up to 25 stacks at zero FPR")
-good = (fmt(fz["clean_rate"]) == "0.1" and 0.30 <= fz["clean_collateral_median"] <= 0.36 and alone["bin"] > 0.01 and alone["gate"] > 0.01
-        and "the test and its volume trigger misfire together in $0.1\\%$ of attack-free windows on the days used to choose them, though each alone exceeds its $1\\%$ budget. These misfires block a median third of the window's clients" in ab)
+good = (fmt(fz["clean_rate"]) == "0.1" and f"{fz['clean_collateral_median']*100:.0f}" == "33" and alone["bin"] > 0.01 and alone["gate"] > 0.01
+        and "the volume trigger and scope together misfire in $0.1\\%$ of attack-free windows on the days used for configuration (though each alone exceeds the $1\\%$ budget)" in ab
+        and "These rare misfires still block a median $33$--$39\\%$ of their windows' clients" in ab)
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} abstract: the binomial configuration misfires on {fz['clean_rate']*100:.2f}%, each misfire blocking a median {fz['clean_collateral_median']*100:.1f}%")
 grows = all(dA("fleets", e, k, 5) < dA("fleets", e, k, 25) < dA("fleets", e, k, 100) for e in ("E1", "E2", "E3", "E4") for k in ("new", "shared"))
-good = grows and "Calibration has a price: legitimate client fleets raise a floor" in ab and "legitimate fleets raise a calibration floor" in TEXN and "The floor grows with the number of stacks" in TEXN
+good = grows and "Legitimate client fleets raise a calibration floor, the botnet size needed to select rare shared fingerprints" in ab and "Legitimate client fleets raise a calibration floor" in TEXN and "The shared-stack floor grows with the number of stacks" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract, V-B: every floor grows from 5 to 25 to 100 stacks")
 # the floor's values left the abstract in round 33; V-B states them
 good = (f"{shF*100:.0f}" == "8" and f"{min(shS):.0f}" == "4" and f"{max(shS):.0f}" == "19"
-        and "is singled out only when large" in ab
-        and "A typical stack is then named only past 254 attackers on the busiest endpoint, $8\\%$ of its window, and past 4 to 19 median windows on the small ones" in TEXN)
+        and "A botnet on common fingerprints mostly escapes" in ab
+        and "A typical stack needs 254 attackers on the busiest endpoint, $8\\%$ of its median window, and 4 to 19 median windows on the smaller endpoints" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract, V-B: the floor on shared stacks, {shF*100:.0f}% of E1's window and {min(shS):.0f} to {max(shS):.0f} windows elsewhere")
-good = min(share) > 0.5 and "The 4 to 28 most common fingerprints of each endpoint, which carry" in TEXN   # left the abstract in round 31
+good = min(share) > 0.5 and "the 4--28 most common fingerprints of each endpoint, carrying" in TEXN   # left the abstract in round 31
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: never named on the fingerprints carrying most origins ({min(share)*100:.0f}%+)")
 good = (round(sw1["new:M25:x0.1"]["blocked"] * 100) == 12 and sw1["new:M25:x0.1"]["gate"] < 0.2
         and round(TD["fleets"]["per_endpoint"]["E1"]["union|none"]["new:x0.1"]["blocked"] * 100) == 90
-        and "On the busiest endpoint the trigger lets most of a small injected botnet through" in ab)
+        and "On the busiest endpoint, the volume trigger misses most of a small injected botnet" in ab)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract: the trigger lets most of a small botnet through ({sw1['new:M25:x0.1']['gate']*100:.1f}%), {sw1['new:M25:x0.1']['blocked']*100:.1f}% stopped")
 # the held-out block (production_tables_block.json): 14 days after the held-out day
 PB = json.load(open(R + "production_tables_block.json")); BD = PB["test_days"]
@@ -889,27 +889,29 @@ x4 = {e: BD["xfit_od"]["per_endpoint"][e]["union|seasonal"] for e in ("E1", "E2"
 nblk = len(bz["clean_fires_by_fold"])
 good = (nblk == 14 and PB["folds"]["test"] == 14 and 8 + 1 + nblk == 23 and 1 + nblk == 15
         and 1.8 <= bz["clean_rate"] / fz["clean_rate"] <= 2.4 and bz["clean_ci95"][1] <= 0.01
-        and "on generated campaigns and 23 days of a CDN operator's traffic" in ab
-        and "On 14 later pre-specified days their rate doubles, still within budget." in ab)
+        and "on generated campaigns and 23 days of traffic from four CDN endpoints" in ab
+        and f"{bz['clean_rate']*100:.2f}" == "0.19" and f"{bz['clean_collateral_median']*100:.0f}" == "39"
+        and "and in $0.19\\%$ over 14 later pre-specified days, about twice that rate but within budget" in ab)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract: 8 + 1 + {nblk} = 23 days; on the block the rate is {bz['clean_rate']/fz['clean_rate']:.2f}x the test days', upper bound {bz['clean_ci95'][1]*100:.2f}%")
 good = (round(un1 * 100) == 90 and unB == 0 and all(v["clean_rate"] <= 0.01 for v in x4.values())
         and x4["E1"]["shared:x0.1"]["blocked"] > 0.1 and bz["clean_fires"] > 0
         and BD["fleets"]["per_endpoint"]["E1"]["unseen|none"]["shared:x0.1"]["blocked"] == 0
-        and "Post hoc triggers recover part of that loss on those 14 days." in ab)
+        and "Without a gate, the unseen filter blocks about $90\\%$ of it on new stacks, with no false alarm on the 14 days" in TEXN
+        and "On E1, the cross-fitted beta-binomial behind a seasonal gate, preferred to the filter everywhere, adds shared stacks but loses most new ones" in TEXN)
 ok += good; bad += not good
 print(f"{'OK ' if good else 'XX '} abstract: on the block the unseen filter as its own trigger stops {un1*100:.1f}% of E1's tenth-size botnet with no misfire; the seasonal arm stops {x4['E1']['shared:x0.1']['blocked']*100:.1f}% on shared stacks")
 good = (cp["origins_equal"] == cp["windows"] and cpf["origins_equal"] == cpf["windows"] and cp["net24_pairs_equal"] == cp["windows"]
         and "The compiled query reproduced exported address and /24-pair counts in every window of two production days" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} VI: the compiled query reproduces origins and /24 pairs")
 good = (mi["fingerprints_kept"] == 0 and mi["fingerprints_in_scope"] > 0
-        and "We specify the filter and its counts in an OWL ontology, since no exchange standard we examined expresses it in its core vocabulary" in ab
-        and "An OWL ontology specifies the counts the decision reads and the scope it exports, and the log store's query is compiled from it" in TEXN
-        and "No exchange standard we examined expresses this JA4 filter in its core vocabulary" in TEXN
-        and "Of the standards we examined, STIX~2.1, DOTS and Flowspec lack a JA4 property in their core vocabularies, while OCSF records JA4 fingerprints in network events and in the evidence of findings~\\cite{ocsf2025schema} but defines no filter or remediation over them" in TEXN)
+        and "An OWL ontology specifies the evidence supporting mitigation decisions and enables compilation of the corresponding queries" in ab
+        and "An OWL ontology defines the evidence the test reads and the selected filter. Log-store queries are compiled from it" in TEXN
+        and "The exchange standards we examined do not express this JA4 filter in their core vocabulary" in TEXN
+        and "Of the standards examined, STIX~2.1, DOTS and BGP Flowspec define no JA4 property in their core vocabularies. OCSF records JA4 fingerprints in network events and finding evidence~\\cite{ocsf2025schema} but defines no filter or remediation over them" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} abstract, contribution (iii), VI: JA4 only in a STIX extension, dropped by MISP's importer; OCSF records it with no filter (external, checked on its schema)")
 e1r_ = [dF(r, "E1", k) for r in ("fleets", "od", "xfit_fleets", "xfit_od") for k in ("new", "shared")]
 good = (max(e1r_) < 0.1
-        and "A typical stack is then named only past 254 attackers on the busiest endpoint, $8\\%$ of its window" in TEXN)
+        and "A typical stack needs 254 attackers on the busiest endpoint, $8\\%$ of its median window" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} VI: every E1 floor under a tenth of the window ({[round(x*100, 1) for x in e1r_]}%)")
 x4a, b3a = BD["xfit_od"]["all"]["union|seasonal"], BD["fleets"]["all"]["unseen|none"]
 fbd = BD["fleets"]["all"]["union|origins"]["clean_fires_by_fold"]
@@ -925,7 +927,7 @@ good = (x4a["clean_fires"] == 20 and bz["clean_fires"] == 31
         and f"{(x4a['clean_gate_windows'] - x4a['clean_fires']) / x4a['clean_windows'] * 100:.1f}" == "1.5"
         and BD["base"]["all"]["zcal|origins"]["clean_fires"] == x4a["clean_fires"] and BD["base"]["all"]["zcal|origins"]["flash1000"] < x4a["flash1000"]
         and BD["base"]["all"]["zcal|origins"]["new:A100"]["blocked"] < x4a["new:A100"]["blocked"] and BD["base"]["all"]["zcal|origins"]["shared:A100"]["blocked"] < x4a["shared:A100"]["blocked"]
-        and "\\1~\\textit{Now} our candidate is the cross-fitted beta-binomial behind the seasonal gate, with the fallback below its floor. It was built post hoc, but the comparison fixed in advance preferred it on every endpoint. On the same days it misfired in fewer windows than the binomial configuration (20 versus 31, though 14 versus none on the busiest endpoint) and stopped more of 100 attackers. Crowds of 1\\,000 users trigger it in a third of windows, with light filters, and its misfires block a median two thirds of the window's clients. On its gate's other clean openings, $1.5\\%$ of windows, the fallback acts, a cost outside the budget. The calibrated $z$-score misfired as often and fired on fewer crowds, but stopped less. On the busiest endpoint the beta-binomial gives up most new-stack detection, which the unseen filter as its own trigger keeps with no false alarm. Running both there is untested. \\2~\\textit{Next}, a longer evaluation, since no later day has tested this choice: the binomial configuration misfires on weekdays, which a gate calibrated by day of the week may absorb, and the beta-binomial's misfires cluster on two days of the busiest endpoint." in TEXN
+        and "Our current candidate is the cross-fitted beta-binomial behind the seasonal gate, with the fallback below its floor. Although developed post hoc, it was fixed before the 14-day block, where the pre-specified comparison preferred it to the unseen filter on every endpoint. There it produced fewer false alarms than the binomial configuration (20 versus 31, though 14 versus none on the busiest endpoint) and stopped more of 100 attackers. Crowds of 1\\,000 users triggered it in one third of windows, generally with lighter filters, while its misfires blocked a median two thirds of clients in their windows. On its gate's other clean openings ($1.5\\%$ of windows), the fallback would act, a cost not included in the false-alarm budget. The calibrated $z$-score misfired as often, with fewer crowd activations but lower attack coverage. On the busiest endpoint, the beta-binomial misses most new-stack attackers, whereas the unseen filter without a gate retains high coverage with no false alarm on the block. Running both there is untested. The next step is a longer evaluation, since no later day has tested this choice. The binomial configuration's misfires occur mainly on weekdays, suggesting a gate calibrated by day of the week may help. The beta-binomial's misfires also cluster on two days of the busiest endpoint." in TEXN
         and all(round(PT[blk][run]["per_endpoint"][e][sc]["new:A1000"]["blocked"] * 100, 1) == 90.0
                 for blk in ("test_days", "fresh_day") for run in ("fleets", "xfit_od") for e in ("E2", "E3", "E4")
                 for sc in ("union|origins", "union|seasonal", "union|none", "unseen|origins", "unseen|seasonal", "unseen|none"))
@@ -941,19 +943,19 @@ gq = (bz["clean_gate_windows"] / bz["clean_windows"]) / (fz["clean_gate_windows"
 cq = (bz["clean_fires"] / bz["clean_gate_windows"]) / (fz["clean_fires"] / fz["clean_gate_windows"])
 good = (f"{alone['bin']*100:.1f}" == "2.2" and f"{bq*100:.0f}" == "13" and bz["clean_ci95"][1] <= 0.01
         and 0.4 <= gq <= 0.6 and cq > 4 and abs(gq * cq - bz["clean_rate"] / fz["clean_rate"]) < 1e-9
-        and "The binomial configuration's false alarms stay at $0.1\\%$ of clean windows on the days used to choose it, though its scope alone exceeds its budget there ($2.2\\%$). On 14 later pre-specified days they double, still within budget, because the scope misfires in $13\\%$ of gate openings. On those days two of three post hoc configurations held their budget. On the busiest endpoint, the gate lets most of a small botnet through" in TEXN
-        and "is named by the binomial test only past $8\\%$ of the busiest endpoint's window and 4 to 19 median windows on the small ones" in TEXN)
+        and "The binomial configuration misfires in $0.1\\%$ of clean windows on the days used to configure it, although its scope alone exceeds the $1\\%$ budget ($2.2\\%$). Across 14 later pre-specified days, the scope misfires in $13\\%$ of gate openings, so false alarms double to $0.19\\%$, still within budget. Two of three post hoc configurations also stay within it. On the busiest endpoint, the gate misses most of a tenth-size botnet" in TEXN
+        and "needs about $8\\%$ of the busiest endpoint's median window, or 4 to 19 median windows on the smaller endpoints, before the binomial test selects them" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} VII: the binomial configuration's rate doubles on the block, scope misfires in {bq*100:.1f}% of gate openings")
 good = (round(un1 * 100) == 90 and unB == 0 and all(v["clean_rate"] <= 0.01 for v in x4.values())
         and x4["E1"]["shared:x0.1"]["blocked"] > 0 == BD["fleets"]["per_endpoint"]["E1"]["unseen|none"]["shared:x0.1"]["blocked"]
         and x4["E1"]["new:x0.1"]["blocked"] < 0.5 * un1
         and not BR["m2"]["5"]["E1"]["within"]
-        and "On the busiest endpoint, the gate lets most of a small botnet through. The unseen filter as its own trigger stops $90\\%$ of it on new stacks with no false alarm, and there a cross-fitted beta-binomial behind a seasonal gate, preferred to the filter everywhere, adds shared stacks but loses most new ones. Next come weekday calibration, HTTP/2 attacks and a captured stealthy campaign" in TEXN)
+        and "On the busiest endpoint, the gate misses most of a tenth-size botnet. Without a gate, the unseen filter blocks about $90\\%$ of it on new stacks, with no false alarm on the 14 days. On E1, the cross-fitted beta-binomial behind a seasonal gate, preferred to the filter everywhere, adds shared stacks but loses most new ones. Future work includes weekday-aware calibration, HTTP/2 attacks and captured stealthy campaigns" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} VII: on the block, the unseen filter alone {un1*100:.1f}% with no misfire; the seasonal arm {x4['E1']['shared:x0.1']['blocked']*100:.1f}% on shared, {x4['E1']['new:x0.1']['blocked']*100:.1f}% on new")
-good = ("so no attack label is required." in TEXN and "The scope is evaluated offline, behind the operator's WAF, so the profiles and floors describe the clients the WAF lets through" in TEXN)
+good = ("The profile requires no attack labels" in TEXN and "The scope is evaluated offline behind the operator's WAF, so profiles and floors describe the clients the WAF lets through" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} III-C, IV-A: no attack label; the profile excludes WAF-blocked clients, the scope runs behind the WAF")
 SDV = json.load(open(R + "symbolic_detector.json"))["aggregate"]["1.5:25:1"]
-good = f"{SDV['rf_recall_fpr1']*100:.1f}" == "23.4" and "The modal fingerprint blocks $3.6\\%$ at $39.0\\%$, and the learned model $23.4\\%$ at $1\\%$ false positives" in TEXN
+good = f"{SDV['rf_recall_fpr1']*100:.1f}" == "23.4" and "The modal scope covers $3.6\\%$ at $39.0\\%$, and the learned model $23.4\\%$ at $1\\%$ false positives" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-A: the learned model on the adversarial botnet at 1% FPR, {SDV['rf_recall_fpr1']*100:.1f}%")
 print("== round 18: the trigger table, flash crowds, floors by stack count")
 def trow(run, scope, gate):
@@ -973,15 +975,15 @@ good = (gotT == expT and [ln.split("&")[0].strip() for ln in rowsT[::3]] == ["Or
         and all(trow("fleets", "unseen", g) == trow("xfit_od", "unseen", g) for g in ("origins", "seasonal", "none")))
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} Table VI: 9 rows x 9 cells from production_tables.json" + ("" if good else f" got={gotT} exp={expT}"))
 g1 = TD["fleets"]["per_endpoint"]["E1"]["gates_clean"]["origins"]
-chk("V-B: the distinct-origin gate alone, pooled and on E1", "and the distinct-origin gate alone fires in $3.0\\%$, reaching $5.4\\%$ on the busiest endpoint",
-    (TD["fleets"]["all"]["gates_clean"]["origins"]*100, g1*100), "and the distinct-origin gate alone fires in {:.1f}, reaching {:.1f} on the busiest endpoint")
+chk("V-B: the distinct-origin gate alone, pooled and on E1", "while the gate opens in $3.0\\%$, reaching $5.4\\%$ on the busiest endpoint",
+    (TD["fleets"]["all"]["gates_clean"]["origins"]*100, g1*100), "while the gate opens in {:.1f}, reaching {:.1f} on the busiest endpoint")
 f5, f100 = dA("fleets", "E1", "shared", 5), dA("fleets", "E1", "shared", 100)
 r5, r100 = dF("fleets", "E1", "shared", 5), dF("fleets", "E1", "shared", 100)
 w5 = [dF("fleets", e, "shared", 5) for e in ("E2", "E3", "E4")]; w100 = [dF("fleets", e, "shared", 100) for e in ("E2", "E3", "E4")]
 fM = {M: [dA("fleets", e, "shared", M) for e in ("E1", "E2", "E3", "E4")] for M in (5, 100)}
 good = ((f5, f100) == (50, 1026) and round(r5 * 100) == 2 and round(r100 * 100) == 34
         and fM[5] == [50, 164, 28, 17] and fM[100] == [1026, 6158, 1017, 454]
-        and "The floor grows with the number of stacks, from $2\\%$ of the busiest window at 5 stacks to $34\\%$ at 100" in TEXN
+        and "The shared-stack floor grows with the number of stacks, from $2\\%$ of E1's median window at five stacks to $34\\%$ at 100" in TEXN
         and "the shared-stack floor for 5 and 100 stacks is 50 and 1\\,026 attackers on E1, 164 and 6\\,158 on E2, 28 and 1\\,017 on E3 and 17 and 454 on E4" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: shared floors at 5 and 100 stacks: E1 {f5} and {f100} ({r5*100:.1f}% and {r100*100:.1f}%), small {min(w5):.1f}--{max(w5):.1f} and {min(w100):.1f}--{max(w100):.1f} windows")
 FPa = json.load(open(R + "fleet_profile.json"))["fleets_per_endpoint"]
@@ -991,9 +993,9 @@ FPj, FP3 = FPa["E1"], FPa["E3"]
 good = (all(0.065 <= s <= 0.075 for s in FPj["profile_share"]) and set(FPj["fleets"]) <= {5, 6}
         and max(FP3["profile_share"]) <= 0.075 and sum(1 for k in FP3["fleets"] if k) == 4
         and all(k == 0 for e in ("E2", "E4") for k in FPa[e]["fleets"])
-        and "allow-list for the busiest endpoint and the API, covering fingerprints that together carry up to about $7\\%$ of their profiles" in TEXN)
+        and "allow-list on the busiest endpoint and the API. Together, these fingerprints carry up to about $7\\%$ of their profiles" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} III-D: known fleets carry {min(FPj['profile_share'])*100:.1f}--{max(FPj['profile_share'])*100:.1f}% of E1's profile and at most {max(FP3['profile_share'])*100:.1f}% of the API's")
-good = "$1.2\\%$ for $M = 25$ and $\\rho = 3$" in TEXN and "and there $\\rho$ sets a \\textit{ratio limit} on what can be named" in TEXN
+good = "$1.2\\%$ for $M=25$ and $\\rho=3$" in TEXN and "and there $\\rho$ sets an \\textit{enrichment limit}" in TEXN
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} III-D: the ratio limit is stated for rho = 3")
 x36 = st_.median(x["beta_binomial"] for x in bB("xfit_od", "E1", "ranks_36_100", ""))
 good = (x36 == 949 and b36 == 743 and o36 == 480
@@ -1011,11 +1013,11 @@ SI = json.load(open(R + "stix_ingest.json"))["versions"]
 CPN = json.load(open(R + "compile_production_check.json"))
 good = (SI["medallion"] == "3.0.0" and SI["misp-stix"] == "2026.9.16" and "the export drops such clients" in CPN["note"]
         and "(medallion 3.0.0)" in TEXN and "(misp-stix 2026.9.16)" in TEXN
-        and "that reproduced the evaluated exports' address and /24-pair counts, and their JA4 pair counts where the WAF blocked no client (Appendix~\\ref{app:repro})" in TEXN
+        and "that reproduced the evaluated exports' address and /24-pair counts, and JA4-pair counts on the endpoint where the WAF blocked no client (Appendix~\\ref{app:repro})" in TEXN
         and "The query ran in the operator's log store, the artifact keeps only its counts, and the evaluation reads the exports" in TEXN
         and "Elsewhere the export drops clients partly blocked by the WAF, which the compiled query keeps." in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} VI, App. F: what the compiled query reproduced, tool versions {SI}")
-good = ("and past 4 to 19 median windows on the small ones, as medians of daily ratios" in TEXN
+good = ("and 4 to 19 median windows on the smaller endpoints, as medians of daily ratios" in TEXN
         and round(dF("fleets", "E1", "shared") * 100) == 8 and round(max(shS)) == 19)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-B: the floor ratios are medians of the daily ratios")
 # App. B: the weight grid (sprint 4) does not contain the ontology's 0.6, which reaches the grid's best AUC on its own
@@ -1075,7 +1077,7 @@ _used = {str(p).split('#')[-1] for s, p, v in _c}
 _untyped = sorted(t for t in _used if (_rdf.URIRef('http://security.example.org/ontology/ddos#' + t), _RDFS.range, _rdf.URIRef(_XS + 'double')) in _o
                   and not (isinstance(_ctx.get('kg:' + t), dict) and _ctx['kg:' + t].get('@type') == 'xsd:double'))
 good = (not _undeclared and not _conflicts and not _badrange and not _untyped and len(_c) > 40
-        and 'links a session to its \\texttt{Identity}, source \\texttt{IPAddress} and \\texttt{Endpoint}. An \\texttt{Attack} links to its \\texttt{Mitigation}, whose scope the evidence chain carries' in TEXN)
+        and 'links each session to an \\texttt{Identity}, source \\texttt{IPAddress}, and \\texttt{Endpoint}. An \\texttt{Attack} links to its \\texttt{Mitigation}, whose evidence chain records the selected scope' in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} III-E: the OWL declares every term of the exported chain ({len(_c)} triples); undeclared {_undeclared}, domain conflicts {_conflicts}, literals outside their range {_badrange}, double terms not typed in the context {_untyped}")
 # App. B: the generator's 2 000 benign fingerprints exceed every production profile, held-out day included
 CH = json.load(open(R + 'ja4_churn.json'))['per_endpoint']
@@ -1097,8 +1099,8 @@ good = (json.loads(json.dumps(_brm.report(PB, "test_days", CB_))) == BR
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} block: block_report.json recomputes from the reduction; metric 1 and 8 not consistent")
 # Table VII, cell by cell
 CFB = [("Origin gate", "binomial", "fleets", "union|origins"), ("$\\Omega$ gate", "test", "base", "enrichment|omega"),
-       ("Origin gate", "$z$-score", "base", "zcal|origins"), ("No gate", "unseen", "fleets", "unseen|none"),
-       ("Seasonal gate", "beta-bin.$^{\\dagger}$", "xfit_od", "union|seasonal"), ("No gate", "binomial$^{a}$", "fleets", "union|none")]
+       ("Origin gate", "$z$-score", "base", "zcal|origins"), ("No gate$^{*}$", "unseen", "fleets", "unseen|none"),
+       ("Seasonal gate$^{*}$", "beta-bin.$^{\\dagger}$", "xfit_od", "union|seasonal"), ("No gate$^{*}$", "binomial$^{a}$", "fleets", "union|none")]
 def brow(run, key, e1_only=False):
     a = BD[run]["per_endpoint"]["E1"][key] if e1_only else BD[run]["all"][key]
     e1 = BD[run]["per_endpoint"]["E1"][key]
@@ -1114,7 +1116,7 @@ gotB = [r[2:] for r in rowsB]; expB = [brow(run, key, i == 5) for i, (_, _, run,
 good = gotB == expB and [(r[0], r[1]) for r in rowsB] == [(t, sc) for t, sc, _, _ in CFB]
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} Table VII: 6 rows x 9 cells from production_tables_block.json" + ("" if good else f" got={gotB} exp={expB}"))
 good = (bz["clean_windows"] == 16103 and PB["folds"]["test"] == 14
-        and "16\\,103 clean windows, each day calibrated on all earlier days. E2--E4: max. 100 attackers, Fl.\\,1k, Coll.: pooled." in TEXN
+        and "16\\,103 clean windows, calibrated on all earlier days. E2--E4: max. 100 attackers, Fl.\\,1k, Coll.: pooled." in TEXN
         and "$^{a}$E1 alone.}" in TEX and "--min-calib-days 9" in (HERE / "results" / "heldout_block_protocol.md").read_text()
         and "\\caption{The six configurations fixed in advance, on the 14-day block.}" in TEX)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} Table VII: caption and note, {bz['clean_windows']} clean windows")
@@ -1128,7 +1130,7 @@ good = (bz["clean_fires"] == 31 and f"{bz['clean_rate']*100:.2f}" == "0.19" and 
         and wk == 30 and pe1["E1"]["clean_fires"] == 0 and pe1["E2"]["clean_fires"] == 17 and pe1["E2"]["clean_gate_windows"] == 29
         and f"{bz['clean_collateral_median']*100:.0f}" == "39"
         and not BR["m1"]["consistent"]
-        and "The 14-day block was exported after its protocol was public and analyzed after its export hashes were published (Appendix~\\ref{app:repro}). There the configuration misfired in 31 of 16\\,103 clean windows ($0.19\\%$, 95\\% interval $0.13$--$0.27\\%$, Table~\\ref{tab:block}). That is twice the test days' rate and, by the protocol's test, inconsistent with it ($P < 10^{-4}$), though within the budget. The gate opened half as often, but the scope misfired in 31 of its 233 openings ($13\\%$), versus 5 of 168 ($P < 10^{-11}$). The misfires fell on weekdays (30 of 31) and on the small endpoints, 17 of them in the console's 29 gate openings, and blocked a median $39\\%$ of the window's clients." in TEXN)
+        and "The 14-day block was exported after its protocol became public and analyzed after publication of its export hashes (Appendix~\\ref{app:repro}). There the configuration misfires in 31 of 16\\,103 clean windows ($0.19\\%$; 95\\% interval $0.13$--$0.27\\%$, Table~\\ref{tab:block}). This is about twice the test-day rate and, by the protocol's test, inconsistent with it ($P < 10^{-4}$), though below the $1\\%$ budget. The gate opens about half as often, but the scope misfires in 31 of 233 openings ($13\\%$), versus five of 168 on test days ($P < 10^{-11}$). Of these misfires, 30 occur on weekdays and all on the smaller endpoints, 17 in the console's 29 gate openings. The selected filters block a median $39\\%$ of those windows' clients." in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-D: block {bz['clean_fires']}/{bz['clean_windows']}, P = {pA:.1e}; gate {gr*100:.2f}% vs {gt_*100:.2f}%; scope {bz['clean_fires']}/{bz['clean_gate_windows']}, P = {pC:.1e}")
 # V-D: the comparison fixed in advance (metric 7)
 m7a, m7w = BR["m7"]["amended"], BR["m7"]["as_written"]
@@ -1146,7 +1148,7 @@ good = (all(m7a[e]["arms"]["4"]["preferred"] for e in m7a) and all(m7w[e]["arms"
         and (round(min(s4) * 100), round(max(s4) * 100)) == (34, 66) and max(s3) == 0
         and f"{x4['E1']['shared:x0.1']['blocked']*100:.1f}" == "11.4" and f"{x4['E1']['new:x0.1']['blocked']*100:.1f}" == "11.8"
         and f"{un1*100:.1f}" == "89.6" and unB == 0 and f"{c5['clean_rate']*100:.2f}" == "1.56"
-        and "Behind it, the cross-fitted beta-binomial stays within the budget everywhere ($0.05$--$0.35\\%$) and is preferred to the unseen filter as its own trigger on every endpoint. On the small endpoints it stops $68$--$88\\%$ of 100 attackers on new stacks, versus $43\\%$, and $34$--$66\\%$ on shared ones, which the filter misses. On the busiest endpoint the preference rests on shared stacks alone, which the filter cannot name: it adds $11.4\\%$ of the tenth-size botnet there but stops only $11.8\\%$ on new ones, versus $89.6\\%$. The unseen filter raised no false alarm, and the binomial scope with known fleets as its own trigger exceeded the budget there ($1.56\\%$)." in TEXN
+        and "Behind it, the cross-fitted beta-binomial stays within the budget everywhere ($0.05$--$0.35\\%$) and is preferred on every endpoint to the unseen filter without a gate. On the smaller endpoints, it covers $68$--$88\\%$ of 100 new-stack attackers, versus $43\\%$ for the unseen filter, and $34$--$66\\%$ on shared stacks, which the unseen filter cannot select. On the busiest endpoint, its advantage comes only from shared stacks: it adds $11.4\\%$ coverage of the tenth-size botnet, but covers just $11.8\\%$ of it on new stacks, versus $89.6\\%$ for the filter. The unseen filter produces no false alarms, while the binomial scope with known fleets exceeds the budget there without a gate ($1.56\\%$)." in TEXN
         and BD["fleets"]["per_endpoint"]["E1"]["unseen|none"]["shared:x0.1"]["blocked"] == 0 and m7a["E1"]["baseline"]["shared"] == 0
         and m7a["E1"]["arms"]["4"]["new"] < m7a["E1"]["baseline"]["new"] and m7a["E1"]["arms"]["4"]["shared"] >= m7a["E1"]["baseline"]["shared"] + 1)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} V-D: metric 7 prefers the seasonal arm everywhere, as written and amended; its rates {[round(x*100, 2) for x in x4r]}")
@@ -1185,12 +1187,12 @@ good = ((min(bdays), max(bdays)) == (0, 6) and ovr["frozen"] == 31 and ovr["both
         and "On the block, the configuration misfired in 0 to 6 windows a day, never on the busiest endpoint, and the base rule fired on 30 of those 31 windows. Gate and scope misfired together in 31 windows versus 2.9 if independent, and the scope misfired in 10 of the API's 98 gate openings and 4 of the single sign-on's 95. Post hoc, counting the test days' own uncertainty, a one-sided Fisher test gives $P = 0.07$ for the rate's rise and $P = 0.0002$ for the misfires once the gate opens. The $z$-score reference misfired less (20 versus 31), fired on fewer crowds and stopped more of 100 attackers. Crowds of 100 users trigger the configuration in $3.4\\%$ of windows, and its misfires block an expected $0.08\\%$ of clients per clean window. On the busiest endpoint the origin gate opens in $0.0$--$13.9\\%$ of a tenth-size botnet's windows, depending on the day, and the configuration stops $0.0$--$12.5\\%$ of it. Behind the seasonal gate, 12 of the beta-binomial's 14 misfires on the busiest endpoint fall on two days. No fingerprint absent from the profile reached $k_{\\min}$ origins in a block window." in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} App. E: block by day {min(bdays)}-{max(bdays)}, base rule shares {ovr['both']} of {ovr['frozen']}, joint expected {bz['clean_joint_expected']:.1f}, E1 gate {min(gS)*100:.1f}-{max(gS)*100:.1f}%")
 # the prospective days in the text: 1 held-out day and 14 block days
-good = ("We evaluate budget and floor on eight days across four CDN endpoints, and the budget on 15 later days." in TEXN
-        and "The CDN's traffic, over 23 days, measures the scopes' false alarms and, with injected botnets, their detection." in TEXN
+good = ("We measure the floor and false-alarm rate on eight days of four CDN endpoints, and the rate on 15 later days." in TEXN
+        and "The CDN's traffic over 23 days measures false alarms and, with injected botnets, coverage." in TEXN
         and "A ninth day, the \\textit{held-out day}, and 14 more, the \\textit{block}, were analyzed as fixed in advance." in TEXN
-        and "and on 14 pre-specified days the rate doubles yet stays within the budget." in TEXN
-        and "over 23 days of one operator's own endpoints" in TEXN and "a case not observed in 23 days" in TEXN
-        and "so only the held-out day and the block test them prospectively" in TEXN)
+        and "and how false alarms change over 14 pre-specified days." in TEXN
+        and "The 23 days cover one operator's own endpoints" in TEXN and "although we observed no such event over 23 days" in TEXN
+        and "so only the held-out day and the 14-day block evaluate them prospectively" in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} I, IV-A, V, VI: 1 held-out day and 14 block days, 23 production days in all")
 # App. F's count, taken over every check above (each table check covers a whole table)
 good = 240 <= ok + bad + 1 <= 260 and "recomputes about 250 printed numbers" in TEXN

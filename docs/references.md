@@ -14,7 +14,7 @@ Introduction onward. They are the spine of the argument.
 
 | Reference | Role in the paper |
 |---|---|
-| **Tripathi & Hubballi (2021)** — *Application Layer DoS Attacks: A Survey* (ACM Comput. Surv.) | Magnitude and trend of the problem |
+| **Tripathi & Hubballi (2021)** — *Application Layer DoS Attacks: A Survey* (ACM Comput. Surv.) | Magnitude and trend of the problem; the NOMS paper's Section II cites it for the profiles and session features application-layer detectors use (the 75-study, 47% figure is Odusami's) |
 | **Odusami et al. (2020)** — *Survey and Meta-Analysis of Application-Layer DDoS* (Int. J. Comm. Sys.) | **The central gap**: 47% of methods use aggregated session features; none treats the session as an entity |
 | **Kemp et al. (2023)** — *Approach to Application-Layer DoS Detection* (J. Big Data) | Recent ML baseline; **its authors acknowledge the absence of real-time validation and of explanation** |
 | **Fernandes et al. (2015)** — *Autonomous Profile-Based Anomaly Detection (PCA)* (Appl. Soft Comput.) | Statistical-profiling baseline |

@@ -13,11 +13,12 @@
 %%   - over-length papers are rejected without review;
 %%   - registration and submission via JEMS3 (jems3.sbc.org.br/noms2027) by 9 November 2026;
 %%     the CFP links JEMS3, while its Submission Guidelines page still says EDAS.
-%% Current layout (with the 14-day block, 2026-10-10): main text and Acknowledgment
-%% pp.1-8, references pp.8-9, appendices pp.9-12, and p.12 is full. The body ends
-%% with a few lines to spare on p.8, but every body line also pushes the references
-%% and the appendix, so any addition needs a matching cut. Keep the abstract at 26
-%% lines and the lines of pp.1-4 unchanged (Sections II, III and V move otherwise).
+%% Current layout (round 75, 2026-10-19): main text and Acknowledgment pp.1-8,
+%% references pp.8-9, appendices pp.9-12, and p.12 is full. The Acknowledgment opens
+%% p.8's right column, but every body line also pushes the references and the
+%% appendix, and about one line is left in all, so any addition needs a matching cut.
+%% Sections I-II fill pp.1-2 left exactly: keep the abstract's and Sections I-II's
+%% line counts, or p.2's left column stretches. Cut from Section III onward.
 
 \documentclass[conference,letterpaper,10pt]{IEEEtran}
 \IEEEoverridecommandlockouts
@@ -117,16 +118,36 @@ Luigi Carro, J\'eferson Campos Nobre, and Eder John Scheid}
 \maketitle
 
 \begin{abstract}
-A low-rate distributed application-layer flood keeps every source below
-per-source thresholds, so what matters is which clients to block. We treat that choice as a calibrated statistical test over the TLS fingerprints of an
-endpoint's clients and measure what it stops and costs, on generated campaigns and 23 days of a CDN operator's traffic. On generated traffic, the
-obvious choice, the alarm's most common fingerprint, blocks $39\%$ of legitimate
-traffic and no attacker once the botnet spans five TLS stacks. Profile-relative scopes
-block $90\%$ of a botnet on up to 25 new stacks with no observed collateral. On production traffic, the test and its volume trigger misfire together in $0.1\%$ of attack-free windows on the days used to choose them, though each alone exceeds its $1\%$ budget. These misfires block a median third of the window's clients. On 14 later pre-specified days their rate doubles, still within budget. Calibration has a price: legitimate client fleets raise a floor, so a botnet on rare fingerprints that real clients share is singled out only when large. A botnet on common fingerprints mostly escapes.
-On the busiest endpoint the trigger lets most of a small injected botnet through. Post hoc triggers recover part of that loss on those 14 days. We specify the filter and its counts in an OWL ontology, since no exchange
-standard we examined expresses it in its core vocabulary. The results
-tell an operator where fingerprint scoping pays off and where to fall back to rate
-limits or challenges.
+Low-rate distributed application-layer DDoS attacks keep
+every source below per-source thresholds, leaving operators
+with a critical decision:
+which clients to block without harming legitimate traffic.
+We address this decision through a calibrated statistical test
+that selects TLS fingerprints over-represented relative to an
+endpoint's normal traffic. We evaluate the approach on generated
+campaigns and 23 days of traffic from four CDN endpoints.
+In generated campaigns, the alarm's most common fingerprint
+blocks $39\%$ of legitimate traffic and no attackers once
+the
+botnet spans five TLS stacks. Profile-relative scoping
+covers $90\%$ of attackers on up to 25 new stacks, with no
+observed collateral. On production traffic, the volume
+trigger and scope together misfire in $0.1\%$ of attack-free
+windows on the days used for configuration (though each
+alone exceeds the $1\%$ budget) and in $0.19\%$ over 14
+later pre-specified days, about twice that rate but within
+budget.
+These rare misfires still block a median $33$--$39\%$ of
+their windows' clients. Legitimate client fleets raise a
+calibration floor, the botnet size needed to select rare
+shared
+fingerprints. A botnet on common fingerprints mostly
+escapes. On the busiest endpoint,
+the volume trigger misses most of a small injected botnet.
+An OWL ontology specifies the evidence supporting mitigation
+decisions and enables compilation of the corresponding queries.
+Our findings characterize when TLS-fingerprint scoping provides
+selective mitigation and when rate limits or challenges are needed.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -138,15 +159,78 @@ fingerprinting, statistical calibration, ontology
 \section{Introduction}
 \label{sec:intro}
 
-Application-layer Distributed Denial of Service (DDoS) attacks span two extremes. At one end, HTTP/2 Rapid Reset (CVE-2023-44487) pushed mitigation peaks to 398 million requests per second~\cite{google2023rapidreset}, a volume that capacity and scrubbing absorb. At the other end sit low-rate distributed floods, this paper's target. \textit{Distributed Slow HTTP DoS}~\cite{cambiaso2013slowdos} and rate-based variants that still hold connections open, such as HULK and GoldenEye~\cite{sharafaldin2018cicids}, exhaust a server from many coordinated origins, each sending too little to cross any per-source threshold.
+Application-layer Distributed Denial of Service (DDoS)
+attacks can overwhelm services through different traffic
+patterns. High-volume attacks, such as HTTP/2 Rapid Reset
+(CVE-2023-44487), have reached peaks of 398 million
+requests per second~\cite{google2023rapidreset}. Low-rate
+distributed attacks instead spread traffic across many
+origins, keeping individual sources below rate thresholds.
+Distributed Slow HTTP DoS~\cite{cambiaso2013slowdos} and
+flooding tools that hold connections open, such as HULK and
+GoldenEye~\cite{sharafaldin2018cicids}, can exhaust a server
+this way, without high per-source rates.
 
-A stealthy campaign also makes each session look legitimate on the per-session signals that detectors use, such as connection duration and packet rate~\cite{kemp2023approach}. What still distinguishes it is the structure \textit{between} sessions: the same client fingerprint recurring across many origins that converge on one endpoint. Acting on that structure is a management decision: \textit{which} clients to block, on \textit{what} evidence, and with a scope narrow enough to spare legitimate users. The operator also needs to know, before an attack, where no such filter can be built, so that it can fall back there to a rate limit or a challenge.
+A stealthy campaign makes each session look legitimate on
+the per-session signals that detectors use, such as
+connection duration and packet rate~\cite{kemp2023approach}.
+TLS fingerprints group clients by their handshakes, so
+traffic from different origins can be compared.
+Legitimate clients, however, often share them.
+What matters is whether a fingerprint appears more often
+than an endpoint's normal traffic predicts. Choosing which
+clients to block is thus a management decision that needs
+evidence limiting harm to legitimate users. Even a low
+false-alarm
+rate may hide substantial collateral damage.
 
-Existing detectors at most flag the attack and leave that decision open. Of 75 application-layer DDoS studies in one survey, $47\%$ derive their features from a user's request stream and packet pattern~\cite{odusami2020survey}. Graph-based detectors preserve relations between network nodes but stop at a report~\cite{belcastro2025klage}. Aggregate-based mitigations filter on network and transport headers~\cite{mahajan2002pushback,alcoz2022accturbo}, source-based filtering weighs each blocked prefix against the legitimate traffic it carries~\cite{soldo2012filtering}, and standard mitigation channels filter on the same fields~\cite{dots2020data,rfc8955flowspec}. We found no published method that scopes a mitigation by application-client fingerprint while quantifying each filter's collateral and identifying where no such filter can be built.
+Existing detectors at most flag an attack, leaving the
+choice of whom to block open.
+A survey of 75 application-layer DDoS studies found that
+$47\%$ use request-stream and packet-pattern
+features~\cite{odusami2020survey}. Graph-based detectors
+capture relations between network nodes but stop at a
+verdict~\cite{belcastro2025klage}. Aggregate-based
+mitigations use network and transport
+headers~\cite{mahajan2002pushback,alcoz2022accturbo}, while
+source-based filtering balances attack coverage against
+legitimate traffic~\cite{soldo2012filtering}. Standard
+mitigation channels filter on the same
+fields~\cite{dots2020data,rfc8955flowspec}. These approaches
+leave open when a TLS-fingerprint filter can stop an attack
+without excessive collateral, and when it cannot.
 
-This paper turns that decision into a calibrated statistical test (Fig.~\ref{fig:pipeline}). For each endpoint and five-minute window, a volume trigger first raises the alarm. The test then chooses the \textit{scope}, the TLS fingerprints to block: those over-represented among the alarm's origins relative to a \textit{profile} of the endpoint's normal traffic. We target botnets of compromised devices, whose TLS stacks we assume the attacker keeps, and we evaluate bots that present common fingerprints as the method's boundary.
+We study this decision using a calibrated statistical
+test (Fig.~\ref{fig:pipeline}). For each endpoint and
+five-minute window, a volume trigger first raises an alarm.
+The test then selects the \textit{scope}, the TLS
+fingerprints to block, by how often they appear among the
+alarm's origins relative to a \textit{profile} of the
+endpoint's normal traffic.
+We consider botnets of compromised devices, which we assume
+keep their own TLS stacks. We also
+evaluate attacks using common fingerprints to identify
+the method's limits.
 
-The paper makes three contributions. \1~\textit{Profile-relative scoping.} On generated traffic, profile-relative scopes block most of the attack without labels, while the alarm's most common fingerprint blocks legitimate users and no attackers once the botnet spans several stacks. \2~\textit{A calibration method for the scope.} We calibrate the test per endpoint to a false-alarm budget of $1\%$ of attack-free windows, which sets a \textit{calibration floor}: the botnet size from which the scope names a typical stack. We evaluate budget and floor on eight days across four CDN endpoints, and the budget on 15 later days. \3~\textit{A session ontology as the specification.} An OWL ontology specifies the counts the decision reads and the scope it exports, and the log store's query is compiled from it, so a new equality signal needs no code change. No exchange standard we examined expresses this JA4 filter in its core vocabulary.
+This paper makes three contributions. (i) \emph{Profile-relative
+scoping.} We select fingerprints that occur more often
+than expected from normal traffic. On generated campaigns,
+this blocks most attackers without labels, while the alarm's
+most common fingerprint blocks legitimate clients and no
+attackers once the botnet spans several stacks. (ii)
+\emph{Statistical calibration.}
+We calibrate the test per endpoint to a $1\%$ false-alarm
+budget on attack-free windows. This sets a
+\textit{calibration floor}, the botnet size from which the
+scope selects a typical stack. We measure the floor and
+false-alarm rate on eight days of four CDN endpoints, and
+the rate on 15 later days. (iii) \emph{A session
+ontology.} An OWL ontology defines the evidence the test
+reads and the selected filter. Log-store queries are
+compiled from it, so a new equality signal needs no change
+to query-generation code. The exchange standards we examined
+do not express
+this JA4 filter in their core vocabulary.
 
 %% Declared here so that it lands at the top of page 2, next to Section II.
 \begin{table*}[t]
@@ -174,17 +258,81 @@ Bot management~\cite{martinetti2024ja4signals} & JA4 & Undisclosed & Undisclosed
 \end{table*}
 
 %% ====================================================================
+%% ====================================================================
 \section{Related Work}
-\label{sec:related}
 
-Table~\ref{tab:related} compares prior mitigation scopes and detectors on what a filter matches, how it is chosen and what it costs legitimate users.
+Table~\ref{tab:related} compares prior approaches by
+the traffic they select, how filters are chosen, and
+their effects on legitimate users.
 
-\textbf{Scoping a mitigation.} Aggregate-based congestion control identifies attack aggregates from header fields and rate-limits them upstream~\cite{mahajan2002pushback}, and more recent work scores such aggregates in programmable switches~\cite{alcoz2022accturbo}. Blackholing drops all traffic to the attacked prefix, while advanced blackholing narrows the match to header fields to limit collateral damage~\cite{dietzel2018stellar}. Source-based filtering selects the prefixes to block under a filter budget, trading attack traffic stopped against legitimate traffic carried by those prefixes~\cite{soldo2012filtering}. Closer to our test, feature distributions detect and classify traffic anomalies~\cite{lakhina2005mining}, while anomaly extraction isolates feature values over-represented in anomalous traffic~\cite{silveira2010urca,brauckhoff2009extraction}, the same question we ask of fingerprints. Signature generation likewise checks its candidates against a pool of normal traffic~\cite{li2006hamsa}. Against attacks that mimic flash crowds, defenses either make every client solve a puzzle~\cite{kandula2005botz} or schedule each session by how far it strays from legitimate workload profiles, weighing the delay to legitimate users~\cite{ranjan2009ddosshield}. All of them work on network, flow, session or payload features, without the fingerprints of an application's clients. The IETF DOTS data channel~\cite{dots2020data} and BGP Flow Specification~\cite{rfc8955flowspec} likewise filter on network and transport fields and cannot express a fingerprint such as JA4.
+\textit{Scoping a mitigation.}
+Aggregate-based defenses group traffic by packet-header
+fields and rate-limit each
+group~\cite{mahajan2002pushback,alcoz2022accturbo}.
+Blackholing drops all traffic to attacked destinations,
+with finer header-based rules reducing the affected
+traffic~\cite{dietzel2018stellar}.
+Source-based filtering selects prefixes under a
+filter budget, balancing attack coverage against
+legitimate traffic~\cite{soldo2012filtering}.
+These approaches show how filter granularity affects
+collateral, but none selects clients by TLS fingerprint.
+Closer to our method, anomaly extraction isolates feature
+values over-represented in abnormal
+traffic~\cite{silveira2010urca,brauckhoff2009extraction},
+and signature generation checks candidate signatures against
+normal traffic~\cite{li2006hamsa}. Our calibrated test asks
+the same question of TLS fingerprints, relative to each
+endpoint's normal traffic. Other
+defenses use client
+puzzles~\cite{kandula2005botz} or schedule requests by their
+deviation from normal workloads~\cite{ranjan2009ddosshield},
+imposing costs on
+legitimate users without selecting fingerprint filters.
+Mitigation signaling mechanisms such as the IETF DOTS
+data channel~\cite{dots2020data} and BGP Flow
+Specification~\cite{rfc8955flowspec} carry filters on
+network and transport fields, and their core rules cannot
+express JA4.
 
-\textbf{Layer-7 detection.} Flow-based and Layer-7 HTTP DDoS detectors~\cite{odusami2020survey} either profile traffic, using Principal Component Analysis (PCA) over flow statistics~\cite{fernandes2015autonomous} or per-session behavioral matrices~\cite{bharathi2012pca}, or learn from session features~\cite{kemp2023approach}. None of these preserves relations across sessions. Flash crowds are told apart from floods by how requests spread over a site's documents~\cite{xie2009monitoring}.
+\textit{Layer-7 detection.}
+Application-layer DDoS detectors use traffic profiles
+and session features~\cite{tripathi2021application},
+including Principal Component Analysis (PCA) over flow
+statistics~\cite{fernandes2015autonomous}, behavioral
+representations of sessions~\cite{bharathi2012pca},
+and learned models~\cite{kemp2023approach}.
+None of these preserves relations across sessions, and a
+verdict does not say which fingerprint filter to apply or
+how many legitimate clients it would block. Other work
+separates flash crowds from attacks by request patterns
+across a website~\cite{xie2009monitoring}.
 
-\textbf{Knowledge graphs and fingerprints.} Security knowledge graphs link entities extracted from threat reports or map countermeasures to ATT\&CK, as D3FEND does in OWL~\cite{kaloroumakis2021d3fend}, while their operational use remains unclear~\cite{liu2022recent}. Traffic-derived graphs also feed learned detectors: KLAGE~\cite{belcastro2025klage}, the closest to our setting, classifies nodes in graphs built from network logs. Passive TLS fingerprinting identifies client software from its \textit{ClientHello}~\cite{husak2016https}, while many applications built on one library often share a fingerprint~\cite{anderson2019tls}. That sharing makes a stack useful as a scope and also sets its limit. Most bots that claim a browser identity expose TLS and header fingerprints from another tool~\cite{li2021goodbot}. One bot-management platform aggregates signals per JA4 over recent traffic~\cite{martinetti2024ja4signals}, but publishes no model, benchmark or collateral metric.
+\textit{Knowledge graphs and fingerprints.}
+Security knowledge graphs represent threats and
+countermeasures, including D3FEND's OWL-based
+model~\cite{kaloroumakis2021d3fend}, while their operational
+use remains unclear~\cite{liu2022recent}.
+Traffic-derived graphs also support detection:
+KLAGE~\cite{belcastro2025klage} classifies nodes in graphs
+built from network logs.
+Passive TLS fingerprinting identifies client software from
+its handshake~\cite{husak2016https}, although applications
+built on one library often share a
+fingerprint~\cite{anderson2019tls}.
+This sharing enables fingerprint filtering and also creates
+collateral risk.
+Most bots that claim a browser identity expose TLS and
+header fingerprints of another tool~\cite{li2021goodbot}.
+One bot-management platform already aggregates JA4 signals
+across requests~\cite{martinetti2024ja4signals},
+but its published description specifies no calibrated filter
+selection or collateral metric.
+Our ontology specifies the evidence and selected
+scope, while the statistical test determines
+which fingerprints to block.
 
+%% ====================================================================
 %% ====================================================================
 \section{Calibrated Fingerprint Scoping}
 \label{sec:approach}
@@ -192,81 +340,348 @@ Table~\ref{tab:related} compares prior mitigation scopes and detectors on what a
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig1_scoping.png}
-\caption{Calibrated fingerprint scoping. The query compiled from the session ontology returns, per endpoint and window, the class sizes read by the trigger and the scope, and every threshold and level comes from attack-free days.} \label{fig:pipeline} \end{figure*}
+\caption{Calibrated fingerprint scoping. The query compiled from the session ontology returns, per endpoint and window, the class sizes read by the trigger and the scope, and every threshold and level comes from attack-free days.}
+\label{fig:pipeline}
+\end{figure*}
 
-This section defines the threat model, trigger, scope and calibration, the resulting floor, and the ontology specification (Fig.~\ref{fig:pipeline}).
+This section defines the threat model, trigger, scope,
+calibration floor, and ontology specification
+(Fig.~\ref{fig:pipeline}).
 
 \subsection{Threat Model}
 \label{sec:threat}
 
-The defender operates the attacked application and observes, per request, the TLS \textit{ClientHello}, source address with prefix and ASN, target endpoint, arrival time, and any identity material exposed by the application. From the \textit{ClientHello} it computes a JA4 fingerprint~\cite{althouse2023ja4}, which summarizes the TLS version, cipher suites, extensions and ALPN. The defender sees neither the botnet's control channel nor which sources are coordinated, but can profile its own traffic outside attack episodes. The attacker controls $K$
-compromised devices and may make each session statistically indistinguishable from a
-legitimate one, the stealth assumption of our evaluation. Harm comes from exhausted capacity: each session holds a connection and worker as a legitimate one does, so no per-session rate rises.
+The defender operates the targeted application and terminates its TLS.
+For each request, it records the TLS \textit{ClientHello},
+source address with prefix and ASN, target endpoint,
+arrival time, and any application identity.
+From the \textit{ClientHello}, it computes a JA4
+fingerprint~\cite{althouse2023ja4}, which summarizes
+the TLS version, cipher suites, extensions and ALPN.
+It sees neither the botnet's control channel nor which
+sources are coordinated, but can profile normal traffic
+outside attack episodes.
 
-We also assume a bot keeps the fingerprint of its TLS stack: a TLS-speaking bot uses the library shipped with its device or toolkit, and botnets of compromised devices span many router, camera and DVR models~\cite{antonakakis2017mirai}. Presenting a browser's \textit{ClientHello} requires a full browser or an impersonation library kept in step with browser releases~\cite{frolov2019tls}. Bots that do so, such as headless-browser farms or bots built on TLS-impersonation libraries, fall outside this model, and Section~\ref{sec:results} evaluates them as its boundary.
+The attacker controls $K$ compromised devices and
+may make each session statistically indistinguishable
+from a legitimate one, the stealth assumption of our
+evaluation. Each session holds a connection and worker as
+legitimate traffic does, so no per-session rate rises. We
+assume
+a bot keeps the fingerprint of its TLS stack, the library
+shipped with its device or toolkit. Botnets span many
+router, camera and DVR models~\cite{antonakakis2017mirai}.
+Imitating a browser's \textit{ClientHello} takes a full
+browser or an impersonation library kept in step with
+browser releases~\cite{frolov2019tls}. Browser-imitating
+bots fall outside our threat model, and
+Section~\ref{sec:results} tests such attacks as its
+boundary.
 
 \subsection{The Trigger}
 \label{sec:rule}
 
-For each endpoint $e$ and five-minute window, let $S$ be the sessions to $e$ and $n$ their distinct origins, that is, source addresses, each counted once per fingerprint it presents. The trigger fires when $n \geq k_{\min} = 5$ and $n$ reaches its 99th percentile over attack-free windows. This \textbf{distinct-origin gate} is the trigger of the production evaluation. The base rule, the held-out protocol's reference, is gated by the coordination mass $\Omega(S)$ of the ontology's rule for the class \texttt{CoordinatedHTTPFlood} reaching its threshold $\tau_{\mathrm{cluster}}$ at the same percentile. $\Omega$ is a weighted count of pairs of distinct origins whose sessions share a JA4, endpoint or /24 prefix (Appendix~\ref{app:algorithms}). It mostly measures volume: its endpoint term, $0.6\binom{n}{2}$, contributes $91\%$ of it in the default campaign (Listing~\ref{lst:chain}, Appendix~\ref{app:cost}). What separates the attack from legitimate traffic is the scope.
+For each endpoint $e$ and five-minute window, let $S$ be the
+sessions to $e$ and $n$ their distinct origins,
+counting each address once per fingerprint it presents.
+The production trigger fires when $n \geq k_{\min}=5$
+and $n$ reaches its 99th percentile over attack-free
+windows. We call this the \textbf{distinct-origin gate}.
+
+The \textbf{base rule}, which the held-out protocol takes as
+reference, requires the coordination
+mass $\Omega(S)$ of the ontology's
+\texttt{CoordinatedHTTPFlood} class to reach
+$\tau_{\mathrm{cluster}}$ at the same percentile. $\Omega$
+counts weighted pairs of distinct
+origins sharing a JA4, endpoint or /24 prefix
+(Appendix~\ref{app:algorithms}). Its endpoint term,
+$0.6\binom{n}{2}$, gives $91\%$ of the score in the default
+campaign (Listing~\ref{lst:chain}, Appendix~\ref{app:cost}),
+so $\Omega$ mostly measures volume. The scope is what sets
+the attack apart.
 
 \subsection{The Scope and Its Calibration}
 \label{sec:evidence}
 
-How the scope is chosen decides whether mitigation helps or harms. The obvious
-choice, the alarm's most common (modal) fingerprint, picks whatever is common, and on a
-service under attack that is the legitimate population. A botnet of $A$ attackers
-spread uniformly over $M$ stacks puts about $0.9A/M$ on each and the remaining tenth on
-one-off fingerprints, while the most common legitimate fingerprint holds a share $p_1$
-of the $n_b$ legitimate origins. The modal fingerprint is an attack stack only while
-$0.9A/M > p_1 n_b$. With the measured $p_1 = 38.4\%$ of requests
-(Section~\ref{sec:method}), taken as a proxy for origins, and a campaign as large as the
-legitimate traffic, this holds only while $M < 2.3$. With more stacks, each one smaller, the modal filter blocks
-users and no attackers.
+The scope determines which clients a mitigation would
+affect. Selecting the alarm's most common (modal)
+fingerprint is unreliable because it may belong to
+legitimate users. Consider a botnet of $A$ attackers spread
+uniformly over $M$ stacks. About $0.9A/M$ attackers use each
+stack, while
+the remaining tenth use one-off fingerprints. If the most
+common legitimate fingerprint holds a share
+$p_1$ of $n_b$ legitimate origins, the modal fingerprint
+belongs to the attack only while $0.9A/M > p_1n_b$.
+With the measured $p_1=38.4\%$ of requests
+(Section~\ref{sec:method}), used as a proxy for origins,
+and a campaign as large as legitimate traffic, this
+holds only for $M<2.3$. With more stacks, the modal filter
+blocks legitimate clients and no attackers.
 
-We therefore compare the alarm with a \textbf{profile} of the endpoint's normal traffic, which the operator keeps outside attack episodes. Let $b(f)$ be $1/N$ plus the share of fingerprint $f$ among the profile's $N$ pooled origin--fingerprint pairs, $c(f)$ the number of the alarm's origins that present $f$, and $n = \sum_f c(f)$. The \textbf{binomial enrichment test} names every $f$ that is both enriched, $c(f)/n \geq \rho\, b(f)$ with $\rho = 3$, and unlikely under the binomial background at level $\lambda_e$, $\Pr[X \geq c(f)] < \lambda_e/|F|$ for $X \sim \mathrm{Bin}(n, b(f))$. The Bonferroni divisor $|F|$ counts the fingerprints of the profile and the alarm. The result is a \textit{set} of fingerprints, so it covers a botnet split over many stacks. A per-fingerprint \textbf{$z$-score} of $c(f)$ against $\mathrm{Bin}(n, b(f))$ provides a simpler profile-relative scope. The \textbf{unseen} filter names the fingerprints absent from the profile and seen in at least $k_{\min}$ origins, and needs no profile statistics. Joined with the test (the \textbf{union}), it catches new stacks too small for the level.
+We therefore compare the alarm with a \textbf{profile} of
+the endpoint's normal traffic, collected outside attack
+episodes.
+Let $b(f)$ be the share of fingerprint $f$ among the
+profile's $N$ pooled origin--fingerprint pairs, plus $1/N$
+so that no background is zero. Let
+$c(f)$ count the alarm's origins presenting $f$, and
+$n=\sum_f c(f)$. The \textbf{binomial enrichment test}
+selects every $f$ that is both enriched, $c(f)/n \geq \rho
+b(f)$ with $\rho=3$, and unlikely at level $\lambda_e$,
+$\Pr[X\geq c(f)]<\lambda_e/|F|$ for
+$X\sim\mathrm{Bin}(n,b(f))$. The Bonferroni divisor
+$|F|$ counts fingerprints in the profile and alarm.
+The test selects a \textit{set} of fingerprints, so it can cover a
+botnet spread over several stacks.
 
-On generated traffic each origin carries one session, and the level $\lambda_e$ stays at $0.01$. On production traffic, \textit{fleets} of legitimate clients switch on together and violate the binomial's independence. We therefore set $\lambda_e$ per endpoint $e$ to an empirical quantile: the largest value up to $0.01$ at which the scope names a filter in at most $1\%$ of the endpoint's attack-free calibration windows (the \textit{budget}), about 2.9 of a day's 288 windows. At levels such as $10^{-60}$ the binomial tail no longer gives the probability of the data. It acts as a score whose threshold the quantile sets. The $z$-score's threshold follows the same budget, as the 99th percentile of each calibration window's largest $z$, never below 3. Both budgets hold on the calibration windows by construction, and Section~\ref{sec:production} measures how well they hold on the days that follow.
+The \textbf{$z$-score} compares each $c(f)$ with its
+binomial background. The uncalibrated \textbf{unseen} filter
+selects fingerprints absent from the profile and seen in at
+least $k_{\min}$ origins. Its \textbf{union} with the test
+adds new stacks too small for the level.
 
-The profile reflects what a defender sees in normal operation, so no attack label is required. It must exclude the attack episode, because a campaign spanning the whole window would otherwise give every candidate an enrichment of one. Conversely, attackers hidden inside a popular legitimate fingerprint do not enrich it, so the test leaves it unnamed, which is correct when nothing distinguishes the attack from legitimate traffic.
+On generated traffic, each origin carries one session
+and $\lambda_e=0.01$. Production traffic differs:
+legitimate client \textit{fleets} can become active
+together, violating the binomial independence assumption.
+We therefore calibrate $\lambda_e$ per endpoint as the
+largest value up to $0.01$ at which the scope selects a
+filter in at most $1\%$ of attack-free
+calibration windows, our \textit{false-alarm budget}.
+At levels such as $10^{-60}$, the binomial tail is no longer
+a reliable probability and serves as a score calibrated on
+observed traffic.
+The $z$-score threshold, the 99th percentile of each
+window's largest score and never below 3, meets the same
+budget. Both scopes satisfy
+the budget on calibration windows by construction.
+Section~\ref{sec:production} evaluates later days.
+
+The profile requires no attack labels, but must exclude
+attack episodes. Otherwise, a campaign spanning the
+profile would no longer appear enriched. Conversely,
+attackers using a common legitimate fingerprint may
+not enrich it enough to be selected. The scope then cannot
+tell them from normal clients.
 
 \subsection{The Calibration Floor}
 \label{sec:floor}
 
-The calibrated level has a price, the \textbf{calibration floor}: the botnet size from which the scope names a typical stack. Among $n$ origins, the test names a stack of $c$ attackers only if $c/n \geq \rho\, b(f)$ and $\Pr[X \geq c] < \lambda_e/|F|$. The floor is the smallest botnet of $A$ attackers on $M$ stacks whose average stack satisfies both conditions, with $0.9A/M$ attackers in a window of $n_0 + A$ origins, where $n_0$ is the median window of the calibration days. Lower, stricter levels raise the floor. In the union, the unseen filter names a stack absent from the profile once it holds $k_{\min}$ origins, requiring $\lceil k_{\min} M/0.9 \rceil$ attackers regardless of level, 139 for $M = 25$. The level's floor therefore matters on stacks that real clients also present, and there $\rho$ sets a \textit{ratio limit} on what can be named. A stack's expected share of the window stays below $0.9/M$, so a botnet on $M$ stacks is not expected to enrich a fingerprint whose share exceeds $0.9/(\rho M)$, $1.2\%$ for $M = 25$ and $\rho = 3$.
+Calibration limits false alarms but also raises the minimum
+attack size needed for selection. We call this the
+\textbf{calibration floor}: the botnet size from which the
+scope selects a typical stack.
+For a stack with $c$ attackers among $n$ origins, the test
+requires $c/n\geq\rho b(f)$ and
+$\Pr[X\geq c]<\lambda_e/|F|$.
+The floor is the smallest $A$ for which a stack of $0.9A/M$
+attackers passes both in a window of $n_0+A$ origins, where
+$n_0$ is the
+median calibration window. Stricter levels raise
+this floor.
 
-We evaluate two ways to lower the floor. The first exempts the endpoint's \textit{known fleets}, the fingerprints named at level $0.01$ in at least $5\%$ of calibration windows, from the scope and from the calibration. The exemption is an allow-list for the busiest endpoint and the API, covering fingerprints that together carry up to about $7\%$ of their profiles, so the scope never blocks a bot that presents a fleet's fingerprint. The second, built after the held-out day was read (Section~\ref{sec:posthoc}), is a \textbf{beta-binomial background}, which allows within-window correlation. Its correlation $\phi(f)$ is estimated by moments per profile fingerprint over the calibration windows, from $\mathrm{Var}[c(f)] = n b(1-b)\bigl(1 + (n-1)\phi\bigr)$, clipped to $[0, 0.99]$, and each count is tested against a beta-binomial with the same mean. A fingerprint absent from the profile remains binomial.
+In the union, the unseen filter selects a stack absent from the
+profile once it has $k_{\min}$ origins, requiring $\lceil
+k_{\min}M/0.9\rceil$ attackers at any level, 139 for $M=25$.
+Shared fingerprints need the calibrated test, and there
+$\rho$ sets an \textit{enrichment limit}: a stack's expected
+share stays below $0.9/M$, so a fingerprint whose background
+share exceeds $0.9/(\rho M)$, $1.2\%$ for $M=25$ and
+$\rho=3$, is not expected to be selected.
+
+We evaluate two ways to lower the floor.
+First, \textit{known fleets} are fingerprints selected
+at level $0.01$ in at least $5\%$ of calibration
+windows. Exempting them from both the scope and
+calibration acts as an allow-list on the busiest
+endpoint and the API. Together, these fingerprints carry up
+to about $7\%$ of their profiles, and the scope never blocks
+attackers using them.
+
+Second, a \textbf{beta-binomial background}, developed
+after the held-out day was examined
+(Section~\ref{sec:posthoc}), models correlation
+within windows. Per profile fingerprint, its correlation
+$\phi(f)$ is estimated by moments over calibration windows
+from
+$\mathrm{Var}[c(f)]=nb(1-b)(1+(n-1)\phi)$,
+with $\phi$ clipped to $[0,0.99]$.
+Counts are then tested against a beta-binomial
+with the same mean. Fingerprints absent from the profile stay binomial.
 
 \subsection{The Session Ontology as Specification}
 \label{sec:ontology}
 \label{sec:pipeline}
 
-All counts above are specified in the session ontology, which is what an operator would deploy. Its central class, \texttt{ApplicationSession}, links a session to its \texttt{Identity}, source \texttt{IPAddress} and \texttt{Endpoint}. An \texttt{Attack} links to its \texttt{Mitigation}, whose scope the evidence chain carries. Sub-properties of a symmetric \texttt{relatedTo} classify the evidence linking two sessions (Appendix~\ref{app:algorithms}). The three used here are equalities: sharing a JA4, an endpoint or a /24 prefix partitions the sessions into classes. The ontology annotates each equality with the session property it compares, and \texttt{relatedTo} with the unit it counts in. From those annotations we compile the SQL queries that return, per window and endpoint, the class sizes read by the gate, base rule and scope, given only a property-to-column binding. No reasoner runs in the evaluation. A new equality signal reaches the compiled query through four triples plus a binding for any new session property, with no code change. When the rule fires, the evidence chain (the rule, cluster, scope and split of $\Omega(S)$ by sub-relation) is exported as JSON-LD (Listing~\ref{lst:chain}, Appendix~\ref{app:cost}) and STIX~2.1~\cite{oasis2021stix}, as an \textit{indicator} and a \textit{course-of-action} linked by \textit{mitigates}.
+The ontology specifies the counts read by the trigger and
+scope, and is what an operator would deploy. Its central
+class, \texttt{ApplicationSession},
+links each session to an \texttt{Identity}, source
+\texttt{IPAddress}, and \texttt{Endpoint}.
+An \texttt{Attack} links to its \texttt{Mitigation},
+whose evidence chain records the selected scope.
+Sub-properties of a symmetric \texttt{relatedTo}
+describe relationships between sessions
+(Appendix~\ref{app:algorithms}).
+
+The three relations used here are equalities (shared JA4,
+endpoint or /24 prefix) that partition sessions into
+classes. Each is annotated with the property it compares,
+and \texttt{relatedTo} with the unit it counts.
+From these annotations and a property-to-column binding, we
+compile SQL queries that return the class sizes read by the
+gate, base rule and scope per endpoint and window.
+No reasoner runs in evaluation.
+
+A new equality signal requires four triples and
+a binding for any new session property, without
+changes to the query-generation code. When the rule fires,
+the evidence chain (rule, cluster, scope and the split of
+$\Omega(S)$ by sub-relation) is exported as JSON-LD
+(Listing~\ref{lst:chain}, Appendix~\ref{app:cost})
+and STIX~2.1~\cite{oasis2021stix}, using an
+\textit{indicator} and a \textit{course-of-action}
+linked by \textit{mitigates}.
 
 %% ====================================================================
 \section{Evaluation Methodology}
 \label{sec:method}
 
-We use three traffic sources, each answering a different question. A generator, calibrated on benign CICIDS2017 sessions and on JA4 fingerprints measured at a CDN, runs the controlled campaigns. Laboratory captures test conventional attacks and allow an uncontrolled comparison with the published result of KLAGE, the closest system (Appendix~\ref{app:limitations}). The CDN's traffic, over 23 days, measures the scopes' false alarms and, with injected botnets, their detection.
+Three traffic sources answer different questions.
+A generator, calibrated on benign CICIDS2017 sessions and
+JA4 fingerprints measured at a CDN, runs controlled
+campaigns. Laboratory captures test conventional attacks
+and provide an uncontrolled comparison with the published
+results of KLAGE, the closest system
+(Appendix~\ref{app:limitations}). The CDN's traffic over 23
+days measures false alarms and, with injected botnets,
+coverage.
 
 \subsection{Scenarios and Datasets}
 
-\textbf{Controlled evaluation: calibrated synthetic traffic.} A generator produces distributed Slow HTTP DoS campaigns against one endpoint with known ground truth. Its main parameter is the \textit{degree of distribution} $K$, the number of devices controlled by the attacker. We report $K = 50$, a small botnet whose origins each stay below their own rate limit, and $K = 1000$, spread across hundreds of ASNs and prefixes, with almost no per-session signal. Legitimate fingerprint popularity follows a Zipf curve with exponent $\alpha$, since real populations are concentrated. We compared it with $6.33$M TLS requests logged at a production edge point of presence of Azion Technologies\footnote{Measured August 22, 2026, from an access log the platform already collects. The extract holds only client-software fingerprints and their frequencies, with no address, host, URI, header or locale.}: $495$ distinct fingerprints, the most common carrying $38.4\%$ of requests and the top ten $93.8\%$. The measured curve's head matches $\alpha = 1.5$ and its top ten $\alpha = 2.0$, and we use $\alpha = 1.5$ by default.
+\textbf{Controlled evaluation: calibrated synthetic traffic.}
+A generator produces distributed Slow HTTP DoS campaigns
+against one endpoint with known ground truth. Its main
+parameter is the \textit{degree of distribution} $K$, the
+number of devices controlled by the attacker. We report $K =
+50$, a small botnet whose origins each stay below their own
+rate limit, and $K = 1000$, spread across hundreds of ASNs
+and prefixes, with almost no per-session signal. Legitimate
+fingerprint popularity follows a
+Zipf distribution with exponent $\alpha$, as real client
+populations are concentrated.
+We compare this distribution with $6.33$M TLS requests
+recorded at a production edge point of presence of
+Azion Technologies\footnote{Measured August 22, 2026,
+from an existing platform access log. The extract holds only
+client-software fingerprints and their frequencies, with no
+address, host, URI, header or locale.}: $495$ distinct
+fingerprints,
+the most common carrying $38.4\%$ of requests and the top
+ten $93.8\%$. The measured head is consistent with $\alpha =
+1.5$, the top ten closer to $\alpha = 2.0$, and we use
+$\alpha = 1.5$ by default.
 
-No published measurement fixes how botnets spread over stacks, so we vary it: $90\%$ of the campaign spreads over $M$ stacks uniformly at random, the hardest case in expectation for naming a stack at a given $M$, and the rest over one-off fingerprints. The default is $M = 25$. A \textit{shared} mode draws the stacks from the profile's tail, which real clients also present, and an \textit{adversarial} mode gives the botnet the most common legitimate fingerprints, as a bot imitating a browser would.
+No published measurement shows how botnets are distributed
+across TLS stacks, so we vary it.
+We spread $90\%$ of attackers uniformly at random over $M$
+stacks, the hardest case in expectation for selecting a
+stack at a given $M$. The rest use one-off
+fingerprints, and $M = 25$ by default.
+In \textit{shared} mode, stacks come from the profile's
+tail, which legitimate clients also present.
+In \textit{adversarial} mode, attackers use the most
+common legitimate fingerprints, as browser-imitating
+bots might.
 
-Legitimate request counts and durations are sampled from benign CICIDS2017 sessions (Appendix~\ref{app:calibration}), so Kolmogorov--Smirnov distances of $D = 0.002$ and $0.003$ between generated and real sessions only check the sampler. In \textit{stealth} mode each attacker session draws its attributes from the same distributions, so the campaign appears only in the structure across sessions. Attackers start in the first 30~s, making the campaign a large share of the traffic it overlaps: a median $34$--$45\%$ of a window's origins and $50\%$ of the alarm's \textit{cluster}. The cluster chains the endpoint's sessions as long as each starts within 300~s of the previous one.
+Legitimate request counts and durations are sampled
+from benign CICIDS2017 sessions
+(Appendix~\ref{app:calibration}). Kolmogorov--Smirnov
+distances of $D = 0.002$ and $0.003$ between generated
+and source sessions therefore check only the sampler. In
+\textit{stealth}
+mode, attacker sessions use the same distributions,
+leaving only cross-session structure to distinguish
+the campaign. Attackers start within the first 30~s,
+accounting for a median $34$--$45\%$ of origins in
+overlapping windows and $50\%$ of the alarm's
+\textit{cluster}. The cluster chains sessions of
+an endpoint while consecutive starts remain within
+300~s of one another.
 
-\textbf{Production traffic.} We use eight days of four endpoints of Azion's own services: real-user monitoring beacons (E1), a web console (E2), an API (E3) and single sign-on (E4), whose median windows hold about $3\,000$, 62, 41 and 20 origins. Of the 12 endpoints exported, they are the four that carry TLS and have at least 50 calibration windows and a median window of at least $k_{\min}$ origins. The exports count distinct origins and connections per fingerprint and window, plus same-/24 pairs per window. The scope is evaluated offline, behind the operator's WAF, so the profiles and floors describe the clients the WAF lets through. Calibration days are treated as attack-free: an attack there would lower the level and raise the gate's threshold, making both more cautious. Test-day windows before injection (\textit{clean}) are taken as attack-free too, so a real attack there would count as a false alarm.
+\textbf{Production traffic.}
+We use eight initial days from four endpoints of Azion's own
+services: real-user monitoring beacons (E1),
+a web console (E2), an API (E3), and single sign-on
+(E4). Their median windows hold about $3\,000$, 62, 41 and 20 origins.
+Of 12 exported endpoints, these are the four with TLS, at
+least 50 calibration windows and a median window of at least
+$k_{\min}$ origins. Exports contain distinct origins and
+connections per fingerprint and window, together
+with same-/24 pairs. The scope is evaluated offline
+behind the operator's WAF, so profiles and floors describe
+the clients the WAF lets through.
+Calibration days are assumed attack-free: an attack there
+would lower the test level and
+raise the gate threshold, making both more cautious.
+Pre-injection test windows are also treated as
+\textit{clean}, so a real attack there would count as a
+false alarm.
 
-Each of the last five days is tested using the profile, thresholds and level from preceding days. Into each of its windows we inject a botnet built as the generator builds one. It holds 25 to 1\,000 attackers, or from a tenth of the median window (\textit{tenth-size}) to all of it. It puts $90\%$ of its attackers on 25 stacks, uniformly at random, and the rest on one-off fingerprints that no scope names, so at most about $90\%$ can be blocked. Its stacks are absent from the traffic (\textit{new}), drawn from the profile past its ten most common fingerprints (\textit{shared}), or the endpoint's 25 most common fingerprints (\textit{adversarial}). A flash crowd adds 100 or 1\,000 users drawn from the day's own clients to one window. A ninth day, the \textit{held-out day}, and 14 more, the \textit{block}, were analyzed as fixed in advance.
+Each of the last five initial days is tested with the
+profile, thresholds and levels of earlier days. We inject
+generated botnets
+into each window, with 25 to $1\,000$ attackers,
+or from a tenth of the median window (\textit{tenth-size}) to all of it.
+Of these attackers, $90\%$ are assigned uniformly at random
+to 25 stacks and the rest to one-off fingerprints that no
+scope selects, so at most about $90\%$ can be blocked.
+Stacks are absent from the traffic (\textit{new}), drawn
+from the profile's tail beyond its ten most common
+fingerprints (\textit{shared}), or the endpoint's 25 most
+common ones (\textit{adversarial}). A flash crowd adds 100
+or $1\,000$ of the day's clients to one window. A ninth day,
+the \textit{held-out day}, and 14 more, the \textit{block},
+were analyzed as fixed in advance.
 
 \subsection{Baselines, Configurations and Metrics}
 \label{sec:configs}
 
-On generated traffic we compare four scopes on the alarm's cluster: the modal fingerprint, the unseen filter, the $z$-score ($z > 3$) and the binomial test. The learned baseline is a Random Forest trained on the campaign's labels over the cross-session evidence of the three sub-relations (configuration (d) of Appendix~\ref{app:limitations}). It is held to zero false positives, which the test reaches wherever the learned model runs except the adversarial case. On production traffic we evaluate the configurations of Table~\ref{tab:configs}, whose thresholds, levels and known fleets are fitted on attack-free days. \textit{In sample}, each calibration day is judged against a profile that includes it, so its own fleets look less enriched. \textit{Cross-fitting}, built post hoc, judges each calibration day, like a test day, against a profile of the other days.
+On generated traffic, we compare four scopes
+applied to the alarm's cluster: the modal
+fingerprint, unseen filter, $z$-score ($z > 3$),
+and binomial test. The learned baseline is a
+Random Forest trained on campaign labels using
+cross-session evidence from the three sub-relations
+(configuration (d), Appendix~\ref{app:limitations}).
+We constrain it to zero false positives, which the test also
+achieves wherever the
+learned model is evaluated, except in the
+adversarial case. On production traffic, we evaluate the
+configurations in Table~\ref{tab:configs}, with thresholds,
+levels and known fleets estimated from attack-free days.
+\textit{In sample}, each calibration day is judged against a
+profile that includes its own traffic, so its fleets look
+less enriched. \textit{Cross-fitting}, introduced post hoc,
+judges each calibration day, like a test day, against a
+profile of the other days.
 
-Five choices were made on the test days: counting origins, calibrating $\lambda_e$, the gate, the union with the unseen filter and the $5\%$ fleet share. Of four shares, each added to the base rule, only $5\%$ had no more false alarms than the rule alone on the first three test days, although $0.5\%$ blocked about 25 times fewer legitimate clients and more of a 100-attacker botnet (Appendix~\ref{app:window}). The values $\rho = 3$ and $k_{\min} = 5$, the 99th percentile for $\tau_{\mathrm{cluster}}$ and the 25-stack botnet were fixed on generated traffic before any production data were read.
+Five choices were made on the test days:
+counting origins, calibrating $\lambda_e$,
+the gate, the union with the unseen filter,
+and the $5\%$ fleet-share threshold.
+Of four shares, each added to the base rule, only $5\%$
+produced no more false alarms
+than the rule alone on the first three test days.
+However, $0.5\%$ blocked about 25 times fewer legitimate
+clients and more of a 100-attacker botnet
+(Appendix~\ref{app:window}).
+The values $\rho = 3$ and $k_{\min} = 5$,
+the 99th percentile for $\tau_{\mathrm{cluster}}$,
+and the 25-stack botnet were fixed on generated
+traffic before any production data were examined.
 
 \begin{table}[t]
 \centering
@@ -289,15 +704,39 @@ Beta-binomial & origins            & test $\cup$ unseen & beta-bin. & --        
 {\footnotesize $^{*}$Post hoc: built after the held-out day was read. $^{a}$In the code before the day was read, but outside its protocol.}
 \end{table}
 
-We also report \textbf{collateral damage}, the share of legitimate traffic inside the scope: the false-positive rate of the filter an operator would deploy. On production traffic each configuration has a false-alarm rate (FA), the share of clean windows where it names a filter (5\,643 on the test days and 1\,152 on the held-out day, windows under $k_{\min}$ origins left out). Its exact 95\% interval assumes independent windows, although false alarms cluster by day. Each alarm also has a collateral (Coll.), the share of that window's clients the filter blocks, given as a median over alarms. The rate times the mean collateral is the expected share of clients blocked per clean window.
+We report \textbf{collateral damage} as the share
+of legitimate traffic within the selected scope:
+the false-positive rate of the filter if deployed. On
+production traffic, the false-alarm
+rate (FA) is the share of clean windows in which a
+configuration selects a filter: 5\,643 on the test days and
+1\,152 on the held-out day, leaving out windows under
+$k_{\min}$ origins. Exact 95\% intervals assume
+independent windows, although false alarms cluster by day.
+Each alarm's collateral (Coll.) is the share of that
+window's clients the filter blocks, given as a median over
+alarms. The false-alarm rate times the mean collateral is
+the expected share
+of clients blocked per clean window.
 
-The tables also report the rate of the scope without the gate (No gate, scope as trigger), the rate under a flash crowd of 1\,000 users (Fl.\,1k), and the blocked share of botnets sized at one median window or one tenth of it ($1\times$, $0.1\times$). This share is averaged over all attack windows, including those where the gate does not fire. It is the product of how often the gate fires, how often the scope names the botnet when it does, and the share of attackers the named filter covers.
+The tables also give the scope's rate without the gate
+(\textit{No gate}), the rate under a $1\,000$-user flash
+crowd (\textit{Fl.\,1k}), and the blocked share
+(\textit{coverage}) of botnets sized at one median window or
+a tenth of it ($1\times$, $0.1\times$).
+Coverage averages over all attack windows, including those
+the gate misses, so it depends on how often the gate fires,
+whether the scope selects the botnet's fingerprints, and
+what share of attackers they cover.
 
 %% ====================================================================
 \section{Results}
 \label{sec:results}
 
-We first show the mechanism on generated traffic. On production traffic, false alarms stay low but calibration sets a floor, the trigger decides what is stopped, and on 14 pre-specified days the rate doubles yet stays within the budget.
+We first examine selection on generated traffic, then how
+calibration and the trigger limit it on production traffic,
+and how false alarms
+change over 14 pre-specified days.
 
 \subsection{The Scope on Generated Traffic}
 \label{sec:symbolic-detector}
@@ -329,15 +768,62 @@ $M{=}25$, adversarial & 30.4\% & 3.78\% & 0.452 & 3.6\% & 57.3\% & 0.0\% & 7.8\%
 {\footnotesize Recall of each scope alone, $K = 1000$, 15 seeds. Collateral of the other scopes: Section~\ref{sec:collateral}. The learned models were not run on shared stacks.}
 \end{table}
 
-On generated traffic, each scope flags the sessions it matches, needing neither training nor labels (Table~\ref{tab:symbolic}), while per-session detection stays at chance (Appendix~\ref{app:limitations}).
+On generated traffic, each scope selects sessions without
+training or labels (Table~\ref{tab:symbolic}), while
+per-session detection stays at chance
+(Appendix~\ref{app:limitations}). The modal scope fails as
+attacks span more stacks. With one
+botnet stack, the modal fingerprint and binomial test both
+cover $89.8\%$ of attackers, with no observed collateral.
+From five stacks onward, as Section~\ref{sec:evidence}
+predicts, the modal fingerprint belongs to legitimate
+clients. It covers $0.0\%$ of attackers and blocks $39.0\%$
+of legitimate traffic, rising to $61.1\%$ under a more
+concentrated legitimate population ($\alpha = 2.0$).
 
-The obvious scope fails. With a single botnet stack, the modal fingerprint and the test agree, blocking $89.8\%$ of the attack with no observed collateral. From five stacks onward, as Section~\ref{sec:evidence} predicts, the modal fingerprint becomes a \textit{legitimate} one: it blocks $0.0\%$ of the attack and $39.0\%$ of legitimate traffic, rising to $61.1\%$ under a more concentrated legitimate population ($\alpha = 2.0$).
+Profile-relative scopes perform better. The binomial test
+and $z$-score cover $90.0\%$ of attackers at five stacks
+and $90.3\%$ at 25, with \textbf{no observed collateral}
+in these campaigns. The rest use one-off fingerprints, so
+scoping trades coverage for precision. At 100 stacks, each
+holds about ten attackers, too few to stand out against a
+1\,000-session profile, so the test falls well below the
+$z$-score and unseen filter (Table~\ref{tab:symbolic}).
+Pooling the
+profile over 30 attack-free periods restores coverage
+to $89.6\%$. The unseen filter matches or exceeds the test,
+with mean collateral $0.03\%$ (at most $0.5\%$ in one seed),
+because new stacks never occur in generated legitimate
+traffic.
+It cannot select shared stacks, which also occur
+among legitimate clients. For those, the test covers
+$85.4\%$ of attackers at $2.23\%$ collateral,
+versus $89.9\%$ at $3.37\%$ for the $z$-score.
 
-Profile-relative scopes succeed. The binomial test and the $z$-score block $90.0\%$ of the attack at five stacks and $90.3\%$ at 25, with \textbf{no collateral observed} across the campaigns. The rest sits on one-off fingerprints, so a scoped mitigation trades completeness for precision. At 100 stacks each stack holds about ten sessions, too few to stand out against a 1\,000-session profile, so the test falls well below the $z$-score and the unseen filter (Table~\ref{tab:symbolic}). A profile pooled over 30 attack-free periods restores it to $89.6\%$. The unseen filter, with mean collateral $0.03\%$ (at most $0.5\%$ in one seed), matches or exceeds the test because new stacks never occur in generated legitimate traffic. It blocks none of the shared stacks, which real clients also present. On those the test blocks $85.4\%$ at $2.23\%$ collateral, and the $z$-score $89.9\%$ at $3.37\%$.
+The learned model needs labels unavailable to an operator
+during an attack. At 25 stacks and zero false positives, the
+test is far ahead. With $\log b(f)$ and log
+enrichment per session, the model recovers most of the
+attack at 25 and 100 stacks (Table~\ref{tab:symbolic}),
+although it trains on labels from the campaign it scores.
+At $1\%$ false positives, which the test does not need, (d)
+reaches $66.8\%$ at 25 stacks, or $94.6\%$ with the profile.
 
-The learned model needs labels unavailable to an operator during an attack, and at 25 stacks and zero false positives the test is well ahead. Given $\log b(f)$ and its log enrichment per session, the model recovers most of the attack at 25 and 100 stacks (Table~\ref{tab:symbolic}), but trains on labels from the campaign it scores. At $1\%$ false positives, which the test does not need, (d) reaches $66.8\%$ at 25 stacks and $94.6\%$ with the profile.
-
-\textbf{Two conditions bound the result.} When the botnet adopts common legitimate fingerprints, the boundary of the threat model, little is enriched. The test blocks $30.4\%$ of the attack at $3.78\%$ collateral, and the $z$-score $57.3\%$ at $11.3\%$. The modal fingerprint blocks $3.6\%$ at $39.0\%$, and the learned model $23.4\%$ at $1\%$ false positives. A flat or missing profile makes every fingerprint look rare and raises collateral to $77.6\%$, while a profile drifted to $\alpha = 2.0$ does little harm. Per window, $\Omega \geq \tau_{\mathrm{cluster}}$ alone also fires on flash crowds~\cite{jung2002flash}. The test removes those alarms for generated crowds (Appendix~\ref{app:window}), though not for crowds of production clients, as shown next.
+\textbf{Two conditions limit these results.}
+When attackers adopt common legitimate fingerprints,
+outside the threat model, little is enriched. The test
+covers $30.4\%$ of attackers
+at $3.78\%$ collateral, and the $z$-score $57.3\%$ at
+$11.3\%$. The modal scope covers $3.6\%$ at $39.0\%$, and
+the learned model $23.4\%$ at $1\%$ false positives. A flat
+or missing profile makes every fingerprint appear rare and
+increases
+collateral to $77.6\%$, whereas a profile drifted
+to $\alpha = 2.0$ has little effect. Per window, $\Omega
+\geq \tau_{\mathrm{cluster}}$ alone also fires on flash
+crowds~\cite{jung2002flash}. The test removes these alarms
+for generated crowds (Appendix~\ref{app:window}), though not
+all of them for crowds of production clients, as shown next.
 
 \subsection{Production Traffic: False Alarms and the Floor}
 \label{sec:production}
@@ -392,13 +878,69 @@ E4, SSO         & 20      & $10^{-4}$ & $10^{-2}$ & 84/84 & 84/114 & 56/56 & 84/
 {\footnotesize $n_0$: median window. $\lambda_e$ in sample. Floors in attackers per window, in sample / cross-fitted, test-day medians. $^{*}$Post hoc, as is cross-fitting.}
 \end{table}
 
-\textbf{False alarms.} Pooled across endpoints, the calibrated scope and gate each exceed their $1\%$ budget alone on the test days, and only together stay within it (Table~\ref{tab:production}). The binomial configuration's scope alone names a filter in $2.2\%$ of clean test-day windows, and the distinct-origin gate alone fires in $3.0\%$, reaching $5.4\%$ on the busiest endpoint. Together they fire on only $0.1\%$ of clean windows (5 of 5\,643, 95\% interval $0.03$--$0.21\%$), 4 of them on the web console. The 5 joint misfires, versus 3.5 under independence, are within chance ($P = 0.27$, Appendix~\ref{app:window}), and the gate's other 163 openings, $2.9\%$, go to the fallback. These misfires block a median $32.9\%$ of the window's clients, and an expected $0.03\%$ of clients per clean window. Crowds of 1\,000 of the day's clients trigger the configuration in $22.2\%$ of windows, with lighter filters blocking a median $4.3\%$ of the window's clients.
+\textbf{False alarms.}
+Pooled across endpoints, the calibrated scope and
+distinct-origin gate each exceed the $1\%$ budget alone on
+test days, and only together stay below it
+(Table~\ref{tab:production}). The binomial scope alone
+selects a filter in $2.2\%$ of clean windows, while
+the gate opens in $3.0\%$, reaching $5.4\%$ on the
+busiest endpoint. Together, they misfire in only
+$0.1\%$ of clean windows (5 of 5\,643; 95\% interval
+$0.03$--$0.21\%$), including four on the web console.
+The five joint misfires, versus 3.5 expected under
+independence, are compatible with chance
+($P = 0.27$, Appendix~\ref{app:window}).
+The gate's other 163 openings ($2.9\%$) go to the fallback,
+a rate limit or a challenge to every client. The five
+misfires block a median $32.9\%$ of clients in their
+windows,
+or an expected $0.03\%$ per clean window.
+Flash crowds of 1\,000 production clients trigger
+the configuration in $22.2\%$ of windows, with lighter
+filters blocking a median $4.3\%$ of the window's clients.
 
-\textbf{What the scope can name: the calibration floor.} The strict level that keeps false alarms rare also raises the floor. On the busiest endpoint, fleets push $\lambda_e$ down to $10^{-60}$, and exempting its five or six known fleets raises it to about $10^{-21}$. For a 25-stack botnet on new stacks, the unseen filter sets the floor on E1 to E3: 139 attackers per window, so that the average stack reaches $k_{\min}$ origins. On E4 the test names the stacks first, from 84 (Table~\ref{tab:floor}). On stacks that real clients also present, mostly rare ones past the profile's ten most common fingerprints, the level sets the floor, computed at their median share. A typical stack is then named only past 254 attackers on the busiest endpoint, $8\%$ of its window, and past 4 to 19 median windows on the small ones, as medians of daily ratios.
+\textbf{What the scope can select: the calibration floor.}
+The strict level that keeps false alarms rare also raises the floor.
+On the busiest endpoint, legitimate fleets push $\lambda_e$
+to $10^{-60}$, and exempting five or six
+known fleets raises it to about $10^{-21}$.
+For a 25-stack botnet on new fingerprints, the unseen filter
+sets the floor on E1--E3 at 139 attackers per window, where
+the average stack
+reaches $k_{\min}$ origins. On E4 the test selects stacks
+first, from 84 attackers
+(Table~\ref{tab:floor}). For shared stacks, all beyond the
+profile's ten most common fingerprints and mostly rare, the
+calibrated level sets the floor, computed at their median
+share. A typical stack
+needs 254 attackers on the busiest endpoint, $8\%$ of its
+median window, and 4 to 19 median windows on the smaller
+endpoints, as medians of daily ratios.
 
-The floor grows with the number of stacks, from $2\%$ of the busiest window at 5 stacks to $34\%$ at 100, and with the fingerprints' popularity: those of rank 11 to 35 are never named on the two largest endpoints (Appendix~\ref{app:window}). It is no cliff: below it the scope names the stacks that chance makes larger, as a binomial model of stack sizes predicts ($43.1\%$ predicted versus $43.2\%$ measured for 100 new-stack attackers on E1, Fig.~\ref{fig:stops}).
+The shared-stack floor grows with the number of stacks, from
+$2\%$ of E1's median window at five stacks to $34\%$ at 100.
+It also increases with fingerprint popularity:
+ranks 11--35 are never selected on the two
+largest endpoints (Appendix~\ref{app:window}).
+The floor is not a sharp threshold: below it, chance leaves
+some stacks large enough to be selected. A binomial model
+of stack sizes predicts $43.1\%$ coverage without the gate
+for 100 new-stack attackers on E1, close to the measured
+$43.2\%$ (Fig.~\ref{fig:stops}).
 
-\textbf{Past the ratio limit the scope is expected to name nothing.} The 4 to 28 most common fingerprints of each endpoint, which carry $86$--$94\%$ of its origins, lie past that limit for a 25-stack botnet. A botnet using the endpoint's 25 most common fingerprints, the boundary of the threat model, is therefore mostly missed: the configuration stops $7.0\%$ and $23.8\%$ of 100 and 1\,000 attackers. It stops none on the two largest endpoints, where nearly all 25 exceed the limit, but $73.5\%$ of 1\,000 on the single sign-on, where only 4 or 5 do.
+\textbf{Beyond the enrichment limit, selection is unlikely.}
+For a 25-stack botnet, the 4--28 most common fingerprints of
+each endpoint, carrying $86$--$94\%$ of its origins, exceed
+the limit. A botnet using the endpoint's
+25 most common fingerprints, outside the threat model, is
+therefore largely
+missed. The configuration blocks $7.0\%$
+of 100 attackers and $23.8\%$ of 1\,000.
+It blocks none on the two largest endpoints,
+where nearly all 25 fingerprints exceed
+the limit, but $73.5\%$ of 1\,000 on single sign-on, where
+only four or five do.
 
 \subsection{What Is Stopped: The Trigger Decides}
 \label{sec:trigger}
@@ -410,7 +952,19 @@ The floor grows with the number of stacks, from $2\%$ of the busiest window at 5
 \label{fig:stops}
 \end{figure}
 
-A named botnet is stopped only where the distinct-origin gate also fires (Fig.~\ref{fig:stops}). On the busiest endpoint, the gate opens in only $6$--$13\%$ of windows for botnets from 25 attackers up to a tenth of the median window. The binomial configuration therefore stops $3.4\%$ of a 100-attacker botnet and $11.8\%$ of a tenth-size botnet, $0.6$--$37.2\%$ depending on the day. Its scope alone would block $43.2\%$ and $89.6\%$. On the small endpoints, 100 attackers equal 1.6 to 5 median windows and open the gate in $66$--$100\%$ of windows, leaving the floor as the main limit. A botnet of one median window opens it in only $14$--$33\%$.
+A selected fingerprint blocks attackers only when the gate also fires
+(Fig.~\ref{fig:stops}). On the busiest endpoint,
+the gate opens in just $6$--$13\%$ of windows
+for botnets from 25 attackers to a tenth of the median
+window. The binomial
+configuration therefore blocks $3.4\%$
+of a 100-attacker botnet and $11.8\%$
+of a tenth-size botnet, $0.6$--$37.2\%$ depending on the day.
+Its scope alone would cover $43.2\%$ and $89.6\%$.
+On the smaller endpoints, 100 attackers are 1.6--5 median
+windows and open the gate in $66$--$100\%$ of windows, so
+the floor is the main limit. A botnet of one median window
+opens it in only $14$--$33\%$.
 
 \begin{table}[t]
 \centering
@@ -440,16 +994,67 @@ No gate$^{*}$       & binomial               & 0.97 & 0.00 & 4.38 & 1.04 & 89.6 
 {\footnotesize In \%. Held: held-out day. No gate: scope as trigger. E2--E4: max. Fl.\,1k, Coll.: pooled. New, Shared: E1's tenth-size botnet. $^{\dagger}$Cross-fitted. $^{*}$Post hoc.}
 \end{table}
 
-\textbf{Other triggers.} To locate the loss, we examined two other triggers, both exploratory, after the held-out day was read (Table~\ref{tab:triggers}, with the binomial in sample, as the protocol fixed it). A \textit{seasonal gate} divides the distinct origins by their median at the same hour of the calibration days and fires at that ratio's 99th percentile. It stops more of the tenth-size botnet on the busiest endpoint. Behind it, however, only the cross-fitted beta-binomial and the unseen filter stay within the budget on the console, where the binomial and the in-sample beta-binomial misfire in $2.0$--$2.6\%$ of windows. The \textit{scope as its own trigger} (No gate, dashed in Fig.~\ref{fig:stops}) stops about $90\%$ of that botnet on new stacks every day. With the binomial and known fleets, its rate on the busiest endpoint sits at the budget, rising from no false alarm on the first two test days to 8 of 288 on the last.
+\textbf{Other triggers.}
+To locate the loss, we evaluated two other triggers, both
+exploratory, after the held-out day was read
+(Table~\ref{tab:triggers}, with the binomial in sample, as
+the protocol fixed it). A \textit{seasonal gate} divides the
+distinct origins by their median at the same hour of the
+calibration days and fires at that ratio's 99th percentile.
+It improves coverage of tenth-size
+botnets on the busiest endpoint.
+Behind it, however, only the cross-fitted beta-binomial and
+unseen filter stay within the budget on the web console,
+where the binomial and in-sample beta-binomial misfire in
+$2.0$--$2.6\%$ of windows.
+The scope without a gate (\textit{No gate}, dashed in
+Fig.~\ref{fig:stops}) covers about $90\%$ of E1's tenth-size
+botnet on new stacks each day.
+With known fleets, the binomial scope alone sits at the
+budget on E1, rising from none on the first two test days to
+eight of 288 on the last.
 
-\textbf{What the unseen filter and the test add.} The unseen filter covers new stacks of at least $k_{\min}$ origins, and the test adds shared stacks and, in some configurations, smaller new ones. On the larger new stacks, as in E1's tenth-size botnet, the unseen filter without the test does as well under every trigger, with fewer false alarms and flash-crowd firings, since it names each such stack. Its false alarms as its own trigger cluster by day (Appendix~\ref{app:window}). For new stacks too small for the filter, the cross-fitted beta-binomial adds on the small endpoints and, as its own trigger, on the busiest one too ($58\%$ versus the filter's $43\%$ of 100 attackers), while the binomial adds only on the single sign-on. Behind the seasonal gate, the cross-fitted beta-binomial stops $53$--$84\%$ of 100 new-stack attackers on the small endpoints but only $3.9\%$ on the busiest one.
-
+\textbf{What the unseen filter and test contribute.}
+The unseen filter selects new stacks of at least $k_{\min}$
+origins, and the test adds shared stacks
+and, in some configurations, smaller new
+ones. For larger new stacks, including
+E1's tenth-size botnet, the unseen filter
+matches the test under every trigger
+with fewer false alarms and flash-crowd firings. Its false alarms
+without a gate cluster by day
+(Appendix~\ref{app:window}).
+For smaller new stacks, the cross-fitted
+beta-binomial adds coverage on the smaller
+endpoints and, without a gate, on the busiest one ($58\%$
+versus the filter's $43\%$ of 100 attackers). The binomial
+adds coverage only on single sign-on.
+With the seasonal gate, the cross-fitted
+beta-binomial covers $53$--$84\%$
+of 100 new-stack attackers on the smaller endpoints, but
+$3.9\%$ on the busiest.
 
 \subsection{What the Evidence Supports}
 \label{sec:posthoc}
 \label{sec:boundary}
 
-\textbf{Post hoc analyses.} Of the calibrated scopes used alone, only the cross-fitted beta-binomial nearly meets its budget ($1.1\%$, Fig.~\ref{fig:operating}). In sample the beta-binomial lowers the shared-stack floor on the three largest endpoints (Table~\ref{tab:floor}), but 19 of its 22 false alarms fall on the web console, where $74.4\%$ of 1\,000-user crowds trigger it. A first cross-fitting design, calibrated only on the last calibration day, was dropped after its results were seen because one day misses the rare fleet events that set the level. Under cross-fitting, the binomial configuration barely changes, with 6 false alarms versus 5, and the calibrated $z$-score loses its lead over the binomial (Fig.~\ref{fig:operating}).
+\textbf{Post hoc analyses.}
+Among calibrated scopes used without a gate, only the cross-fitted
+beta-binomial approaches the $1\%$
+budget ($1.1\%$, Fig.~\ref{fig:operating}).
+In sample, the beta-binomial lowers
+the shared-stack floor on the three
+largest endpoints (Table~\ref{tab:floor}),
+but 19 of its 22 false alarms occur
+on the web console, where it fires on $74.4\%$ of 1\,000-user crowds.
+An initial cross-fitting design,
+calibrated only on the last calibration
+day, was dropped after its results were seen, because one
+day misses the rare fleet events that set the level.
+Under cross-fitting, the binomial configuration barely
+changes, with six false alarms versus five, and the
+calibrated $z$-score loses its coverage lead
+(Fig.~\ref{fig:operating}).
 
 \begin{figure}[t]
 \centering
@@ -458,11 +1063,62 @@ No gate$^{*}$       & binomial               & 0.97 & 0.00 & 4.38 & 1.04 & 89.6 
 \label{fig:operating}
 \end{figure}
 
-\textbf{Prospectively, the rate doubles.} The held-out day gave the binomial configuration 2 false alarms in 1\,152 clean windows, consistent with the test days' rate ($P = 0.27$). Its gate opened in only 3 of them, and the scope misfired in two, both on the web console, more often than the test days' 5 of 168 openings predict (post hoc, $P = 0.003$). The 14-day block was exported after its protocol was public and analyzed after its export hashes were published (Appendix~\ref{app:repro}). There the configuration misfired in 31 of 16\,103 clean windows ($0.19\%$, 95\% interval $0.13$--$0.27\%$, Table~\ref{tab:block}). That is twice the test days' rate and, by the protocol's test, inconsistent with it ($P < 10^{-4}$), though within the budget. The gate opened half as often, but the scope misfired in 31 of its 233 openings ($13\%$), versus 5 of 168 ($P < 10^{-11}$). The misfires fell on weekdays (30 of 31) and on the small endpoints, 17 of them in the console's 29 gate openings, and blocked a median $39\%$ of the window's clients.
+\textbf{Prospectively, false alarms increase.}
+On the held-out day, the binomial
+configuration produces two false alarms
+in 1\,152 clean windows, consistent
+with the test-day rate ($P = 0.27$).
+The gate opens in only three windows, and the scope misfires
+in two, both on the web console, more than the test days'
+five of 168 openings predict (post hoc, $P = 0.003$). The
+14-day block was exported after its protocol became public
+and analyzed after
+publication of its export hashes
+(Appendix~\ref{app:repro}).
+There the configuration misfires in 31 of 16\,103 clean
+windows ($0.19\%$;
+95\% interval $0.13$--$0.27\%$,
+Table~\ref{tab:block}). This is about twice the test-day
+rate and, by the protocol's test, inconsistent with it ($P <
+10^{-4}$), though below the $1\%$ budget. The gate
+opens about half as often, but the
+scope misfires in 31 of 233 openings
+($13\%$), versus five of 168 on test days ($P < 10^{-11}$).
+Of these misfires, 30 occur on weekdays and all on the smaller
+endpoints, 17 in the console's 29 gate openings.
+The selected filters block a median $39\%$ of those windows' clients.
 
-\textbf{The comparison fixed in advance prefers the seasonal gate.} Behind it, the cross-fitted beta-binomial stays within the budget everywhere ($0.05$--$0.35\%$) and is preferred to the unseen filter as its own trigger on every endpoint. On the small endpoints it stops $68$--$88\%$ of 100 attackers on new stacks, versus $43\%$, and $34$--$66\%$ on shared ones, which the filter misses. On the busiest endpoint the preference rests on shared stacks alone, which the filter cannot name: it adds $11.4\%$ of the tenth-size botnet there but stops only $11.8\%$ on new ones, versus $89.6\%$. The unseen filter raised no false alarm, and the binomial scope with known fleets as its own trigger exceeded the budget there ($1.56\%$).
+\textbf{The pre-specified comparison favors the seasonal gate.}
+Behind it, the cross-fitted beta-binomial stays within the
+budget everywhere ($0.05$--$0.35\%$) and is preferred on
+every endpoint to the unseen filter without a gate. On the
+smaller endpoints, it covers $68$--$88\%$ of 100
+new-stack attackers, versus $43\%$ for the unseen filter,
+and $34$--$66\%$ on shared stacks,
+which the unseen filter cannot select.
+On the busiest endpoint, its advantage
+comes only from shared stacks:
+it adds $11.4\%$ coverage of the
+tenth-size botnet, but covers just $11.8\%$ of it on new
+stacks, versus $89.6\%$ for the filter. The unseen filter
+produces no false alarms, while
+the binomial scope with known fleets
+exceeds the budget there without a gate ($1.56\%$).
 
-\textbf{This WAF's verdicts cannot serve as labels.} The operator's WAF, the only source of labels at hand, blocked a median $9$--$63\%$ of each window's clients on E2 to E4, and none on E1. On windows that keep those clients, a profile built without them makes the scopes agree with the WAF by construction: a stable fingerprint is then enriched only if $70$--$88\%$ of its clients were blocked. With a profile of all clients, only $0.4$--$33\%$ of the clients the three calibrated scopes would block were also blocked by the WAF, below a random pick ($10$--$63\%$) on every endpoint. On the API and single sign-on, the scopes catch at most 2 of the WAF's 38 surges (Appendix~\ref{app:window}).
+\textbf{This WAF's verdicts cannot serve as labels.} The
+operator's WAF, the only source of labels at hand,
+blocks a median $9$--$63\%$ of
+clients per window on E2--E4,
+and none on E1. On windows that keep blocked clients, a
+profile without them makes the scopes reproduce WAF
+decisions by construction: a stable fingerprint is enriched
+only if $70$--$88\%$ of its clients were blocked. With a
+profile of all clients, only $0.4$--$33\%$ of the clients
+the three calibrated scopes would block were also blocked by
+the WAF, below the $10$--$63\%$ of a random pick on every
+endpoint. On the API
+and single sign-on, the scopes catch at most two of the
+WAF's 38 surges (Appendix~\ref{app:window}).
 
 %% ====================================================================
 \section{Discussion and Limitations}
@@ -483,34 +1139,173 @@ No gate$^{*}$       & binomial               & 0.97 & 0.00 & 4.38 & 1.04 & 89.6 
 Origin gate   & binomial              & 0.19 & 0.00 & 0.42 & 2.9  & 2.4  & 36.8 & 22.1 & 18.8 & 39.0 \\
 $\Omega$ gate & test                  & 0.26 & 0.00 & 0.69 & 0.0  & 0.0  & 29.4 & 22.0 & 16.8 & 46.6 \\
 Origin gate   & $z$-score             & 0.12 & 0.00 & 0.30 & 3.0  & 2.6  & 56.2 & 26.9 & 3.0  & 40.1 \\
-No gate       & unseen                & 0.00 & 0.00 & 0.00 & 89.6 & 0.0  & 43.2 & 0.0  & 2.7  & --   \\
-Seasonal gate & beta-bin.$^{\dagger}$ & 0.12 & 0.35 & 0.05 & 11.8 & 11.4 & 61.0 & 39.7 & 33.5 & 65.7 \\
-No gate       & binomial$^{a}$        & --   & 1.56 & --   & 89.6 & 67.7 & 43.4 & 4.5  & 1.2  & 4.3  \\
+No gate$^{*}$ & unseen                & 0.00 & 0.00 & 0.00 & 89.6 & 0.0  & 43.2 & 0.0  & 2.7  & --   \\
+Seasonal gate$^{*}$ & beta-bin.$^{\dagger}$ & 0.12 & 0.35 & 0.05 & 11.8 & 11.4 & 61.0 & 39.7 & 33.5 & 65.7 \\
+No gate$^{*}$ & binomial$^{a}$        & --   & 1.56 & --   & 89.6 & 67.7 & 43.4 & 4.5  & 1.2  & 4.3  \\
 \bottomrule
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize In \%. 16\,103 clean windows, each day calibrated on all earlier days. E2--E4: max. 100 attackers, Fl.\,1k, Coll.: pooled. $^{\dagger}$Cross-fitted. $^{a}$E1 alone.}
+{\footnotesize In \%. 16\,103 clean windows, calibrated on all earlier days. E2--E4: max. 100 attackers, Fl.\,1k, Coll.: pooled. $^{\dagger}$Cross-fitted. $^{*}$Post hoc. $^{a}$E1 alone.}
 \end{table}
 
-\textbf{Which configuration to recommend.} Two limits decide per endpoint: the calibration floor and the trigger's sensitivity. On the three small endpoints the cross-fitted beta-binomial names shared stacks only past 3 to 4 median windows and new stacks from 2 to 3, so for smaller botnets the fallback is a rate limit or a challenge to every client. \1~\textit{Now} our candidate is the cross-fitted beta-binomial behind the seasonal gate, with the fallback below its floor. It was built post hoc, but the comparison fixed in advance preferred it on every endpoint. On the same days it misfired in fewer windows than the binomial configuration (20 versus 31, though 14 versus none on the busiest endpoint) and stopped more of 100 attackers. Crowds of 1\,000 users trigger it in a third of windows, with light filters, and its misfires block a median two thirds of the window's clients. On its gate's other clean openings, $1.5\%$ of windows, the fallback acts, a cost outside the budget. The calibrated $z$-score misfired as often and fired on fewer crowds, but stopped less. On the busiest endpoint the beta-binomial gives up most new-stack detection, which the unseen filter as its own trigger keeps with no false alarm. Running both there is untested. \2~\textit{Next}, a longer evaluation, since no later day has tested this choice: the binomial configuration misfires on weekdays, which a gate calibrated by day of the week may absorb, and the beta-binomial's misfires cluster on two days of the busiest endpoint. Whether a campaign at the floor exhausts the service depends on spare capacity, which we did not measure.
+\textbf{Which configuration to recommend.}
+Two factors guide the choice for each endpoint:
+the calibration floor and the trigger's sensitivity.
+On the three smaller endpoints, the cross-fitted
+beta-binomial selects shared stacks only above
+3 to 4 median windows and new stacks from 2 to 3. Our
+current candidate is the cross-fitted
+beta-binomial behind the seasonal gate, with the fallback
+below its floor. Although developed post hoc, it was fixed
+before the 14-day block, where the pre-specified comparison
+preferred it to the unseen filter on every endpoint. There
+it produced fewer
+false alarms than the
+binomial configuration (20 versus 31, though 14 versus none
+on the busiest endpoint) and stopped more of 100 attackers.
+Crowds of 1\,000 users triggered it in one third
+of windows, generally with lighter filters,
+while its misfires blocked a median two thirds of clients in
+their windows. On its gate's other clean openings ($1.5\%$
+of windows), the fallback would act, a cost not included in
+the false-alarm budget. The calibrated $z$-score misfired as
+often, with fewer crowd activations but lower attack
+coverage.
+On the busiest endpoint, the beta-binomial
+misses most new-stack attackers, whereas the unseen filter
+without a gate retains high coverage with no false alarm on
+the block.
+Running both there is untested.
 
-\textbf{What each evaluation shows.} The generator isolates the mechanism under mimicry imposed by construction. Its campaigns, a third to half of the window, are easier than the tenth-size case where production shows the gate failing, and its new stacks never appear in legitimate traffic, which is why an unseen filter matches the scope there. Production traffic measures false alarms on real clients, and detection only for an injected botnet of one shape (25 stacks, new, shared but mostly rare, or the endpoint's most common), over 23 days of one operator's own endpoints, too few to calibrate a weekly cycle. The five choices of Section~\ref{sec:configs} were made on the days they are reported on, so only the held-out day and the block test them prospectively, and cross-fitting removes only the in-sample fit of the levels. Appendix~\ref{app:limitations} lists further limits.
+The next step is a longer evaluation, since no later day has
+tested this choice.
+The binomial configuration's misfires occur
+mainly on weekdays, suggesting a gate calibrated by day of
+the week may help.
+The beta-binomial's misfires also cluster
+on two days of the busiest endpoint.
+Whether an attack near the floor exhausts a service depends on its spare
+capacity, which we did not measure.
 
-\textbf{The scope needs the attack's fingerprint to differ.} A bot outside the threat model that presents a common fingerprint, or a fresh one per device, defeats it (Section~\ref{sec:results}), and an alarm then leads mostly to the fallback. Encrypted Client Hello~\cite{ietf2026ech} still exposes the inner \textit{ClientHello} to a defender terminating TLS, as assumed here. Profiles must also remain current: a release that gives many users a new fingerprint would immediately trip the unseen filter, a case not observed in 23 days. We injected neither a flash crowd concentrated on one client type, the harder case, nor an attacker that shapes the profile or the fleet exemption. Profiles should therefore be rebuilt from windows where the scope names nothing, and persistent new fingerprints should enter them only through operator action.
+\textbf{What each evaluation shows.}
+The generator isolates the selection mechanism
+under mimicry imposed by design.
+Its campaigns, a third to half of the origins in the windows
+they overlap, are easier than the tenth-size injections
+where the production gate mostly fails. Its new stacks
+never occur in legitimate traffic, which is why the unseen
+filter matches the test there. Production traffic
+measures false alarms on real clients, but
+attack coverage only for injected botnets
+with a fixed 25-stack structure: new stacks,
+mostly rare shared stacks, or the endpoint's
+most common fingerprints. The 23 days cover one operator's
+own endpoints, too few to calibrate a weekly cycle.
+The five choices in Section~\ref{sec:configs}
+were made on the reported test days,
+so only the held-out day and the 14-day
+block evaluate them prospectively.
+Cross-fitting removes the in-sample fitting
+of calibration levels but does not undo
+earlier configuration choices.
+Appendix~\ref{app:limitations} lists further limits.
 
-\textbf{What exchange loses, and what the ontology adds.} Of the standards we examined, STIX~2.1, DOTS and Flowspec lack a JA4 property in their core vocabularies, while OCSF records JA4 fingerprints in network events and in the evidence of findings~\cite{ocsf2025schema} but defines no filter or remediation over them. MISP's importer drops the fingerprints, which STIX~2.1 carries only in an extension the importer does not map to MISP's own JA4 object. A 2025 extension of the ACL model can match TLS client parameters but names no fingerprint~\cite{ietf2025mudtls}, and DOTS, whose filters reuse that model~\cite{dots2020data}, does not adopt it. Blocking by fingerprint therefore needs a JA4 match in DOTS filters and a JA4 property in STIX. The ontology adds nothing to detection accuracy or the trigger. It is the deployable specification carried into the evidence chain and compiled into a log-store query that reproduced the evaluated exports' address and /24-pair counts, and their JA4 pair counts where the WAF blocked no client (Appendix~\ref{app:repro}).
+\textbf{The scope requires distinguishable fingerprints.}
+A bot outside the threat model that uses
+a common legitimate fingerprint, or a
+different fingerprint on every device,
+evades selection (Section~\ref{sec:results}).
+An alarm then mainly invokes the fallback. Encrypted Client
+Hello~\cite{ietf2026ech} does not prevent
+a defender terminating TLS from observing
+the inner \textit{ClientHello}, as assumed
+here. Profiles must also remain current:
+a software release that introduces a new
+fingerprint for many legitimate clients
+would immediately trip the unseen filter, although
+we observed no such event over 23 days.
+We did not inject flash crowds concentrated
+on a single client type, which could be
+harder to distinguish, or attackers that
+manipulate the profile or fleet exemptions.
+Profiles should therefore be rebuilt from windows where the
+scope selects nothing, while
+persistent new fingerprints should enter
+the profile only after operator review.
+
+\textbf{What exchange loses, and what the ontology adds.}
+Of the standards examined, STIX~2.1, DOTS and BGP Flowspec
+define no JA4 property in their core vocabularies.
+OCSF records JA4 fingerprints in network
+events and finding evidence~\cite{ocsf2025schema} but
+defines no filter or remediation over them. The MISP
+importer
+drops fingerprints carried by a STIX~2.1
+extension because it does not map them
+to MISP's JA4 object. A 2025 extension
+of the ACL model supports matching TLS
+client parameters but does not define
+a fingerprint match~\cite{ietf2025mudtls}.
+DOTS reuses that model~\cite{dots2020data} without adopting
+the extension. Exchanging fingerprint rules would therefore
+need a JA4 match in DOTS filters and a JA4
+property in STIX. The ontology does not
+improve detection accuracy or trigger
+sensitivity. It is the deployable specification of the
+evidence and selected scope, compiled into log-store queries
+that reproduced the
+evaluated exports' address and /24-pair
+counts, and JA4-pair counts on the endpoint where the WAF
+blocked no client
+(Appendix~\ref{app:repro}).
 
 %% ====================================================================
 \section{Conclusion and Future Work}
 \label{sec:conclusion}
 
-Fingerprint scoping, a calibrated test on ontology-specified counts, pays off where attack fingerprints are rare among real clients, botnets pass the floor and the trigger fires. On generated stealthy campaigns, profile-relative scopes block $90\%$ of a botnet on up to 25 new stacks without labels and with no observed collateral, while the alarm's most common fingerprint blocks users once the botnet spans several stacks. On a CDN operator's traffic, legitimate fleets raise a calibration floor: a 25-stack botnet on rare shared fingerprints is named by the binomial test only past $8\%$ of the busiest endpoint's window and 4 to 19 median windows on the small ones.
+Calibrated TLS-fingerprint scoping, a test on
+ontology-specified counts, provides selective mitigation
+when attack fingerprints are rare among
+legitimate clients, botnets pass the floor, and the trigger
+fires. On generated stealthy campaigns,
+profile-relative selection blocks $90\%$ of attackers on up
+to 25 new stacks, without labels or observed collateral.
+Selecting the alarm's most common fingerprint instead blocks
+legitimate clients once
+the botnet spans several stacks. On production CDN traffic,
+legitimate fleets impose a calibration floor:
+a 25-stack botnet on rare shared fingerprints needs about
+$8\%$ of the busiest endpoint's median window,
+or 4 to 19 median windows on the smaller endpoints, before
+the binomial test selects them.
 
-The binomial configuration's false alarms stay at $0.1\%$ of clean windows on the days used to choose it, though its scope alone exceeds its budget there ($2.2\%$). On 14 later pre-specified days they double, still within budget, because the scope misfires in $13\%$ of gate openings. On those days two of three post hoc configurations held their budget. On the busiest endpoint, the gate lets most of a small botnet through. The unseen filter as its own trigger stops $90\%$ of it on new stacks with no false alarm, and there a cross-fitted beta-binomial behind a seasonal gate, preferred to the filter everywhere, adds shared stacks but loses most new ones. Next come weekday calibration, HTTP/2 attacks and a captured stealthy campaign.
+The binomial configuration misfires in $0.1\%$ of clean
+windows on the days used to configure it, although
+its scope alone exceeds the $1\%$ budget ($2.2\%$).
+Across 14 later pre-specified days, the scope misfires in
+$13\%$ of gate openings, so false alarms double to $0.19\%$,
+still within budget. Two of three post hoc configurations
+also stay within it.
+On the busiest endpoint, the gate misses most of a
+tenth-size botnet. Without a gate, the unseen filter blocks
+about $90\%$ of it on new stacks, with no false alarm on the
+14 days. On E1, the cross-fitted beta-binomial behind a
+seasonal gate, preferred to the filter everywhere, adds
+shared stacks but loses most new ones.
+Future work includes weekday-aware calibration, HTTP/2
+attacks and captured stealthy campaigns.
 
 \section*{Acknowledgment}
-We thank Azion Technologies (\url{https://www.azion.com/}) for authorizing the measurements and traffic statistics used here. The authors used an AI assistant (Claude, Anthropic) to draft and edit text in all sections, to extend the ontology and to write all code and figures. The authors reviewed and verified all content and take full responsibility for it.
+
+We thank Azion Technologies (\url{https://www.azion.com/})
+for authorizing the measurements and traffic statistics
+used in this study. The authors used an AI assistant
+(Claude, Anthropic) to draft and revise text throughout
+the manuscript, extend the ontology, and write all code and
+figures. All content was reviewed and verified
+by the authors, who take full responsibility for the
+work and its findings.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}

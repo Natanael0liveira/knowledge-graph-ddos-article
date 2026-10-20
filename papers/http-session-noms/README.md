@@ -33,8 +33,10 @@ the rest to Tables IV to VII and to the "Details of V-B", "V-C" and "V-D" paragr
 Section III keeps the trigger, the scope, its calibration and the floor; Ω is defined
 there in words and its equation and weights are in Appendix A.
 
-> **The body and the Acknowledgment end on page 8 with about one line to spare, and the
-> references (37) start below the Acknowledgment; page 12 is full.** The NOMS 2027 CFP allows 8 pages of main
+> **The body and the Acknowledgment end on page 8, the references (37) start below the
+> Acknowledgment, and page 12 is full: about one line to spare in all (round 75).** Sections I and
+> II fill pages 1 and 2's left column exactly, so a line cut or added there stretches that column;
+> cut from Section III onward. The NOMS 2027 CFP allows 8 pages of main
 > text plus references and an optional appendix, 12 in total. The Acknowledgment is
 > neither, so it must end on page 8. Submission is via JEMS3 by 9 November 2026, and the
 > PDF's author list must match the submission's registration.

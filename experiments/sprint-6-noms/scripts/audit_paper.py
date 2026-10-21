@@ -191,7 +191,7 @@ good = (all(v[0] for v in pw.values())
         and [round(pw[k][3] * 100) for k in ("attack_K1000", "attack_K50")] == [80, 75] and all(pw[k][4] == 0 for k in ("attack_K1000", "attack_K50"))
         and "Over 30 runs each, $\\Omega$ passes $\\tau_{\\mathrm{cluster}}$ in $77.8\\%$ and $85.7\\%$ of the 90 and 35 attack windows at $K = 1000$ and $50$, in $0.6\\%$ of 360 clean windows and in $80$--$100\\%$ of the flash crowds of 25 to 100 users" in TEXN
         and all(len(fired(k)[0][fired(k)[0].omega >= r["tau"]]) == len(fired(k)[1]) for k in ("attack_K1000", "attack_K50"))
-        and "names a filter in every attack window flagged by $\\Omega$ and blocks a median $75$--$80\\%$ of attackers, with no legitimate session hit." in TEXN)
+        and "selects a filter in every attack window flagged by $\\Omega$ and blocks a median $75$--$80\\%$ of attackers, with no legitimate session hit." in TEXN)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} App. E: the rule per window on generated traffic (former Table VIII) {[(k, round(v[1]*100, 1)) for k, v in pw.items()]}")
 chk("Omega-only clean false alarms", "0.6", r["clean"]["omega"]*100, pct)
 cal = W[(W.kind == "calib") & (W["size"] >= 5)]; to = cal["size"].quantile(0.99)
@@ -348,7 +348,7 @@ ma = lambda run, e: st_.median(FL[run][e][f]["new"]["min_attackers"] for f in tf
 lvl = lambda run, e: st_.median(FL[run][e][f]["level"] for f in tf)
 dA = lambda run, e, kind, M=25: st_.median(FPD[run][e][f][str(M)][kind]["min_attackers"] for f in tf)
 dF = lambda run, e, kind, M=25: st_.median(FPD[run][e][f][str(M)][kind]["min_fraction_of_window"] for f in tf)
-for e, lab in [("E1", "E1, RUM beacons"), ("E2", "E2, web console"), ("E3", "E3, API"), ("E4", "E4, SSO")]:
+for e, lab in [("E1", "E1, beacons"), ("E2", "E2, web console"), ("E3", "E3, API"), ("E4", "E4, sign-on")]:
     line = [l for l in TEX.splitlines() if l.strip().startswith(lab) and "&" in l]
     cl = [x.strip() for x in line[0].strip().rstrip("\\").split("&")] if line else []
     printed = ([cl[1]] + [re.search(r"10\^\{(-?\d+)\}", x).group(1) for x in cl[2:4]] + cl[4:8]) if len(cl) == 8 else cl
@@ -1117,7 +1117,7 @@ good = gotB == expB and [(r[0], r[1]) for r in rowsB] == [(t, sc) for t, sc, _, 
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} Table VII: 6 rows x 9 cells from production_tables_block.json" + ("" if good else f" got={gotB} exp={expB}"))
 good = (bz["clean_windows"] == 16103 and PB["folds"]["test"] == 14
         and "16\\,103 clean windows, calibrated on all earlier days. E2--E4: max. 100 attackers, Fl.\\,1k, Coll.: pooled." in TEXN
-        and "$^{a}$E1 alone.}" in TEX and "--min-calib-days 9" in (HERE / "results" / "heldout_block_protocol.md").read_text()
+        and "$^{a}$Run on E1 alone, so every cell of its row is E1's.}" in TEX and "--min-calib-days 9" in (HERE / "results" / "heldout_block_protocol.md").read_text()
         and "\\caption{The six configurations fixed in advance, on the 14-day block.}" in TEX)
 ok += good; bad += not good; print(f"{'OK ' if good else 'XX '} Table VII: caption and note, {bz['clean_windows']} clean windows")
 # V-D: the block's paragraph

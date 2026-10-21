@@ -41,44 +41,50 @@ OUT = os.path.dirname(os.path.abspath(__file__))
 def fig_operating(root):
     """False alarms against blocked share on production traffic, 100 attackers.
 
-    Drawn at print size (one column, 3.45 in). Black markers: test days, calibrated in
-    sample; grey, joined by an arrow to its in-sample point: the cross-fitted calibration.
-    The dashed line is the 1% false-alarm budget. The held-out day is left to Tables IV and
-    VI: its gate barely opened, so its zero rates would sit in the best corner of the plot.
+    Drawn at print size (one column, 3.45 in), with one rule per visual attribute so that
+    the legend is read once: the shape is the scope, a black marker sits behind a gate
+    (the origin gate, or the Omega gate for the base rule), a white one is the scope alone
+    as its own trigger, and a gray one is the cross-fitted calibration, joined by an arrow
+    to its in-sample point. The dashed line is the 1% false-alarm budget. The held-out day
+    is left to Tables IV and VI: its gate barely opened, so its zero rates would sit in the
+    best corner of the plot.
     """
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
     T = json.load(open(os.path.join(root, "experiments/sprint-6-noms/results/production_tables.json")))
-    scopes = [  # (label, run, key, marker, size)
-        ("base rule ($\\Omega$ gate)", "base", "enrichment|omega", "o", 16),
-        ("binomial configuration", "fleets", "union|origins", "D", 13),
-        ("$z$-score, calibrated", "base", "zcal|origins", "^", 18),
-        ("beta-binomial$^{*}$", "od", "union|origins", "h", 18),
-        ("unseen filter (origin gate)", "base", "unseen|origins", "P", 18),
-        ("scope alone, binomial$^{*}$", "fleets", "union|none", "*", 34),
-        ("scope alone, beta-binomial$^{*}$", "od", "union|none", "X", 18),
-        ("unseen filter alone$^{*}$", "fleets", "unseen|none", "s", 14),
+    shape = {"base": ("o", 16), "binomial": ("D", 13), "beta": ("s", 14), "z": ("^", 18), "unseen": ("v", 18)}
+    points = [  # (scope, behind a gate?, run, key, cross-fitted run or None)
+        ("base", True, "base", "enrichment|omega", "xfit"),
+        ("binomial", True, "fleets", "union|origins", "xfit_fleets"),
+        ("beta", True, "od", "union|origins", "xfit_od"),
+        ("z", True, "base", "zcal|origins", "xfit"),
+        ("unseen", True, "base", "unseen|origins", None),
+        ("binomial", False, "fleets", "union|none", "xfit_fleets"),
+        ("beta", False, "od", "union|none", "xfit_od"),
+        ("unseen", False, "fleets", "unseen|none", None),
     ]
-    xfit = [("fleets", "xfit_fleets", "union|origins", "D", 13), ("od", "xfit_od", "union|origins", "h", 18),
-            ("base", "xfit", "zcal|origins", "^", 18), ("od", "xfit_od", "union|none", "X", 18),
-            ("fleets", "xfit_fleets", "union|none", "*", 34), ("base", "xfit", "enrichment|omega", "o", 16)]
+
+    def style(gated, xfit):
+        # black: behind a gate; white: the scope alone; gray: cross-fitted, whichever the trigger
+        if xfit:
+            return dict(facecolors=BAR_GRAY, edgecolors=NAVY, linewidths=0.6)
+        return dict(facecolors=NAVY if gated else "white", edgecolors=NAVY, linewidths=0.6 if gated else 0.8)
+
     fig, axes = plt.subplots(1, 2, figsize=(3.45, 2.5), sharey=True)
     for ax, cell, title in ((axes[0], "new:A100", "new stacks"), (axes[1], "shared:A100", "shared stacks")):
         ax.axvline(1, color=CHANCE, lw=0.7, ls=(0, (3, 2)), zorder=1)
-        for lab, run, key, mk, s in scopes:
+        for scope, gated, run, key, xrun in points:
+            mk, s = shape[scope]
             r = T["test_days"][run]["all"][key]
-            # the base rule, the protocol's reference, is the one open marker, so it reads apart
-            # from the beta-binomial's filled hexagon at print size
-            ax.scatter(max(r["clean_rate"] * 100, 0.01), r[cell]["blocked"] * 100, marker=mk, s=s,
-                       facecolors="white" if key == "enrichment|omega" else NAVY, edgecolors=NAVY,
-                       linewidths=0.8 if key == "enrichment|omega" else 0.6, zorder=3,
-                       label=lab if ax is axes[0] else None)
-        for run0, run, key, mk, s in xfit:
-            r0, r = T["test_days"][run0]["all"][key], T["test_days"][run]["all"][key]
-            p0 = (max(r0["clean_rate"] * 100, 0.01), r0[cell]["blocked"] * 100)
-            p1 = (max(r["clean_rate"] * 100, 0.01), r[cell]["blocked"] * 100)
-            ax.annotate("", xy=p1, xytext=p0, zorder=2,
-                        arrowprops=dict(arrowstyle="-|>", color=CHANCE, lw=0.5, mutation_scale=5,
-                                        shrinkA=2.5, shrinkB=2.5))
-            ax.scatter(*p1, marker=mk, s=s, facecolors=BAR_GRAY, edgecolors=NAVY, linewidths=0.6, zorder=3)
+            p0 = (max(r["clean_rate"] * 100, 0.01), r[cell]["blocked"] * 100)
+            ax.scatter(*p0, marker=mk, s=s, zorder=3, **style(gated, False))
+            if xrun:
+                r1 = T["test_days"][xrun]["all"][key]
+                p1 = (max(r1["clean_rate"] * 100, 0.01), r1[cell]["blocked"] * 100)
+                ax.annotate("", xy=p1, xytext=p0, zorder=2,
+                            arrowprops=dict(arrowstyle="-|>", color=CHANCE, lw=0.5, mutation_scale=5,
+                                            shrinkA=2.5, shrinkB=2.5))
+                ax.scatter(*p1, marker=mk, s=s, zorder=3, **style(gated, True))
         ax.set_xscale("log")
         ax.set_xlim(0.007, 15)
         ax.set_xticks([0.01, 0.1, 1, 10])
@@ -90,7 +96,15 @@ def fig_operating(root):
         ax.spines[["top", "right"]].set_visible(False)
     axes[0].set_ylabel("% of 100 attackers blocked", fontsize=7, labelpad=1)
     axes[0].text(0.8, 99, "1% budget", fontsize=6.5, ha="right", va="top", color=CHANCE)
-    h, l = axes[0].get_legend_handles_labels()
+
+    def handle(mk, s, **kw):
+        return Line2D([], [], ls="", marker=mk, markersize=(s ** 0.5) * 0.95, **kw)
+    # left column: one shape per scope; right column: the three fills, as swatches no point uses
+    h = [handle(*shape[k], mfc=NAVY, mec=NAVY) for k in ("base", "binomial", "beta", "z", "unseen")]
+    h += [Patch(facecolor=NAVY, edgecolor=NAVY, lw=0.6), Patch(facecolor="white", edgecolor=NAVY, lw=0.8),
+          Patch(facecolor=BAR_GRAY, edgecolor=NAVY, lw=0.6)]
+    l = ["base rule ($\\Omega$ gate)", "binomial", "beta-binomial$^{*}$", "$z$-score, calibrated", "unseen filter",
+         "black: behind a gate", "white: the scope alone$^{*}$", "gray: cross-fitted$^{*}$"]
     # one x label for both panels, just under the tick labels, then a clear gap before the legend
     fig.tight_layout(pad=0.2, w_pad=0.5, rect=(0, 0.29, 1, 1))
     y0 = axes[0].get_position().y0
@@ -117,7 +131,7 @@ def fig_stops(root):
     T = json.load(open(os.path.join(root, "experiments/sprint-6-noms/results/production_tables.json")))
     S = T["sweep"]["fleets"]
     n0 = {"E1": 2983, "E2": 62, "E3": 41, "E4": 20}          # Table V, median origins per window
-    names = {"E1": "E1, RUM beacons (busiest)", "E2": "E2, web console", "E3": "E3, API", "E4": "E4, SSO"}
+    names = {"E1": "E1, beacons (busiest)", "E2": "E2, web console", "E3": "E3, API", "E4": "E4, sign-on"}
     fig, axes = plt.subplots(2, 2, figsize=(3.45, 2.6), sharex=True, sharey=True)
     for ax, e in zip(axes.flat, ("E1", "E2", "E3", "E4")):
         pts = [(A, f"M25:A{A}") for A in (25, 50, 100, 250, 1000)]
@@ -129,7 +143,7 @@ def fig_stops(root):
         # what the scope names but the gate lets through: the paper's point on the busiest endpoint
         ax.fill_between(xs, conf, alone, where=[a > c for a, c in zip(alone, conf)], interpolate=True,
                         color="#d6d6d6", lw=0, zorder=1)
-        ax.plot(xs, alone, "--", color=CHANCE, lw=1.2, label="the scope alone would block")
+        ax.plot(xs, alone, "--", color=CHANCE, lw=1.2, label="the scope alone would block$^{*}$")
         ax.plot(xs, conf, "o-", color=NAVY, lw=1.2, ms=2.6, label="the configuration stops")
         ax.plot([0.1 * n0[e]], [-6], marker="^", color=NAVY, mfc="white", mew=0.6, ms=3.5, clip_on=False, zorder=4)
         ax.set_xscale("log")

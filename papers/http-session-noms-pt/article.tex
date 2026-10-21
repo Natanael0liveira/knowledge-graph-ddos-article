@@ -24,6 +24,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{colortbl}   % faixa no grupo do meio da Tabela VI
 \usepackage{array}
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
@@ -194,7 +195,7 @@ Usamos três fontes de tráfego, cada uma respondendo a uma pergunta diferente. 
 
 \subsection{Cenários e Conjuntos de Dados}
 
-\textbf{Avaliação controlada: tráfego sintético calibrado.} Um gerador produz campanhas distribuídas de Slow HTTP DoS contra um endpoint, com rótulos verdadeiros conhecidos. O seu parâmetro principal é o \textit{grau de distribuição} $K$, o número de dispositivos controlados pelo atacante. Reportamos $K = 50$, uma botnet pequena cujas origens ficam, cada uma, abaixo do seu próprio limite de taxa, e $K = 1000$, espalhada por centenas de ASNs e prefixos, quase sem sinal por sessão. A popularidade das impressões digitais legítimas segue uma curva de Zipf com expoente $\alpha$, porque as populações reais são concentradas. Comparamos essa curva com $6{,}33$ milhões de requisições TLS registradas num ponto de presença de borda em produção da Azion Technologies\footnote{Medidas em 22 de agosto de 2026, a partir de um log de acesso que a plataforma já coleta. O extrato contém apenas as impressões digitais do software dos clientes e as suas frequências, sem endereço, host, URI, cabeçalho ou localidade.}: $495$ impressões digitais distintas, a mais comum com $38{,}4\%$ das requisições e as dez mais comuns com $93{,}8\%$. O começo da curva medida corresponde a $\alpha = 1{,}5$ e as suas dez primeiras a $\alpha = 2{,}0$, e usamos $\alpha = 1{,}5$ por padrão.
+\textbf{Avaliação controlada: tráfego sintético calibrado.} Um gerador produz campanhas distribuídas de Slow HTTP DoS contra um endpoint, com rótulos verdadeiros conhecidos. O seu parâmetro principal é o \textit{grau de distribuição} $K$, o número de dispositivos controlados pelo atacante. Reportamos $K = 50$, uma botnet pequena cujas origens ficam, cada uma, abaixo do seu próprio limite de taxa, e $K = 1000$, espalhada por centenas de prefixos /24, quase sem sinal por sessão. A popularidade das impressões digitais legítimas segue uma curva de Zipf com expoente $\alpha$, porque as populações reais são concentradas. Comparamos essa curva com $6{,}33$ milhões de requisições TLS registradas num ponto de presença de borda em produção da Azion Technologies\footnote{Medidas em 22 de agosto de 2026, a partir de um log de acesso que a plataforma já coleta. O extrato contém apenas as impressões digitais do software dos clientes e as suas frequências, sem endereço, host, URI, cabeçalho ou localidade.}: $495$ impressões digitais distintas, a mais comum com $38{,}4\%$ das requisições e as dez mais comuns com $93{,}8\%$. O começo da curva medida corresponde a $\alpha = 1{,}5$ e as suas dez primeiras a $\alpha = 2{,}0$, e usamos $\alpha = 1{,}5$ por padrão.
 
 Nenhuma medição publicada fixa como as botnets se espalham pelas pilhas, então variamos isso: $90\%$ da campanha se espalha por $M$ pilhas, uniformemente ao acaso, o caso mais difícil, em valor esperado, para apontar uma pilha com um dado $M$, e o restante por impressões digitais avulsas. O padrão é $M = 25$. Um modo \textit{compartilhado} sorteia as pilhas da cauda do perfil, que clientes reais também apresentam, e um modo \textit{adversarial} dá à botnet as impressões digitais legítimas mais comuns, como faria um bot que imita um navegador.
 
@@ -229,7 +230,7 @@ Beta-binomial & origens            & teste $\cup$ inéditas & beta-bin. & --    
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize $^{*}$\textit{Post hoc}: construída depois de o dia novo ter sido lido. $^{a}$No código antes de o dia ser lido, mas fora do seu protocolo.}
+{\footnotesize $^{*}$\textit{Post hoc}: construída depois de o dia novo ter sido lido. $^{a}$No código antes de o dia ser lido, mas fora do seu protocolo. Outros gatilhos: Tabela~\ref{tab:triggers}.}
 \end{table}
 
 Também reportamos o \textbf{dano colateral}, a fração do tráfego legítimo dentro do escopo: a taxa de falsos positivos do filtro que um operador implantaria. No tráfego de produção, cada configuração tem uma taxa de falsos alarmes (FA), a fração das janelas limpas em que ela produz um filtro (5\,643 nos dias de teste e 1\,152 no dia novo, deixando de fora as janelas com menos de $k_{\min}$ origens). O seu intervalo exato de 95\% supõe janelas independentes, embora os falsos alarmes se concentrem por dia. Cada alarme também tem um dano colateral (Col.), a fração dos clientes daquela janela que o filtro bloqueia, dado como a mediana sobre os alarmes. A taxa vezes o dano colateral médio é a fração esperada de clientes bloqueados por janela limpa.
@@ -255,13 +256,13 @@ Primeiro mostramos o mecanismo no tráfego gerado. No tráfego de produção, os
 \setlength{\tabcolsep}{1.0pt}
 \begin{tabular}{@{}lcccccccc@{}}
 \toprule
- & \multicolumn{3}{c}{\textbf{Teste binomial}} & \multicolumn{3}{c}{\textbf{Outros escopos}} & \multicolumn{2}{c}{\textbf{Aprend., TFP$=0$}} \\
+ & \multicolumn{3}{c}{\textbf{Teste binomial}} & \multicolumn{3}{c}{\textbf{Outros escopos}} & \multicolumn{2}{c}{\textbf{Aprend., TFP$\,{=}\,0$}} \\
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(l){8-9}
 \textbf{Cenário} & \textbf{Revoc.} & \textbf{TFP} & \textbf{$F_1$} & \textbf{Modal} & \textbf{Escore $z$} & \textbf{Inéditas} & \textbf{(d)} & \textbf{+ perfil} \\
 \midrule
 $M{=}1$                 & 89,8\% & 0,00\% & 0,946 & 89,8\% & 89,8\% & 89,8\% & 91,7\% & 85,9\% \\
 $M{=}5$                 & 90,0\% & 0,00\% & 0,948 & 0,0\%  & 90,0\% & 90,0\% & 88,6\% & 91,7\% \\
-$M{=}25$                & 90,3\% & 0,00\% & \textbf{0,949} & 0,0\% & 90,3\% & 90,3\% & 36,4\% & 87,4\% \\
+$M{=}25$                & 90,3\% & 0,00\% & 0,949 & 0,0\% & 90,3\% & 90,3\% & 36,4\% & 87,4\% \\
 $M{=}100$               & 38,6\% & 0,00\% & 0,556 & 0,0\%  & 80,4\% & 88,1\% & 17,6\% & 86,9\% \\
 $M{=}25$, comp.        & 85,4\% & 2,23\% & 0,910 & 0,0\%  & 89,9\% & 0,0\%  & --     & --     \\
 $M{=}25$, adversarial   & 30,4\% & 3,78\% & 0,452 & 3,6\%  & 57,3\% & 0,0\%  & 7,8\%  & 6,6\%  \\
@@ -295,7 +296,7 @@ O modelo aprendido precisa de rótulos que um operador não tem durante um ataqu
 \toprule
  & & \multicolumn{4}{c}{\textbf{Janelas limpas}} & \multicolumn{2}{c}{\textbf{Novas}} & \multicolumn{2}{c}{\textbf{Compartilhadas}} \\
 \cmidrule(lr){3-6}\cmidrule(lr){7-8}\cmidrule(l){9-10}
- & \textbf{Config.} & FA & Sem gat. & Col. & Fl.\,1k & $0{,}1\times$ & $1\times$ & $0{,}1\times$ & $1\times$ \\
+ & \textbf{Config.} & FA & Sem gat.$^{*}$ & Col. & Fl.\,1k & $0{,}1\times$ & $1\times$ & $0{,}1\times$ & $1\times$ \\
 \midrule
 \multicolumn{10}{@{}l}{\textit{Dias de teste, calibração em amostra}} \\
     & binomial         & 0,1 & 2,2 & 32,9 & 22,2 & 3,0 & 19,9 & 1,9 & 17,6 \\
@@ -309,7 +310,7 @@ O modelo aprendido precisa de rótulos que um operador não tem durante um ataqu
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize Em \%. FA, Sem gatilho, Fl.\,1k: janelas limpas. Col.: alarmes. Novas, Compartilhadas: bloqueado, janelas de ataque. $^{*}$\textit{Post hoc}. $0{,}1\times$, $1\times$: tamanho da botnet, em janelas medianas.}
+{\footnotesize Em \%. Col.: mediana sobre os alarmes. Novas, Compartilhadas: bloqueado, janelas de ataque. $^{*}$\textit{Post hoc}. $0{,}1\times$, $1\times$: tamanho da botnet, em janelas medianas.}
 \end{table}
 
 \begin{table}[t]
@@ -324,10 +325,10 @@ O modelo aprendido precisa de rótulos que um operador não tem durante um ataqu
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(l){7-8}
 \textbf{Endpoint} & $n_0$ & bin. & beta$^{*}$ & novas & comp. & novas & comp. \\
 \midrule
-E1, sinais RUM  & 2\,983  & $10^{-21}$ & $10^{-4}$ & 139/139 & 254/286   & 85/139 & 86/167 \\
+E1, sinais      & 2\,983  & $10^{-21}$ & $10^{-4}$ & 139/139 & 254/286   & 85/139 & 86/167 \\
 E2, console web & 62      & $10^{-73}$ & $10^{-2}$ & 139/139 & 1090/1041 & 56/114 & 84/168 \\
 E3, API         & 41      & $10^{-11}$ & $10^{-2}$ & 139/139 & 168/227   & 56/114 & 56/140 \\
-E4, SSO         & 20      & $10^{-4}$  & $10^{-2}$ & 84/84   & 84/114    & 56/56  & 84/84 \\
+E4, login único & 20      & $10^{-4}$  & $10^{-2}$ & 84/84   & 84/114    & 56/56  & 84/84 \\
 \bottomrule
 \end{tabular}
 
@@ -349,7 +350,7 @@ O piso cresce com o número de pilhas, de $2\%$ da janela mais movimentada com 5
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig6_stops.png}
-\caption{O que a configuração binomial detém, pelo tamanho de uma botnet de 25 pilhas em pilhas novas, dias de teste. Tracejado: o que o escopo sozinho bloquearia em toda janela. Sombreado: o que o gatilho de origens distintas deixa passar, a maior parte de uma botnet pequena no endpoint mais movimentado. Triângulo: um décimo da janela mediana.}
+\caption{O que a configuração binomial detém, pelo tamanho de uma botnet de 25 pilhas em pilhas novas, dias de teste. Tracejado: o que o escopo sozinho bloquearia em toda janela. Sombreado: o que o gatilho de origens distintas deixa passar, a maior parte de uma botnet pequena no E1. Triângulo: um décimo da janela mediana. $^{*}$\textit{Post hoc}.}
 \label{fig:stops}
 \end{figure}
 
@@ -370,8 +371,11 @@ Uma botnet apontada só é detida onde o gatilho de origens distintas também di
 De origens          & binomial               & 0,00 & 0,00 & 0,28 & 0,69 & 11,8 & 0,0  & 7,7  & 22,2 & 32,9 \\
                     & beta-bin.$^{*\dagger}$ & 0,14 & 0,00 & 0,28 & 0,00 & 11,9 & 0,0  & 8,3  & 10,9 & 2,0 \\
                     & inéditas               & 0,00 & 0,00 & 0,07 & 0,00 & 11,8 & 0,0  & 0,0  & 3,4  & 3,3 \\
+\rowcolor[gray]{0.90}
 Sazonal$^{*}$       & binomial               & 0,00 & 0,00 & 2,64 & 0,69 & 20,4 & 15,3 & 14,4 & 22,3 & 35,2 \\
+\rowcolor[gray]{0.90}
                     & beta-bin.$^{\dagger}$  & 0,07 & 0,00 & 0,21 & 0,00 & 20,4 & 15,3 & 15,1 & 10,9 & 16,9 \\
+\rowcolor[gray]{0.90}
                     & inéditas               & 0,00 & 0,00 & 0,00 & 0,00 & 20,4 & 15,3 & 0,0  & 3,4  & -- \\
 Sem gatilho$^{*}$   & binomial               & 0,97 & 0,00 & 4,38 & 1,04 & 89,6 & 89,7 & 61,1 & 22,4 & 32,6 \\
                     & beta-bin.$^{\dagger}$  & 0,90 & 1,74 & 1,46 & 1,39 & 89,7 & 90,1 & 65,7 & 11,0 & 6,6 \\
@@ -425,14 +429,14 @@ Sem gatilho$^{*}$   & binomial               & 0,97 & 0,00 & 4,38 & 1,04 & 89,6 
 De origens  & binomial              & 0,19 & 0,00 & 0,42 & 2,9  & 2,4  & 36,8 & 22,1 & 18,8 & 39,0 \\
 $\Omega$    & teste                 & 0,26 & 0,00 & 0,69 & 0,0  & 0,0  & 29,4 & 22,0 & 16,8 & 46,6 \\
 De origens  & escore $z$            & 0,12 & 0,00 & 0,30 & 3,0  & 2,6  & 56,2 & 26,9 & 3,0  & 40,1 \\
-Sem gatilho & inéditas              & 0,00 & 0,00 & 0,00 & 89,6 & 0,0  & 43,2 & 0,0  & 2,7  & --   \\
-Sazonal     & beta-bin.$^{\dagger}$ & 0,12 & 0,35 & 0,05 & 11,8 & 11,4 & 61,0 & 39,7 & 33,5 & 65,7 \\
-Sem gatilho & binomial$^{a}$        & --   & 1,56 & --   & 89,6 & 67,7 & 43,4 & 4,5  & 1,2  & 4,3  \\
+Sem gatilho$^{*}$ & inéditas              & 0,00 & 0,00 & 0,00 & 89,6 & 0,0  & 43,2 & 0,0  & 2,7  & --   \\
+Sazonal$^{*}$     & beta-bin.$^{\dagger}$ & 0,12 & 0,35 & 0,05 & 11,8 & 11,4 & 61,0 & 39,7 & 33,5 & 65,7 \\
+Sem gatilho$^{*}$ & binomial$^{a}$        & --   & 1,56 & --   & 89,6 & 67,7 & 43,4 & 4,5  & 1,2  & 4,3  \\
 \bottomrule
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize Em \%. 16\,103 janelas limpas, cada dia calibrado com todos os dias anteriores. E2--E4: máx. 100 atacantes, Fl.\,1k, Col.: agregados. Comp.: pilhas compartilhadas. $^{\dagger}$Calibração cruzada. $^{a}$Só o E1.}
+{\footnotesize Em \%. 16\,103 janelas limpas, cada dia calibrado com todos os dias anteriores. E2--E4: máx. 100 atacantes, Fl.\,1k, Col.: agregados. Comp.: pilhas compartilhadas. $^{\dagger}$Calibração cruzada. $^{*}$\textit{Post hoc}. $^{a}$Rodada só no E1, então todas as células da sua linha são do E1.}
 \end{table}
 
 \textbf{Qual configuração recomendar.} Dois limites decidem, endpoint a endpoint: o piso de calibração e a sensibilidade do gatilho. Nos três endpoints pequenos, a beta-binomial com calibração cruzada só aponta pilhas compartilhadas a partir de 3 a 4 janelas medianas e pilhas novas a partir de 2 a 3, então, para botnets menores, o recurso de contingência é um limite de taxa ou um desafio a todo cliente. \1~\textit{Agora}, o nosso candidato é a beta-binomial com calibração cruzada atrás do gatilho sazonal, com o recurso de contingência abaixo do seu piso. Ela foi construída \textit{post hoc}, mas a comparação fixada de antemão a preferiu em todo endpoint. Nos mesmos dias, ela disparou indevidamente em menos janelas que a configuração binomial (20 contra 31, embora 14 contra nenhuma no endpoint mais movimentado) e deteve uma parte maior de 100 atacantes. Picos de 1\,000 usuários a disparam em um terço das janelas, com filtros leves, e os seus disparos indevidos bloqueiam, em mediana, dois terços dos clientes da janela. Nas demais aberturas limpas do seu gatilho, $1{,}5\%$ das janelas, age o recurso de contingência, um custo fora do orçamento. O escore $z$ calibrado disparou indevidamente tantas vezes quanto ela e disparou em menos picos, mas deteve menos. No endpoint mais movimentado, a beta-binomial abre mão da maior parte da detecção de pilhas novas, que o filtro de impressões inéditas como gatilho próprio mantém sem falso alarme. Usar os dois ali não foi testado. \2~\textit{Depois}, uma avaliação mais longa, já que nenhum dia posterior testou essa escolha: a configuração binomial dispara indevidamente em dias úteis, o que um gatilho calibrado por dia da semana talvez absorva, e os disparos indevidos da beta-binomial se concentram em dois dias do endpoint mais movimentado. Se uma campanha no tamanho do piso esgota ou não o serviço depende da capacidade ociosa, que não medimos.

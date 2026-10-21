@@ -1,7 +1,7 @@
 # NOMS 2027 submission
 
 *TLS-Fingerprint Scoping of Application-Layer DDoS Mitigation: Calibration Floors and Collateral
-on a CDN Operator's Endpoints*, round 75 (`59a5b1a`, 2026-10-20). The title names what the paper
+on a CDN Operator's Endpoints*, round 76 (2026-10-20). The title names what the paper
 measures; the session ontology is the specification the count query is compiled from (Section III-E).
 
 ## Status
@@ -67,8 +67,8 @@ cites. The PDFs stay out of the repository while the paper is under review. Figu
     (https://jems3.sbc.org.br/noms2027), which the CFP and the TPC's announcement link (the
     Submission Guidelines page still says EDAS);
   - notification 15 February 2027, camera-ready 28 February 2027 (Montréal, 10–14 May 2027).
-- **Repository.** The public `main` and `noms-submission` are at `59a5b1a`, so Appendix F's URL
-  shows this version. `LICENSE` is the plain MIT text GitHub detects; `NOTICE` lists the files
+- **Repository.** The public `main` and `noms-submission` carry this version, so Appendix F's URL
+  shows it; push both after each commit (`git push origin noms-submission noms-submission:main`). `LICENSE` is the plain MIT text GitHub detects; `NOTICE` lists the files
   under their own licenses (the vendored LaTeX files under LPPL, the distributions derived from
   CICIDS2017).
 - **Acknowledgment.** It thanks Azion Technologies "for authorizing the measurements and traffic
@@ -108,7 +108,8 @@ cites. The PDFs stay out of the repository while the paper is under review. Figu
      table and figure regenerates from its make target, as Appendix F says;
    - give Listing 1 and Appendix E's weight variants a make target;
    - reconcile the two binding examples in `bindings/`, which treat WAF-blocked requests differently.
-6. **Portuguese version.** Port round 75 to the translation; the study guide already follows it.
+6. **Portuguese version.** Port round 75's text to the translation; its floats and the study guide
+   already follow round 76.
 
 ## Portuguese version
 

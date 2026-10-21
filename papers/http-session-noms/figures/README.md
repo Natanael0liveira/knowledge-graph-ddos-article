@@ -12,7 +12,7 @@ Portuguese copy and the script, so it waits until after submission. Until then t
 |---|---|---|---|
 | Fig. 1, the scoping pipeline | `fig1_scoping.png` | exported from `src-drawio/fig1_scoping.drawio` | III |
 | Fig. 2, what the binomial configuration stops | `fig6_stops.png` | `make_figures_en.py`, the `sweep` block of `production_tables.json` | V-C |
-| Fig. 3, the production operating points | `fig4_operating.png` | `make_figures_en.py`, `production_tables.json` (gray markers and arrows: cross-fitted) | V-D |
+| Fig. 3, the production operating points | `fig4_operating.png` | `make_figures_en.py`, `production_tables.json` (shape: the scope; black: behind a gate; white: the scope alone; gray, with an arrow: cross-fitted) | V-D |
 | Fig. 4, the cost model | `fig5_latency.png` | `make_figures_en.py`, `latency_summary.json` | App. D |
 | Listing 1, the evidence chain | `verbatim` block in `article.tex` | `experiments/sprint-6-noms/scripts/example_chain.py` | App. D |
 
@@ -75,8 +75,8 @@ grayscale printing and color-blind readers.
 
 | Hex | Where |
 |---|---|
-| `#1a1a1a` | Fig. 2's configuration line and tenth-size triangle; Fig. 3's in-sample markers and every marker edge; Fig. 4's class-count paths and reference slope |
-| `#bdbdbd` | Fig. 3's cross-fitted markers; Fig. 4's pair-edge paths |
+| `#1a1a1a` | Fig. 2's configuration line and tenth-size triangle; Fig. 3's black markers and every marker edge; Fig. 4's class-count paths and reference slope |
+| `#bdbdbd` | Fig. 3's cross-fitted fill; Fig. 4's pair-edge paths |
 | `#595959` | Fig. 2's dashed scope-alone line; Fig. 3's budget line, arrows and "1% budget" label |
 | `#000000` | Fig. 1's strokes, with `#595959` annotations |
 

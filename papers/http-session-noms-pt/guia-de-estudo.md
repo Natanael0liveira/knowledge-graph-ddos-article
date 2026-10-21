@@ -7,7 +7,7 @@ Este guia serve para entender o artigo a ponto de explicá-lo com as suas palavr
 tabela e figura e saber o que ele mostra e o que não mostra. A versão que vale é o artigo em
 inglês, `papers/http-session-noms/article.tex`, e as seções, tabelas e figuras citadas aqui são
 as dele. Os números vêm do artigo, que `make audit` confere contra os resultados. Esta versão
-acompanha o artigo da rodada 75 (2026-10-20).
+acompanha o artigo da rodada 76 (2026-10-20).
 
 ## Como usar este guia
 
@@ -750,12 +750,14 @@ Cada item traz a pergunta, como ler, o que tirar e o cuidado. A ordem é a do ar
 - **Pergunta:** qual configuração faz o melhor acordo entre falsos alarmes e detecção?
 - **Como ler:** dois painéis, pilhas novas e compartilhadas. No eixo horizontal, os falsos alarmes
   (% das janelas limpas, escala logarítmica). No vertical, a porcentagem barrada de 100 atacantes.
-  O melhor canto é em cima à esquerda, e a linha tracejada vertical é o orçamento de 1%. Preto: os
-  dias de teste em amostra. Cinza: a calibração cruzada, com uma seta saindo do ponto em amostra.
-  *Alone*: sem gate. O círculo vazado é a regra básica.
-- **O que tirar:** a binomial (o losango) fica perto de 0,1% de falsos alarmes e 38% em pilhas
-  novas. A beta-binomial sozinha (o X) chega a 86%, com 4,4% de falsos alarmes. Com a calibração
-  cruzada, ela vai para 1,1% e 66%, ainda um pouco acima do orçamento.
+  O melhor canto é em cima à esquerda, e a linha tracejada vertical é o orçamento de 1%. Três
+  regras leem a figura inteira. A forma é o escopo: círculo, a regra básica; losango, a binomial;
+  quadrado, a beta-binomial; triângulo para cima, o z-score; triângulo para baixo, o filtro de
+  inéditos. Preto é atrás de um gate, e branco é o escopo sozinho, sem gate (*the scope alone*).
+  Cinza é a calibração cruzada, com uma seta saindo do ponto em amostra.
+- **O que tirar:** a binomial (o losango preto) fica perto de 0,1% de falsos alarmes e 38% em
+  pilhas novas. A beta-binomial sozinha (o quadrado branco) chega a 86%, com 4,4% de falsos
+  alarmes. Com a calibração cruzada, ela vai para 1,1% e 66%, ainda um pouco acima do orçamento.
 - **Cuidado:** os 100 atacantes estão somados sobre os quatro serviços, e os pequenos pesam mais. O
   dia novo ficou fora da figura.
 
@@ -965,52 +967,84 @@ antes, nos mesmos 14 dias. Nenhum dia posterior a testou, e o artigo diz isso.
 
 ## 4.2 Glossário
 
-| Termo | O que é |
-|---|---|
-| *Adversarial* | botnet nos 25 fingerprints mais comuns do serviço, a fronteira do método |
-| Apontar (*selects*) | o escopo aponta um fingerprint quando o põe no filtro. O artigo diz *selects* |
-| *Background* | o modelo do normal: binomial ou beta-binomial |
-| *Base rule*, regra básica | a referência do protocolo, com o Ω gate e o teste binomial |
-| Beta-binomial | modelo que aceita origens chegando em grupos, com uma correlação φ (*post hoc*) |
-| Bloco | os 14 dias de 26/09 a 09/10, analisados com tudo fixado antes |
-| Bonferroni | dividir o nível pelo número de fingerprints testados |
-| Calibração cruzada (*cross-fitted*, `†`) | julgar cada dia de calibração contra o perfil dos outros dias |
-| Cobertura (*coverage*) | a fração da botnet injetada que a configuração barra, na média de todas as janelas de ataque, inclusive as que o gate perde. O artigo diz que o filtro *covers* essa fração |
-| Dano colateral (*Coll.*) | a fração dos clientes da janela que um falso alarme bloqueia, em mediana |
-| Dia novo (*held-out day*, *held*) | o nono dia, analisado com o protocolo fixado antes |
-| Em amostra (*in sample*) | calibrar e julgar com os mesmos dias |
-| Endpoint | o serviço protegido, E1 a E4 |
-| Escopo (*scope*) | o conjunto de fingerprints que o filtro bloqueia |
-| FA | *false alarms*: a fração das janelas limpas em que a configuração produz um filtro |
-| Falso alarme | a configuração produz um filtro numa janela limpa. Com gate, o gate abre e o escopo aponta algo. Sem gate, basta o escopo |
-| Fingerprint, JA4 | o resumo de como o software do cliente abre a conexão TLS |
-| *Fl. 1k* | a fração das janelas em que um pico de 1.000 usuários reais dispara a configuração |
-| Frota | clientes legítimos que chegam juntos, como robôs de monitoramento |
-| Frotas conhecidas (*known fleets*) | as frotas frequentes, postas numa lista de exceções |
-| Gate | o gatilho de volume que precisa abrir antes de o escopo agir |
-| Gatilho (*trigger*) | a condição que faz o sistema agir |
-| Janela limpa | janela sem botnet injetada, tomada como sem ataque. Janelas com menos de 5 origens ficam de fora |
-| Limite de enriquecimento (*enrichment limit*) | não se espera que fingerprints comuns demais fiquem três vezes acima do normal (acima de 1,2% do perfil, com 25 pilhas) |
-| *Lost to the gate* | na Fig. 2, o que o escopo apontaria e o gate deixa passar |
-| *New*, *Shared* | pilhas da botnet ausentes do tráfego legítimo, ou raras e usadas também por clientes reais |
-| Nível (λ_e) | o limite de improbabilidade do teste, calibrado por endpoint |
-| *No gate*, *scope alone*, *own trigger* | sem gate: o escopo age em toda janela e é o próprio gatilho |
-| Orçamento (*budget*) | no máximo 1% das janelas de calibração com falso alarme |
-| Origem | o endereço de rede (IP) de onde vem a sessão, contado uma vez por fingerprint que apresenta |
-| *Origin gate* | o gate de origens distintas, no percentil 99 |
-| Perfil | a distribuição normal dos fingerprints, medida em dias sem ataque |
-| Pico legítimo (*flash crowd*) | muitos usuários reais chegando de uma vez |
-| Pilha TLS (*stack*) | o software que produz um fingerprint |
-| Piso de calibração (*floor*) | o tamanho de botnet a partir do qual o escopo aponta uma pilha típica dela. Abaixo dele, o escopo ainda aponta as pilhas que o acaso deixou maiores |
-| *Post hoc* (`*`) | pensado depois de ver os dados |
-| Recurso (*fallback*) | o limite de taxa ou o desafio a todos, quando o escopo não aponta nada |
-| *Seasonal gate*, gate sazonal | gate que compara a janela com a mesma hora dos dias de calibração (*post hoc*) |
-| *Tenth-size*, 0.1×, 1× | uma botnet de um décimo da janela mediana, ou de uma janela inteira |
-| Teste binomial de enriquecimento | aponta um fingerprint três vezes acima do perfil e improvável por sorte |
-| União | o teste junto com o filtro de inéditos |
-| *Unseen*, filtro de inéditos | aponta fingerprints ausentes do perfil com pelo menos 5 origens |
-| z-score | regra mais simples relativa ao perfil, usada como comparação |
-| Ω, massa de coordenação | contagem ponderada de pares de origens que compartilham JA4, endpoint ou /24 |
+Os termos estão agrupados por tema. A primeira coluna é como o artigo escreve, em itálico; a
+segunda, como este guia diz em português.
+
+**O tráfego e o que se conta**
+
+| No artigo | Em português | O que é |
+|---|---|---|
+| *endpoint* (E1 a E4) | serviço | o serviço protegido. E1: sinais de monitoramento de usuários reais, o mais movimentado; E2: console web; E3: API; E4: login único |
+| *JA4 fingerprint* | fingerprint, impressão digital TLS | o resumo de como o software do cliente abre a conexão TLS: o "sotaque" do visitante |
+| *stack* | pilha TLS | o software que produz um fingerprint. Uma botnet usa poucas pilhas, repetidas em muitos aparelhos |
+| *origin* | origem | o endereço de rede (IP) de onde vem a sessão, contado uma vez por fingerprint que apresenta |
+| *window*, n₀ | janela, janela mediana | cinco minutos de um serviço, 288 por dia; n₀ é o tamanho típico de uma janela, em origens |
+| *clean windows* | janelas limpas | janelas sem botnet injetada, tomadas como sem ataque. Janelas com menos de 5 origens ficam de fora |
+| *fleet* | frota | clientes legítimos que chegam juntos, como robôs de monitoramento |
+| *flash crowd* (*Fl. 1k*) | pico legítimo | muitos usuários reais chegando de uma vez. *Fl. 1k* é a fração das janelas em que um pico de 1.000 usuários dispara a configuração |
+| *Ω*, *coordination mass* | massa de coordenação | contagem ponderada de pares de origens que compartilham JA4, endpoint ou /24. Mede sobretudo volume |
+
+**O gatilho: quando agir**
+
+| No artigo | Em português | O que é |
+|---|---|---|
+| *trigger*, *gate* | gatilho | a condição que faz o sistema agir. Se não dispara, nada é aplicado |
+| *distinct-origin gate* (*Origin gate*) | gate de origens distintas | dispara quando a janela passa do percentil 99 de origens das janelas normais (e tem pelo menos 5). É o gatilho da configuração binomial |
+| *base rule* (*Ω gate*) | regra básica | o gatilho pela massa Ω no percentil 99, com o teste binomial como escopo. É a referência dos protocolos |
+| *seasonal gate* | gate sazonal | compara as origens da janela com a mediana da mesma hora nos dias de calibração (*post hoc*) |
+| *No gate*, *the scope alone*, *own trigger* | sem gate, o escopo sozinho | o escopo age em toda janela e é o próprio gatilho (*post hoc*) |
+| *fallback* | recurso de contingência | o limite de taxa ou o desafio a todos, quando o gatilho dispara e o escopo não seleciona nada |
+
+**O escopo: quem bloquear**
+
+| No artigo | Em português | O que é |
+|---|---|---|
+| *scope* | escopo | o conjunto de fingerprints que o filtro vai bloquear ou desafiar, naquele serviço e naquela janela. Não é uma lista fixa: é recalculado a cada alarme, comparando o alarme com o perfil. Se uma botnet usa 25 pilhas raras, o escopo são esses 25 fingerprints: quem apresenta um deles é barrado, quem apresenta outro passa. Um bom escopo é estreito, pega os atacantes e quase nenhum cliente legítimo. Se o gatilho dispara e o escopo sai vazio, entra o recurso |
+| *selects* | selecionar (o guia diz "apontar") | o escopo seleciona um fingerprint quando o põe no filtro |
+| *modal fingerprint* | fingerprint modal | o fingerprint mais comum do alarme: a escolha óbvia, que falha quando a botnet se divide em várias pilhas |
+| *profile*, b(f) | perfil | a distribuição normal dos fingerprints, medida em dias sem ataque; b(f) é a fração de cada um |
+| *binomial (enrichment) test* | teste binomial de enriquecimento | seleciona um fingerprint pelo menos três vezes acima do perfil (ρ = 3) e improvável por acaso, no nível λₑ |
+| *Bonferroni* | correção de Bonferroni | dividir o nível pelo número de fingerprints testados, para não confundir coincidência com ataque |
+| *unseen filter* | filtro de inéditos | seleciona fingerprints ausentes do perfil com pelo menos 5 origens |
+| *union* | união | o teste junto com o filtro de inéditos: o escopo da configuração binomial |
+| *z-score* | escore z | uma regra mais simples relativa ao perfil, usada como comparação |
+| *known fleets* | frotas conhecidas | as frotas frequentes, postas numa lista de exceções: o escopo nunca as bloqueia |
+| *enrichment limit* | limite de enriquecimento | não se espera que fingerprints comuns demais fiquem três vezes acima do normal (acima de 1,2% do perfil, com 25 pilhas) |
+
+**A calibração: quão exigente ser**
+
+| No artigo | Em português | O que é |
+|---|---|---|
+| *level* λₑ | nível | o limite de improbabilidade do teste, calibrado por endpoint, no máximo 0,01 |
+| *false-alarm budget* | orçamento de falsos alarmes | no máximo 1% das janelas de calibração com falso alarme |
+| *background* | modelo do normal | o que o teste espera ver por acaso: binomial ou beta-binomial |
+| *beta-binomial* | beta-binomial | um modelo do normal mais tolerante que a binomial. A binomial supõe que cada origem escolhe o seu fingerprint sozinha, como moedas jogadas uma a uma. Em produção, frotas de clientes legítimos ligam juntas, e um fingerprint aparece em bloco, muito acima do que a binomial espera. Para não tratar isso como ataque, a binomial precisa de um nível exigentíssimo (10⁻²¹ no E1, mesmo com as frotas conhecidas isentas), que sobe o piso. A beta-binomial mede, nas janelas de calibração, uma correlação φ para cada fingerprint do perfil: o quanto os seus clientes tendem a chegar juntos. Com isso, o surto de uma frota fica dentro do esperado, o nível pode ser menos exigente (10⁻⁴ no E1) e o piso cai. Fingerprints fora do perfil seguem a binomial, porque não há como medir φ para eles. O preço, em amostra, foram mais falsos alarmes (19 dos 22 no console). Com a calibração cruzada, ela erra tão pouco quanto a binomial, com erros mais leves. É *post hoc* e é o modelo do candidato atual |
+| *in sample* | em amostra | calibrar e julgar com os mesmos dias |
+| *cross-fitted* (`†`) | calibração cruzada | julgar cada dia de calibração contra o perfil dos outros dias, como se julga um dia de teste |
+| *calibration floor* | piso de calibração | o tamanho de botnet a partir do qual o escopo seleciona uma pilha típica dela. Abaixo dele, o escopo ainda seleciona as pilhas que o acaso deixou maiores |
+
+**Os resultados: como se mede**
+
+| No artigo | Em português | O que é |
+|---|---|---|
+| *false alarm* (*FA*), *misfire* | falso alarme, disparo indevido | a configuração produz um filtro numa janela limpa: com gate, o gate abre e o escopo seleciona algo; sem gate, basta o escopo. FA é a fração das janelas limpas em que isso acontece |
+| *collateral* (*Coll.*) | dano colateral | a fração dos clientes da janela que um falso alarme bloqueia, em mediana |
+| *coverage*, *covers* | cobertura | a fração da botnet injetada que a configuração barra, na média de todas as janelas de ataque, inclusive as que o gate perde |
+| *New*, *Shared* | pilhas novas, compartilhadas | pilhas da botnet ausentes do tráfego legítimo, ou raras e usadas também por clientes reais |
+| *tenth-size* (*0.1×*), *1×* | botnet de um décimo, de uma janela | uma botnet de um décimo da janela mediana, ou de uma janela inteira |
+| *adversarial* | botnet adversarial | botnet nos 25 fingerprints mais comuns do serviço: a fronteira do método |
+| *lost to the gate* | perdido para o gate | na Fig. 2, o que o escopo selecionaria e o gate deixa passar |
+
+**Os testes fixados antes**
+
+| No artigo | Em português | O que é |
+|---|---|---|
+| *held-out day* (*held*) | dia novo | o nono dia, analisado com o protocolo fixado antes |
+| *14-day block* | bloco de 14 dias | os 14 dias de 26/09 a 09/10, analisados com tudo fixado antes |
+| *pre-specified* | fixado antes | escolhido antes de os dados serem lidos |
+| *post hoc* (`*`) | pensado depois | pensado depois de ver os dados (depois do dia novo) |
+| *binomial configuration* | configuração binomial | o gate de origens distintas com a união e as frotas conhecidas: a principal, fixada antes |
+| *current candidate* | candidato atual | a beta-binomial cruzada atrás do gate sazonal, com o recurso abaixo do piso; *post hoc*, fixado antes do bloco |
 
 **Siglas.** ALPN: o protocolo de aplicação pedido no *ClientHello*. ASN: o número da rede de
 origem. AUC: área sob a curva ROC. CDN: rede de distribuição de conteúdo. DOTS e Flowspec: canais

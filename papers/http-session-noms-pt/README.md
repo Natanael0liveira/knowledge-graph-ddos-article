@@ -1,9 +1,11 @@
 # NOMS paper, Portuguese version
 
-**Status: one round behind.** `article.tex` is a sentence-by-sentence Portuguese translation of
-the English article of round 74 (2026-10-18). The English paper is now at round 75 (`59a5b1a`,
-2026-10-20), a fluency rewrite of the whole body (the enrichment limit, "selects" and "covers",
-the abstract's 33–39%, Table VII's post hoc marks), which this translation has not followed yet.
+**Status: one round behind in its text.** `article.tex` is a sentence-by-sentence Portuguese
+translation of the English article of round 74 (2026-10-18). Round 75 (2026-10-20) rewrote the
+whole English body for fluency (the enrichment limit, "selects" and "covers", the abstract's
+33–39%, Table VII's post hoc marks), and this translation has not followed it yet. Round 76 changed
+the floats and one sentence of IV-A, and the translation has those changes, with Table VII's
+post hoc marks from round 75.
 
 **This is not the submission.** NOMS requires English and caps the main text at 8 pages;
 Portuguese runs longer, and that limit was not pursued here (14 pages). Submit the English
@@ -11,9 +13,9 @@ article. This copy exists for reading, internal review and discussion with reade
 Portuguese. Like the English PDF, `article.pdf` stays local while the paper is under review.
 
 The directory also holds `guia-de-estudo.md`, a study guide in Portuguese for the English paper,
-revised for round 75 (2026-10-20): from the story in 15 minutes to how the method works and to
-each table and figure, with a self-test at the end of each part. Its terms follow the English
-paper of round 75 ("limite de enriquecimento" for the enrichment limit), so where it differs from
+revised for round 76 (2026-10-20): from the story in 15 minutes to how the method works and to
+each table and figure, with a self-test at the end of each part. Its terms follow the current English
+paper ("limite de enriquecimento" for the enrichment limit), so where it differs from
 this translation, the translation is the one behind.
 
 ## How it was translated, and how to keep it in sync

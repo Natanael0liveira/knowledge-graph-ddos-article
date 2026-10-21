@@ -13,7 +13,7 @@
 %%   - over-length papers are rejected without review;
 %%   - registration and submission via JEMS3 (jems3.sbc.org.br/noms2027) by 9 November 2026;
 %%     the CFP links JEMS3, while its Submission Guidelines page still says EDAS.
-%% Current layout (round 75, 2026-10-19): main text and Acknowledgment pp.1-8,
+%% Current layout (round 76, 2026-10-20): main text and Acknowledgment pp.1-8,
 %% references pp.8-9, appendices pp.9-12, and p.12 is full. The Acknowledgment opens
 %% p.8's right column, but every body line also pushes the references and the
 %% appendix, and about one line is left in all, so any addition needs a matching cut.
@@ -29,6 +29,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{colortbl}   % bands Table VI's middle trigger group
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{url}
@@ -564,8 +565,8 @@ against one endpoint with known ground truth. Its main
 parameter is the \textit{degree of distribution} $K$, the
 number of devices controlled by the attacker. We report $K =
 50$, a small botnet whose origins each stay below their own
-rate limit, and $K = 1000$, spread across hundreds of ASNs
-and prefixes, with almost no per-session signal. Legitimate
+rate limit, and $K = 1000$, spread across hundreds of /24
+prefixes, with almost no per-session signal. Legitimate
 fingerprint popularity follows a
 Zipf distribution with exponent $\alpha$, as real client
 populations are concentrated.
@@ -698,7 +699,7 @@ Beta-binomial & origins            & test $\cup$ unseen & beta-bin. & --        
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize $^{*}$Post hoc: built after the held-out day was read. $^{a}$In the code before the day was read, but outside its protocol.}
+{\footnotesize $^{*}$Post hoc: built after the held-out day was read. $^{a}$In the code before the day was read, but outside its protocol. Other triggers: Table~\ref{tab:triggers}.}
 \end{table}
 
 We report \textbf{collateral damage} as the share
@@ -748,13 +749,13 @@ change over 14 pre-specified days.
 \setlength{\tabcolsep}{1.6pt}
 \begin{tabular}{@{}lcccccccc@{}}
 \toprule
- & \multicolumn{3}{c}{\textbf{Binomial test}} & \multicolumn{3}{c}{\textbf{Other scopes}} & \multicolumn{2}{c}{\textbf{Learned, FPR$=0$}} \\
+ & \multicolumn{3}{c}{\textbf{Binomial test}} & \multicolumn{3}{c}{\textbf{Other scopes}} & \multicolumn{2}{c}{\textbf{Learned, FPR${}=0$}} \\
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(l){8-9}
 \textbf{Scenario} & \textbf{Recall} & \textbf{FPR} & \textbf{$F_1$} & \textbf{Modal} & \textbf{$z$-score} & \textbf{Unseen} & \textbf{(d)} & \textbf{+ profile} \\
 \midrule
 $M{=}1$               & 89.8\% & 0.00\% & 0.946 & 89.8\% & 89.8\% & 89.8\% & 91.7\% & 85.9\% \\
 $M{=}5$               & 90.0\% & 0.00\% & 0.948 & 0.0\% & 90.0\% & 90.0\% & 88.6\% & 91.7\% \\
-$M{=}25$              & 90.3\% & 0.00\% & \textbf{0.949} & 0.0\% & 90.3\% & 90.3\% & 36.4\% & 87.4\% \\
+$M{=}25$              & 90.3\% & 0.00\% & 0.949 & 0.0\% & 90.3\% & 90.3\% & 36.4\% & 87.4\% \\
 $M{=}100$             & 38.6\% & 0.00\% & 0.556 & 0.0\% & 80.4\% & 88.1\% & 17.6\% & 86.9\% \\
 $M{=}25$, shared      & 85.4\% & 2.23\% & 0.910 & 0.0\% & 89.9\% & 0.0\% & -- & -- \\
 $M{=}25$, adversarial & 30.4\% & 3.78\% & 0.452 & 3.6\% & 57.3\% & 0.0\% & 7.8\% & 6.6\% \\
@@ -835,7 +836,7 @@ all of them for crowds of production clients, as shown next.
 \toprule
  & & \multicolumn{4}{c}{\textbf{Clean windows}} & \multicolumn{2}{c}{\textbf{New}} & \multicolumn{2}{c}{\textbf{Shared}} \\
 \cmidrule(lr){3-6}\cmidrule(lr){7-8}\cmidrule(l){9-10}
- & \textbf{Config.} & FA & No gate & Coll. & Fl.\,1k & $0.1\times$ & $1\times$ & $0.1\times$ & $1\times$ \\
+ & \textbf{Config.} & FA & No gate$^{*}$ & Coll. & Fl.\,1k & $0.1\times$ & $1\times$ & $0.1\times$ & $1\times$ \\
 \midrule
 \multicolumn{10}{@{}l}{\textit{Test days, calibrated in sample}} \\
     & binomial        & 0.1 & 2.2 & 32.9 & 22.2 & 3.0 & 19.9 & 1.9 & 17.6 \\
@@ -849,7 +850,7 @@ all of them for crowds of production clients, as shown next.
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize In \%. FA, No gate, Fl.\,1k: clean windows. Coll.: alarms. New, Shared: blocked, attack windows. $^{*}$Post hoc. $0.1\times$, $1\times$: botnet size, in median windows.}
+{\footnotesize In \%. Coll.: median over alarms. New, Shared: blocked, attack windows. $^{*}$Post hoc. $0.1\times$, $1\times$: botnet size, in median windows.}
 \end{table}
 
 \begin{table}[t]
@@ -864,10 +865,10 @@ all of them for crowds of production clients, as shown next.
 \cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(l){7-8}
 \textbf{Endpoint} & $n_0$ & bin. & beta$^{*}$ & new & shared & new & shared \\
 \midrule
-E1, RUM beacons & 2\,983  & $10^{-21}$ & $10^{-4}$ & 139/139 & 254/286 & 85/139 & 86/167 \\
+E1, beacons     & 2\,983  & $10^{-21}$ & $10^{-4}$ & 139/139 & 254/286 & 85/139 & 86/167 \\
 E2, web console & 62      & $10^{-73}$ & $10^{-2}$ & 139/139 & 1090/1041 & 56/114 & 84/168 \\
 E3, API         & 41      & $10^{-11}$ & $10^{-2}$ & 139/139 & 168/227 & 56/114 & 56/140 \\
-E4, SSO         & 20      & $10^{-4}$ & $10^{-2}$ & 84/84 & 84/114 & 56/56 & 84/84 \\
+E4, sign-on     & 20      & $10^{-4}$ & $10^{-2}$ & 84/84 & 84/114 & 56/56 & 84/84 \\
 \bottomrule
 \end{tabular}
 
@@ -945,7 +946,7 @@ only four or five do.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig6_stops.png}
-\caption{What the binomial configuration stops, by the size of a 25-stack botnet on new stacks, test days. Dashed: what the scope alone would block in every window. Shaded: what the distinct-origin gate lets through, most of a small botnet on the busiest endpoint. Triangle: a tenth of the median window.}
+\caption{What the binomial configuration stops, by the size of a 25-stack botnet on new stacks, test days. Dashed: what the scope alone would block in every window. Shaded: what the distinct-origin gate lets through, most of a small botnet on E1. Triangle: a tenth of the median window. $^{*}$Post hoc.}
 \label{fig:stops}
 \end{figure}
 
@@ -978,8 +979,11 @@ opens it in only $14$--$33\%$.
 Origin gate         & binomial               & 0.00 & 0.00 & 0.28 & 0.69 & 11.8 & 0.0  & 7.7  & 22.2 & 32.9 \\
                     & beta-bin.$^{*\dagger}$ & 0.14 & 0.00 & 0.28 & 0.00 & 11.9 & 0.0  & 8.3  & 10.9 & 2.0 \\
                     & unseen                 & 0.00 & 0.00 & 0.07 & 0.00 & 11.8 & 0.0  & 0.0  & 3.4  & 3.3 \\
+\rowcolor[gray]{0.90}
 Seasonal gate$^{*}$ & binomial               & 0.00 & 0.00 & 2.64 & 0.69 & 20.4 & 15.3 & 14.4 & 22.3 & 35.2 \\
+\rowcolor[gray]{0.90}
                     & beta-bin.$^{\dagger}$  & 0.07 & 0.00 & 0.21 & 0.00 & 20.4 & 15.3 & 15.1 & 10.9 & 16.9 \\
+\rowcolor[gray]{0.90}
                     & unseen                 & 0.00 & 0.00 & 0.00 & 0.00 & 20.4 & 15.3 & 0.0  & 3.4  & -- \\
 No gate$^{*}$       & binomial               & 0.97 & 0.00 & 4.38 & 1.04 & 89.6 & 89.7 & 61.1 & 22.4 & 32.6 \\
                     & beta-bin.$^{\dagger}$  & 0.90 & 1.74 & 1.46 & 1.39 & 89.7 & 90.1 & 65.7 & 11.0 & 6.6 \\
@@ -1143,7 +1147,7 @@ No gate$^{*}$ & binomial$^{a}$        & --   & 1.56 & --   & 89.6 & 67.7 & 43.4 
 \end{tabular}
 
 \vspace{2pt}
-{\footnotesize In \%. 16\,103 clean windows, calibrated on all earlier days. E2--E4: max. 100 attackers, Fl.\,1k, Coll.: pooled. $^{\dagger}$Cross-fitted. $^{*}$Post hoc. $^{a}$E1 alone.}
+{\footnotesize In \%. 16\,103 clean windows, calibrated on all earlier days. E2--E4: max. 100 attackers, Fl.\,1k, Coll.: pooled. $^{\dagger}$Cross-fitted. $^{*}$Post hoc. $^{a}$Run on E1 alone, so every cell of its row is E1's.}
 \end{table}
 
 \textbf{Which configuration to recommend.}
@@ -1380,11 +1384,11 @@ Admission runs per request and the $\Omega$ aggregation once per window, so we t
 Here the rule runs as deployed, per $W = 300$~s window and endpoint, and no threshold sees an attack or label. $\tau_{\mathrm{cluster}}$ is the 99th
 percentile of $\Omega$ over the windows of 30 attack-free runs, which also form the profile. False alarms are counted on 30 more runs, detection on default campaigns ($\alpha = 1.5$, $M = 25$) over windows with at least $k_{\min} = 5$ attackers, and a flash crowd retimes 25, 50 or 100 legitimate sessions from a third run into one window. We spread benign starts over 60~min as the generator otherwise packs them early.
 
-Over 30 runs each, $\Omega$ passes $\tau_{\mathrm{cluster}}$ in $77.8\%$ and $85.7\%$ of the 90 and 35 attack windows at $K = 1000$ and $50$, in $0.6\%$ of 360 clean windows and in $80$--$100\%$ of the flash crowds of 25 to 100 users. A flash crowd adds mass as a campaign does. The test separates them because generated crowds draw users from the benign mix the profile describes, whereas a surge on one client type is enriched, as production fleets show. With the test, the rule fires on no clean window (one-sided $95\%$ upper bound $0.8\%$) and no flash crowd, names a filter in every attack window flagged by $\Omega$ and blocks a median $75$--$80\%$ of attackers, with no legitimate session hit. With uniform weights $\Omega$ catches at least as many attack windows
+Over 30 runs each, $\Omega$ passes $\tau_{\mathrm{cluster}}$ in $77.8\%$ and $85.7\%$ of the 90 and 35 attack windows at $K = 1000$ and $50$, in $0.6\%$ of 360 clean windows and in $80$--$100\%$ of the flash crowds of 25 to 100 users. A flash crowd adds mass as a campaign does. The test separates them because generated crowds draw users from the benign mix the profile describes, whereas a surge on one client type is enriched, as production fleets show. With the test, the rule fires on no clean window (one-sided $95\%$ upper bound $0.8\%$) and no flash crowd, selects a filter in every attack window flagged by $\Omega$ and blocks a median $75$--$80\%$ of attackers, with no legitimate session hit. With uniform weights $\Omega$ catches at least as many attack windows
 ($78.9\%$ and $85.7\%$), and without its endpoint term $33.3\%$ and none, while flagging $53$--$100\%$ of flash crowds. A distinct-origin gate catches $82.2\%$ and $85.7\%$, and with the test no clean window or
 flash crowd.
 
-\textbf{Production traffic.} The exports contain no prefixes, so the scope is judged on JA4 alone. At level $0.01$, it names a filter in $60.1\%$ of clean windows when counted in connections, since one client opens many, and $26.9\%$ when counted in origins, because legitimate fleets switch on together. Calibrating $\lambda_e$ on the preceding days brings the base rule to $0.2\%$. The distinct-origin gate, which fires with $\Omega$ in 136 of the 181 clean windows where either fires, halves the base rule's false alarms with no loss of detection. At $\lambda_e = 10^{-60}$ the binomial test names a stack only past 15 to 18 origins. Fleets, such as a probe fleet active only in business hours, push $\lambda_e$ down, and without fleets exempted the test alone names a filter in $1.5$--$6.3\%$ of the next day's windows, often a fleet blocking about half of a window's clients.
+\textbf{Production traffic.} The exports contain no prefixes, so the scope is judged on JA4 alone. At level $0.01$, it selects a filter in $60.1\%$ of clean windows when counted in connections, since one client opens many, and $26.9\%$ when counted in origins, because legitimate fleets switch on together. Calibrating $\lambda_e$ on the preceding days brings the base rule to $0.2\%$. The distinct-origin gate, which fires with $\Omega$ in 136 of the 181 clean windows where either fires, halves the base rule's false alarms with no loss of detection. At $\lambda_e = 10^{-60}$ the binomial test selects a stack only past 15 to 18 origins. Fleets, such as a probe fleet active only in business hours, push $\lambda_e$ down, and without fleets exempted the test alone selects a filter in $1.5$--$6.3\%$ of the next day's windows, often a fleet blocking about half of a window's clients.
 
 \textbf{Details of V-B.} Windows with fewer than $k_{\min}$ origins, where no gate can open, are left out: 117 of E4's 1\,440 test-day windows, none on the held-out day. In attack windows the calibrated scopes block a median $0\%$ of legitimate clients and up to $71\%$ in the worst window of a small endpoint. Gate and scope misfire together more often than independence predicts for the post hoc beta-binomial and the calibrated $z$-score, in 22 and 20 windows versus 7.5 and 11.9 ($P < 10^{-4}$ and $P = 0.02$ for a Poisson count), and in 6 and 13 versus 1.8 and 4.6 cross-fitted. For the binomial configuration the excess is within chance, 5 versus 3.5 and 6 versus 3.2 cross-fitted ($P = 0.27$ and $0.10$). The expectation pools days per endpoint, so day-to-day variation alone can inflate the excess. The misfires of the other two also cluster by day, 13 of each on one day of the console, so exact intervals, which assume independent windows, understate their uncertainty. Under the binomial in sample, the shared-stack floor for 5 and 100 stacks is 50 and 1\,026 attackers on E1, 164 and 6\,158 on E2, 28 and 1\,017 on E3 and 17 and 454 on E4. For 25 stacks, fingerprints of rank 11 to 35 need 808 on E3 and 114 on E4, and those of rank 36 to 100 need 743, 1\,898, 227 and 84.
 

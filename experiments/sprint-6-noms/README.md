@@ -13,9 +13,10 @@ Every experiment added for the NOMS submission is here:
 
 Sprints 1–5 keep their own results.
 
-**The paper now.** Round 75 (`59a5b1a`, 2026-10-20): 12 pages, the main text and the Acknowledgment
+**The paper now.** Round 76 (2026-10-20): 12 pages, the main text and the Acknowledgment
 on pages 1–8, about one line to spare. `make audit`: 245 checks, 0 mismatches; `make
-block-report-check`: 21 of 21. The Portuguese translation follows round 74, the study guide round 75.
+block-report-check`: 21 of 21. The Portuguese translation follows round 74 in its text and round 76 in its floats; the study guide
+follows round 76.
 Layout and checklist: [`papers/http-session-noms/README.md`](../../papers/http-session-noms/README.md).
 
 ## Reproducing
@@ -108,7 +109,7 @@ as they were at the time:
   `block2` is the 14-day block;
 - section numbers are not round numbers: §19 is the round-13 review, §20–§25 are rounds 15, 17, 18,
   19, 21 and 23, §26–§31 rounds 25–30, §33 the held-out wording, §34–§50 rounds 31–47, §51–§63 rounds
-  49–61, §64 rounds 62–63, §65–§67 rounds 64–66, and §70–§78 rounds 67–75; §32, §68 and §69 are the
+  49–61, §64 rounds 62–63, §65–§67 rounds 64–66, and §70–§79 rounds 67–76; §32, §68 and §69 are the
   block.
 
 **Contents.** Experiments: [1 Latency](#1-latency) · [2 ML families](#2-ml-families) ·
@@ -127,7 +128,7 @@ The block: [32 Protocol](#32-the-held-out-block-fixed-before-its-export) ·
 [68 Export and report](#68-the-held-out-block-its-three-parts-and-the-report-written-before-the-reading) ·
 [69 In the paper](#69-the-block-in-the-paper).
 Review rounds: [§19, round 13](#19-what-the-round-13-review-verified-and-what-changed) to
-[§78, round 75](#78-round-75-an-authors-fluency-rewrite-fitted-back-into-8--4-pages).
+[§79, round 76](#79-round-76-a-review-of-every-figure-and-table).
 
 ## 1. Latency
 
@@ -3193,3 +3194,82 @@ preferred it to the unseen filter"; Table VII marks its three post hoc rows; "ne
 floor is a ramp); "loses its coverage lead"; "The shared-stack floor grows" (2% and 34% are the
 shared floors). 12 pages, the Acknowledgment at y = 521, about one line of slack; audit 245/0
 (Table VII's row labels updated), block report 21/21.
+
+## 79. Round 76: a review of every figure and table
+
+An outside review of the floats (kept out of the repository) scored each figure and table for
+clarity, need and redundancy, and asked to keep all four figures and seven tables, with Fig. 3 and
+Table VI as the priorities. A second reading, on pages rendered at print size (300 dpi), agreed on
+both and found three things that review missed: Fig. 1 still said "1% of windows name a filter"
+and "nothing named", the round-74 verb; Table III set 0.949 in bold with no explanation (the
+column's largest F1, 0.001 above the next); and Fig. 3 drew eight unrelated symbols, so one scope
+under two triggers got two unrelated shapes (diamond and star for the binomial, plus and square for
+the unseen filter). It declined three suggestions: Table IV's header already separates the
+clean-window columns from New and Shared, Fig. 1 already sets the offline calibration apart (its
+own box, dashed arrows), and a darker shading in Fig. 2 would wash out the "lost to the gate"
+label. Applied, each tested on a scratch copy first:
+- Fig. 3 follows three rules: the shape is the scope, a filled marker sits behind a gate (the origin
+  gate, or the Ω gate for the base rule), an open one is the scope alone, and gray is cross-fitted,
+  with the arrow from in sample. Same data and points; the PNG is 2 px shorter (1076 × 796).
+- Fig. 1 says "1% of windows get a filter" and "nothing selected", exported with the usual command
+  at the same 3104 × 797 px.
+- Table III drops the bold.
+- Table VI shades its middle trigger group (`colortbl`, gray 0.92), one `\rowcolor` line before each
+  row so that `make audit` still reads the rows. Extra space between the groups was tried and set
+  aside: 1 pt per gap moved the Acknowledgment 5 pt down, half the slack.
+Not applied, since each costs a line of the one left: the rows' roles in Table VII's note, and a
+note in Table II that the scopes also run behind the seasonal gate or with no gate. The Portuguese
+version takes the two figures and the two table changes. The layout is unchanged: 12 pages, the
+Acknowledgment at y = 521 on page 8's right column, REFERENCES at y = 631, every heading and
+caption in place; Figs. 2 and 4 regenerate byte for byte. `make audit`: 245/0; block report 21/21.
+
+A second, blind review (a reviewer who saw neither the first review nor what had changed, reading
+the same print-size crops and `article.tex`; its report is kept out of the repository) was stricter
+on every float and found, among others, four problems that held when checked:
+- the post hoc mark was uneven: Appendix E calls the scope alone's 2.2% post hoc, as §12 and §17
+  record, but Table IV's No gate column and Fig. 2's dashed line carried no mark;
+- the abstract's 39% sits in no float (Table III gives the modal scope's coverage, not its
+  collateral);
+- Table IV's pooled 0.1× and 1× columns are E1's values over four (11.8 → 3.0), while Fig. 3's 100
+  attackers are driven by the small endpoints (E1: 3.4%);
+- this round's own Fig. 3 still drew a sixth shape, a pentagon, for its rules, its open
+  cross-fitted markers differed from the in-sample ones only by a dark-gray edge, and its hexagon
+  read as a circle at print size; this round's own shading in Table VI fell on the candidate's
+  trigger group, so it could read as a highlight.
+Applied, with the layout unchanged (Acknowledgment at y = 521, REFERENCES at y = 631, every heading
+and caption in place):
+- IV-A says the K = 1000 campaign spreads "across hundreds of /24 prefixes": the generator draws
+  attacker ASNs from 12 values (64500-64511), and no scope reads the ASN;
+- Table IV marks "No gate*", and Fig. 2's legend and caption mark the dashed line post hoc; the
+  caption's "on the busiest endpoint" became "on E1" so that the mark fits its four lines;
+- Fig. 3 uses five distinct shapes (circle, diamond, square, up and down triangles), black for a
+  marker behind a gate, white for the scope alone and gray for every cross-fitted point, and the
+  legend shows the three fills as swatches;
+- Table VI separates its trigger groups with 1 pt of space; Table IV's note says the same in two
+  lines instead of three, which pays for it;
+- Fig. 1 writes "Pr[X ≥ c(f)]", as the text does ("compares" for "equates" made its box overflow,
+  so "equates" stays); Table V and Fig. 2 write "beacons" and "sign-on" instead of the undefined
+  RUM and SSO; Table III spaces "FPR = 0"; Table II's note points to Table VI for the other
+  triggers; Appendix E says "selects" where it still said "names".
+Not applied: Table VII's "whole row" (it left one word on a third line of the note; the row's
+configuration ran on E1 alone, which the mark already says); the collateral columns in Table III
+and the Table VII format for Table IV's coverage, both left for the authors; merging Fig. 3 into
+Table IV, removing Fig. 4 and compacting Fig. 1, which only gain space the paper does not need.
+`make audit`: 245/0, with the Table V row labels and Appendix E's "selects" updated; block report
+21/21. The Portuguese version takes every change, Table VII's round-75 post hoc marks included.
+
+The same reviewer, asked again after these changes, raised Fig. 3 from 2.5 to 3.5 and visual
+clarity from 3.5 to 4, judged the floats ready for submission, and found one cost the layout check
+had missed: Table VI's 1 pt gaps pushed a line off page 6's right column, whose leftover space then
+spread over its gaps (no badness-10000 warning, since IEEEtran's `\flushbottom` absorbs it). The
+gaps are gone again (the trigger names already open each group), and the line Table IV's shorter
+note saves now pays for Table VII's note, which says that row a ran on E1 alone, so every cell of
+it is E1's (an open item of the review). Pages 6 and 8 have the line counts and gaps they had
+before round 76; page 5's right column holds one line more, and page 7's right column one line
+fewer, with about 3 pt spread around the Section VI heading. Still open, for the authors: the collateral columns of Table III and Table VII's coverage
+format for Table IV.
+At the authors' request, Table VI bands its middle trigger group again (`colortbl`, gray 0.90, a
+little darker than the first 0.92 so that office printers keep it), as an alternating band that
+groups the triggers; it takes no height, and every column keeps its line count. The reviewer's
+caveat stands: a reader could take the band for emphasis on the seasonal gate, whose binomial row
+exceeds the budget on E2–E4 (2.64%).
